@@ -6,9 +6,9 @@ extends RigidBody3D
 @export var hover_damping := 5.0
 
 # Movement settings
-@export var thrust_power := 80.0
+@export var thrust_power := 50.0
 @export var reverse_power := 40.0
-@export var max_speed := 50.0
+@export var max_speed := 30.0
 @export var air_brake_strength := 15.0
 @export var turn_speed := 3.0
 
@@ -21,6 +21,11 @@ extends RigidBody3D
 @export var visual_pitch_amount := 10.0  # Degrees of pitch when moving stick
 @export var visual_smooth_speed := 8.0  # How fast visual catches up
 
+# Hover pulse effect (add this section)
+@export var hover_pulse_amount := 0.10  # How much vertical movement (meters)
+@export var hover_pulse_speed := 1.0  # How fast it pulses (Hz)
+@export var hover_pulse_min_speed := 0.3  # Pulse strength at max speed (0.0 = none, 1.0 = full)
+
 # References
 @onready var hover_points = $HoverPoints.get_children()
 @onready var visual_body = $VisualBody
@@ -31,7 +36,7 @@ var input_thrust := false
 var input_reverse := false
 var input_airbrake_left := 0.0
 var input_airbrake_right := 0.0
-
+var pulse_time := 0.0
 
 func _ready():
 	# Configure RigidBody
@@ -161,6 +166,20 @@ func update_visual_rotation(delta):
 	if not visual_body:
 		return
 	
+	# Update pulse time
+	pulse_time += delta
+	
+	# Calculate speed factor (0.0 at rest, 1.0 at max speed)
+	var forward = -global_transform.basis.z
+	var current_speed = abs(linear_velocity.dot(forward))
+	var speed_factor = clamp(current_speed / max_speed, 0.0, 1.0)
+	
+	# Calculate pulse strength (stronger when slow, weaker when fast)
+	var pulse_strength = lerp(1.0, hover_pulse_min_speed, speed_factor)
+	
+	# Calculate hover pulse (sine wave)
+	var pulse_offset = sin(pulse_time * hover_pulse_speed * TAU) * hover_pulse_amount * pulse_strength
+	
 	# Calculate target visual rotation
 	var target_rotation = Vector3.ZERO
 	
@@ -171,6 +190,9 @@ func update_visual_rotation(delta):
 	# Pitch from stick input
 	target_rotation.x = input_pitch * deg_to_rad(visual_pitch_amount)
 	
-	# Smoothly interpolate to target
+	# Smoothly interpolate rotation to target
 	visual_body.rotation.x = lerp(visual_body.rotation.x, target_rotation.x, visual_smooth_speed * delta)
 	visual_body.rotation.z = lerp(visual_body.rotation.z, target_rotation.z, visual_smooth_speed * delta)
+	
+	# Apply hover pulse to vertical position
+	visual_body.position.y = lerp(visual_body.position.y, pulse_offset, visual_smooth_speed * delta)

@@ -1,13 +1,47 @@
 [gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://f5edkxv6sao2"]
 
-[ext_resource type="Shader" uid="uid://cbb3glmn7fw62" path="res://shaders/grid_shader.gdshader" id="1_k2ygu"]
+[sub_resource type="Shader" id="Shader_242es"]
+code = "shader_type spatial;
+
+uniform vec4 grid_color : source_color = vec4(0.0, 0.8, 1.0, 1.0);  // Cyan
+uniform vec4 background_color : source_color = vec4(0.05, 0.05, 0.1, 1.0);  // Dark blue
+uniform float grid_size : hint_range(0.1, 10.0) = 1.0;  // Size of each grid square
+uniform float line_width : hint_range(0.01, 0.5) = 0.05;  // Thickness of lines
+uniform float major_grid_every : hint_range(0.0, 20.0) = 5.0;  // Thicker line every N squares
+uniform float major_line_width : hint_range(0.01, 1.0) = 0.1;
+
+void fragment() {
+    // Get world position (UV * object scale)
+    vec2 pos = UV * 100.0;  // Adjust 100.0 to match your track scale
+    
+    // Calculate grid
+    vec2 grid = abs(fract(pos / grid_size - 0.5) - 0.5) / fwidth(pos / grid_size);
+    float line = min(grid.x, grid.y);
+    
+    // Major grid lines
+    vec2 major_grid = abs(fract(pos / (grid_size * major_grid_every) - 0.5) - 0.5) / fwidth(pos / (grid_size * major_grid_every));
+    float major_line = min(major_grid.x, major_grid.y);
+    
+    // Combine lines
+    float grid_mask = 1.0 - min(line / line_width, 1.0);
+    float major_mask = 1.0 - min(major_line / major_line_width, 1.0);
+    
+    // Mix colors
+    vec3 color = background_color.rgb;
+    color = mix(color, grid_color.rgb, grid_mask * 0.3);  // Regular grid
+    color = mix(color, grid_color.rgb, major_mask * 0.6);  // Major grid brighter
+    
+    ALBEDO = color;
+    ROUGHNESS = 0.8;
+    METALLIC = 0.0;
+}"
 
 [resource]
 render_priority = 0
-shader = ExtResource("1_k2ygu")
+shader = SubResource("Shader_242es")
 shader_parameter/grid_color = Color(0, 0.8, 1, 1)
 shader_parameter/background_color = Color(0.05, 0.05, 0.1, 1)
-shader_parameter/grid_size = 0.4
+shader_parameter/grid_size = 0.1
 shader_parameter/line_width = 0.5
 shader_parameter/major_grid_every = 20.0
 shader_parameter/major_line_width = 1.0
