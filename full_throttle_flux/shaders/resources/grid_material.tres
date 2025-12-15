@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://f5edkxv6sao2"]
+
+[ext_resource type="Shader" uid="uid://cbb3glmn7fw62" path="res://shaders/grid_shader.gdshader" id="1_k2ygu"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_k2ygu")
+shader_parameter/grid_color = Color(0, 0.8, 1, 1)
+shader_parameter/background_color = Color(0.05, 0.05, 0.1, 1)
+shader_parameter/grid_size = 0.4
+shader_parameter/line_width = 0.5
+shader_parameter/major_grid_every = 20.0
+shader_parameter/major_line_width = 1.0

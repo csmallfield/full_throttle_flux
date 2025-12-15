@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3 uid="uid://eoiasjgf31v"]
+
+[ext_resource type="PackedScene" uid="uid://dsaejayu0oo8i" path="res://scenes/hover_ship.tscn" id="1_7knst"]
+[ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="1_c6jrw"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7237l"]
+size = Vector3(500, 1, 1000)
+
+[sub_resource type="Sky" id="Sky_c6jrw"]
+
+[sub_resource type="Environment" id="Environment_d1w0v"]
+sky = SubResource("Sky_c6jrw")
+
+[node name="TestTrack" type="Node3D"]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 2
+
+[node name="CSGBox3D" type="CSGBox3D" parent="StaticBody3D"]
+material_override = ExtResource("1_c6jrw")
+size = Vector3(500, 1, 1000)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_7237l")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 0, 0)
+shadow_enabled = true
+shadow_opacity = 0.47
+shadow_blur = 6.014
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_d1w0v")
+
+[node name="HoverShip" parent="." instance=ExtResource("1_7knst")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
