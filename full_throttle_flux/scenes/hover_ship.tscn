@@ -22,22 +22,22 @@ skeleton = NodePath("../..")
 
 [node name="FrontLeft" type="RayCast3D" parent="HoverPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0, 2.5)
-target_position = Vector3(0, -3, 0)
+target_position = Vector3(0, -5, 0)
 collision_mask = 2
 
 [node name="FrontRight" type="RayCast3D" parent="HoverPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0, 2.5)
-target_position = Vector3(0, -3, 0)
+target_position = Vector3(0, -5, 0)
 collision_mask = 2
 
 [node name="RearLeft" type="RayCast3D" parent="HoverPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0, -2.5)
-target_position = Vector3(0, -3, 0)
+target_position = Vector3(0, -5, 0)
 collision_mask = 2
 
 [node name="RearRight" type="RayCast3D" parent="HoverPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0, -2.5)
-target_position = Vector3(0, -3, 0)
+target_position = Vector3(0, -5, 0)
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]

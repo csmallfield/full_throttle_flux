@@ -50,7 +50,6 @@ curve = SubResource("Curve3D_c6jrw")
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
 collision_layer = 2
-collision_priority = 10.0
 polygon = PackedVector2Array(29.5362, 6.85131, 19.4312, 5.19895, 14.7408, 1.39621, -20.9098, 1.11431, -22.6042, 5.96914, -34.705, 5.81169, -33.9846, -0.0880833, 23.559, 0.262451)
 mode = 2
 path_node = NodePath("..")
