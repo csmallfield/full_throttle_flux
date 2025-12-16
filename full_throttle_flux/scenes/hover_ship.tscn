@@ -6,8 +6,9 @@
 [sub_resource type="BoxMesh" id="BoxMesh_kqgsd"]
 size = Vector3(1.5, 1, 5)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_3hi3g"]
-size = Vector3(1.5, 1, 5)
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wa4jd"]
+radius = 0.75
+height = 5.0
 
 [node name="HoverShip" type="RigidBody3D"]
 script = ExtResource("1_3hi3g")
@@ -41,7 +42,8 @@ target_position = Vector3(0, -5, 0)
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("BoxShape3D_3hi3g")
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_wa4jd")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 script = ExtResource("2_wa4jd")

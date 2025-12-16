@@ -3,12 +3,12 @@ extends RigidBody3D
 # Hover settings
 @export var hover_force := 50.0
 @export var hover_height := 1.5
-@export var hover_damping := 5.0
+@export var hover_damping := 8.0  # Increase from 5.0
 
 # Movement settings
 @export var thrust_power := 50.0
 @export var reverse_power := 40.0
-@export var max_speed := 50.0
+@export var max_speed := 35.0
 @export var air_brake_strength := 15.0
 @export var turn_speed := 6.0
 
@@ -43,6 +43,25 @@ func _ready():
 	gravity_scale = 0.0
 	linear_damp = 0.5
 	angular_damp = 2.0
+	
+	# Enable CCD to prevent tunneling at high speeds
+	continuous_cd = true
+	max_contacts_reported = 8
+	contact_monitor = true
+	
+	# Add safety margin to collision detection
+	if $CollisionShape3D and $CollisionShape3D.shape:
+		$CollisionShape3D.shape.margin = 0.04
+	
+	# Connect to collision signals for debugging
+	body_entered.connect(_on_body_entered)
+	body_exited.connect(_on_body_exited)
+
+func _on_body_entered(body):
+	print("Collision with: ", body.name)
+
+func _on_body_exited(body):
+	print("Left collision with: ", body.name)
 
 
 func _physics_process(delta):
@@ -86,10 +105,12 @@ func apply_hover_forces():
 			var force = raycast.global_transform.basis.y * force_strength
 			apply_force(force, raycast.global_position - global_position)
 			
-			# Add damping
+			# FIXED: Add damping in the direction of the surface normal, not just UP
+			var surface_normal = raycast.get_collision_normal()
 			var velocity_at_point = linear_velocity + angular_velocity.cross(raycast.global_position - global_position)
-			var damping_force = -velocity_at_point.y * hover_damping
-			apply_force(Vector3.UP * damping_force, raycast.global_position - global_position)
+			var velocity_along_normal = velocity_at_point.dot(surface_normal)
+			var damping_force = -velocity_along_normal * hover_damping * surface_normal
+			apply_force(damping_force, raycast.global_position - global_position)
 			
 			total_compression += compression
 	
@@ -123,7 +144,7 @@ func apply_pitch_control():
 
 func apply_steering(delta):
 	# Air brake turning (triggers)
-	var airbrake_input = input_airbrake_left - input_airbrake_left
+	var airbrake_input = input_airbrake_left - input_airbrake_right
 	
 	if abs(airbrake_input) > 0.1:
 		var brake_turn = airbrake_input * air_brake_strength
@@ -160,7 +181,7 @@ func align_to_surface(delta):
 		if rotation_axis.length() > 0.01:
 			var angle = current_up.angle_to(target_up)
 			# Reduced strength and speed-based damping
-			var alignment_strength = 5.0  # Was 10.0 - lower = less aggressive
+			var alignment_strength = 3.0  # Was 10.0 - lower = less aggressive
 			
 			# Reduce alignment force at high speed
 			var forward = -global_transform.basis.z

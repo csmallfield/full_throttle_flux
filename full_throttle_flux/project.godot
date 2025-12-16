@@ -81,6 +81,13 @@ ship_pitch_down={
 ]
 }
 
+[physics]
+
+common/physics_ticks_per_second=120
+common/max_physics_steps_per_frame=12
+3d/solver/contact_recycle_radius=0.001
+3d/solver/contact_max_separation=0.001
+
 [rendering]
 
 anti_aliasing/quality/msaa_2d=2
