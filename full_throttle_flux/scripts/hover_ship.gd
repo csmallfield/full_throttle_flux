@@ -8,9 +8,9 @@ extends RigidBody3D
 # Movement settings
 @export var thrust_power := 50.0
 @export var reverse_power := 40.0
-@export var max_speed := 30.0
+@export var max_speed := 50.0
 @export var air_brake_strength := 15.0
-@export var turn_speed := 3.0
+@export var turn_speed := 6.0
 
 # Pitch control
 @export var pitch_power := 2.0
@@ -152,14 +152,23 @@ func align_to_surface(delta):
 	if hits > 0:
 		average_normal = average_normal.normalized()
 		
-		# Smoothly rotate ship to match surface
+		# Smoothly rotate ship to match surface with damping
 		var target_up = average_normal
 		var current_up = global_transform.basis.y
 		var rotation_axis = current_up.cross(target_up)
 		
 		if rotation_axis.length() > 0.01:
 			var angle = current_up.angle_to(target_up)
-			apply_torque(rotation_axis.normalized() * angle * 10.0)
+			# Reduced strength and speed-based damping
+			var alignment_strength = 5.0  # Was 10.0 - lower = less aggressive
+			
+			# Reduce alignment force at high speed
+			var forward = -global_transform.basis.z
+			var current_speed = abs(linear_velocity.dot(forward))
+			var speed_factor = clamp(current_speed / max_speed, 0.0, 1.0)
+			alignment_strength = lerp(alignment_strength, alignment_strength * 0.3, speed_factor)
+			
+			apply_torque(rotation_axis.normalized() * angle * alignment_strength)
 
 
 func update_visual_rotation(delta):

@@ -14,8 +14,8 @@ sky = SubResource("Sky_c6jrw")
 [sub_resource type="Curve3D" id="Curve3D_c6jrw"]
 closed = true
 _data = {
-"points": PackedVector3Array(27.0491, -2.18915, -66.6403, -27.0491, 2.18915, 66.6403, -48, 15.1848, -244, 15.5606, -3.34801, -42.6443, -15.5606, 3.34801, 42.6443, -111.446, 10.7869, -78.2445, 11.2815, -4.79079, -34.9339, -11.2815, 4.79079, 34.9339, -157.419, 11.9748, 178.988, -22.8322, -2.24004, -65.2111, 22.8322, 2.24004, 65.2111, -179.792, 18.9349, 356.399, -73.4975, -0.456894, -15.5776, 73.4975, 0.456894, 15.5776, -23.1452, 8.61223, 488.139, -9.24399, 0.862381, 47.338, 9.24399, -0.862381, -47.338, 154.325, 27.6623, 318.99, 39.2935, 0.486542, 32.0199, -39.2935, -0.486542, -32.0199, 106.004, 1.90949, 115.087, 15.2607, 2.93292, 44.9965, -15.2607, -2.93292, -44.9965, -10.7379, 2.36429, 62.4456, -31.6037, 0.20974, 39.5324, 31.6037, -0.20974, -39.5324, 72.2196, 1.04533, -103.993, -28.0306, 0.721649, 46.2456, 28.0306, -0.721649, -46.2456, 176.846, 1.09596, -199.23, 16.7075, -1.716, 47.2189, -16.7075, 1.716, -47.2189, 176.959, 4.17752, -346.94, 48.6722, -7.74675, -16.3034, -48.6722, 7.74675, 16.3034, 51.238, 9.35201, -327.725),
-"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+"points": PackedVector3Array(26.1079, 0.999886, -67.72, -26.1079, -0.999886, 67.72, -48, 15.1848, -244, 14.6111, 0.330643, -42.9905, -14.6111, -0.330643, 42.9905, -111.446, 10.7869, -78.2445, 7.45811, 0.859703, -47.9712, -7.45811, -0.859703, 47.9712, -188.149, 14.3223, 179.66, -22.8322, -2.24004, -65.2111, 22.8322, 2.24004, 65.2111, -179.792, 18.9349, 356.399, -75.4227, -0.60717, -8.00095, 75.4227, 0.60717, 8.00095, -23.1452, 22.3665, 488.139, -18.5775, 2.95005, 67.334, 18.5775, -2.95005, -67.334, 154.325, 27.6623, 318.99, 44.4498, 3.37059, 41.3612, -44.4498, -3.37059, -41.3612, 106.004, 5.89158, 115.087, 18.9205, 4.67459, 40.2104, -18.9205, -4.67459, -40.2104, -10.7379, 3.31195, 62.4456, -31.6037, 0.20974, 39.5324, 31.6037, -0.20974, -39.5324, 72.2196, 1.66027, -103.993, -28.0306, 0.721649, 46.2456, 28.0306, -0.721649, -46.2456, 176.846, 4.89456, -199.23, 16.7075, -1.716, 47.2189, -16.7075, 1.716, -47.2189, 176.959, 11.7741, -346.94, 50.9171, -0.464088, -18.8151, -50.9171, 0.464088, 18.8151, 51.238, 23.7783, -396.656),
+"tilts": PackedFloat32Array(0, -0.05, 0, -0.34, -0.35, -0.35, -0.12, 0, 0, -0.185, -0.27, -0.18)
 }
 point_count = 12
 
@@ -46,30 +46,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 [node name="Track" type="Path3D" parent="."]
 curve = SubResource("Curve3D_c6jrw")
 
-[node name="CSGPolygon3D" type="CSGPolygon3D" parent="Track"]
-material_override = ExtResource("1_c6jrw")
-use_collision = true
-collision_layer = 2
-polygon = PackedVector2Array(-11.196, -0.000499487, -10.7316, 0.333375, 8.57925, 0.277526, 8.89751, -0.0117371)
-mode = 2
-path_node = NodePath("..")
-path_interval_type = 0
-path_interval = 1.0
-path_simplify_angle = 1.0
-path_rotation = 2
-path_rotation_accurate = false
-path_local = false
-path_continuous_u = true
-path_u_distance = 100.0
-path_joined = true
-smooth_faces = true
-
 [node name="CSGPolygon3D2" type="CSGPolygon3D" parent="Track"]
-material_override = ExtResource("1_c6jrw")
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
 collision_layer = 2
-collision_priority = 100.0
-polygon = PackedVector2Array(8.44485, 0.0113652, 10.2507, 2.58993, 10.2962, 1.98332, 8.88234, 0.00308251)
+collision_priority = 10.0
+polygon = PackedVector2Array(29.5362, 6.85131, 19.4312, 5.19895, 14.7408, 1.39621, -20.9098, 1.11431, -22.6042, 5.96914, -34.705, 5.81169, -33.9846, -0.0880833, 23.559, 0.262451)
 mode = 2
 path_node = NodePath("..")
 path_interval_type = 0
@@ -79,23 +61,7 @@ path_rotation = 2
 path_rotation_accurate = false
 path_local = false
 path_continuous_u = true
-path_u_distance = 100.0
+path_u_distance = 0.0
 path_joined = false
-
-[node name="CSGPolygon3D3" type="CSGPolygon3D" parent="Track"]
-material_override = ExtResource("1_c6jrw")
-use_collision = true
-collision_layer = 2
-collision_priority = 100.0
-polygon = PackedVector2Array(-11.1878, 0.00507355, -11.9408, 2.14804, -11.8439, 2.82133, -10.5613, 0.259502)
-mode = 2
-path_node = NodePath("..")
-path_interval_type = 0
-path_interval = 1.0
-path_simplify_angle = 0.0
-path_rotation = 2
-path_rotation_accurate = false
-path_local = false
-path_continuous_u = true
-path_u_distance = 100.0
-path_joined = false
+smooth_faces = true
+material = ExtResource("1_c6jrw")
