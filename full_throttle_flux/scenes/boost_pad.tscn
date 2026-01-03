@@ -1,0 +1,80 @@
+[gd_scene load_steps=5 format=3 uid="uid://c8x2boost1pad"]
+
+[ext_resource type="Script" uid="uid://chewdb3mn7qix" path="res://scripts/boost_pad.gd" id="1_script"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
+size = Vector3(8, 4, 12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
+transparency = 1
+albedo_color = Color(0.05, 0.05, 0.1, 0.9)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_chevron"]
+shading_mode = 0
+albedo_color = Color(1, 0.5, 0, 1)
+
+[node name="BoostPad" type="Area3D"]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+shape = SubResource("BoxShape3D_collision")
+
+[node name="BasePad" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+size = Vector3(8, 0.05, 12)
+material = SubResource("StandardMaterial3D_base")
+
+[node name="ChevronMesh" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+
+[node name="Chevron1_Left" type="CSGBox3D" parent="ChevronMesh"]
+transform = Transform3D(0.906308, 0, 0.422618, 0, 1, 0, -0.422618, 0, 0.906308, -1.5, 0, 4)
+size = Vector3(0.4, 0.08, 3.5)
+material = SubResource("StandardMaterial3D_chevron")
+
+[node name="Chevron1_Right" type="CSGBox3D" parent="ChevronMesh"]
+transform = Transform3D(0.906308, 0, -0.422618, 0, 1, 0, 0.422618, 0, 0.906308, 1.5, 0, 4)
+size = Vector3(0.4, 0.08, 3.5)
+material = SubResource("StandardMaterial3D_chevron")
+
+[node name="Chevron2_Left" type="CSGBox3D" parent="ChevronMesh"]
+transform = Transform3D(0.906308, 0, 0.422618, 0, 1, 0, -0.422618, 0, 0.906308, -1.5, 0, 1)
+size = Vector3(0.4, 0.08, 3.5)
+material = SubResource("StandardMaterial3D_chevron")
+
+[node name="Chevron2_Right" type="CSGBox3D" parent="ChevronMesh"]
+transform = Transform3D(0.906308, 0, -0.422618, 0, 1, 0, 0.422618, 0, 0.906308, 1.5, 0, 1)
+size = Vector3(0.4, 0.08, 3.5)
+material = SubResource("StandardMaterial3D_chevron")
+
+[node name="Chevron3_Left" type="CSGBox3D" parent="ChevronMesh"]
+transform = Transform3D(0.906308, 0, 0.422618, 0, 1, 0, -0.422618, 0, 0.906308, -1.5, 0, -2)
+size = Vector3(0.4, 0.08, 3.5)
+material = SubResource("StandardMaterial3D_chevron")
+
+[node name="Chevron3_Right" type="CSGBox3D" parent="ChevronMesh"]
+transform = Transform3D(0.906308, 0, -0.422618, 0, 1, 0, 0.422618, 0, 0.906308, 1.5, 0, -2)
+size = Vector3(0.4, 0.08, 3.5)
+material = SubResource("StandardMaterial3D_chevron")
+
+[node name="Chevron4_Left" type="CSGBox3D" parent="ChevronMesh"]
+transform = Transform3D(0.906308, 0, 0.422618, 0, 1, 0, -0.422618, 0, 0.906308, -1.5, 0, -5)
+size = Vector3(0.4, 0.08, 3.5)
+material = SubResource("StandardMaterial3D_chevron")
+
+[node name="Chevron4_Right" type="CSGBox3D" parent="ChevronMesh"]
+transform = Transform3D(0.906308, 0, -0.422618, 0, 1, 0, 0.422618, 0, 0.906308, 1.5, 0, -5)
+size = Vector3(0.4, 0.08, 3.5)
+material = SubResource("StandardMaterial3D_chevron")
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+light_color = Color(1, 0.5, 0, 1)
+light_energy = 2.0
+omni_range = 8.0
+omni_attenuation = 1.5

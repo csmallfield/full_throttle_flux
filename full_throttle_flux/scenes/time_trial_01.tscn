@@ -1,0 +1,110 @@
+[gd_scene load_steps=16 format=3 uid="uid://bml2byqjx44e3"]
+
+[ext_resource type="Script" uid="uid://bdc2b6nx314lu" path="res://scripts/race_controller.gd" id="1_1djkb"]
+[ext_resource type="PackedScene" uid="uid://d1u5hhcgev84t" path="res://scenes/trackGeo.tscn" id="2_5iw0i"]
+[ext_resource type="Script" uid="uid://bjd0mrhgkkoew" path="res://scripts/ag_ship_2097.gd" id="3_nyw6o"]
+[ext_resource type="PackedScene" uid="uid://du8cy2tcim5ko" path="res://assets/shipTest.glb" id="4_8171d"]
+[ext_resource type="Script" uid="uid://co7e31gm6i7fs" path="res://scripts/ag_camera_2097.gd" id="5_rryc1"]
+[ext_resource type="Script" uid="uid://crfocj0kfjqe6" path="res://scripts/hud_race.gd" id="6_pwacg"]
+[ext_resource type="Script" uid="uid://xxs3amfehq1e" path="res://scripts/debug_hud.gd" id="7_xxntp"]
+[ext_resource type="Script" uid="uid://c7f4xeaaeltus" path="res://scripts/pause_menu.gd" id="8_uy4xi"]
+[ext_resource type="Script" uid="uid://brut61km8kx5j" path="res://scripts/results_screen.gd" id="9_bqjku"]
+[ext_resource type="PackedScene" uid="uid://c8x2boost1pad" path="res://scenes/boost_pad.tscn" id="10_fx2td"]
+[ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="11_n1cjn"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.05, 0.05, 0.15, 1)
+sky_horizon_color = Color(0.2, 0.15, 0.3, 1)
+ground_bottom_color = Color(0.02, 0.02, 0.05, 1)
+ground_horizon_color = Color(0.2, 0.15, 0.3, 1)
+
+[sub_resource type="Sky" id="Sky_main"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 2
+sky = SubResource("Sky_main")
+ambient_light_source = 2
+ambient_light_color = Color(0.25, 0.25, 0.35, 1)
+ambient_light_energy = 0.4
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.2
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ship"]
+radius = 1.2
+height = 11.638672
+
+[node name="Race2097" type="Node3D"]
+
+[node name="RaceController" type="Node" parent="." node_paths=PackedStringArray("ship", "pause_menu")]
+script = ExtResource("1_1djkb")
+ship = NodePath("../AGShip2097")
+pause_menu = NodePath("../PauseMenu")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 50, 0)
+light_color = Color(1, 0.95, 0.9, 1)
+shadow_enabled = true
+shadow_blur = 2.0
+
+[node name="Track" parent="." instance=ExtResource("2_5iw0i")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
+
+[node name="AGShip2097" type="CharacterBody3D" parent="."]
+transform = Transform3D(0.94983023, 0, -0.31276596, 0, 1, 0, 0.31276596, 0, 0.94983023, -48.34865, 17.036798, -241.96548)
+collision_layer = 2
+script = ExtResource("3_nyw6o")
+max_speed = 120.0
+thrust_power = 65.0
+steer_speed = 1.345
+steer_slide = 10.0
+grip = 4.0
+airbrake_turn_rate = 0.5
+airbrake_grip = 0.5
+airbrake_drag = 0.98
+pitch_speed = 1.0
+max_pitch_angle = 10.0
+wall_bounce_retain = 0.9
+wall_rotation_force = 1.5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AGShip2097"]
+transform = Transform3D(0.585, 0, 0, 0, -2.5571161e-08, -0.585, 0, 0.585, -2.5571161e-08, 0, 0.4741478, 0.36390686)
+shape = SubResource("CapsuleShape3D_ship")
+
+[node name="ShipMesh" parent="AGShip2097" instance=ExtResource("4_8171d")]
+transform = Transform3D(1.3, 0, 0, 0, 1.3, 0, 0, 0, 1.3, 0, 0, 0)
+
+[node name="HoverRay" type="RayCast3D" parent="AGShip2097"]
+target_position = Vector3(0, -6, 0)
+
+[node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("ship")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 20, -236)
+fov = 65.0
+script = ExtResource("5_rryc1")
+ship = NodePath("../AGShip2097")
+
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("ship")]
+script = ExtResource("6_pwacg")
+ship = NodePath("../AGShip2097")
+
+[node name="DebugHUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("ship")]
+script = ExtResource("7_xxntp")
+ship = NodePath("../AGShip2097")
+
+[node name="PauseMenu" type="CanvasLayer" parent="." node_paths=PackedStringArray("debug_hud")]
+script = ExtResource("8_uy4xi")
+debug_hud = NodePath("../DebugHUD")
+
+[node name="ResultsScreen" type="CanvasLayer" parent="."]
+script = ExtResource("9_bqjku")
+
+[node name="BoostPad" parent="." instance=ExtResource("10_fx2td")]
+transform = Transform3D(-0.9882064, -0.040250532, 0.14774287, -0.03622611, 0.9988984, 0.02983104, -0.14878082, 0.024127085, -0.98857623, -194.35808, 1.0415039, 222.76703)
+
+[node name="StartFinishLine" parent="." instance=ExtResource("11_n1cjn")]
+transform = Transform3D(-0.9506884, -0.04912601, 0.30623215, -0.047146767, 0.9987917, 0.013861322, -0.30654305, -0.0012600371, -0.9518558, -45.395466, 15.62055, -249.69783)
