@@ -2,7 +2,13 @@ extends Area3D
 class_name StartFinishLine
 
 ## Detects when ships cross the start/finish line and triggers lap completion.
-## Also detects wrong-way crossings.
+## 
+## Anti-cheat features:
+## - First crossing only "starts" lap timing, doesn't complete a lap
+## - Wrong-way crossing activates penalty mode requiring extra valid crossing
+## - Short cooldown prevents physics jitter double-triggers
+## 
+## Detection uses velocity direction only (more reliable than position checks)
 
 @export_group("Visual Settings")
 
@@ -14,13 +20,19 @@ class_name StartFinishLine
 
 @export_group("Detection Settings")
 
-## How far ahead/behind the line to check for direction (world units)
-@export var direction_check_distance := 5.0
+## Minimum time between crossing detections (prevents physics jitter)
+## Keep this short - just enough to prevent double-triggers from same crossing
+@export var crossing_cooldown := 0.3
+
+## Enable detailed debug output
+@export var debug_enabled := true
 
 # Internal state
-var _last_ship_position: Vector3
-var _has_ship_position := false
 var _race_started := false
+var _first_crossing_done := false  # Has the ship crossed the line to "start" lap 1?
+var _penalty_mode := false  # Ship went wrong way, need extra crossing to clear
+var _last_crossing_time := -999.0  # Time of last processed crossing
+var _ship_inside := false  # Is ship currently inside the trigger area?
 
 func _ready() -> void:
 	# Connect to race manager
@@ -36,59 +48,109 @@ func _ready() -> void:
 
 func _on_race_started() -> void:
 	_race_started = true
-	_has_ship_position = false
+	_first_crossing_done = false
+	_penalty_mode = false
+	_last_crossing_time = -999.0
+	_ship_inside = false
+	if debug_enabled:
+		print("StartFinishLine: Race started, state reset")
 
 func _on_race_finished(_total_time: float, _best_lap: float) -> void:
 	_race_started = false
-	_has_ship_position = false
 
 func _on_body_entered(body: Node3D) -> void:
 	if not body is AGShip2097:
 		return
 	
-	var ship = body as AGShip2097
-	
-	# Store position for direction checking
-	if not _has_ship_position:
-		_last_ship_position = ship.global_position
-		_has_ship_position = true
+	if not _race_started:
 		return
 	
-	# Check if ship is moving in correct direction (forward through line)
-	var is_forward = _check_crossing_direction(ship)
+	# Prevent processing if ship is already considered "inside"
+	if _ship_inside:
+		if debug_enabled:
+			print("StartFinishLine: Ignoring entry - ship already inside")
+		return
 	
-	if is_forward and _race_started:
-		# Valid lap completion
-		RaceManager.complete_lap()
-		_play_crossing_effect()
-	elif not is_forward and _race_started:
-		# Wrong way!
-		RaceManager.wrong_way_warning.emit()
+	_ship_inside = true
 	
-	# Update position
-	_last_ship_position = ship.global_position
-
-func _on_body_exited(body: Node3D) -> void:
-	if body is AGShip2097:
-		_last_ship_position = body.global_position
-
-func _check_crossing_direction(ship: AGShip2097) -> bool:
-	"""Check if ship crossed in the forward direction"""
+	var ship = body as AGShip2097
 	
-	# Get the line's forward direction (local -Z in world space)
+	# Check cooldown
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - _last_crossing_time < crossing_cooldown:
+		if debug_enabled:
+			print("StartFinishLine: Ignoring - cooldown active (%.2f sec remaining)" % (crossing_cooldown - (current_time - _last_crossing_time)))
+		return
+	
+	# Get the line's forward direction (valid crossing direction)
 	var line_forward = -global_transform.basis.z
 	
-	# Vector from last position to current position
-	var movement = ship.global_position - _last_ship_position
+	# Use ONLY velocity to determine crossing direction
+	# This is more reliable than position checks which can be affected by
+	# exactly where the ship enters the trigger volume
+	var velocity_dot = ship.velocity.dot(line_forward)
+	var is_moving_forward = velocity_dot > 0
 	
-	# Dot product > 0 means moving in same direction as line forward
-	var dot = movement.dot(line_forward)
+	if debug_enabled:
+		print("StartFinishLine: === ENTRY DETECTED ===")
+		print("  Line forward: ", line_forward)
+		print("  Ship velocity: ", ship.velocity)
+		print("  Velocity dot: %.2f (forward=%s)" % [velocity_dot, is_moving_forward])
+		print("  State: first_done=%s, penalty=%s" % [_first_crossing_done, _penalty_mode])
 	
-	return dot > 0
+	_last_crossing_time = current_time
+	
+	if is_moving_forward:
+		_handle_forward_crossing()
+	else:
+		_handle_wrong_way_crossing()
+
+func _on_body_exited(body: Node3D) -> void:
+	if not body is AGShip2097:
+		return
+	
+	_ship_inside = false
+	if debug_enabled:
+		print("StartFinishLine: Ship exited trigger area")
+
+func _handle_forward_crossing() -> void:
+	if not _first_crossing_done:
+		# First crossing - this "starts" lap 1, doesn't complete anything
+		_first_crossing_done = true
+		_play_crossing_effect()
+		print("StartFinishLine: *** First crossing - Lap 1 STARTED ***")
+		return
+	
+	if _penalty_mode:
+		# Ship went wrong way earlier, this crossing just clears the penalty
+		_penalty_mode = false
+		print("StartFinishLine: *** Penalty CLEARED - complete another lap to count ***")
+		return
+	
+	# Valid lap completion!
+	print("StartFinishLine: *** LAP COMPLETE! ***")
+	RaceManager.complete_lap()
+	_play_crossing_effect()
+
+func _handle_wrong_way_crossing() -> void:
+	if not _first_crossing_done:
+		# Haven't even started yet, ignore
+		if debug_enabled:
+			print("StartFinishLine: Wrong way ignored - race not started yet")
+		return
+	
+	# Only activate penalty if not already in penalty mode
+	# This prevents stacking penalties
+	if not _penalty_mode:
+		_penalty_mode = true
+		RaceManager.wrong_way_warning.emit()
+		print("StartFinishLine: *** WRONG WAY - Penalty activated! ***")
+	else:
+		if debug_enabled:
+			print("StartFinishLine: Wrong way (already in penalty mode)")
 
 func _play_crossing_effect() -> void:
-	# Flash the line brighter
-	var line_mesh = $LineMesh
+	var line_mesh = get_node_or_null("LineMesh")
 	if line_mesh and line_mesh is CSGBox3D:
 		var material = line_mesh.material as StandardMaterial3D
 		if material:
