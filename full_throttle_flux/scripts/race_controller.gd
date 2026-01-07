@@ -33,10 +33,10 @@ func _ready() -> void:
 	RaceManager.start_countdown()
 
 func _setup_now_playing_display() -> void:
-	# Add the NowPlayingDisplay to this scene
+	# Add the NowPlayingDisplay to this scene (deferred to avoid busy parent error)
 	var display_scene = preload("res://scenes/now_playing_display.tscn")
 	now_playing_display = display_scene.instantiate()
-	get_parent().add_child(now_playing_display)
+	get_parent().call_deferred("add_child", now_playing_display)
 
 func _physics_process(_delta: float) -> void:
 	if ship_locked and ship:

@@ -17,10 +17,10 @@ func _ready() -> void:
 	# Menu music should already be playing from main menu - no need to start it
 
 func _setup_now_playing_display() -> void:
-	# Add the NowPlayingDisplay to this scene
+	# Add the NowPlayingDisplay to this scene (deferred to avoid busy parent error)
 	var display_scene = preload("res://scenes/now_playing_display.tscn")
 	now_playing_display = display_scene.instantiate()
-	add_child(now_playing_display)
+	call_deferred("add_child", now_playing_display)
 
 func _create_ui() -> void:
 	# Main container

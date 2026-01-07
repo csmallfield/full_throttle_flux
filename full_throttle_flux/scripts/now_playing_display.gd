@@ -48,6 +48,7 @@ var _is_showing := false
 var _current_tween: Tween = null
 
 func _ready() -> void:
+	print("NowPlayingDisplay: _ready() called")
 	# Process even when game is paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -62,19 +63,34 @@ func _connect_signals() -> void:
 	if MusicPlaylistManager:
 		MusicPlaylistManager.track_started.connect(_on_track_started)
 		MusicPlaylistManager.music_stopped.connect(_on_music_stopped)
+		print("NowPlayingDisplay: Connected to MusicPlaylistManager signals")
+		
+		# Check if a track is already playing (we may have missed the signal)
+		if MusicPlaylistManager.is_playing():
+			var current = MusicPlaylistManager.get_current_track()
+			print("NowPlayingDisplay: Music already playing, current track: ", current)
+			if current:
+				_show_track_info(current)
+		else:
+			print("NowPlayingDisplay: No music currently playing")
 	else:
 		print("NowPlayingDisplay: MusicPlaylistManager not found!")
 
 func _create_ui() -> void:
-	# Create container
+	# Create a Control node to hold everything (needed for proper positioning in CanvasLayer)
+	var anchor_control = Control.new()
+	anchor_control.name = "AnchorControl"
+	anchor_control.set_anchors_preset(Control.PRESET_FULL_RECT)
+	anchor_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(anchor_control)
+	
+	# Create container positioned at bottom-left
 	_container = VBoxContainer.new()
 	_container.name = "NowPlayingContainer"
-	add_child(_container)
+	_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	anchor_control.add_child(_container)
 	
-	# Position in lower-left
-	_container.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	_container.position = Vector2(margin_left, -margin_bottom)
-	_container.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	# Position in lower-left - we'll set this after the viewport is ready
 	_container.add_theme_constant_override("separation", 2)
 	
 	# "NOW PLAYING" label
@@ -106,6 +122,14 @@ func _create_ui() -> void:
 	_artist_label.add_theme_constant_override("shadow_offset_x", 1)
 	_artist_label.add_theme_constant_override("shadow_offset_y", 1)
 	_container.add_child(_artist_label)
+	
+	# Position after layout is calculated
+	call_deferred("_update_position")
+
+func _update_position() -> void:
+	var viewport_size = get_viewport().get_visible_rect().size
+	_container.position = Vector2(margin_left, viewport_size.y - margin_bottom - 80)
+	print("NowPlayingDisplay: Positioned at ", _container.position, " (viewport: ", viewport_size, ")")
 
 func _process(delta: float) -> void:
 	if _is_showing:
@@ -123,6 +147,8 @@ func _on_music_stopped() -> void:
 	_fade_out()
 
 func _show_track_info(track: MusicTrack) -> void:
+	print("NowPlayingDisplay: Showing track - ", track.track_name, " by ", track.artist)
+	
 	# Update text
 	_track_name_label.text = track.track_name
 	_artist_label.text = track.artist

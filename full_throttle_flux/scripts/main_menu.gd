@@ -20,15 +20,21 @@ func _ready() -> void:
 	_start_music()
 
 func _start_music() -> void:
+	# Delay slightly to let NowPlayingDisplay connect its signals first
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
 	# Only start music if not already playing (e.g., coming from leaderboard screen)
+	print("MainMenu: _start_music called, is_playing=", MusicPlaylistManager.is_playing())
 	if not MusicPlaylistManager.is_playing():
 		MusicPlaylistManager.start_menu_music()
 
 func _setup_now_playing_display() -> void:
-	# Add the NowPlayingDisplay to this scene
+	# Add the NowPlayingDisplay to this scene (deferred to avoid busy parent error)
+	print("MainMenu: Setting up NowPlayingDisplay")
 	var display_scene = preload("res://scenes/now_playing_display.tscn")
 	now_playing_display = display_scene.instantiate()
-	add_child(now_playing_display)
+	call_deferred("add_child", now_playing_display)
 
 func _create_ui() -> void:
 	# Title

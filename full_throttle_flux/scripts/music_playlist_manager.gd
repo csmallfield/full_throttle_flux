@@ -288,6 +288,7 @@ func _play_track(track: MusicTrack, crossfade := true) -> void:
 	_current_track = track
 	_is_playing = true
 	
+	print("MusicPlaylistManager: Emitting track_started signal for: ", track.track_name)
 	track_started.emit(track)
 
 func _on_track_finished() -> void:
