@@ -8,3 +8,4 @@ script = ExtResource("1_hh0ah")
 audio_stream = ExtResource("1_stogj")
 track_name = "Jozi Loop"
 artist = "I Need Music"
+use_in_menu = false

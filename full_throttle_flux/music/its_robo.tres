@@ -7,3 +7,4 @@
 script = ExtResource("1_r80bw")
 audio_stream = ExtResource("1_a2n54")
 track_name = "It's Robo"
+use_in_race = false

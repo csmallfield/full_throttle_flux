@@ -8,3 +8,4 @@ script = ExtResource("1_e773f")
 audio_stream = ExtResource("1_84ll3")
 track_name = "Oh my Days"
 artist = "Ovani Sound"
+use_in_menu = false

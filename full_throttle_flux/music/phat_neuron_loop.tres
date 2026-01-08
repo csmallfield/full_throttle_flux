@@ -8,3 +8,4 @@ script = ExtResource("1_dumwk")
 audio_stream = ExtResource("1_8nvn3")
 track_name = "Phat Neuron Loop"
 artist = "I Need Music"
+use_in_menu = false

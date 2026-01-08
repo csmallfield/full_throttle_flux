@@ -8,3 +8,4 @@ script = ExtResource("1_1gqwg")
 audio_stream = ExtResource("1_hwupj")
 track_name = "Ginger Bread"
 artist = "Ovani Sound"
+use_in_menu = false

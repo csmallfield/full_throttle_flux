@@ -7,3 +7,4 @@
 script = ExtResource("1_e3g07")
 audio_stream = ExtResource("1_lji4w")
 track_name = "Hybrid"
+use_in_menu = false

@@ -8,3 +8,4 @@ script = ExtResource("1_0rh7l")
 audio_stream = ExtResource("1_1evb3")
 track_name = "Future Tense"
 artist = "Audimus"
+use_in_menu = false

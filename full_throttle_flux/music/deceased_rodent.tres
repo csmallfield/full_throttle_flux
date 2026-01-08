@@ -8,3 +8,4 @@ script = ExtResource("1_p0ga8")
 audio_stream = ExtResource("1_p5xv0")
 track_name = "Deceased Rodent"
 artist = "Ovani Sound"
+use_in_menu = false
