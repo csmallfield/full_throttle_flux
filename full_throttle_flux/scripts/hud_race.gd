@@ -4,7 +4,7 @@ class_name HUDRace
 ## Racing HUD displaying countdown, lap progress, timing, and speed
 ## Adapts display based on race mode (Time Trial vs Endless)
 
-@export var ship: AGShip2097
+@export var ship: Node3D # Changed to Node3D for broader compatibility, cast as needed
 
 @export_group("Speed Display")
 ## Multiplier to convert velocity units to displayed km/h
@@ -15,22 +15,94 @@ class_name HUDRace
 
 ## Minimum speed to display (hides tiny residual velocities)
 @export var speed_display_threshold := 0.5
+@export var max_gauge_speed := 1000.0
 
 # UI References
 var countdown_label: Label
 var lap_info_label: Label
 var lap_times_label: RichTextLabel
 var current_time_label: Label
-var speed_label: Label
 var fps_label: Label
 var mode_label: Label
+var speed_gauge: SpeedGauge
+
+# --------------------------------------------------------------------------------
+# INTERNAL CLASS: SPEED GAUGE
+# Handles drawing the arc, ticks, and needle using the CanvasItem API
+# --------------------------------------------------------------------------------
+class SpeedGauge extends Control:
+	var current_speed: float = 0.0
+	var max_speed: float = 1000.0
+	var radius: float = 80.0
+	var arc_color := Color(1, 1, 1, 0.2)
+	var needle_color := Color(1, 0.2, 0.2)
+	var text_color := Color(1, 0.8, 0)
+	
+	# Gauge angles (in degrees) - 135 to 405 gives a 270-degree dial starting bottom-left
+	const START_ANGLE_DEG = 135.0
+	const END_ANGLE_DEG = 405.0
+	
+	var _displayed_speed: float = 0.0
+	var _speed_label: Label
+
+	func _ready() -> void:
+		# Add a label inside the gauge for the digital readout
+		_speed_label = Label.new()
+		_speed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_speed_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_speed_label.add_theme_font_size_override("font_size", 24)
+		_speed_label.add_theme_color_override("font_color", text_color)
+		_speed_label.position = Vector2(-50, 20) # Offset slightly down from center
+		_speed_label.size = Vector2(100, 30)
+		add_child(_speed_label)
+
+	func update_speed(target_speed: float, delta: float) -> void:
+		# Smooth needle movement (Lerp)
+		_displayed_speed = lerpf(_displayed_speed, target_speed, delta * 5.0)
+		_speed_label.text = "%d" % int(target_speed) # Digital readout
+		queue_redraw() # Trigger _draw()
+
+	func _draw() -> void:
+		var center = Vector2.ZERO # Draw relative to the control's center
+		var start_rad = deg_to_rad(START_ANGLE_DEG)
+		var end_rad = deg_to_rad(END_ANGLE_DEG)
+		
+		# 1. Draw Background Arc
+		draw_arc(center, radius, start_rad, end_rad, 64, arc_color, 10.0, true)
+		
+		# 2. Draw Ticks (Major ticks every 100 units)
+		var total_angle = end_rad - start_rad
+		var major_step = 100.0
+		var num_ticks = int(max_speed / major_step)
+		
+		for i in range(num_ticks + 1):
+			var speed_val = i * major_step
+			var t = speed_val / max_speed
+			var angle = start_rad + (total_angle * t)
+			var dir = Vector2(cos(angle), sin(angle))
+			
+			# Draw tick line
+			draw_line(center + dir * (radius - 15), center + dir * radius, arc_color, 2.0)
+		
+		# 3. Draw Needle
+		var speed_fraction = clamp(_displayed_speed / max_speed, 0.0, 1.0)
+		var needle_angle = start_rad + (total_angle * speed_fraction)
+		var needle_dir = Vector2(cos(needle_angle), sin(needle_angle))
+		
+		draw_line(center, center + needle_dir * (radius - 5), needle_color, 4.0, true)
+		draw_circle(center, 5.0, needle_color) # Center cap
+
+# --------------------------------------------------------------------------------
+# MAIN HUD LOGIC
+# --------------------------------------------------------------------------------
 
 func _ready() -> void:
 	# Connect to RaceManager signals
-	RaceManager.countdown_tick.connect(_on_countdown_tick)
-	RaceManager.race_started.connect(_on_race_started)
-	RaceManager.lap_completed.connect(_on_lap_completed)
-	RaceManager.race_finished.connect(_on_race_finished)
+	if RaceManager:
+		RaceManager.countdown_tick.connect(_on_countdown_tick)
+		RaceManager.race_started.connect(_on_race_started)
+		RaceManager.lap_completed.connect(_on_lap_completed)
+		RaceManager.race_finished.connect(_on_race_finished)
 	
 	_create_ui_elements()
 	_reset_display()
@@ -107,19 +179,13 @@ func _create_ui_elements() -> void:
 	current_time_label.text = "00:00.000"
 	add_child(current_time_label)
 	
-	# Speed (bottom center)
-	speed_label = Label.new()
-	speed_label.name = "SpeedLabel"
-	speed_label.position = Vector2(1920/2 - 100, 1080 - 80)
-	speed_label.size = Vector2(200, 60)
-	speed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	speed_label.add_theme_font_size_override("font_size", 48)
-	speed_label.add_theme_color_override("font_color", Color(1, 0.8, 0))
-	speed_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	speed_label.add_theme_constant_override("shadow_offset_x", 2)
-	speed_label.add_theme_constant_override("shadow_offset_y", 2)
-	speed_label.text = "0 km/h"
-	add_child(speed_label)
+	# --- SPEED GAUGE SETUP ---
+	speed_gauge = SpeedGauge.new()
+	speed_gauge.name = "SpeedGauge"
+	# Position at bottom center
+	speed_gauge.position = Vector2(1920/2, 1080 - 120) 
+	speed_gauge.max_speed = max_gauge_speed
+	add_child(speed_gauge)
 	
 	# FPS counter (bottom right)
 	fps_label = Label.new()
@@ -135,25 +201,21 @@ func _create_ui_elements() -> void:
 	fps_label.text = "60 FPS"
 	add_child(fps_label)
 
-func _process(_delta: float) -> void:
-	_update_speed()
+func _process(delta: float) -> void:
+	_update_speed(delta)
 	_update_current_time()
 	_update_fps()
 
-func _update_speed() -> void:
-	if not ship:
-		speed_label.text = "0 km/h"
+func _update_speed(delta: float) -> void:
+	if not is_instance_valid(ship):
+		speed_gauge.update_speed(0.0, delta)
 		return
 	
 	var speed_raw = ship.velocity.length()
-	
-	# Apply threshold to avoid showing tiny residual velocities
-	if speed_raw < speed_display_threshold:
-		speed_label.text = "0 km/h"
-		return
-	
 	var speed_kmh = speed_raw * speed_display_multiplier
-	speed_label.text = "%d km/h" % int(speed_kmh)
+	
+	# Pass data to gauge (it handles its own visual smoothing)
+	speed_gauge.update_speed(speed_kmh, delta)
 
 func _update_fps() -> void:
 	var fps = Engine.get_frames_per_second()
@@ -184,8 +246,11 @@ func _reset_display() -> void:
 	
 	lap_times_label.text = ""
 	current_time_label.text = "00:00.000"
-	speed_label.text = "0 km/h"
 	countdown_label.visible = false
+	
+	# Reset gauge
+	if speed_gauge:
+		speed_gauge.update_speed(0.0, 1.0)
 
 # ============================================================================
 # SIGNAL HANDLERS
