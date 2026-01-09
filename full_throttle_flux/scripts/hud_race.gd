@@ -233,6 +233,12 @@ func _update_lap_times_display() -> void:
 	var best_displayed_time = RaceManager.get_best_displayed_lap_time()
 	
 	if RaceManager.is_endless_mode():
+		# Endless mode: show persistent best lap at the top
+		if RaceManager.best_lap_time < INF:
+			var best_time_str = RaceManager.format_time(RaceManager.best_lap_time)
+			lines.append("[color=#ffcc00][b]Best: %s[/b][/color]" % best_time_str)
+			lines.append("")  # Empty line for spacing
+		
 		# Endless mode: show last 5 laps with their actual lap numbers
 		# lap_times contains the rolling window of last 5
 		var total_completed = RaceManager.endless_all_lap_times.size()
@@ -244,8 +250,8 @@ func _update_lap_times_display() -> void:
 			var lap_num = first_displayed_lap + i
 			var time_str = RaceManager.format_time(time)
 			
-			# Bold best lap (using BBCode)
-			if time == best_displayed_time:
+			# Bold if this is the overall best lap
+			if time == RaceManager.best_lap_time:
 				lines.append("[b]Lap %d: %s[/b]" % [lap_num, time_str])
 			else:
 				lines.append("Lap %d: %s" % [lap_num, time_str])
