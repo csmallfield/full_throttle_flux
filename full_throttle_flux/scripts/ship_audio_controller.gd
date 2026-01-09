@@ -3,6 +3,7 @@ class_name ShipAudioController
 
 ## Dynamic Ship Audio System
 ## Handles layered engine sounds, boost effects, airbrakes, collisions, and wind
+## Respects global SFX volume from AudioManager
 ## 
 ## Engine system uses 3 layers (idle, mid, high) with crossfading and pitch shifting
 ## Responds to both throttle input (immediate) and actual velocity (ceiling)
@@ -181,7 +182,7 @@ func _load_stream(player: AudioStreamPlayer3D, path: String) -> void:
 
 func _start_engine() -> void:
 	# Start all engine layers (we'll control volume for crossfading)
-	_engine_idle.volume_db = engine_base_volume
+	_engine_idle.volume_db = _apply_sfx_offset(engine_base_volume)
 	_engine_mid.volume_db = -80.0
 	_engine_high.volume_db = -80.0
 	_engine_boost_layer.volume_db = -80.0
@@ -202,6 +203,14 @@ func _start_engine() -> void:
 	# Start scrape loop (silent initially)
 	_wall_scrape.volume_db = -80.0
 	_wall_scrape.play()
+
+# ============================================================================
+# VOLUME HELPER
+# ============================================================================
+
+## Apply the global SFX volume offset to a base volume
+func _apply_sfx_offset(base_db: float) -> float:
+	return base_db + AudioManager.get_sfx_db_offset()
 
 # ============================================================================
 # MAIN UPDATE
@@ -257,10 +266,11 @@ func _update_engine_sound(delta: float) -> void:
 	var mid_vol = _calculate_mid_layer_volume(speed_ratio)
 	var high_vol = _calculate_layer_volume(speed_ratio, high_fade_start, high_fade_full, false)
 	
-	# Apply volumes with smoothing
-	_engine_idle.volume_db = lerp(_engine_idle.volume_db, _linear_to_db(idle_vol) + engine_base_volume, engine_volume_smoothing * delta)
-	_engine_mid.volume_db = lerp(_engine_mid.volume_db, _linear_to_db(mid_vol) + engine_base_volume, engine_volume_smoothing * delta)
-	_engine_high.volume_db = lerp(_engine_high.volume_db, _linear_to_db(high_vol) + engine_base_volume, engine_volume_smoothing * delta)
+	# Apply volumes with smoothing and global SFX offset
+	var sfx_offset = AudioManager.get_sfx_db_offset()
+	_engine_idle.volume_db = lerp(_engine_idle.volume_db, _linear_to_db(idle_vol) + engine_base_volume + sfx_offset, engine_volume_smoothing * delta)
+	_engine_mid.volume_db = lerp(_engine_mid.volume_db, _linear_to_db(mid_vol) + engine_base_volume + sfx_offset, engine_volume_smoothing * delta)
+	_engine_high.volume_db = lerp(_engine_high.volume_db, _linear_to_db(high_vol) + engine_base_volume + sfx_offset, engine_volume_smoothing * delta)
 
 func _calculate_layer_volume(speed_ratio: float, start: float, end: float, fade_out: bool) -> float:
 	if fade_out:
@@ -298,12 +308,14 @@ func _calculate_mid_layer_volume(speed_ratio: float) -> float:
 # ============================================================================
 
 func _update_boost_effect(delta: float) -> void:
+	var sfx_offset = AudioManager.get_sfx_db_offset()
+	
 	if _boost_pitch_timer > 0:
 		_boost_pitch_timer -= delta
 		
 		# Boost layer volume based on remaining time
 		var boost_factor = _boost_pitch_timer / boost_pitch_duration
-		var target_boost_vol = lerp(-80.0, boost_layer_volume, boost_factor)
+		var target_boost_vol = lerp(-80.0, boost_layer_volume + sfx_offset, boost_factor)
 		_engine_boost_layer.volume_db = lerp(_engine_boost_layer.volume_db, target_boost_vol, 10.0 * delta)
 	else:
 		# Fade out boost layer
@@ -315,7 +327,7 @@ func trigger_boost() -> void:
 	
 	# Play boost surge one-shot
 	if _boost_surge.stream:
-		_boost_surge.volume_db = 0.0
+		_boost_surge.volume_db = _apply_sfx_offset(0.0)
 		_boost_surge.pitch_scale = randf_range(0.95, 1.05)
 		_boost_surge.play()
 
@@ -326,6 +338,7 @@ func trigger_boost() -> void:
 func _update_airbrake_sound(delta: float) -> void:
 	var is_airbraking = ship.is_airbraking
 	var brake_amount = max(ship.airbrake_left, ship.airbrake_right)
+	var sfx_offset = AudioManager.get_sfx_db_offset()
 	
 	# Detect airbrake engage
 	if is_airbraking and not _was_airbraking:
@@ -336,7 +349,7 @@ func _update_airbrake_sound(delta: float) -> void:
 	# Update airbrake wind volume based on brake amount and speed
 	if is_airbraking:
 		var speed_factor = ship.get_speed_ratio()
-		var target_wind_vol = lerp(-80.0, airbrake_wind_max_volume, brake_amount * speed_factor)
+		var target_wind_vol = lerp(-80.0, airbrake_wind_max_volume + sfx_offset, brake_amount * speed_factor)
 		_airbrake_wind.volume_db = lerp(_airbrake_wind.volume_db, target_wind_vol, 8.0 * delta)
 		
 		# Pitch increases slightly with speed
@@ -346,7 +359,7 @@ func _update_airbrake_sound(delta: float) -> void:
 
 func _play_airbrake_engage() -> void:
 	if _airbrake_hydraulic.stream:
-		_airbrake_hydraulic.volume_db = airbrake_hydraulic_volume
+		_airbrake_hydraulic.volume_db = _apply_sfx_offset(airbrake_hydraulic_volume)
 		_airbrake_hydraulic.pitch_scale = randf_range(0.95, 1.05)
 		_airbrake_hydraulic.play()
 
@@ -356,10 +369,11 @@ func _play_airbrake_engage() -> void:
 
 func _update_wind_sound(delta: float) -> void:
 	var speed_ratio = ship.get_speed_ratio()
+	var sfx_offset = AudioManager.get_sfx_db_offset()
 	
 	if speed_ratio > wind_min_speed_ratio:
 		var wind_factor = (speed_ratio - wind_min_speed_ratio) / (1.0 - wind_min_speed_ratio)
-		var target_vol = lerp(-80.0, wind_max_volume, wind_factor)
+		var target_vol = lerp(-80.0, wind_max_volume + sfx_offset, wind_factor)
 		_wind_loop.volume_db = lerp(_wind_loop.volume_db, target_vol, 5.0 * delta)
 		_wind_loop.pitch_scale = lerp(0.8, 1.3, wind_factor)
 	else:
@@ -387,7 +401,7 @@ func _play_landing() -> void:
 	if _ship_land.stream:
 		# Louder landing for longer airtime
 		var volume_bonus = clamp((_last_airborne_time - land_min_airtime) * 3.0, 0.0, 6.0)
-		_ship_land.volume_db = land_volume + volume_bonus
+		_ship_land.volume_db = _apply_sfx_offset(land_volume + volume_bonus)
 		_ship_land.pitch_scale = randf_range(0.9, 1.1)
 		_ship_land.play()
 
@@ -399,7 +413,7 @@ func play_wall_hit(impact_speed: float) -> void:
 	if _wall_hit.stream:
 		# Volume and pitch based on impact speed
 		var speed_factor = clamp(impact_speed / ship.max_speed, 0.0, 1.0)
-		_wall_hit.volume_db = wall_hit_volume + (speed_factor * 6.0)
+		_wall_hit.volume_db = _apply_sfx_offset(wall_hit_volume + (speed_factor * 6.0))
 		_wall_hit.pitch_scale = lerp(-1, -0.5, speed_factor)
 		_wall_hit.play()
 
@@ -409,7 +423,7 @@ func start_wall_scrape() -> void:
 	_is_scraping = true
 	
 	if _wall_scrape.stream:
-		_wall_scrape.volume_db = wall_scrape_volume
+		_wall_scrape.volume_db = _apply_sfx_offset(wall_scrape_volume)
 		# Don't restart if already playing
 		if not _wall_scrape.playing:
 			_wall_scrape.play()
@@ -423,7 +437,7 @@ func stop_wall_scrape() -> void:
 func update_wall_scrape_intensity(speed: float) -> void:
 	if _is_scraping and _wall_scrape.stream:
 		var speed_factor = clamp(speed / ship.max_speed, 0.0, 1.0)
-		_wall_scrape.volume_db = wall_scrape_volume + (speed_factor * 6.0)
+		_wall_scrape.volume_db = _apply_sfx_offset(wall_scrape_volume + (speed_factor * 6.0))
 		_wall_scrape.pitch_scale = lerp(0.7, 1.3, speed_factor)
 
 # ============================================================================

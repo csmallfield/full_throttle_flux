@@ -2,6 +2,7 @@ extends Area3D
 class_name StartFinishLine
 
 ## Detects when ships cross the start/finish line and triggers lap completion.
+## Respects global SFX volume from AudioManager.
 ## 
 ## Anti-cheat features:
 ## - First crossing only "starts" lap timing, doesn't complete a lap
@@ -30,6 +31,9 @@ class_name StartFinishLine
 # Audio player for line cross sound
 var _audio_player: AudioStreamPlayer3D
 
+# Base volume for line cross sound (before SFX offset)
+var _base_volume := -3.0
+
 # Internal state
 var _race_started := false
 var _first_crossing_done := false  # Has the ship crossed the line to "start" lap 1?
@@ -56,7 +60,7 @@ func _setup_audio() -> void:
 	_audio_player = AudioStreamPlayer3D.new()
 	_audio_player.name = "LineCrossPlayer"
 	_audio_player.max_distance = 80.0
-	_audio_player.volume_db = -3.0
+	_audio_player.volume_db = _base_volume
 	add_child(_audio_player)
 	
 	# Load the sound
@@ -179,6 +183,8 @@ func _handle_wrong_way_crossing() -> void:
 
 func _play_crossing_sound() -> void:
 	if _audio_player and _audio_player.stream:
+		# Apply global SFX volume offset
+		_audio_player.volume_db = _base_volume + AudioManager.get_sfx_db_offset()
 		_audio_player.pitch_scale = randf_range(0.98, 1.02)
 		_audio_player.play()
 

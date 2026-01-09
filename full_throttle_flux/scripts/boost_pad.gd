@@ -3,6 +3,7 @@ class_name BoostPad
 
 ## Placeable boost pad that accelerates ships passing over it.
 ## Injects velocity in the ship's forward direction, allowing speeds above max_speed.
+## Respects global SFX volume from AudioManager.
 
 @export_group("Boost Settings")
 
@@ -30,7 +31,7 @@ class_name BoostPad
 
 @export_group("Audio")
 
-## Volume of the boost surge sound (dB)
+## Base volume of the boost surge sound (dB) before global SFX adjustment
 @export var boost_sound_volume := 0.0
 
 ## Path to boost surge sound
@@ -123,6 +124,8 @@ func _on_body_entered(body: Node3D) -> void:
 
 func _play_boost_sound() -> void:
 	if _audio_player and _audio_player.stream:
+		# Apply global SFX volume offset
+		_audio_player.volume_db = boost_sound_volume + AudioManager.get_sfx_db_offset()
 		_audio_player.pitch_scale = randf_range(0.95, 1.05)
 		_audio_player.play()
 

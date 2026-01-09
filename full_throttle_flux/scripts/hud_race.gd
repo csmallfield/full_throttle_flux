@@ -36,13 +36,14 @@ func _ready() -> void:
 	_reset_display()
 
 func _create_ui_elements() -> void:
-	# Countdown (large, center screen)
+	# Countdown (large, horizontally centered, upper-middle of screen)
 	countdown_label = Label.new()
 	countdown_label.name = "CountdownLabel"
 	countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	countdown_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	countdown_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	countdown_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# Position: centered horizontally, in the middle of the upper half (below lap counter)
+	countdown_label.position = Vector2(1920/2 - 150, 180)
+	countdown_label.size = Vector2(300, 150)
 	countdown_label.add_theme_font_size_override("font_size", 120)
 	countdown_label.add_theme_color_override("font_color", Color.WHITE)
 	countdown_label.add_theme_color_override("font_outline_color", Color.BLACK)

@@ -3,6 +3,7 @@ extends Node
 ## Music Playlist Manager Singleton
 ## Handles auto-discovery of music tracks, shuffled playback, and crossfading
 ## Emits signals for UI updates (now playing display)
+## Volume is controlled via AudioManager.music_volume_linear
 
 # ============================================================================
 # SIGNALS
@@ -24,8 +25,8 @@ const MUSIC_FOLDER := "res://music/"
 ## Time for crossfade between tracks (seconds)
 @export var crossfade_duration := 2.0
 
-## Volume for music playback (dB)
-@export var music_volume_db := -12.0
+## Base volume for music playback (dB) - modified by AudioManager
+var music_volume_db := -12.0
 
 ## Time to wait before starting next track after one ends
 @export var track_gap := 0.5
@@ -54,6 +55,9 @@ var _player_a: AudioStreamPlayer
 var _player_b: AudioStreamPlayer
 var _active_player: AudioStreamPlayer
 var _is_playing := false
+
+# Track if we're in a fade out (to prevent volume updates during fade)
+var _is_fading_out := false
 
 # ============================================================================
 # INITIALIZATION
@@ -180,6 +184,7 @@ func _get_next_race_track() -> MusicTrack:
 func start_menu_music() -> void:
 	_current_context = Context.MENU
 	_last_race_track = null  # Clear if coming fresh to menu
+	_is_fading_out = false
 	var track = _get_next_menu_track()
 	if track:
 		_play_track(track, true)
@@ -187,6 +192,7 @@ func start_menu_music() -> void:
 ## Start playing music for race context
 func start_race_music() -> void:
 	_current_context = Context.RACE
+	_is_fading_out = false
 	var track = _get_next_race_track()
 	if track:
 		_last_race_track = track  # Remember for when returning to menu
@@ -200,6 +206,7 @@ func continue_to_menu_music() -> void:
 		_last_race_track = _current_track
 	
 	_current_context = Context.MENU
+	_is_fading_out = false
 	var track = _get_next_menu_track()
 	if track:
 		_play_track(track, true)
@@ -210,6 +217,7 @@ func stop_music(fade_out := true) -> void:
 		return
 	
 	_is_playing = false
+	_is_fading_out = true
 	
 	if fade_out:
 		var tween = create_tween()
@@ -217,9 +225,11 @@ func stop_music(fade_out := true) -> void:
 		tween.tween_callback(func():
 			_active_player.stop()
 			_active_player.volume_db = music_volume_db
+			_is_fading_out = false
 		)
 	else:
 		_active_player.stop()
+		_is_fading_out = false
 	
 	music_stopped.emit()
 
@@ -228,12 +238,15 @@ func fade_out_for_race() -> void:
 	if not _is_playing:
 		return
 	
+	_is_fading_out = true
+	
 	var tween = create_tween()
 	tween.tween_property(_active_player, "volume_db", -80.0, crossfade_duration)
 	tween.tween_callback(func():
 		_active_player.stop()
 		_active_player.volume_db = music_volume_db
 		_is_playing = false
+		_is_fading_out = false
 	)
 
 ## Pause music playback
@@ -322,7 +335,22 @@ func _on_track_finished() -> void:
 # VOLUME CONTROL
 # ============================================================================
 
+## Set the music volume in dB (called by AudioManager)
 func set_volume(volume_db: float) -> void:
 	music_volume_db = volume_db
+	
+	# Don't update player volumes if we're in a fade out
+	if _is_fading_out:
+		return
+	
+	# Check if players exist (may be called before _ready)
+	if not _player_a or not _player_b:
+		return
+	
+	# Update active player volume immediately if playing
+	if _is_playing and _active_player:
+		_active_player.volume_db = volume_db
+	
+	# Also update the inactive player in case it's used next
 	_player_a.volume_db = volume_db
 	_player_b.volume_db = volume_db
