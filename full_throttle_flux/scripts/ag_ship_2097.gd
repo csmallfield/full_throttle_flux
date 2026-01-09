@@ -152,6 +152,11 @@ class_name AGShip2097
 
 @export_group("Collision")
 
+## Minimum speed for wall scraping sound to trigger.
+## Prevents scrape sounds when stationary or moving very slowly against walls.
+## Typical range: 15-30 velocity units.
+@export var wall_scrape_min_speed := 20.0
+
 ## Velocity retained after bouncing off walls (0-1).
 ## 1.0 = perfect bounce, 0.5 = loses half speed.
 ## Range: 0.6-0.75. Authentic feel uses ~0.7.
@@ -247,6 +252,9 @@ var _is_scraping_wall := false
 var _scrape_timer := 0.0
 const SCRAPE_TIMEOUT := 0.1  # Time after last collision to stop scrape sound
 
+# Control lock state (for race end)
+var controls_locked := false
+
 # ============================================================================
 # INITIALIZATION
 # ============================================================================
@@ -307,6 +315,15 @@ func _physics_process(delta: float) -> void:
 # ============================================================================
 
 func _read_input() -> void:
+	# If controls are locked (race finished), zero out all input
+	if controls_locked:
+		throttle_input = 0.0
+		steer_input = 0.0
+		pitch_input = 0.0
+		airbrake_left = 0.0
+		airbrake_right = 0.0
+		return
+	
 	throttle_input = Input.get_action_strength("accelerate")
 	var brake_input = Input.get_action_strength("brake")
 	
@@ -576,6 +593,7 @@ func _align_to_track(delta: float) -> void:
 
 func _handle_collisions() -> void:
 	var had_wall_collision := false
+	var current_speed = velocity.length()
 	
 	for i in get_slide_collision_count():
 		var collision = get_slide_collision(i)
@@ -586,13 +604,19 @@ func _handle_collisions() -> void:
 			_handle_wall_collision(normal)
 			had_wall_collision = true
 	
-	# Update scrape state
-	if had_wall_collision:
+	# Update scrape state - only trigger if above minimum speed threshold
+	if had_wall_collision and current_speed >= wall_scrape_min_speed:
 		_is_scraping_wall = true
 		_scrape_timer = SCRAPE_TIMEOUT
 		if audio_controller:
 			audio_controller.start_wall_scrape()
-			audio_controller.update_wall_scrape_intensity(velocity.length())
+			audio_controller.update_wall_scrape_intensity(current_speed)
+	elif had_wall_collision and current_speed < wall_scrape_min_speed:
+		# Below threshold - stop any existing scrape
+		if _is_scraping_wall:
+			_is_scraping_wall = false
+			if audio_controller:
+				audio_controller.stop_wall_scrape()
 
 func _update_scrape_audio(delta: float) -> void:
 	if _is_scraping_wall:
@@ -672,6 +696,18 @@ func get_debug_info() -> String:
 	return "Speed: %.0f / %.0f\nGrip: %.1f\nGrounded: %s\nAirbrake: %s" % [
 		velocity.length(), max_speed, current_grip, is_grounded, is_airbraking
 	]
+
+# ============================================================================
+# CONTROL LOCK (for race end)
+# ============================================================================
+
+## Lock ship controls (called when race finishes)
+func lock_controls() -> void:
+	controls_locked = true
+
+## Unlock ship controls
+func unlock_controls() -> void:
+	controls_locked = false
 
 # ============================================================================
 ## EXTERNAL FORCES (Boost Pads, etc.)

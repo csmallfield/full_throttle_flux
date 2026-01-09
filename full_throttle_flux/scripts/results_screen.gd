@@ -17,6 +17,14 @@ var qualification_info: Dictionary = {}
 var current_initials: String = ""
 var max_initials_length: int = 3
 
+# Persistent storage for last entered initials
+static var last_entered_initials: String = ""
+
+# Input blocking to prevent accidental selection
+var _input_blocked := false
+var _input_block_timer := 0.0
+const INPUT_BLOCK_DURATION := 0.5  # Seconds to block input after showing buttons
+
 # UI References
 var stats_container: VBoxContainer
 var initials_container: VBoxContainer
@@ -31,6 +39,13 @@ func _ready() -> void:
 	# Connect to race finished signals
 	RaceManager.race_finished.connect(_on_race_finished)
 	RaceManager.endless_finished.connect(_on_endless_finished)
+
+func _process(delta: float) -> void:
+	# Handle input blocking timer
+	if _input_blocked:
+		_input_block_timer -= delta
+		if _input_block_timer <= 0:
+			_input_blocked = false
 
 func _create_ui() -> void:
 	# Stats container
@@ -169,6 +184,9 @@ func _show_endless_summary(total_laps: int, total_time: float, best_lap: float) 
 	endless_summary_container.visible = true
 	buttons_container.visible = true
 	
+	# Block input briefly to prevent accidental selection
+	_block_input()
+	
 	# Clear previous content
 	for child in endless_summary_container.get_children():
 		child.queue_free()
@@ -269,14 +287,17 @@ func _show_endless_summary(total_laps: int, total_time: float, best_lap: float) 
 	menu_button.focus_entered.connect(_on_button_focus)
 	buttons_container.add_child(menu_button)
 	
-	# Set focus
+	# Set focus after a brief delay to prevent accidental activation
+	await get_tree().create_timer(INPUT_BLOCK_DURATION).timeout
 	menu_button.grab_focus()
 
 func _show_initials_entry() -> void:
 	current_state = State.ENTERING_INITIALS
 	stats_container.visible = false
 	initials_container.visible = true
-	current_initials = ""
+	
+	# Pre-populate with last entered initials (Item 4)
+	current_initials = last_entered_initials
 	
 	# Play new record fanfare
 	AudioManager.play_new_record()
@@ -316,19 +337,25 @@ func _show_initials_entry() -> void:
 	# Initials display
 	var initials_label = Label.new()
 	initials_label.name = "InitialsLabel"
-	initials_label.text = "___"
 	initials_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	initials_label.add_theme_font_size_override("font_size", 64)
 	initials_label.add_theme_color_override("font_color", Color(0.3, 0.8, 1))
 	initials_container.add_child(initials_label)
 	
+	# Update display with pre-populated initials
+	_update_initials_display()
+	
 	# Instructions
 	var instructions = Label.new()
-	instructions.text = "Press ENTER when done | Gamepad A to submit"
+	instructions.text = "Press ENTER when done | Gamepad A to submit | BACKSPACE to delete"
 	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	instructions.add_theme_font_size_override("font_size", 20)
 	instructions.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	initials_container.add_child(instructions)
+
+func _block_input() -> void:
+	_input_blocked = true
+	_input_block_timer = INPUT_BLOCK_DURATION
 
 func _input(event: InputEvent) -> void:
 	if current_state != State.ENTERING_INITIALS:
@@ -369,6 +396,9 @@ func _update_initials_display() -> void:
 		label.text = display
 
 func _submit_initials() -> void:
+	# Store for next time (Item 4)
+	last_entered_initials = current_initials
+	
 	# Pad with spaces if needed
 	while current_initials.length() < max_initials_length:
 		current_initials += " "
@@ -388,6 +418,9 @@ func _show_leaderboards() -> void:
 	leaderboards_container.visible = true
 	endless_summary_container.visible = false
 	buttons_container.visible = true
+	
+	# Block input briefly to prevent accidental selection (Item 3)
+	_block_input()
 	
 	# Clear previous content
 	for child in leaderboards_container.get_children():
@@ -433,21 +466,23 @@ func _show_leaderboards() -> void:
 	
 	_populate_leaderboard(lap_vbox, RaceManager.best_lap_leaderboard)
 	
-	# Buttons
+	# Buttons - create but don't set focus yet
 	var retry_button = Button.new()
+	retry_button.name = "RetryButton"
 	retry_button.text = "RETRY"
 	retry_button.custom_minimum_size = Vector2(200, 60)
 	retry_button.add_theme_font_size_override("font_size", 28)
-	retry_button.focus_mode = Control.FOCUS_ALL  # Enable focus for navigation
+	retry_button.focus_mode = Control.FOCUS_ALL
 	retry_button.pressed.connect(_on_retry_pressed)
 	retry_button.focus_entered.connect(_on_button_focus)
 	buttons_container.add_child(retry_button)
 	
 	var quit_button = Button.new()
+	quit_button.name = "QuitButton"
 	quit_button.text = "QUIT TO MENU"
 	quit_button.custom_minimum_size = Vector2(200, 60)
 	quit_button.add_theme_font_size_override("font_size", 28)
-	quit_button.focus_mode = Control.FOCUS_ALL  # Enable focus for navigation
+	quit_button.focus_mode = Control.FOCUS_ALL
 	quit_button.pressed.connect(_on_quit_pressed)
 	quit_button.focus_entered.connect(_on_button_focus)
 	buttons_container.add_child(quit_button)
@@ -458,7 +493,8 @@ func _show_leaderboards() -> void:
 	quit_button.focus_neighbor_left = retry_button.get_path()
 	quit_button.focus_neighbor_right = retry_button.get_path()
 	
-	# Set initial focus to retry button
+	# Set focus after a delay to prevent accidental selection (Item 3)
+	await get_tree().create_timer(INPUT_BLOCK_DURATION).timeout
 	retry_button.grab_focus()
 
 func _populate_leaderboard(parent: VBoxContainer, leaderboard: Array[Dictionary]) -> void:
@@ -491,15 +527,25 @@ func _populate_leaderboard(parent: VBoxContainer, leaderboard: Array[Dictionary]
 		parent.add_child(entry_label)
 
 func _on_button_focus() -> void:
-	AudioManager.play_hover()
+	# Only play sound if input is not blocked
+	if not _input_blocked:
+		AudioManager.play_hover()
 
 func _on_retry_pressed() -> void:
+	# Check if input is blocked
+	if _input_blocked:
+		return
+	
 	AudioManager.play_select()
 	RaceManager.reset_race()
 	MusicPlaylistManager.stop_music(false)  # Stop race music
 	get_tree().reload_current_scene()
 
 func _on_quit_pressed() -> void:
+	# Check if input is blocked
+	if _input_blocked:
+		return
+	
 	AudioManager.play_select()
 	RaceManager.reset_race()
 	# Stop race music - menu will start its own shuffled music
@@ -507,6 +553,10 @@ func _on_quit_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 func _on_endless_quit_pressed() -> void:
+	# Check if input is blocked
+	if _input_blocked:
+		return
+	
 	AudioManager.play_select()
 	RaceManager.reset_race()
 	MusicPlaylistManager.stop_music(false)

@@ -10,6 +10,9 @@ class_name RaceController
 var ship_locked := true
 var initial_ship_position: Vector3
 var initial_ship_rotation: Basis
+var race_ended := false
+var final_ship_position: Vector3
+var final_ship_rotation: Basis
 
 # Now Playing display instance
 var now_playing_display: NowPlayingDisplay
@@ -24,6 +27,8 @@ func _ready() -> void:
 	# Connect signals
 	RaceManager.race_started.connect(_on_race_started)
 	RaceManager.countdown_tick.connect(_on_countdown_tick)
+	RaceManager.race_finished.connect(_on_race_finished)
+	RaceManager.endless_finished.connect(_on_endless_finished)
 	
 	# Add the NowPlayingDisplay to the race scene
 	_setup_now_playing_display()
@@ -38,14 +43,27 @@ func _setup_now_playing_display() -> void:
 	now_playing_display = display_scene.instantiate()
 	get_parent().call_deferred("add_child", now_playing_display)
 
-func _physics_process(_delta: float) -> void:
-	if ship_locked and ship:
-		# Lock ship in place during countdown
-		ship.velocity = Vector3.ZERO
-		ship.global_position = initial_ship_position
-		ship.global_transform.basis = initial_ship_rotation
+func _physics_process(delta: float) -> void:
+	if ship:
+		if ship_locked and not race_ended:
+			# Lock ship in place during countdown
+			ship.velocity = Vector3.ZERO
+			ship.global_position = initial_ship_position
+			ship.global_transform.basis = initial_ship_rotation
+		elif race_ended:
+			# Lock ship at final position after race ends
+			# Apply strong drag to bring ship to a stop
+			ship.velocity = ship.velocity.lerp(Vector3.ZERO, 5.0 * delta)
+			
+			# Once nearly stopped, lock in place
+			if ship.velocity.length() < 1.0:
+				ship.velocity = Vector3.ZERO
 
 func _input(event: InputEvent) -> void:
+	# Don't process pause if race has ended
+	if race_ended:
+		return
+	
 	# Handle pause
 	if event.is_action_pressed("ui_cancel"):  # ESC
 		if RaceManager.is_racing() and pause_menu:
@@ -59,6 +77,23 @@ func _on_countdown_tick(number: int) -> void:
 func _on_race_started() -> void:
 	# Unlock ship
 	ship_locked = false
+	race_ended = false
 	
 	# Start race music via the playlist manager
 	MusicPlaylistManager.start_race_music()
+
+func _on_race_finished(_total_time: float, _best_lap: float) -> void:
+	# Lock ship controls at race end
+	race_ended = true
+	if ship:
+		ship.lock_controls()
+		final_ship_position = ship.global_position
+		final_ship_rotation = ship.global_transform.basis
+
+func _on_endless_finished(_total_laps: int, _total_time: float, _best_lap: float) -> void:
+	# Lock ship controls at endless mode end
+	race_ended = true
+	if ship:
+		ship.lock_controls()
+		final_ship_position = ship.global_position
+		final_ship_rotation = ship.global_transform.basis
