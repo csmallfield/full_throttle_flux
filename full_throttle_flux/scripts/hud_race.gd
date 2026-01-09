@@ -2,6 +2,7 @@ extends CanvasLayer
 class_name HUDRace
 
 ## Racing HUD displaying countdown, lap progress, timing, and speed
+## Adapts display based on race mode (Time Trial vs Endless)
 
 @export var ship: AGShip2097
 
@@ -22,6 +23,7 @@ var lap_times_label: RichTextLabel
 var current_time_label: Label
 var speed_label: Label
 var fps_label: Label
+var mode_label: Label
 
 func _ready() -> void:
 	# Connect to RaceManager signals
@@ -47,6 +49,17 @@ func _create_ui_elements() -> void:
 	countdown_label.add_theme_constant_override("outline_size", 8)
 	countdown_label.visible = false
 	add_child(countdown_label)
+	
+	# Mode indicator (top left, above lap times)
+	mode_label = Label.new()
+	mode_label.name = "ModeLabel"
+	mode_label.position = Vector2(20, 50)
+	mode_label.size = Vector2(200, 30)
+	mode_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	mode_label.add_theme_font_size_override("font_size", 20)
+	mode_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	mode_label.text = ""
+	add_child(mode_label)
 	
 	# Lap info (top center)
 	lap_info_label = Label.new()
@@ -159,7 +172,15 @@ func _update_current_time() -> void:
 		current_time_label.text = RaceManager.format_time(time)
 
 func _reset_display() -> void:
-	lap_info_label.text = "LAP 1/3"
+	# Update mode label
+	if RaceManager.is_endless_mode():
+		mode_label.text = "ENDLESS"
+		mode_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
+		lap_info_label.text = "LAP 1"
+	else:
+		mode_label.text = ""
+		lap_info_label.text = "LAP 1/%d" % RaceManager.total_laps
+	
 	lap_times_label.text = ""
 	current_time_label.text = "00:00.000"
 	speed_label.text = "0 km/h"
@@ -186,12 +207,17 @@ func _on_countdown_tick(number: int) -> void:
 func _on_race_started() -> void:
 	_reset_display()
 
-func _on_lap_completed(lap_number: int, lap_time: float) -> void:
-	# Update lap counter
-	if lap_number < RaceManager.total_laps:
-		lap_info_label.text = "LAP %d/%d" % [lap_number + 1, RaceManager.total_laps]
+func _on_lap_completed(lap_number: int, _lap_time: float) -> void:
+	# Update lap counter based on mode
+	if RaceManager.is_endless_mode():
+		# Endless mode: just show current lap number
+		lap_info_label.text = "LAP %d" % (lap_number + 1)
 	else:
-		lap_info_label.text = "FINISHED"
+		# Time trial mode: show lap X of Y
+		if lap_number < RaceManager.total_laps:
+			lap_info_label.text = "LAP %d/%d" % [lap_number + 1, RaceManager.total_laps]
+		else:
+			lap_info_label.text = "FINISHED"
 	
 	# Update lap times display
 	_update_lap_times_display()
@@ -202,21 +228,36 @@ func _on_race_finished(_total_time: float, _best_lap: float) -> void:
 func _update_lap_times_display() -> void:
 	var lines: Array[String] = []
 	
-	# Find best lap time
-	var best_time = INF
-	for time in RaceManager.lap_times:
-		if time < best_time:
-			best_time = time
+	# Find best lap time among displayed laps
+	var best_displayed_time = RaceManager.get_best_displayed_lap_time()
 	
-	# Display each lap
-	for i in range(RaceManager.lap_times.size()):
-		var time = RaceManager.lap_times[i]
-		var time_str = RaceManager.format_time(time)
+	if RaceManager.is_endless_mode():
+		# Endless mode: show last 5 laps with their actual lap numbers
+		# lap_times contains the rolling window of last 5
+		var total_completed = RaceManager.endless_all_lap_times.size()
+		var displayed_count = RaceManager.lap_times.size()
+		var first_displayed_lap = total_completed - displayed_count + 1
 		
-		# Bold best lap (using BBCode)
-		if time == best_time:
-			lines.append("[b]Lap %d: %s[/b]" % [i + 1, time_str])
-		else:
-			lines.append("Lap %d: %s" % [i + 1, time_str])
+		for i in range(displayed_count):
+			var time = RaceManager.lap_times[i]
+			var lap_num = first_displayed_lap + i
+			var time_str = RaceManager.format_time(time)
+			
+			# Bold best lap (using BBCode)
+			if time == best_displayed_time:
+				lines.append("[b]Lap %d: %s[/b]" % [lap_num, time_str])
+			else:
+				lines.append("Lap %d: %s" % [lap_num, time_str])
+	else:
+		# Time trial mode: show all laps
+		for i in range(RaceManager.lap_times.size()):
+			var time = RaceManager.lap_times[i]
+			var time_str = RaceManager.format_time(time)
+			
+			# Bold best lap (using BBCode)
+			if time == best_displayed_time:
+				lines.append("[b]Lap %d: %s[/b]" % [i + 1, time_str])
+			else:
+				lines.append("Lap %d: %s" % [i + 1, time_str])
 	
 	lap_times_label.text = "\n".join(lines)

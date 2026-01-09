@@ -2,12 +2,14 @@ extends CanvasLayer
 class_name ResultsScreen
 
 ## Post-race results screen with stats, initial entry, and leaderboards
+## Also handles endless mode summary display
 ## Music continues from race until player returns to menu
 
 enum State {
 	SHOWING_STATS,
 	ENTERING_INITIALS,
-	SHOWING_LEADERBOARDS
+	SHOWING_LEADERBOARDS,
+	SHOWING_ENDLESS_SUMMARY
 }
 
 var current_state: State = State.SHOWING_STATS
@@ -19,14 +21,16 @@ var max_initials_length: int = 3
 var stats_container: VBoxContainer
 var initials_container: VBoxContainer
 var leaderboards_container: VBoxContainer
+var endless_summary_container: VBoxContainer
 var buttons_container: HBoxContainer
 
 func _ready() -> void:
 	visible = false
 	_create_ui()
 	
-	# Connect to race finished signal
+	# Connect to race finished signals
 	RaceManager.race_finished.connect(_on_race_finished)
+	RaceManager.endless_finished.connect(_on_endless_finished)
 
 func _create_ui() -> void:
 	# Stats container
@@ -55,6 +59,15 @@ func _create_ui() -> void:
 	leaderboards_container.visible = false
 	add_child(leaderboards_container)
 	
+	# Endless summary container
+	endless_summary_container = VBoxContainer.new()
+	endless_summary_container.name = "EndlessSummaryContainer"
+	endless_summary_container.position = Vector2(1920/2 - 350, 150)
+	endless_summary_container.size = Vector2(700, 600)
+	endless_summary_container.add_theme_constant_override("separation", 25)
+	endless_summary_container.visible = false
+	add_child(endless_summary_container)
+	
 	# Buttons container
 	buttons_container = HBoxContainer.new()
 	buttons_container.name = "ButtonsContainer"
@@ -65,21 +78,29 @@ func _create_ui() -> void:
 	add_child(buttons_container)
 
 func _on_race_finished(total_time: float, best_lap: float) -> void:
+	# Only handle time trial mode here
+	if RaceManager.is_endless_mode():
+		return
+	
 	# Play race finish sound (music keeps playing)
 	AudioManager.play_race_finish()
 	
 	await get_tree().create_timer(2.0).timeout
 	
-	# NOTE: Music continues from the race - no change here
-	
 	visible = true
 	_show_stats(total_time, best_lap)
+
+func _on_endless_finished(total_laps: int, total_time: float, best_lap: float) -> void:
+	# Show endless summary
+	visible = true
+	_show_endless_summary(total_laps, total_time, best_lap)
 
 func _show_stats(total_time: float, best_lap: float) -> void:
 	current_state = State.SHOWING_STATS
 	stats_container.visible = true
 	initials_container.visible = false
 	leaderboards_container.visible = false
+	endless_summary_container.visible = false
 	buttons_container.visible = false
 	
 	# Clear previous content
@@ -139,6 +160,117 @@ func _show_stats(total_time: float, best_lap: float) -> void:
 		_show_initials_entry()
 	else:
 		_show_leaderboards()
+
+func _show_endless_summary(total_laps: int, total_time: float, best_lap: float) -> void:
+	current_state = State.SHOWING_ENDLESS_SUMMARY
+	stats_container.visible = false
+	initials_container.visible = false
+	leaderboards_container.visible = false
+	endless_summary_container.visible = true
+	buttons_container.visible = true
+	
+	# Clear previous content
+	for child in endless_summary_container.get_children():
+		child.queue_free()
+	for child in buttons_container.get_children():
+		child.queue_free()
+	
+	# Title
+	var title = Label.new()
+	title.text = "ENDLESS MODE COMPLETE"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 52)
+	title.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
+	endless_summary_container.add_child(title)
+	
+	# Spacer
+	var spacer1 = Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 40)
+	endless_summary_container.add_child(spacer1)
+	
+	# Total laps
+	var laps_label = Label.new()
+	laps_label.text = "TOTAL LAPS COMPLETED"
+	laps_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	laps_label.add_theme_font_size_override("font_size", 24)
+	laps_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	endless_summary_container.add_child(laps_label)
+	
+	var laps_value = Label.new()
+	laps_value.text = str(total_laps)
+	laps_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	laps_value.add_theme_font_size_override("font_size", 64)
+	laps_value.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+	endless_summary_container.add_child(laps_value)
+	
+	# Spacer
+	var spacer2 = Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 30)
+	endless_summary_container.add_child(spacer2)
+	
+	# Total time
+	var time_header = Label.new()
+	time_header.text = "TOTAL TIME"
+	time_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	time_header.add_theme_font_size_override("font_size", 24)
+	time_header.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	endless_summary_container.add_child(time_header)
+	
+	var time_value = Label.new()
+	time_value.text = RaceManager.format_time(total_time)
+	time_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	time_value.add_theme_font_size_override("font_size", 42)
+	time_value.add_theme_color_override("font_color", Color.WHITE)
+	endless_summary_container.add_child(time_value)
+	
+	# Spacer
+	var spacer3 = Control.new()
+	spacer3.custom_minimum_size = Vector2(0, 30)
+	endless_summary_container.add_child(spacer3)
+	
+	# Best lap
+	var best_header = Label.new()
+	best_header.text = "BEST LAP"
+	best_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	best_header.add_theme_font_size_override("font_size", 24)
+	best_header.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	endless_summary_container.add_child(best_header)
+	
+	var best_value = Label.new()
+	if total_laps > 0:
+		best_value.text = RaceManager.format_time(best_lap)
+		best_value.add_theme_color_override("font_color", Color(1, 1, 0.3))
+	else:
+		best_value.text = "--:--.---"
+		best_value.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	best_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	best_value.add_theme_font_size_override("font_size", 42)
+	endless_summary_container.add_child(best_value)
+	
+	# Note about leaderboards
+	var spacer4 = Control.new()
+	spacer4.custom_minimum_size = Vector2(0, 40)
+	endless_summary_container.add_child(spacer4)
+	
+	var note_label = Label.new()
+	note_label.text = "(Endless mode times are not recorded to leaderboards)"
+	note_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note_label.add_theme_font_size_override("font_size", 18)
+	note_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	endless_summary_container.add_child(note_label)
+	
+	# Create back to menu button
+	var menu_button = Button.new()
+	menu_button.text = "BACK TO MENU"
+	menu_button.custom_minimum_size = Vector2(300, 60)
+	menu_button.add_theme_font_size_override("font_size", 28)
+	menu_button.focus_mode = Control.FOCUS_ALL
+	menu_button.pressed.connect(_on_endless_quit_pressed)
+	menu_button.focus_entered.connect(_on_button_focus)
+	buttons_container.add_child(menu_button)
+	
+	# Set focus
+	menu_button.grab_focus()
 
 func _show_initials_entry() -> void:
 	current_state = State.ENTERING_INITIALS
@@ -254,6 +386,7 @@ func _show_leaderboards() -> void:
 	stats_container.visible = false
 	initials_container.visible = false
 	leaderboards_container.visible = true
+	endless_summary_container.visible = false
 	buttons_container.visible = true
 	
 	# Clear previous content
@@ -370,5 +503,11 @@ func _on_quit_pressed() -> void:
 	AudioManager.play_select()
 	RaceManager.reset_race()
 	# Stop race music - menu will start its own shuffled music
+	MusicPlaylistManager.stop_music(false)
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+func _on_endless_quit_pressed() -> void:
+	AudioManager.play_select()
+	RaceManager.reset_race()
 	MusicPlaylistManager.stop_music(false)
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

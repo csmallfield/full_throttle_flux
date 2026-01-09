@@ -2,6 +2,7 @@ extends Node
 
 ## Central race management singleton
 ## Handles timing, lap tracking, leaderboards, and race state
+## Supports both Time Trial and Endless modes
 ## NOTE: Music is now handled by MusicPlaylistManager, not here
 
 # ============================================================================
@@ -12,7 +13,19 @@ signal countdown_tick(number: int)  # 3, 2, 1, 0 (GO)
 signal race_started()
 signal lap_completed(lap_number: int, lap_time: float)
 signal race_finished(total_time: float, best_lap: float)
+signal endless_finished(total_laps: int, total_time: float, best_lap: float)
 signal wrong_way_warning()
+
+# ============================================================================
+# RACE MODE
+# ============================================================================
+
+enum RaceMode {
+	TIME_TRIAL,
+	ENDLESS
+}
+
+var current_mode: RaceMode = RaceMode.TIME_TRIAL
 
 # ============================================================================
 # RACE STATE
@@ -42,6 +55,9 @@ var current_race_time: float = 0.0
 var lap_times: Array[float] = []
 var best_lap_time: float = INF
 
+# Endless mode specific - tracks all laps for summary
+var endless_all_lap_times: Array[float] = []
+
 # Pause tracking
 var total_paused_time: float = 0.0
 var pause_start_time: float = 0.0
@@ -63,6 +79,19 @@ var best_lap_leaderboard: Array[Dictionary] = []
 
 func _ready() -> void:
 	load_leaderboards()
+
+# ============================================================================
+# MODE CONTROL
+# ============================================================================
+
+func set_mode(mode: RaceMode) -> void:
+	current_mode = mode
+
+func is_endless_mode() -> bool:
+	return current_mode == RaceMode.ENDLESS
+
+func is_time_trial_mode() -> bool:
+	return current_mode == RaceMode.TIME_TRIAL
 
 # ============================================================================
 # RACE CONTROL
@@ -98,6 +127,7 @@ func _start_race() -> void:
 	current_state = RaceState.RACING
 	current_lap = 1
 	lap_times.clear()
+	endless_all_lap_times.clear()
 	best_lap_time = INF
 	total_paused_time = 0.0
 	pause_start_time = 0.0
@@ -117,7 +147,17 @@ func complete_lap() -> void:
 	var current_time = Time.get_ticks_msec() / 1000.0
 	var lap_time = (current_time - lap_start_time) - total_paused_time
 	
-	lap_times.append(lap_time)
+	if current_mode == RaceMode.ENDLESS:
+		# Endless mode: keep rolling window of 5 laps for display
+		endless_all_lap_times.append(lap_time)
+		lap_times.append(lap_time)
+		
+		# Only keep last 5 for display
+		while lap_times.size() > 5:
+			lap_times.pop_front()
+	else:
+		# Time trial: keep all laps
+		lap_times.append(lap_time)
 	
 	if lap_time < best_lap_time:
 		best_lap_time = lap_time
@@ -126,7 +166,7 @@ func complete_lap() -> void:
 	
 	current_lap += 1
 	
-	if current_lap > total_laps:
+	if current_mode == RaceMode.TIME_TRIAL and current_lap > total_laps:
 		_finish_race()
 	else:
 		# Reset paused time for new lap
@@ -140,10 +180,26 @@ func _finish_race() -> void:
 	
 	race_finished.emit(current_race_time, best_lap_time)
 
+func finish_endless() -> void:
+	"""Called when player quits endless mode - emits summary data"""
+	if current_mode != RaceMode.ENDLESS:
+		return
+	# Allow finishing from either RACING or PAUSED state
+	if current_state != RaceState.RACING and current_state != RaceState.PAUSED:
+		return
+	
+	current_state = RaceState.FINISHED
+	var current_time = Time.get_ticks_msec() / 1000.0
+	current_race_time = (current_time - race_start_time) - total_paused_time
+	
+	var completed_laps = endless_all_lap_times.size()
+	endless_finished.emit(completed_laps, current_race_time, best_lap_time)
+
 func reset_race() -> void:
 	current_state = RaceState.NOT_STARTED
 	current_lap = 0
 	lap_times.clear()
+	endless_all_lap_times.clear()
 	best_lap_time = INF
 	race_start_time = 0.0
 	lap_start_time = 0.0
@@ -196,6 +252,17 @@ func is_countdown() -> bool:
 func is_finished() -> bool:
 	return current_state == RaceState.FINISHED
 
+## Get the best lap time among the currently displayed laps (for highlighting)
+func get_best_displayed_lap_time() -> float:
+	if lap_times.is_empty():
+		return INF
+	
+	var best = INF
+	for time in lap_times:
+		if time < best:
+			best = time
+	return best
+
 # ============================================================================
 # LEADERBOARDS
 # ============================================================================
@@ -208,6 +275,10 @@ func check_leaderboard_qualification() -> Dictionary:
 		"total_time_rank": -1,
 		"best_lap_rank": -1
 	}
+	
+	# No leaderboard qualification in endless mode
+	if current_mode == RaceMode.ENDLESS:
+		return result
 	
 	# Check total time
 	if total_time_leaderboard.size() < LEADERBOARD_SIZE or current_race_time < total_time_leaderboard[-1].time:

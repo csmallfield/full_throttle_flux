@@ -6,6 +6,7 @@ class_name MainMenu
 
 var title_label: Label
 var start_button: Button
+var endless_button: Button
 var leaderboard_button: Button
 var quit_button: Button
 
@@ -59,12 +60,13 @@ func _create_ui() -> void:
 	else:
 		button_container = $MenuButtons
 	
-	button_container.position = Vector2(1920/2 - 200, 400)
-	button_container.size = Vector2(400, 300)
-	button_container.add_theme_constant_override("separation", 30)
+	button_container.position = Vector2(1920/2 - 200, 350)
+	button_container.size = Vector2(400, 400)
+	button_container.add_theme_constant_override("separation", 25)
 	
 	# Create buttons
-	start_button = _create_menu_button("START TIME TRIAL", button_container)
+	start_button = _create_menu_button("TIME TRIAL", button_container)
+	endless_button = _create_menu_button("ENDLESS MODE", button_container)
 	leaderboard_button = _create_menu_button("LEADERBOARDS", button_container)
 	quit_button = _create_menu_button("QUIT", button_container)
 
@@ -81,6 +83,9 @@ func _connect_signals() -> void:
 	if start_button:
 		start_button.pressed.connect(_on_start_pressed)
 		start_button.focus_entered.connect(_on_button_focus)
+	if endless_button:
+		endless_button.pressed.connect(_on_endless_pressed)
+		endless_button.focus_entered.connect(_on_button_focus)
 	if leaderboard_button:
 		leaderboard_button.pressed.connect(_on_leaderboard_pressed)
 		leaderboard_button.focus_entered.connect(_on_button_focus)
@@ -90,11 +95,14 @@ func _connect_signals() -> void:
 
 func _setup_focus() -> void:
 	# Set up focus navigation chain
-	if start_button and leaderboard_button and quit_button:
+	if start_button and endless_button and leaderboard_button and quit_button:
 		start_button.focus_neighbor_top = quit_button.get_path()
-		start_button.focus_neighbor_bottom = leaderboard_button.get_path()
+		start_button.focus_neighbor_bottom = endless_button.get_path()
 		
-		leaderboard_button.focus_neighbor_top = start_button.get_path()
+		endless_button.focus_neighbor_top = start_button.get_path()
+		endless_button.focus_neighbor_bottom = leaderboard_button.get_path()
+		
+		leaderboard_button.focus_neighbor_top = endless_button.get_path()
 		leaderboard_button.focus_neighbor_bottom = quit_button.get_path()
 		
 		quit_button.focus_neighbor_top = leaderboard_button.get_path()
@@ -108,6 +116,22 @@ func _on_button_focus() -> void:
 
 func _on_start_pressed() -> void:
 	AudioManager.play_select()
+	
+	# Set mode to time trial
+	RaceManager.set_mode(RaceManager.RaceMode.TIME_TRIAL)
+	
+	# Fade out menu music before transitioning to race
+	MusicPlaylistManager.fade_out_for_race()
+	
+	# Small delay to let sound play and music fade before scene change
+	await get_tree().create_timer(0.3).timeout
+	get_tree().change_scene_to_file("res://scenes/time_trial_01.tscn")
+
+func _on_endless_pressed() -> void:
+	AudioManager.play_select()
+	
+	# Set mode to endless
+	RaceManager.set_mode(RaceManager.RaceMode.ENDLESS)
 	
 	# Fade out menu music before transitioning to race
 	MusicPlaylistManager.fade_out_for_race()

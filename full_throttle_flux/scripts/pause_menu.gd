@@ -3,6 +3,7 @@ class_name PauseMenu
 
 ## In-game pause menu
 ## Coordinates with MusicPlaylistManager for pausing music
+## Adapts based on race mode (hides restart in endless mode)
 
 signal resume_requested
 signal restart_requested
@@ -20,6 +21,9 @@ var debug_toggle_button: Button
 # Controls popup
 var controls_popup: PanelContainer
 var controls_close_button: Button
+
+# Track if we need to show endless summary
+var _show_endless_summary := false
 
 func _ready() -> void:
 	visible = false
@@ -269,22 +273,29 @@ func _connect_signals() -> void:
 	debug_toggle_button.focus_entered.connect(_on_button_focus)
 
 func _setup_focus() -> void:
-	# Set up focus navigation chain
-	if resume_button and restart_button and controls_button and quit_button and debug_toggle_button:
-		resume_button.focus_neighbor_top = debug_toggle_button.get_path()
-		resume_button.focus_neighbor_bottom = restart_button.get_path()
+	_update_focus_chain()
+
+func _update_focus_chain() -> void:
+	# Determine which buttons are visible
+	var visible_buttons: Array[Button] = []
+	
+	visible_buttons.append(resume_button)
+	
+	if restart_button.visible:
+		visible_buttons.append(restart_button)
+	
+	visible_buttons.append(controls_button)
+	visible_buttons.append(quit_button)
+	visible_buttons.append(debug_toggle_button)
+	
+	# Set up circular navigation
+	for i in range(visible_buttons.size()):
+		var current = visible_buttons[i]
+		var prev_idx = (i - 1) if i > 0 else visible_buttons.size() - 1
+		var next_idx = (i + 1) if i < visible_buttons.size() - 1 else 0
 		
-		restart_button.focus_neighbor_top = resume_button.get_path()
-		restart_button.focus_neighbor_bottom = controls_button.get_path()
-		
-		controls_button.focus_neighbor_top = restart_button.get_path()
-		controls_button.focus_neighbor_bottom = quit_button.get_path()
-		
-		quit_button.focus_neighbor_top = controls_button.get_path()
-		quit_button.focus_neighbor_bottom = debug_toggle_button.get_path()
-		
-		debug_toggle_button.focus_neighbor_top = quit_button.get_path()
-		debug_toggle_button.focus_neighbor_bottom = resume_button.get_path()
+		current.focus_neighbor_top = visible_buttons[prev_idx].get_path()
+		current.focus_neighbor_bottom = visible_buttons[next_idx].get_path()
 
 func _input(event: InputEvent) -> void:
 	# Handle closing controls popup with ESC or gamepad B
@@ -308,6 +319,11 @@ func show_pause() -> void:
 	visible = true
 	controls_popup.visible = false
 	_update_debug_button_text()
+	
+	# Show/hide restart button based on mode
+	restart_button.visible = RaceManager.is_time_trial_mode()
+	_update_focus_chain()
+	
 	RaceManager.pause_race()
 	MusicPlaylistManager.pause_music()  # Pause the music
 	AudioManager.play_pause()
@@ -328,6 +344,10 @@ func _on_resume_pressed() -> void:
 	resume_requested.emit()
 
 func _on_restart_pressed() -> void:
+	# Only available in time trial mode
+	if not RaceManager.is_time_trial_mode():
+		return
+	
 	AudioManager.play_select()
 	visible = false
 	controls_popup.visible = false
@@ -362,10 +382,16 @@ func _on_quit_pressed() -> void:
 	visible = false
 	controls_popup.visible = false
 	get_tree().paused = false
-	RaceManager.reset_race()
-	MusicPlaylistManager.stop_music(false)  # Stop race music
-	quit_requested.emit()
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+	
+	if RaceManager.is_endless_mode():
+		# Trigger endless mode finish (will show summary via results screen)
+		RaceManager.finish_endless()
+	else:
+		# Time trial: just quit to menu
+		RaceManager.reset_race()
+		MusicPlaylistManager.stop_music(false)
+		quit_requested.emit()
+		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 func _on_debug_toggle_pressed() -> void:
 	AudioManager.play_select()
