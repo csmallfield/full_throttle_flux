@@ -60,18 +60,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
 transform = Transform3D(0.94983023, 0, -0.31276596, 0, 1, 0, 0.31276596, 0, 0.94983023, -48.34865, 19.023623, -235.97458)
 collision_layer = 2
 script = ExtResource("3_nyw6o")
-max_speed = 120.0
-thrust_power = 65.0
-steer_speed = 1.345
-steer_slide = 10.0
-grip = 4.0
-airbrake_turn_rate = 0.5
-airbrake_grip = 0.5
-airbrake_drag = 0.98
-pitch_speed = 1.0
-max_pitch_angle = 10.0
-wall_bounce_retain = 0.9
-wall_rotation_force = 1.5
 camera = NodePath("../Camera3D")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AGShip2097"]

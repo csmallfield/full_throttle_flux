@@ -13,12 +13,12 @@ class_name AGShip2097
 ## Maximum velocity the ship can reach under normal thrust.
 ## Higher values = faster top speed but harder to control.
 ## Typical range: 400-700. Start with 550 for balanced feel.
-@export var max_speed := 550.0
+@export var max_speed := 120.0
 
 ## How much forward force is applied when accelerating.
 ## Higher = quicker acceleration but can feel twitchy.
 ## Typical range: 80-150. Balanced ships use ~115.
-@export var thrust_power := 115.0
+@export var thrust_power := 65.0
 
 ## Velocity retained each physics frame (1.0 = no drag, 0.9 = heavy drag).
 ## Controls how quickly ship slows when not accelerating.
@@ -39,18 +39,18 @@ class_name AGShip2097
 ## How fast the ship rotates when steering (radians per second).
 ## Higher = more responsive turning but can feel twitchy.
 ## Low handling ships: 1.4-1.6, Mid: 1.6-1.8, High: 1.8-2.2
-@export var steer_speed := 1.7
+@export var steer_speed := 1.345
 
 ## Affects the sliding/drifting behavior during turns.
 ## Higher values create more pronounced slides.
 ## Typical range: 0.8-1.6. Start with 1.25.
-@export var steer_slide := 1.25
+@export var steer_slide := 10
 
 ## How quickly velocity follows the ship's facing direction.
 ## THIS IS THE KEY HANDLING STAT. Higher = tighter, lower = slidier.
 ## Low grip (4.5-5.0) = drifty. High grip (6.0-7.0) = snappy.
 ## Applied as: velocity.lerp(target_direction, grip * delta)
-@export var grip := 5.5
+@export var grip := 4.0
 
 ## Input response curve power. Higher = more precision at small inputs.
 ## 1.0 = linear, 2.0-3.0 = recommended for analog sticks.
@@ -66,17 +66,17 @@ class_name AGShip2097
 ## Rotation speed when using airbrakes (radians per second).
 ## Left airbrake rotates left, right rotates right.
 ## Higher = sharper cornering ability. Range: 2.5-4.0
-@export var airbrake_turn_rate := 3.2
+@export var airbrake_turn_rate := 0.5
 
 ## Grip value while airbraking. LOWER than normal grip = more slide.
 ## This is what creates the drift effect - ship rotates but velocity lags.
 ## Typical range: 1.5-3.0. Lower = more dramatic drifts.
-@export var airbrake_grip := 2.0
+@export var airbrake_grip := 0.5
 
 ## Speed multiplier while airbraking (per frame).
 ## 1.0 = no slowdown, 0.9 = heavy braking.
 ## Range: 0.92-0.96. This is how airbrakes scrub speed.
-@export var airbrake_drag := 0.94
+@export var airbrake_drag := 0.98
 
 ## How quickly grip recovers after releasing airbrakes.
 ## Higher = snappier recovery from drift. Lower = longer slides.
@@ -135,7 +135,7 @@ class_name AGShip2097
 ## Pitch is VISUAL ONLY - tilts the mesh, doesn't affect physics.
 ## Affects speed efficiency slightly but ship stays on track.
 ## Higher = more responsive visual pitch. Range: 2.0-3.5
-@export var pitch_speed := 2.8
+@export var pitch_speed := 1.0
 
 ## How fast visual pitch returns to neutral when no input.
 ## Higher = quicker return to level. Range: 1.5-2.5
@@ -144,7 +144,7 @@ class_name AGShip2097
 ## Maximum visual pitch angle in degrees.
 ## Only affects appearance and speed efficiency.
 ## Range: 15-30 degrees.
-@export var max_pitch_angle := 25.0
+@export var max_pitch_angle := 10
 
 # ============================================================================
 # COLLISION PARAMETERS
@@ -160,11 +160,11 @@ class_name AGShip2097
 ## Velocity retained after bouncing off walls (0-1).
 ## 1.0 = perfect bounce, 0.5 = loses half speed.
 ## Range: 0.6-0.75. Authentic feel uses ~0.7.
-@export var wall_bounce_retain := 0.7
+@export var wall_bounce_retain := 0.9
 
 ## How much hitting a wall rotates the ship away.
 ## Higher = more dramatic spin on impact. Range: 1.5-3.0
-@export var wall_rotation_force := 2.0
+@export var wall_rotation_force := 1.5
 
 ## Speed retained while scraping along walls (per frame).
 ## Applied when grinding against wall, not on impact.
