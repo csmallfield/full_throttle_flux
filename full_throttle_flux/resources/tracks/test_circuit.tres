@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/track_profile.gd" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+track_id = "test_circuit"
+display_name = "Test Circuit"
+description = "A flowing test track with gentle curves. Perfect for learning the controls."
+author = "Flux Industries"
+track_scene = null
+default_laps = 3
+grid_size = 8
+difficulty = 2
+supports_time_trial = true
+supports_endless = true
+supports_race = true

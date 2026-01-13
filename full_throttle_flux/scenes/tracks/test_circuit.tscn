@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3 uid="uid://bhlrwincjjrpl"]
+
+[ext_resource type="PackedScene" uid="uid://d1u5hhcgev84t" path="res://scenes/trackGeo.tscn" id="1_qprkd"]
+[ext_resource type="PackedScene" uid="uid://c8x2boost1pad" path="res://scenes/boost_pad.tscn" id="2_02she"]
+[ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="3_nnuyv"]
+[ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="4_02she"]
+
+[node name="TestCircuit" type="Node3D"]
+
+[node name="Track" parent="." instance=ExtResource("1_qprkd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
+
+[node name="BoostPad" parent="." instance=ExtResource("2_02she")]
+transform = Transform3D(-0.9882064, -0.040250532, 0.14774287, -0.03622611, 0.9988984, 0.02983104, -0.14878082, 0.024127085, -0.98857623, -194.35808, 1.0415039, 222.76703)
+
+[node name="StartFinishLine" parent="." instance=ExtResource("3_nnuyv")]
+transform = Transform3D(0.9281205, -0.04806451, -0.3691642, 0.040896334, 0.9987924, -0.027222943, 0.3700268, 0.010168711, 0.9289653, -45.395466, 15.62055, -249.69783)
+
+[node name="StartingGrid" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.293106, 21.053905, -239.12303)
+script = ExtResource("4_02she")
+metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
+
+[node name="Slot1" type="Marker3D" parent="StartingGrid"]
+transform = Transform3D(-0.3815222, 0, -0.9243597, 0, 1, 0, 0.9243597, 0, -0.3815222, -3.3510475, -3, 7.9537964)
+gizmo_extents = 3.25

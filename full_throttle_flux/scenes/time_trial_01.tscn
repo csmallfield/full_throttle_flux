@@ -1,15 +1,13 @@
-[gd_scene load_steps=14 format=3 uid="uid://bml2byqjx44e3"]
+[gd_scene load_steps=12 format=3 uid="uid://bml2byqjx44e3"]
 
 [ext_resource type="Script" uid="uid://bdc2b6nx314lu" path="res://scripts/race_controller.gd" id="1_1djkb"]
-[ext_resource type="PackedScene" uid="uid://d1u5hhcgev84t" path="res://scenes/trackGeo.tscn" id="2_5iw0i"]
 [ext_resource type="PackedScene" uid="uid://4ddntcikwuip" path="res://scenes/ships/default_racer.tscn" id="3_iu1pn"]
 [ext_resource type="Script" uid="uid://co7e31gm6i7fs" path="res://scripts/ag_camera_2097.gd" id="5_rryc1"]
 [ext_resource type="Script" uid="uid://crfocj0kfjqe6" path="res://scripts/hud_race.gd" id="6_pwacg"]
 [ext_resource type="Script" uid="uid://xxs3amfehq1e" path="res://scripts/debug_hud.gd" id="7_xxntp"]
 [ext_resource type="Script" uid="uid://c7f4xeaaeltus" path="res://scripts/pause_menu.gd" id="8_uy4xi"]
+[ext_resource type="PackedScene" uid="uid://bhlrwincjjrpl" path="res://scenes/tracks/test_circuit.tscn" id="8_xfmcy"]
 [ext_resource type="Script" uid="uid://brut61km8kx5j" path="res://scripts/results_screen.gd" id="9_bqjku"]
-[ext_resource type="PackedScene" uid="uid://c8x2boost1pad" path="res://scenes/boost_pad.tscn" id="10_fx2td"]
-[ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="11_n1cjn"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.05, 0.05, 0.15, 1)
@@ -47,9 +45,6 @@ light_color = Color(1, 0.95, 0.9, 1)
 shadow_enabled = true
 shadow_blur = 2.0
 
-[node name="Track" parent="." instance=ExtResource("2_5iw0i")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
-
 [node name="DefaultRacer" parent="." instance=ExtResource("3_iu1pn")]
 transform = Transform3D(0.94983023, 0, -0.31276593, 0, 1, 0, 0.31276593, 0, 0.94983023, -48.34865, 19.023623, -235.97458)
 
@@ -76,8 +71,4 @@ debug_hud = NodePath("../DebugHUD")
 [node name="ResultsScreen" type="CanvasLayer" parent="."]
 script = ExtResource("9_bqjku")
 
-[node name="BoostPad" parent="." instance=ExtResource("10_fx2td")]
-transform = Transform3D(-0.9882064, -0.040250532, 0.14774287, -0.03622611, 0.9988984, 0.02983104, -0.14878082, 0.024127085, -0.98857623, -194.35808, 1.0415039, 222.76703)
-
-[node name="StartFinishLine" parent="." instance=ExtResource("11_n1cjn")]
-transform = Transform3D(0.9281205, -0.04806451, -0.3691642, 0.040896334, 0.9987924, -0.027222943, 0.3700268, 0.010168711, 0.9289653, -45.395466, 15.62055, -249.69783)
+[node name="TestCircuit" parent="." instance=ExtResource("8_xfmcy")]
