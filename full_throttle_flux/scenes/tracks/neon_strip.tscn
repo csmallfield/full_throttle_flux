@@ -7,16 +7,16 @@
 
 [sub_resource type="Environment" id="Environment_h8kaj"]
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.02
+volumetric_fog_density = 0.01
 volumetric_fog_albedo = Color(0.84, 0.06719998, 0.2217602, 1)
 
 [node name="NeonStrip" type="Node3D"]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.86602354, -0.43301606, 0.25000072, 0, 0.49999818, 0.86602646, -0.5000033, 0.7499993, -0.4330102, 0, 50, 0)
-light_color = Color(1, 0, 0, 1)
+light_color = Color(0.7505364, 0.43561047, 0.38883567, 1)
 shadow_enabled = true
-shadow_blur = 2.0
+shadow_blur = 4.474
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_h8kaj")
