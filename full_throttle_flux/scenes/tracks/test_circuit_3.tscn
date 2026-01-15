@@ -169,3 +169,39 @@ path_continuous_u = true
 path_u_distance = 50.0
 path_joined = false
 material = SubResource("ShaderMaterial_nrqn6")
+
+[node name="CSGTorus3D" type="CSGTorus3D" parent="."]
+transform = Transform3D(-3.496911e-07, -8, 0, 8, -3.496911e-07, 0, 0, 0, 8, 75.66658, 10.877743, -3.7573605)
+inner_radius = 5.312
+outer_radius = 8.859
+sides = 20
+ring_sides = 10
+
+[node name="CSGTorus3D2" type="CSGTorus3D" parent="."]
+transform = Transform3D(-3.496911e-07, -8, 0, 8, -3.496911e-07, 0, 0, 0, 8, 121.32084, 10.877743, -3.7573605)
+inner_radius = 5.312
+outer_radius = 8.859
+sides = 20
+ring_sides = 10
+
+[node name="CSGTorus3D3" type="CSGTorus3D" parent="."]
+transform = Transform3D(-3.496911e-07, -8, 0, 8, -3.496911e-07, 0, 0, 0, 8, 171.89388, 10.877743, -3.7573605)
+inner_radius = 5.312
+outer_radius = 8.859
+sides = 20
+ring_sides = 10
+
+[node name="CSGTorus3D4" type="CSGTorus3D" parent="."]
+transform = Transform3D(-3.496911e-07, -8, 0, 8, -3.496911e-07, 0, 0, 0, 8, 213.60025, 10.877743, -3.7573605)
+inner_radius = 5.312
+outer_radius = 8.859
+sides = 20
+ring_sides = 10
+
+[node name="CSGBox3D" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -281.34314, 0, -821.6252)
+size = Vector3(50, 300, 100)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="."]
+transform = Transform3D(0.6819473, 0, 0.7314013, 0, 1, 0, -0.7314013, 0, 0.6819473, -929.8231, 0, -736.39984)
+size = Vector3(50, 300, 100)
