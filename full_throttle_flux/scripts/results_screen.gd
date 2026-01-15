@@ -4,6 +4,7 @@ class_name ResultsScreen
 ## Post-race results screen with stats, initial entry, and leaderboards
 ## Also handles endless mode summary display
 ## Music continues from race until player returns to menu
+## Now shows ship names and uses track-specific leaderboards
 
 enum State {
 	SHOWING_STATS,
@@ -106,7 +107,10 @@ func _on_race_finished(total_time: float, best_lap: float) -> void:
 	_show_stats(total_time, best_lap)
 
 func _on_endless_finished(total_laps: int, total_time: float, best_lap: float) -> void:
-	# Show endless summary
+	# Check for leaderboard qualification in endless mode
+	qualification_info = RaceManager.check_leaderboard_qualification()
+	
+	# Show endless summary (which may lead to initials entry)
 	visible = true
 	_show_endless_summary(total_laps, total_time, best_lap)
 
@@ -130,9 +134,19 @@ func _show_stats(total_time: float, best_lap: float) -> void:
 	title.add_theme_color_override("font_color", Color(0.3, 1, 0.3))
 	stats_container.add_child(title)
 	
+	# Track and ship info
+	var info_label = Label.new()
+	var track_name = GameManager.selected_track_profile.display_name if GameManager.selected_track_profile else "Unknown Track"
+	var ship_name = GameManager.selected_ship_profile.display_name if GameManager.selected_ship_profile else "Unknown Ship"
+	info_label.text = "%s  |  %s" % [track_name, ship_name]
+	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info_label.add_theme_font_size_override("font_size", 24)
+	info_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	stats_container.add_child(info_label)
+	
 	# Spacer
 	var spacer1 = Control.new()
-	spacer1.custom_minimum_size = Vector2(0, 30)
+	spacer1.custom_minimum_size = Vector2(0, 20)
 	stats_container.add_child(spacer1)
 	
 	# Total time
@@ -201,9 +215,19 @@ func _show_endless_summary(total_laps: int, total_time: float, best_lap: float) 
 	title.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
 	endless_summary_container.add_child(title)
 	
+	# Track and ship info
+	var info_label = Label.new()
+	var track_name = GameManager.selected_track_profile.display_name if GameManager.selected_track_profile else "Unknown Track"
+	var ship_name = GameManager.selected_ship_profile.display_name if GameManager.selected_ship_profile else "Unknown Ship"
+	info_label.text = "%s  |  %s" % [track_name, ship_name]
+	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info_label.add_theme_font_size_override("font_size", 22)
+	info_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	endless_summary_container.add_child(info_label)
+	
 	# Spacer
 	var spacer1 = Control.new()
-	spacer1.custom_minimum_size = Vector2(0, 40)
+	spacer1.custom_minimum_size = Vector2(0, 30)
 	endless_summary_container.add_child(spacer1)
 	
 	# Total laps
@@ -223,7 +247,7 @@ func _show_endless_summary(total_laps: int, total_time: float, best_lap: float) 
 	
 	# Spacer
 	var spacer2 = Control.new()
-	spacer2.custom_minimum_size = Vector2(0, 30)
+	spacer2.custom_minimum_size = Vector2(0, 20)
 	endless_summary_container.add_child(spacer2)
 	
 	# Total time
@@ -243,7 +267,7 @@ func _show_endless_summary(total_laps: int, total_time: float, best_lap: float) 
 	
 	# Spacer
 	var spacer3 = Control.new()
-	spacer3.custom_minimum_size = Vector2(0, 30)
+	spacer3.custom_minimum_size = Vector2(0, 20)
 	endless_summary_container.add_child(spacer3)
 	
 	# Best lap
@@ -265,38 +289,81 @@ func _show_endless_summary(total_laps: int, total_time: float, best_lap: float) 
 	best_value.add_theme_font_size_override("font_size", 42)
 	endless_summary_container.add_child(best_value)
 	
-	# Note about leaderboards
+	# Check if qualified for leaderboard
 	var spacer4 = Control.new()
-	spacer4.custom_minimum_size = Vector2(0, 40)
+	spacer4.custom_minimum_size = Vector2(0, 30)
 	endless_summary_container.add_child(spacer4)
 	
-	var note_label = Label.new()
-	note_label.text = "(Endless mode times are not recorded to leaderboards)"
-	note_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	note_label.add_theme_font_size_override("font_size", 18)
-	note_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	endless_summary_container.add_child(note_label)
-	
-	# Create back to menu button
-	var menu_button = Button.new()
-	menu_button.text = "BACK TO MENU"
-	menu_button.custom_minimum_size = Vector2(300, 60)
-	menu_button.add_theme_font_size_override("font_size", 28)
-	menu_button.focus_mode = Control.FOCUS_ALL
-	menu_button.pressed.connect(_on_endless_quit_pressed)
-	menu_button.focus_entered.connect(_on_button_focus)
-	buttons_container.add_child(menu_button)
-	
-	# Set focus after a brief delay to prevent accidental activation
-	await get_tree().create_timer(INPUT_BLOCK_DURATION).timeout
-	menu_button.grab_focus()
+	if qualification_info.best_lap_qualified:
+		var qual_label = Label.new()
+		qual_label.text = "NEW BEST LAP RECORD! Rank #%d" % (qualification_info.best_lap_rank + 1)
+		qual_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		qual_label.add_theme_font_size_override("font_size", 28)
+		qual_label.add_theme_color_override("font_color", Color(1, 0.8, 0.3))
+		endless_summary_container.add_child(qual_label)
+		
+		# Create button to enter initials
+		var enter_button = Button.new()
+		enter_button.text = "ENTER INITIALS"
+		enter_button.custom_minimum_size = Vector2(250, 60)
+		enter_button.add_theme_font_size_override("font_size", 28)
+		enter_button.focus_mode = Control.FOCUS_ALL
+		enter_button.pressed.connect(_on_endless_enter_initials)
+		enter_button.focus_entered.connect(_on_button_focus)
+		buttons_container.add_child(enter_button)
+		
+		var menu_button = Button.new()
+		menu_button.text = "SKIP"
+		menu_button.custom_minimum_size = Vector2(150, 60)
+		menu_button.add_theme_font_size_override("font_size", 28)
+		menu_button.focus_mode = Control.FOCUS_ALL
+		menu_button.pressed.connect(_on_endless_quit_pressed)
+		menu_button.focus_entered.connect(_on_button_focus)
+		buttons_container.add_child(menu_button)
+		
+		# Set up navigation
+		enter_button.focus_neighbor_right = menu_button.get_path()
+		menu_button.focus_neighbor_left = enter_button.get_path()
+		
+		# Set focus after delay
+		await get_tree().create_timer(INPUT_BLOCK_DURATION).timeout
+		enter_button.grab_focus()
+	else:
+		var note_label = Label.new()
+		note_label.text = "(No new records set)"
+		note_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		note_label.add_theme_font_size_override("font_size", 18)
+		note_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		endless_summary_container.add_child(note_label)
+		
+		# Create back to menu button
+		var menu_button = Button.new()
+		menu_button.text = "BACK TO MENU"
+		menu_button.custom_minimum_size = Vector2(300, 60)
+		menu_button.add_theme_font_size_override("font_size", 28)
+		menu_button.focus_mode = Control.FOCUS_ALL
+		menu_button.pressed.connect(_on_endless_quit_pressed)
+		menu_button.focus_entered.connect(_on_button_focus)
+		buttons_container.add_child(menu_button)
+		
+		# Set focus after a brief delay
+		await get_tree().create_timer(INPUT_BLOCK_DURATION).timeout
+		menu_button.grab_focus()
+
+func _on_endless_enter_initials() -> void:
+	if _input_blocked:
+		return
+	AudioManager.play_select()
+	_show_initials_entry()
 
 func _show_initials_entry() -> void:
 	current_state = State.ENTERING_INITIALS
 	stats_container.visible = false
 	initials_container.visible = true
+	endless_summary_container.visible = false
+	buttons_container.visible = false
 	
-	# Pre-populate with last entered initials (Item 4)
+	# Pre-populate with last entered initials
 	current_initials = last_entered_initials
 	
 	# Play new record fanfare
@@ -396,7 +463,7 @@ func _update_initials_display() -> void:
 		label.text = display
 
 func _submit_initials() -> void:
-	# Store for next time (Item 4)
+	# Store for next time
 	last_entered_initials = current_initials
 	
 	# Pad with spaces if needed
@@ -419,7 +486,7 @@ func _show_leaderboards() -> void:
 	endless_summary_container.visible = false
 	buttons_container.visible = true
 	
-	# Block input briefly to prevent accidental selection (Item 3)
+	# Block input briefly to prevent accidental selection
 	_block_input()
 	
 	# Clear previous content
@@ -428,45 +495,72 @@ func _show_leaderboards() -> void:
 	for child in buttons_container.get_children():
 		child.queue_free()
 	
-	# Title
+	# Get current track/mode info
+	var track_name = GameManager.selected_track_profile.display_name if GameManager.selected_track_profile else "Unknown"
+	var track_id = GameManager.selected_track_profile.track_id if GameManager.selected_track_profile else "unknown"
+	var mode_name = "Endless" if RaceManager.is_endless_mode() else "Time Trial"
+	var mode_key = "endless" if RaceManager.is_endless_mode() else "time_trial"
+	
+	# Title with track/mode info
 	var title = Label.new()
-	title.text = "LEADERBOARDS"
+	title.text = "%s - %s" % [track_name, mode_name]
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))
 	leaderboards_container.add_child(title)
 	
-	# Create two-column layout
+	# Create layout based on mode
 	var hbox = HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 100)
+	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	leaderboards_container.add_child(hbox)
 	
-	# Total time leaderboard
-	var total_vbox = VBoxContainer.new()
-	total_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(total_vbox)
+	if RaceManager.is_time_trial_mode():
+		# Time trial: show both total time and best lap side by side
+		var total_vbox = VBoxContainer.new()
+		total_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hbox.add_child(total_vbox)
+		
+		var total_title = Label.new()
+		total_title.text = "TOTAL TIME (3 Laps)"
+		total_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		total_title.add_theme_font_size_override("font_size", 32)
+		total_title.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+		total_vbox.add_child(total_title)
+		
+		var total_board = RaceManager.get_leaderboard(track_id, mode_key, "total_time")
+		_populate_leaderboard(total_vbox, total_board)
+		
+		var lap_vbox = VBoxContainer.new()
+		lap_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hbox.add_child(lap_vbox)
+		
+		var lap_title = Label.new()
+		lap_title.text = "BEST LAP"
+		lap_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lap_title.add_theme_font_size_override("font_size", 32)
+		lap_title.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+		lap_vbox.add_child(lap_title)
+		
+		var lap_board = RaceManager.get_leaderboard(track_id, mode_key, "best_lap")
+		_populate_leaderboard(lap_vbox, lap_board)
+	else:
+		# Endless: show only best lap (centered)
+		var lap_vbox = VBoxContainer.new()
+		lap_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hbox.add_child(lap_vbox)
+		
+		var lap_title = Label.new()
+		lap_title.text = "BEST LAP"
+		lap_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lap_title.add_theme_font_size_override("font_size", 32)
+		lap_title.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+		lap_vbox.add_child(lap_title)
+		
+		var lap_board = RaceManager.get_leaderboard(track_id, mode_key, "best_lap")
+		_populate_leaderboard(lap_vbox, lap_board)
 	
-	var total_title = Label.new()
-	total_title.text = "TOTAL TIME"
-	total_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	total_title.add_theme_font_size_override("font_size", 32)
-	total_vbox.add_child(total_title)
-	
-	_populate_leaderboard(total_vbox, RaceManager.total_time_leaderboard)
-	
-	# Best lap leaderboard
-	var lap_vbox = VBoxContainer.new()
-	lap_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(lap_vbox)
-	
-	var lap_title = Label.new()
-	lap_title.text = "BEST LAP"
-	lap_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lap_title.add_theme_font_size_override("font_size", 32)
-	lap_vbox.add_child(lap_title)
-	
-	_populate_leaderboard(lap_vbox, RaceManager.best_lap_leaderboard)
-	
-	# Buttons - create but don't set focus yet
+	# Buttons
 	var retry_button = Button.new()
 	retry_button.name = "RetryButton"
 	retry_button.text = "RETRY"
@@ -493,11 +587,11 @@ func _show_leaderboards() -> void:
 	quit_button.focus_neighbor_left = retry_button.get_path()
 	quit_button.focus_neighbor_right = retry_button.get_path()
 	
-	# Set focus after a delay to prevent accidental selection (Item 3)
+	# Set focus after a delay to prevent accidental selection
 	await get_tree().create_timer(INPUT_BLOCK_DURATION).timeout
 	retry_button.grab_focus()
 
-func _populate_leaderboard(parent: VBoxContainer, leaderboard: Array[Dictionary]) -> void:
+func _populate_leaderboard(parent: VBoxContainer, leaderboard: Array) -> void:
 	if leaderboard.is_empty():
 		var empty_label = Label.new()
 		empty_label.text = "No records yet!"
@@ -509,10 +603,12 @@ func _populate_leaderboard(parent: VBoxContainer, leaderboard: Array[Dictionary]
 	
 	for i in range(leaderboard.size()):
 		var entry = leaderboard[i]
-		var rank_text = "%d. %s - %s" % [
+		var ship_name = entry.get("ship", "???")
+		var rank_text = "%d. %s  %s  [%s]" % [
 			i + 1,
 			entry.initials,
-			RaceManager.format_time(entry.time)
+			RaceManager.format_time(entry.time),
+			ship_name
 		]
 		
 		var entry_label = Label.new()

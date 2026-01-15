@@ -3,6 +3,7 @@ extends Node
 ## Central race management singleton
 ## Handles timing, lap tracking, leaderboards, and race state
 ## Supports both Time Trial and Endless modes
+## Leaderboards are now per-track and per-mode
 ## NOTE: Music is now handled by MusicPlaylistManager, not here
 
 # ============================================================================
@@ -67,11 +68,11 @@ var pause_start_time: float = 0.0
 # ============================================================================
 
 const LEADERBOARD_SIZE := 10
-const SAVE_PATH := "user://leaderboards.json"
+const SAVE_PATH := "user://leaderboards_v2.json"
 
-# Each entry: {initials: String, time: float}
-var total_time_leaderboard: Array[Dictionary] = []
-var best_lap_leaderboard: Array[Dictionary] = []
+# Structure: { "track_id:mode": { "total_time": [...], "best_lap": [...] } }
+# Each entry: { "initials": String, "time": float, "ship": String }
+var leaderboards: Dictionary = {}
 
 # ============================================================================
 # INITIALIZATION
@@ -264,8 +265,69 @@ func get_best_displayed_lap_time() -> float:
 	return best
 
 # ============================================================================
+# LEADERBOARD KEY HELPERS
+# ============================================================================
+
+func _get_leaderboard_key(track_id: String, mode: String) -> String:
+	return "%s:%s" % [track_id, mode]
+
+func _get_current_leaderboard_key() -> String:
+	var track_id = GameManager.selected_track_profile.track_id if GameManager.selected_track_profile else "unknown"
+	var mode = "endless" if current_mode == RaceMode.ENDLESS else "time_trial"
+	return _get_leaderboard_key(track_id, mode)
+
+func _ensure_leaderboard_exists(key: String) -> void:
+	if not leaderboards.has(key):
+		leaderboards[key] = {
+			"total_time": [],
+			"best_lap": []
+		}
+
+func _get_current_ship_name() -> String:
+	if GameManager.selected_ship_profile:
+		return GameManager.selected_ship_profile.display_name
+	return "Unknown"
+
+# ============================================================================
 # LEADERBOARDS
 # ============================================================================
+
+func get_leaderboard(track_id: String, mode: String, category: String) -> Array:
+	"""Get a specific leaderboard. category is 'total_time' or 'best_lap'"""
+	var key = _get_leaderboard_key(track_id, mode)
+	if not leaderboards.has(key):
+		return []
+	if not leaderboards[key].has(category):
+		return []
+	return leaderboards[key][category]
+
+func get_all_leaderboard_keys() -> Array[String]:
+	"""Get all track:mode combinations that have leaderboard data"""
+	var keys: Array[String] = []
+	for key in leaderboards.keys():
+		keys.append(key)
+	return keys
+
+func get_all_possible_leaderboard_combos() -> Array[Dictionary]:
+	"""Get all track/mode combinations from available tracks"""
+	var combos: Array[Dictionary] = []
+	for track in GameManager.available_tracks:
+		var supported_modes = track.get_supported_modes()
+		if "time_trial" in supported_modes:
+			combos.append({
+				"track_id": track.track_id,
+				"track_name": track.display_name,
+				"mode": "time_trial",
+				"mode_name": "Time Trial"
+			})
+		if "endless" in supported_modes:
+			combos.append({
+				"track_id": track.track_id,
+				"track_name": track.display_name,
+				"mode": "endless",
+				"mode_name": "Endless"
+			})
+	return combos
 
 func check_leaderboard_qualification() -> Dictionary:
 	"""Returns which leaderboards the current race qualifies for"""
@@ -276,23 +338,37 @@ func check_leaderboard_qualification() -> Dictionary:
 		"best_lap_rank": -1
 	}
 	
-	# No leaderboard qualification in endless mode
-	if current_mode == RaceMode.ENDLESS:
+	var key = _get_current_leaderboard_key()
+	_ensure_leaderboard_exists(key)
+	
+	var total_time_board = leaderboards[key]["total_time"] as Array
+	var best_lap_board = leaderboards[key]["best_lap"] as Array
+	
+	# Time trial: check both total time and best lap
+	# Endless: only check best lap (and only if at least one lap completed)
+	if current_mode == RaceMode.TIME_TRIAL:
+		# Check total time
+		if total_time_board.size() < LEADERBOARD_SIZE:
+			result.total_time_qualified = true
+			result.total_time_rank = _get_insert_position(total_time_board, current_race_time)
+		elif current_race_time < total_time_board[-1].time:
+			result.total_time_qualified = true
+			result.total_time_rank = _get_insert_position(total_time_board, current_race_time)
+	
+	# Check best lap (both modes, but endless needs at least one lap)
+	if current_mode == RaceMode.ENDLESS and endless_all_lap_times.is_empty():
 		return result
 	
-	# Check total time
-	if total_time_leaderboard.size() < LEADERBOARD_SIZE or current_race_time < total_time_leaderboard[-1].time:
-		result.total_time_qualified = true
-		result.total_time_rank = _get_insert_position(total_time_leaderboard, current_race_time)
-	
-	# Check best lap
-	if best_lap_leaderboard.size() < LEADERBOARD_SIZE or best_lap_time < best_lap_leaderboard[-1].time:
+	if best_lap_board.size() < LEADERBOARD_SIZE:
 		result.best_lap_qualified = true
-		result.best_lap_rank = _get_insert_position(best_lap_leaderboard, best_lap_time)
+		result.best_lap_rank = _get_insert_position(best_lap_board, best_lap_time)
+	elif best_lap_time < best_lap_board[-1].time:
+		result.best_lap_qualified = true
+		result.best_lap_rank = _get_insert_position(best_lap_board, best_lap_time)
 	
 	return result
 
-func _get_insert_position(leaderboard: Array[Dictionary], time: float) -> int:
+func _get_insert_position(leaderboard: Array, time: float) -> int:
 	for i in range(leaderboard.size()):
 		if time < leaderboard[i].time:
 			return i
@@ -300,48 +376,54 @@ func _get_insert_position(leaderboard: Array[Dictionary], time: float) -> int:
 
 func add_to_leaderboard(initials: String, total_time_qualified: bool, best_lap_qualified: bool) -> void:
 	initials = initials.to_upper().substr(0, 3)
+	var ship_name = _get_current_ship_name()
+	var key = _get_current_leaderboard_key()
+	_ensure_leaderboard_exists(key)
 	
 	if total_time_qualified:
-		var entry := {"initials": initials, "time": current_race_time}
-		var pos = _get_insert_position(total_time_leaderboard, current_race_time)
-		total_time_leaderboard.insert(pos, entry)
+		var entry := {"initials": initials, "time": current_race_time, "ship": ship_name}
+		var board = leaderboards[key]["total_time"] as Array
+		var pos = _get_insert_position(board, current_race_time)
+		board.insert(pos, entry)
 		
-		if total_time_leaderboard.size() > LEADERBOARD_SIZE:
-			total_time_leaderboard.resize(LEADERBOARD_SIZE)
+		if board.size() > LEADERBOARD_SIZE:
+			board.resize(LEADERBOARD_SIZE)
 	
 	if best_lap_qualified:
-		var entry := {"initials": initials, "time": best_lap_time}
-		var pos = _get_insert_position(best_lap_leaderboard, best_lap_time)
-		best_lap_leaderboard.insert(pos, entry)
+		var entry := {"initials": initials, "time": best_lap_time, "ship": ship_name}
+		var board = leaderboards[key]["best_lap"] as Array
+		var pos = _get_insert_position(board, best_lap_time)
+		board.insert(pos, entry)
 		
-		if best_lap_leaderboard.size() > LEADERBOARD_SIZE:
-			best_lap_leaderboard.resize(LEADERBOARD_SIZE)
+		if board.size() > LEADERBOARD_SIZE:
+			board.resize(LEADERBOARD_SIZE)
 	
 	save_leaderboards()
+
+func erase_all_leaderboards() -> void:
+	"""Nuclear option - clears ALL leaderboard data"""
+	leaderboards.clear()
+	save_leaderboards()
+	print("RaceManager: All leaderboards erased")
 
 # ============================================================================
 # PERSISTENCE
 # ============================================================================
 
 func save_leaderboards() -> void:
-	var data := {
-		"total_time": total_time_leaderboard,
-		"best_lap": best_lap_leaderboard
-	}
-	
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
-		file.store_string(JSON.stringify(data, "\t"))
+		file.store_string(JSON.stringify(leaderboards, "\t"))
 		file.close()
 
 func load_leaderboards() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
-		_create_default_leaderboards()
+		leaderboards = {}
 		return
 	
 	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if not file:
-		_create_default_leaderboards()
+		leaderboards = {}
 		return
 	
 	var json_string = file.get_as_text()
@@ -351,27 +433,34 @@ func load_leaderboards() -> void:
 	var parse_result = json.parse(json_string)
 	
 	if parse_result != OK:
-		print("Error parsing leaderboards JSON")
-		_create_default_leaderboards()
+		print("RaceManager: Error parsing leaderboards JSON")
+		leaderboards = {}
 		return
 	
-	var data = json.data
-	total_time_leaderboard.clear()
-	best_lap_leaderboard.clear()
-	
-	if data.has("total_time"):
-		for entry in data.total_time:
-			total_time_leaderboard.append(entry)
-	
-	if data.has("best_lap"):
-		for entry in data.best_lap:
-			best_lap_leaderboard.append(entry)
+	leaderboards = json.data if json.data is Dictionary else {}
 
-func _create_default_leaderboards() -> void:
-	total_time_leaderboard.clear()
-	best_lap_leaderboard.clear()
-	# Start with empty leaderboards
-	save_leaderboards()
+# ============================================================================
+# LEGACY COMPATIBILITY - Remove these if not needed elsewhere
+# ============================================================================
+
+# These provide backwards compatibility if anything still references the old arrays
+var total_time_leaderboard: Array[Dictionary]:
+	get:
+		var key = _get_current_leaderboard_key()
+		_ensure_leaderboard_exists(key)
+		var result: Array[Dictionary] = []
+		for entry in leaderboards[key]["total_time"]:
+			result.append(entry)
+		return result
+
+var best_lap_leaderboard: Array[Dictionary]:
+	get:
+		var key = _get_current_leaderboard_key()
+		_ensure_leaderboard_exists(key)
+		var result: Array[Dictionary] = []
+		for entry in leaderboards[key]["best_lap"]:
+			result.append(entry)
+		return result
 
 # ============================================================================
 # UTILITIES
