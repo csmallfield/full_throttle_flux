@@ -19,9 +19,9 @@ background_mode = 2
 sky = SubResource("Sky_xfmcy")
 ambient_light_source = 2
 ambient_light_color = Color(0.25, 0.25, 0.35, 1)
-ambient_light_energy = 0.4
 tonemap_mode = 2
-glow_enabled = true
+tonemap_exposure = 1.2
+ssao_intensity = 1.54
 glow_intensity = 0.6
 glow_bloom = 0.2
 
@@ -40,10 +40,10 @@ shadow_blur = 2.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
 
 [node name="BoostPad" parent="." instance=ExtResource("2_02she")]
-transform = Transform3D(-0.9882064, -0.040250532, 0.14774287, -0.03622611, 0.9988984, 0.02983104, -0.14878082, 0.024127085, -0.98857623, -194.35808, 1.0415039, 222.76703)
+transform = Transform3D(-0.98901576, 0, 0.14780949, 0.0027343908, 0.999829, 0.01829624, -0.14778411, 0.018499434, -0.98884696, -194.35808, 0.22340536, 222.76703)
 
 [node name="StartFinishLine" parent="." instance=ExtResource("3_nnuyv")]
-transform = Transform3D(0.9281205, -0.04806451, -0.3691642, 0.040896334, 0.9987924, -0.027222943, 0.3700268, 0.010168711, 0.9289653, -45.395466, 15.62055, -249.69783)
+transform = Transform3D(0.94608533, 0, -0.3239174, 0, 0.99999994, 0, 0.32391742, 0, 0.9460852, -45.395466, 14.584333, -249.69783)
 
 [node name="StartingGrid" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.293106, 21.053905, -239.12303)

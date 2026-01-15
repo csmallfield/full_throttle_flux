@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://d1u5hhcgev84t"]
+[gd_scene load_steps=6 format=3 uid="uid://d1u5hhcgev84t"]
 
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="1_gdm22"]
 
@@ -10,18 +10,74 @@ _data = {
 }
 point_count = 12
 
+[sub_resource type="Shader" id="Shader_242es"]
+code = "shader_type spatial;
+
+uniform vec4 grid_color : source_color = vec4(0.0, 0.8, 1.0, 1.0);  // Cyan
+uniform vec4 background_color : source_color = vec4(0.05, 0.05, 0.1, 1.0);  // Dark blue
+uniform float grid_size : hint_range(0.1, 10.0) = 1.0;  // Size of each grid square
+uniform float line_width : hint_range(0.01, 0.5) = 0.05;  // Thickness of lines
+uniform float major_grid_every : hint_range(0.0, 20.0) = 5.0;  // Thicker line every N squares
+uniform float major_line_width : hint_range(0.01, 1.0) = 0.1;
+
+void fragment() {
+    // Get world position (UV * object scale)
+    vec2 pos = UV * 100.0;  // Adjust 100.0 to match your track scale
+
+    // Calculate grid
+    vec2 grid = abs(fract(pos / grid_size - 0.5) - 0.5) / fwidth(pos / grid_size);
+    float line = min(grid.x, grid.y);
+
+    // Major grid lines
+    vec2 major_grid = abs(fract(pos / (grid_size * major_grid_every) - 0.5) - 0.5) / fwidth(pos / (grid_size * major_grid_every));
+    float major_line = min(major_grid.x, major_grid.y);
+
+    // Combine lines
+    float grid_mask = 1.0 - min(line / line_width, 1.0);
+    float major_mask = 1.0 - min(major_line / major_line_width, 1.0);
+
+    // Mix colors
+    vec3 color = background_color.rgb;
+    color = mix(color, grid_color.rgb, grid_mask * 0.3);  // Regular grid
+    color = mix(color, grid_color.rgb, major_mask * 0.6);  // Major grid brighter
+
+    ALBEDO = color;
+    ROUGHNESS = 0.8;
+    METALLIC = 0.0;
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2e6e3"]
+render_priority = 0
+shader = SubResource("Shader_242es")
+shader_parameter/grid_color = Color(0, 0.8, 1, 1)
+shader_parameter/background_color = Color(0.05, 0.05, 0.1, 1)
+shader_parameter/grid_size = 10.0
+shader_parameter/line_width = 0.5
+shader_parameter/major_grid_every = 10.000000475
+shader_parameter/major_line_width = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_usqym"]
+render_priority = 0
+shader = SubResource("Shader_242es")
+shader_parameter/grid_color = Color(0, 0.8, 1, 1)
+shader_parameter/background_color = Color(0.05, 0.05, 0.1, 1)
+shader_parameter/grid_size = 10.0
+shader_parameter/line_width = 0.5
+shader_parameter/major_grid_every = 10.000000475
+shader_parameter/major_line_width = 1.0
+
 [node name="Track" type="Path3D"]
 curve = SubResource("Curve3D_bcvet")
 
-[node name="CSGPolygon3D2" type="CSGPolygon3D" parent="."]
+[node name="groundGeo" type="CSGPolygon3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
-polygon = PackedVector2Array(26.9975, 5.89258, 16.8982, 6.32783, 16.1879, 1.76581, -16.5493, 3.89228, -16.6904, 9.97558, -34.705, 5.81169, -34.1104, -4.98032, 27.2544, -1.02657)
+polygon = PackedVector2Array(18.94209, 2.2563944, 16.1879, 1.76581, -16.617033, 1.8802173, -19.665726, 2.767276, -19.665726, -3.1930122, 18.990906, -2.6885724)
 mode = 2
 path_node = NodePath("..")
 path_interval_type = 0
 path_interval = 0.8
-path_simplify_angle = 0.0
+path_simplify_angle = 1.0
 path_rotation = 2
 path_rotation_accurate = false
 path_local = false
@@ -29,3 +85,39 @@ path_continuous_u = true
 path_u_distance = 0.0
 path_joined = true
 material = ExtResource("1_gdm22")
+
+[node name="wallLeftGeo" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(26.9975, 5.89258, 17.448002, 6.9199634, 16.1879, 1.76581, 15.962437, -3.235585, 27.114857, -3.065292)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 1.0
+path_joined = false
+material = SubResource("ShaderMaterial_2e6e3")
+
+[node name="wallRightGeo" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(-16.813766, 1.958381, -17.707664, 6.34345, -27.19999, 5.57713, -27.111715, -2.8098512, -16.810621, -2.7672782)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 1.0
+path_joined = false
+material = SubResource("ShaderMaterial_usqym")

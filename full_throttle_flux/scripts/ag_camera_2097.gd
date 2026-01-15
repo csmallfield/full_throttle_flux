@@ -15,17 +15,17 @@ class_name AGCamera2097
 ## Higher Y = camera sits higher above ship.
 ## Higher Z = camera sits further behind ship.
 ## Typical values: Y = 2.5-4.0, Z = 6.0-10.0
-@export var base_offset := Vector3(0, 3.0, 8.0)
+@export var base_offset := Vector3(0, 2.0, 5.0)
 
 ## Extra distance added at maximum speed.
 ## Camera pulls back as you go faster, enhancing sense of speed.
 ## 0 = no zoom effect, 2-4 = noticeable pullback at top speed.
-@export var speed_zoom := 2.0
+@export var speed_zoom := 1
 
 ## How quickly camera moves to target position (units per second factor).
 ## Higher = snappier following, lower = more floaty/cinematic.
 ## Range: 4.0-12.0. Start with 8.0 for balanced feel.
-@export var follow_speed := 8.0
+@export var follow_speed := 12.0
 
 @export_group("Look")
 
@@ -49,7 +49,7 @@ class_name AGCamera2097
 ## Field of view at maximum speed (degrees).
 ## FOV increases with speed to enhance sense of velocity.
 ## Should be higher than base_fov. Typical range: 75-90.
-@export var max_fov := 80.0
+@export var max_fov := 70.0
 
 @export_group("Collision")
 
@@ -65,8 +65,8 @@ class_name AGCamera2097
 @export var collision_recovery_speed := 5.0
 
 ## Collision mask - which layers the camera should collide with.
-## Layer 1 = track geometry. Adjust if needed.
-@export_flags_3d_physics var collision_mask := 1
+## Layer 1 = track surface, Layer 3 = walls. Mask 5 = both (1 + 4).
+@export_flags_3d_physics var collision_mask := 5
 
 var shake_offset := Vector3.ZERO
 var shake_intensity := 0.0
