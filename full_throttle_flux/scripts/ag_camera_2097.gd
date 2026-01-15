@@ -15,7 +15,7 @@ class_name AGCamera2097
 ## Higher Y = camera sits higher above ship.
 ## Higher Z = camera sits further behind ship.
 ## Typical values: Y = 2.5-4.0, Z = 6.0-10.0
-@export var base_offset := Vector3(0, 2.0, 5.0)
+@export var base_offset := Vector3(0, 3.0, 5.5)
 
 ## Extra distance added at maximum speed.
 ## Camera pulls back as you go faster, enhancing sense of speed.

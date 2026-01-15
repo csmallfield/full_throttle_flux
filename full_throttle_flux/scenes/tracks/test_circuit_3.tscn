@@ -1,15 +1,36 @@
-[gd_scene load_steps=9 format=3 uid="uid://iok12nc8qm3o"]
+[gd_scene load_steps=11 format=3 uid="uid://iok12nc8qm3o"]
 
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_ut6yf"]
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_750ah"]
+[ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_750ah"]
 
-[sub_resource type="Curve3D" id="Curve3D_lade4"]
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
+sky_top_color = Color(0.05, 0.05, 0.15, 1)
+sky_horizon_color = Color(0.2, 0.15, 0.3, 1)
+ground_bottom_color = Color(0.02, 0.02, 0.05, 1)
+ground_horizon_color = Color(0.2, 0.15, 0.3, 1)
+
+[sub_resource type="Sky" id="Sky_xfmcy"]
+sky_material = SubResource("ProceduralSkyMaterial_8a1g2")
+
+[sub_resource type="Environment" id="Environment_cxd56"]
+background_mode = 2
+sky = SubResource("Sky_xfmcy")
+ambient_light_source = 2
+ambient_light_color = Color(0.25, 0.25, 0.35, 1)
+ambient_light_energy = 0.4
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.2
+
+[sub_resource type="Curve3D" id="Curve3D_8254d"]
 closed = true
 _data = {
-"points": PackedVector3Array(121.17001, 0, 26.738525, -121.17001, 0, -26.738525, -113.2912, 0, 1108.1945, 110.78165, -1.3684082, 51.298706, -110.78165, 1.3684082, -51.298706, -332.37225, 11.40802, 1043.8302, 3.3236694, 0.0001373291, 99.93982, -3.3236694, -0.0001373291, -99.93982, -496.32776, 18.551407, 881.72797, 19.099915, -26.029953, 88.993774, -19.099915, 26.029953, -88.993774, -384.52808, 134.98895, 724.3933, 82.80701, 35.67961, 35.78064, -82.80701, -35.67961, -35.78064, -485.17682, 131.22923, 619.5036, 82.18359, 22.322784, 52.8006, -82.18359, -22.322784, -52.8006, -645.3453, 0, 552.75543, 5.541748, 6.107994, 74.940186, -5.541748, -6.107994, -74.940186, -750.6138, 0, 435.94647, -55.419556, -7.8086853, 36.896088, 55.419556, 7.8086853, -36.896088, -687.6886, 0, 326.28906, -50.75531, 14.086967, 36.594208, 50.75531, -14.086967, -36.594208, -608.52496, 0, 271.4602, -38.66815, 18.462952, 63.869385, 38.66815, -18.462952, -63.869385, -514.63293, -86.283264, 183.25746, 52.606567, -22.789017, 64.25923, -52.606567, 22.789017, -64.25923, -527.52014, -86.283264, 30.690556, 73.41284, -3.8935852, 56.417007, -73.41284, 3.8935852, -56.417007, -669.2785, 0, -76.58295, 51.56787, 0, 81.46454, -51.56787, 0, -81.46454, -776.0576, 0, -162.40186, -60.132446, -5.3043823, 115.1095, 60.132446, 5.3043823, -115.1095, -772.3756, 0, -403.17145, -101.44873, -6.2204742, 17.746643, 101.44873, 6.2204742, -17.746643, -623.2531, 22.504059, -531.8998, -79.51648, -14.264412, -47.7218, 79.51648, 14.264412, 47.7218, -439.15128, 51.95495, -505.6774, -8.745728, -6.1035156e-05, -90.76248, 8.745728, 6.1035156e-05, 90.76248, -362.5458, 98.79645, -360.2621, 49.493652, 16.043785, -48.36154, -49.493652, -16.043785, 48.36154, -400.48984, 74.74604, -229.14987, 80.7323, 22.835247, 59.944, -80.7323, -22.835247, -59.944, -527.52014, 7.626446, -233.91759, 3.1966553, -1.6212463e-05, 100.773254, -3.1966553, 1.6212463e-05, -100.773254, -601.16077, -12.98488, -424.62622, -27.105164, -22.809155, 96.11755, 27.105164, 22.809155, -96.11755, -577.22754, 12.023112, -739.2953, -82.112305, -20.272263, 75.60181, 82.112305, 20.272263, -75.60181, -468.60757, 163.63574, -956.22644, -112.91736, 4.2418976, 39.935425, 112.91736, -4.2418976, -39.935425, -317.64404, 170.19853, -1051.5808, -113.56436, 19.77362, -37.624146, 113.56436, -19.77362, 37.624146, -10.194149, 167.12804, -1063.5, -17.073654, 47.08304, -127.83984, 17.073654, -47.08304, 127.83984, 80.0157, 0, -872.7914, -104.581696, 0, -42.025024, 104.581696, 0, 42.025024, 159.1795, -97.74704, -689.23444, -68.52069, 0, 60.54138, 68.52069, 0, -60.54138, 346.9635, -97.74704, -727.3761, -73.82489, 0, 82.64844, 73.82489, 0, -82.64844, 433.49103, 0, -918.08466, -153.90112, 0, -30.325684, 153.90112, 0, 30.325684, 683.8697, 0, -1034.8938, -61.943848, -53.212097, -104.137695, 61.943848, 53.212097, 104.137695, 883.21545, 281.81525, -877.5591, 30.8927, 69.61543, -150.03247, -30.8927, -69.61543, 150.03247, 908.4738, 281.81525, -641.55725, 141.2528, 10.935699, 10.820374, -141.2528, -10.935699, -10.820374, 786.96643, 0, -362.64584, 155.90045, -5.4797974, 12.432373, -155.90045, 5.4797974, -12.432373, 602.86475, 0, -407.93918, 84.99951, 28.94217, -160.31485, -84.99951, -28.94217, 160.31485, 376.41937, 0, -272.05933, -27.842041, 39.313354, -286.1124, 27.842041, -39.313354, 286.1124, 365.3736, -248.6698, 166.5706, -45.38208, -36.986267, -64.30197, 45.38208, 36.986267, 64.30197, 466.62952, -248.6698, 362.04688, 51.311523, -19.835701, -40.99878, -51.311523, 19.835701, 40.99878, 426.12698, 0, 521.7654, 95.91907, 9.544525, -59.746094, -95.91907, -9.544525, 59.746094, 308.30194, 0, 607.5843, 2.9872437, 0, -110.53906, -2.9872437, 0, 110.53906, 138.92827, 0, 771.42017, -162.22992, 30.469788, 22.922241, 162.22992, -30.469788, -22.922241, 367.0209, -124.93768, 835.4682, -175.39197, -78.64496, -50.92798, 175.39197, 78.64496, 50.92798, 728.05396, 0, 831.667, 4.9052734, 0, -134.80774, -4.9052734, 0, 134.80774, 879.01746, 193.32495, 1008.0723, 117.11438, 59.010864, -5.9107666, -117.11438, -59.010864, 5.9107666, 751.9871, 0, 1153.4877, 185.7096, -11.463501, -2.5822754, -185.7096, 11.463501, 2.5822754, 361.6916, 0, 1172.5586, 118.87132, 0, 14.337769, -118.87132, 0, -14.337769, 81.85658, 0, 1140.0054),
-"tilts": PackedFloat32Array(0, 0.2617994, 0.20943952, -0.20943952, -0.20943952, 0.34906584, 0.6981317, 0.43633232, 0, -0.5235988, -0.34906584, 0.34906584, 0.61086524, 0.7853982, 0.9599311, 0.9599311, 1.134464, 1.134464, 1.134464, 0.9599311, 0.9599311, 0.9599311, 0.9599311, 0.9599311, 1.3089969, 0.6981317, 0.43633232, 1.3962634, 1.3089969, 1.3962634, 1.3962634, 1.3962634, 1.0471976, 0.87266463, 0.5235988, 1.3962634, 0.9599311, 0.5235988, -0.7853982, -0.5235988, 0.17453292, 0.34906584, 0, 0, 0)
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.15372086, -0.17949677, 0.7944069, 178.47644, 0, -3.4262443, -178.47644, 0, 3.4262443, -263.33514, -0.1796875, 5.33923, 170.75299, -28.126465, -77.34113, -170.75299, 28.126465, 77.34113, -641.70026, -0.1796875, 180.40375, 86.26782, 7.6412315, 90.65543, -86.26782, -7.6412315, -90.65543, -1062.3562, 51.416016, 147.84439, -47.153076, 5.56201, 102.4205, 47.153076, -5.56201, -102.4205, -1021.948, -0.1796875, -145.25394, -52.22882, -2.700305, 66.8826, 52.22882, 2.700305, -66.8826, -996.53546, -11.462578, -345.731, -49.76758, -3.528885, 51.939056, 49.76758, 3.528885, -51.939056, -971.6334, -0.1796875, -495.49454, 35.66919, -4.901922, 54.545837, -35.66919, 4.901922, -54.545837, -1025.4548, -0.1796875, -693.72327, -60.844482, -0.000289917, 55.43506, 60.844482, 0.000289917, -55.43506, -1051.8086, 25.580368, -873.69147, -137.52405, 0, 57.754883, 137.52405, 0, -57.754883, -737.9934, -0.1796875, -881.5631, 0, 0, 0, 0, 0, 0, 148.20917, -0.1796875, -2077.1436, 0, 0, 0, 0, 0, 0, 1943.6213, -0.1796875, -1473.5793, 0, 0, 0, 0, 0, 0, 1495.405, -0.1796875, 8.590854),
+"tilts": PackedFloat32Array(0, 0, 0.17453292, 0.34906584, 0.17453292, 0.17453292, -0.08726646, 0.17453292, 0.5235988, 0, 0, 0, 0)
 }
-point_count = 45
+point_count = 13
 
 [sub_resource type="Shader" id="Shader_242es"]
 code = "shader_type spatial;
@@ -47,69 +68,27 @@ void fragment() {
     METALLIC = 0.0;
 }"
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_lade4"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h2vpo"]
 render_priority = 0
 shader = SubResource("Shader_242es")
 shader_parameter/grid_color = Color(0, 0.8, 1, 1)
 shader_parameter/background_color = Color(0.05, 0.05, 0.1, 1)
-shader_parameter/grid_size = 0.25000000861512
+shader_parameter/grid_size = 10.0
 shader_parameter/line_width = 0.5
-shader_parameter/major_grid_every = 2.000000095
-shader_parameter/major_line_width = 0.50000002305148
+shader_parameter/major_grid_every = 10.000000475
+shader_parameter/major_line_width = 1.0
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
-sky_top_color = Color(0.05, 0.05, 0.15, 1)
-sky_horizon_color = Color(0.2, 0.15, 0.3, 1)
-ground_bottom_color = Color(0.02, 0.02, 0.05, 1)
-ground_horizon_color = Color(0.2, 0.15, 0.3, 1)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nrqn6"]
+render_priority = 0
+shader = SubResource("Shader_242es")
+shader_parameter/grid_color = Color(0, 0.8, 1, 1)
+shader_parameter/background_color = Color(0.05, 0.05, 0.1, 1)
+shader_parameter/grid_size = 10.0
+shader_parameter/line_width = 0.5
+shader_parameter/major_grid_every = 10.000000475
+shader_parameter/major_line_width = 1.0
 
-[sub_resource type="Sky" id="Sky_xfmcy"]
-sky_material = SubResource("ProceduralSkyMaterial_8a1g2")
-
-[sub_resource type="Environment" id="Environment_cxd56"]
-background_mode = 2
-sky = SubResource("Sky_xfmcy")
-ambient_light_source = 2
-ambient_light_color = Color(0.25, 0.25, 0.35, 1)
-ambient_light_energy = 0.4
-tonemap_mode = 2
-glow_enabled = true
-glow_intensity = 0.6
-glow_bloom = 0.2
-
-[node name="TestCircuit2" type="Node3D"]
-
-[node name="Path3D" type="Path3D" parent="."]
-curve = SubResource("Curve3D_lade4")
-
-[node name="CSGPolygon3D2" type="CSGPolygon3D" parent="Path3D"]
-transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
-use_collision = true
-polygon = PackedVector2Array(26.9975, 5.89258, 16.8982, 6.32783, 16.1879, 1.76581, -16.5493, 3.89228, -16.6904, 9.97558, -34.705, 5.81169, -34.1104, -4.98032, 27.2544, -1.02657)
-mode = 2
-path_node = NodePath("..")
-path_interval_type = 0
-path_interval = 0.8
-path_simplify_angle = 0.3
-path_rotation = 2
-path_rotation_accurate = false
-path_local = false
-path_continuous_u = true
-path_u_distance = 0.0
-path_joined = true
-material = SubResource("ShaderMaterial_lade4")
-
-[node name="StartFinishLine" parent="." instance=ExtResource("1_ut6yf")]
-transform = Transform3D(0.053744398, 0.033174716, 0.9980034, -0.045083392, 0.9985093, -0.030763682, -0.9975365, -0.043339983, 0.05516005, -54.97947, -17.368334, 1122.503)
-
-[node name="StartingGrid" type="Node3D" parent="."]
-transform = Transform3D(-0.32014036, 0.008164005, 0.94733506, -0.07847882, 0.9962974, -0.035106916, -0.9441141, -0.08558487, -0.31831428, -42.709, -11.785028, 1125.1841)
-script = ExtResource("2_750ah")
-metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
-
-[node name="Slot1" type="Marker3D" parent="StartingGrid"]
-transform = Transform3D(0.93969256, 0, -0.3420201, 0, 1, 0, 0.3420201, 0, 0.93969256, -3.3510475, -3, 7.9537964)
-gizmo_extents = 3.25
+[node name="TestCircuit3" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_cxd56")
@@ -119,3 +98,73 @@ transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -
 light_color = Color(1, 0.95, 0.9, 1)
 shadow_enabled = true
 shadow_blur = 2.0
+
+[node name="StartingPoint" type="Node" parent="."]
+
+[node name="StartFinishLine" parent="StartingPoint" instance=ExtResource("1_ut6yf")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 2.6881704, 0)
+
+[node name="StartingGrid" type="Node3D" parent="StartingPoint"]
+transform = Transform3D(-4.3711392e-08, 0, 1.0000001, 0, 0.99999994, 0, -1.0000001, 0, -4.3711392e-08, 0, 0, 0)
+script = ExtResource("2_750ah")
+metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
+
+[node name="Slot1" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -5.684342e-14, 6.7302732, 14.1989565)
+gizmo_extents = 3.25
+
+[node name="MainSpline" type="Path3D" parent="."]
+curve = SubResource("Curve3D_8254d")
+
+[node name="groundGeo" type="CSGPolygon3D" parent="MainSpline"]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, -0.22576904, 3.8146973e-06, -0.1640625)
+use_collision = true
+polygon = PackedVector2Array(21.58349, 2.9622357, 17.218266, 2.0412953, -16.617033, 1.8802173, -20.253164, 2.7683895, -20.286919, -1.9581314, 21.968796, -1.8501513)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 0.5
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 100.0
+path_joined = true
+material = ExtResource("3_750ah")
+
+[node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline"]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(28.489079, 8.5183115, 23.549274, 8.43313, 21.121952, 6.5165105, 21.079365, -2.1295757, 28.65942, -2.172171)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 50.0
+path_joined = false
+material = SubResource("ShaderMaterial_h2vpo")
+
+[node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline"]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(-19.290813, 6.090594, -22.31432, 7.922032, -27.509634, 7.922032, -27.211542, -2.640679, -19.120472, -2.5129018)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 50.0
+path_joined = false
+material = SubResource("ShaderMaterial_nrqn6")
