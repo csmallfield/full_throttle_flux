@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3 uid="uid://by3u3mqi3spa8"]
 
-[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_c36uj"]
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_c7fsl"]
 
 [resource]
-script = ExtResource("1_c36uj")
-track_id = "test_circuit_3"
+script = ExtResource("1_c7fsl")
+track_id = "test_circuit_3_live"
 display_name = "Test Circuit 3"
 description = "A longer flowing test track with gentle curves. Perfect for learning the controls."
 author = "Flux Industries"
