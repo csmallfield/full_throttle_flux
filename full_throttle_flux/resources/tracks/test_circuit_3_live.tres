@@ -6,5 +6,5 @@
 script = ExtResource("1_c7fsl")
 track_id = "test_circuit_3_live"
 display_name = "Test Circuit 3"
-description = "A longer flowing test track with gentle curves. Perfect for learning the controls."
+description = "A nice balanced track and the most fun so far."
 author = "Flux Industries"

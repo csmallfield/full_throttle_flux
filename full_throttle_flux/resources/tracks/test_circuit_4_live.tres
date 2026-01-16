@@ -6,5 +6,5 @@
 script = ExtResource("1_ukg85")
 track_id = "test_circuit_4_live"
 display_name = "Test Circuit 4"
-description = "A longer flowing test track with gentle curves. Perfect for learning the controls."
+description = "A technical test track for testing jumps and respawning."
 author = "Flux Industries"
