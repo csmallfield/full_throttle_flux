@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3 uid="uid://dy1jancd0gwe4"]
+
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_ukg85"]
+
+[resource]
+script = ExtResource("1_ukg85")
+track_id = "test_circuit_4_live"
+display_name = "Test Circuit 4"
+description = "A longer flowing test track with gentle curves. Perfect for learning the controls."
+author = "Flux Industries"
