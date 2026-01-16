@@ -49,7 +49,7 @@ func _process(_delta: float) -> void:
 	lines.append("Grounded: %s" % ("YES" if ship.is_grounded else "NO"))
 	lines.append("Ground Distance: %.2f" % ship.ground_distance)
 	lines.append("Target Height: %.2f" % ship._hover_height)
-	var height_error = ship.hover_height - ship.ground_distance
+	var height_error = ship._hover_height - ship.ground_distance
 	lines.append("Height Error: %+.2f" % height_error)
 	lines.append("Time Airborne: %.2fs" % ship.time_since_grounded)
 	lines.append("")
@@ -87,9 +87,9 @@ func _process(_delta: float) -> void:
 	
 	# === GRIP / HANDLING ===
 	lines.append("═══ HANDLING ═══")
-	lines.append("Base Grip: %.2f" % ship.grip)
+	lines.append("Base Grip: %.2f" % ship._grip)
 	lines.append("Current Grip: %.2f" % ship.current_grip)
-	var grip_ratio = ship.current_grip / ship.grip * 100.0
+	var grip_ratio = ship.current_grip / ship._grip * 100.0
 	lines.append("Grip Ratio: %.0f%%" % grip_ratio)
 	lines.append("Airbraking: %s" % ("YES" if ship.is_airbraking else "NO"))
 	if ship.is_airbraking:
@@ -128,6 +128,13 @@ func _process(_delta: float) -> void:
 	var pos = ship.global_position
 	lines.append("═══ POSITION ═══")
 	lines.append("World Pos: (%.1f, %.1f, %.1f)" % [pos.x, pos.y, pos.z])
+	
+	# === RESPAWN ===
+	lines.append("")
+	lines.append("═══ RESPAWN ═══")
+	var safe_pos = ship.last_safe_position
+	lines.append("Safe Pos: (%.1f, %.1f, %.1f)" % [safe_pos.x, safe_pos.y, safe_pos.z])
+	lines.append("Y Threshold: %.1f" % ship.respawn_y_threshold)
 	
 	debug_label.text = "\n".join(lines)
 

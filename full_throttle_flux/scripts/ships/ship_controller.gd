@@ -6,6 +6,12 @@ class_name ShipController
 ## Refactored to use ShipProfile for data-driven configuration.
 
 # ============================================================================
+# SIGNALS
+# ============================================================================
+
+signal ship_respawned()
+
+# ============================================================================
 # PROFILE
 # ============================================================================
 
@@ -21,6 +27,18 @@ class_name ShipController
 
 ## Reference to audio controller
 @export var audio_controller: ShipAudioController
+
+# ============================================================================
+# RESPAWN SETTINGS
+# ============================================================================
+
+@export_group("Respawn")
+
+## Y position below which the ship will respawn
+@export var respawn_y_threshold: float = -100.0
+
+## How often to save safe position while grounded (seconds)
+@export var safe_position_save_interval: float = 0.3
 
 # ============================================================================
 # NODE REFERENCES (found automatically)
@@ -63,6 +81,11 @@ const SCRAPE_TIMEOUT := 0.1
 
 # Control lock state (for race end)
 var controls_locked := false
+
+# Respawn state
+var last_safe_position := Vector3.ZERO
+var last_safe_rotation := Basis.IDENTITY
+var _safe_position_timer := 0.0
 
 # ============================================================================
 # CACHED PROFILE VALUES (for performance)
@@ -110,6 +133,10 @@ func _ready() -> void:
 	_apply_profile()
 	_setup_hover_ray()
 	_setup_audio_controller()
+	
+	# Initialize safe position to starting position
+	last_safe_position = global_position
+	last_safe_rotation = global_transform.basis
 
 func _find_child_nodes() -> void:
 	ship_mesh = get_node_or_null("ShipMesh")
@@ -211,6 +238,8 @@ func _setup_audio_controller() -> void:
 func _physics_process(delta: float) -> void:
 	_read_input()
 	_update_ground_detection()
+	_update_safe_position(delta)
+	_check_respawn_needed()
 	_apply_hover_force(delta)
 	_apply_thrust(delta)
 	_apply_steering(delta)
@@ -243,6 +272,75 @@ func _read_input() -> void:
 	pitch_input = Input.get_axis("pitch_down", "pitch_up")
 	airbrake_left = Input.get_action_strength("airbrake_left")
 	airbrake_right = Input.get_action_strength("airbrake_right")
+
+# ============================================================================
+# RESPAWN SYSTEM
+# ============================================================================
+
+func _update_safe_position(delta: float) -> void:
+	"""Periodically save position while grounded for respawn."""
+	if not is_grounded:
+		return
+	
+	_safe_position_timer += delta
+	if _safe_position_timer >= safe_position_save_interval:
+		_safe_position_timer = 0.0
+		last_safe_position = global_position
+		last_safe_rotation = global_transform.basis
+
+func _check_respawn_needed() -> void:
+	"""Check if ship has fallen below threshold and needs respawn."""
+	if global_position.y < respawn_y_threshold:
+		respawn()
+
+func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = Basis.IDENTITY) -> void:
+	"""Respawn the ship at the last safe position or a custom location."""
+	# Use custom position if provided (non-zero), otherwise use last safe
+	var target_position: Vector3
+	var target_rotation: Basis
+	
+	if custom_position != Vector3.ZERO:
+		target_position = custom_position
+		target_rotation = custom_rotation if custom_rotation != Basis.IDENTITY else last_safe_rotation
+	else:
+		target_position = last_safe_position
+		target_rotation = last_safe_rotation
+	
+	# Teleport ship
+	global_position = target_position
+	global_transform.basis = target_rotation
+	
+	# Zero out all velocity
+	velocity = Vector3.ZERO
+	
+	# Reset visual states
+	visual_pitch = 0.0
+	visual_roll = 0.0
+	visual_accel_pitch = 0.0
+	
+	# Reset airbrake state
+	current_grip = _grip
+	is_airbraking = false
+	
+	# Reset track normal to up (will re-detect on next frame)
+	current_track_normal = Vector3.UP
+	smoothed_track_normal = Vector3.UP
+	
+	# Stop any wall scraping audio
+	if _is_scraping_wall:
+		_is_scraping_wall = false
+		if audio_controller:
+			audio_controller.stop_wall_scrape()
+	
+	# Emit signal for UI/audio feedback
+	ship_respawned.emit()
+	
+	print("Ship respawned at: ", target_position)
+
+func set_safe_position(position: Vector3, rotation: Basis) -> void:
+	"""Manually set the safe respawn position (useful for checkpoints)."""
+	last_safe_position = position
+	last_safe_rotation = rotation
 
 # ============================================================================
 # GROUND DETECTION & HOVER

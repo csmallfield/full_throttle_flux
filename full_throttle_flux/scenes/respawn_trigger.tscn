@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3 uid="uid://respawn_trigger_scene"]
+
+[ext_resource type="Script" path="res://scripts/respawn_trigger.gd" id="1_script"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_trigger"]
+size = Vector3(10, 10, 10)
+
+[node name="RespawnTrigger" type="Area3D"]
+collision_layer = 0
+collision_mask = 2
+monitoring = true
+monitorable = false
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_trigger")
+
+[node name="RespawnMarker" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+gizmo_extents = 2.0
