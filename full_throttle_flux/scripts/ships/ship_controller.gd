@@ -271,7 +271,13 @@ func _update_ground_detection() -> void:
 
 func _apply_hover_force(delta: float) -> void:
 	if not is_grounded:
-		velocity.y -= _gravity * delta
+		# Progressive gravity - increases the longer airborne (1.0x to 2.0x over 0.5s)
+		# This gives short hops a natural arc while pulling down firmly on longer jumps
+		var gravity_multiplier = 1.0 + clamp(time_since_grounded * 2.0, 0.0, 1.0)
+		velocity.y -= _gravity * gravity_multiplier * delta
+		
+		# Light vertical air drag to smooth landings
+		velocity.y *= 0.995
 		return
 	
 	var height_error = _hover_height - ground_distance
@@ -338,6 +344,10 @@ func _apply_steering(delta: float) -> void:
 	_apply_grip(delta)
 
 func _apply_grip(delta: float) -> void:
+	# No grip redirection when airborne - trajectory is committed
+	if not is_grounded:
+		return
+	
 	var current_speed = velocity.length()
 	if current_speed < 1.0:
 		return

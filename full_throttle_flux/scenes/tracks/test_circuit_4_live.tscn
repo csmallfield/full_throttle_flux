@@ -1,8 +1,9 @@
-[gd_scene load_steps=12 format=3 uid="uid://d4kic6qjimqte"]
+[gd_scene load_steps=13 format=3 uid="uid://d4kic6qjimqte"]
 
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_7fkgi"]
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_m4xxh"]
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_niut7"]
+[ext_resource type="PackedScene" uid="uid://c8x2boost1pad" path="res://scenes/boost_pad.tscn" id="4_m4xxh"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
 sky_top_color = Color(0.05, 0.05, 0.15, 1)
@@ -89,7 +90,7 @@ shader_parameter/major_line_width = 1.0
 
 [sub_resource type="Curve3D" id="Curve3D_7fkgi"]
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -269.7359, 0, 695.34296, -65.54199, 0, -75.51575, 65.54199, 0, 75.51575, -210.73804, 0, 1213.1592, -113.986084, 0, -0.71240234, 113.986084, 0, 0.71240234, 204.86182, 0, 1338.4937, -46.306885, 0, 66.96692, 46.306885, 0, -66.96692, 458.28406, 0, 748.8555, 0, 0, 119.52695, 0, 0, -119.52695, 578.42285, 0, 208.37497, 98.27774, 0, 7.083069, -98.27774, 0, -7.083069, 460.6666, 0, 6.507226, 67.3884, 0.033073425, 0.33325958, -67.3884, -0.033073425, -0.33325958, 288.97012, 17.301147, 2.9656906),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -269.7359, 0, 695.34296, -65.54199, 0, -75.51575, 65.54199, 0, 75.51575, -210.73804, 0, 1023.85535, -113.986084, 0, -0.71240234, 113.986084, 0, 0.71240234, 204.86182, 0, 715.4039, -46.306885, 0, 66.96692, 46.306885, 0, -66.96692, 458.28406, 0, 378.73682, 0, 0, 119.52695, 0, 0, -119.52695, 578.42285, 0, 208.37497, 98.27774, 0, 7.083069, -98.27774, 0, -7.083069, 460.6666, 0, 6.507226, 67.3884, 0.033073425, 0.33325958, -67.3884, -0.033073425, -0.33325958, 218.51187, 17.301147, 2.9656906),
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0)
 }
 point_count = 7
@@ -233,3 +234,9 @@ path_continuous_u = true
 path_u_distance = 50.0
 path_joined = false
 material = SubResource("ShaderMaterial_nrqn6")
+
+[node name="BoostPad" parent="." instance=ExtResource("4_m4xxh")]
+transform = Transform3D(0.024862828, 0.086164646, -0.99597067, -0.002150294, 0.9962808, 0.08613782, 0.9996886, 1.16174105e-10, 0.02495564, 274.2453, 16.13158, 8.76103)
+
+[node name="BoostPad2" parent="." instance=ExtResource("4_m4xxh")]
+transform = Transform3D(0.9976095, 0.060004886, 0.034273937, -0.06851117, 0.9236331, 0.37710574, -0.009028345, -0.3785523, 0.9255358, -264.5196, 20.339586, 663.53516)

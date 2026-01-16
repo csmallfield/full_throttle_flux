@@ -48,7 +48,7 @@ func _process(_delta: float) -> void:
 	lines.append("═══ HOVER ═══")
 	lines.append("Grounded: %s" % ("YES" if ship.is_grounded else "NO"))
 	lines.append("Ground Distance: %.2f" % ship.ground_distance)
-	lines.append("Target Height: %.2f" % ship.hover_height)
+	lines.append("Target Height: %.2f" % ship._hover_height)
 	var height_error = ship.hover_height - ship.ground_distance
 	lines.append("Height Error: %+.2f" % height_error)
 	lines.append("Time Airborne: %.2fs" % ship.time_since_grounded)
