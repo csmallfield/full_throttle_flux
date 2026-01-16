@@ -467,22 +467,36 @@ func _apply_airbrakes(delta: float) -> void:
 		current_grip = lerp(current_grip, _grip, _airbrake_slip_falloff * delta)
 		return
 	
-	var brake_rotation = (airbrake_left - airbrake_right) * _airbrake_turn_rate * delta
+	# Airbrake rotation - reduced when airborne (cosmetic only, like steering)
+	var rotation_effectiveness = 1.0 if is_grounded else 0.3
+	var brake_rotation = (airbrake_left - airbrake_right) * _airbrake_turn_rate * rotation_effectiveness * delta
 	rotate_object_local(Vector3.UP, brake_rotation)
 	
-	current_grip = lerp(_grip, _airbrake_grip, brake_amount)
+	# Grip changes only when grounded
+	if is_grounded:
+		current_grip = lerp(_grip, _airbrake_grip, brake_amount)
+		
+		var is_opposite = (airbrake_left > 0.5 and steer_input < -0.3) or \
+						  (airbrake_right > 0.5 and steer_input > 0.3)
+		if is_opposite:
+			current_grip *= 0.5
 	
+	# Drag - only affects horizontal velocity when airborne
 	var drag_factor = lerp(1.0, _airbrake_drag, brake_amount)
-	velocity *= drag_factor
 	
-	var is_opposite = (airbrake_left > 0.5 and steer_input < -0.3) or \
-					  (airbrake_right > 0.5 and steer_input > 0.3)
-	if is_opposite:
-		current_grip *= 0.5
-	
-	if airbrake_left > 0.25 and airbrake_right > 0.25:
-		var full_brake = min(airbrake_left, airbrake_right)
-		velocity *= lerp(1.0, 0.85, full_brake)
+	if is_grounded:
+		velocity *= drag_factor
+		
+		# Full brake (both airbrakes) - only when grounded
+		if airbrake_left > 0.25 and airbrake_right > 0.25:
+			var full_brake = min(airbrake_left, airbrake_right)
+			velocity *= lerp(1.0, 0.85, full_brake)
+	else:
+		# Airborne: only apply drag to horizontal components, preserve Y
+		# Also reduced effectiveness
+		var air_drag_factor = lerp(1.0, _airbrake_drag, brake_amount * 0.3)  # 30% effectiveness
+		velocity.x *= air_drag_factor
+		velocity.z *= air_drag_factor
 
 # ============================================================================
 # PITCH SYSTEM (Visual Only)
