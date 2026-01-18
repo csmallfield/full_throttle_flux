@@ -74,6 +74,12 @@ var visual_pitch := 0.0
 var visual_roll := 0.0
 var visual_accel_pitch := 0.0
 
+# Hover animation state
+var hover_time_accumulator := 0.0
+var hover_yaw_accumulator := 0.0
+var hover_roll_accumulator := 0.0
+var rumble_time := 0.0
+
 # Wall scraping state for audio
 var _is_scraping_wall := false
 var _scrape_timer := 0.0
@@ -123,6 +129,20 @@ var _slope_gravity_factor: float
 var _collision_shake_enabled: bool
 var _shake_intensity: float
 var _shake_speed_threshold: float
+
+# Hover animation cached values
+var _hover_animation_enabled: bool
+var _hover_pulse_amplitude: float
+var _hover_pulse_speed: float
+var _hover_pulse_min_intensity: float
+var _hover_wobble_yaw: float
+var _hover_wobble_roll: float
+var _hover_wobble_speed_yaw: float
+var _hover_wobble_speed_roll: float
+var _rumble_speed_threshold: float
+var _rumble_position_intensity: float
+var _rumble_rotation_intensity: float
+var _rumble_frequency: float
 
 # ============================================================================
 # INITIALIZATION
@@ -185,6 +205,20 @@ func _apply_profile() -> void:
 	_shake_intensity = profile.shake_intensity
 	_shake_speed_threshold = profile.shake_speed_threshold
 	
+	# Hover animation parameters
+	_hover_animation_enabled = profile.hover_animation_enabled
+	_hover_pulse_amplitude = profile.hover_pulse_amplitude
+	_hover_pulse_speed = profile.hover_pulse_speed
+	_hover_pulse_min_intensity = profile.hover_pulse_min_intensity
+	_hover_wobble_yaw = profile.hover_wobble_yaw
+	_hover_wobble_roll = profile.hover_wobble_roll
+	_hover_wobble_speed_yaw = profile.hover_wobble_speed_yaw
+	_hover_wobble_speed_roll = profile.hover_wobble_speed_roll
+	_rumble_speed_threshold = profile.rumble_speed_threshold
+	_rumble_position_intensity = profile.rumble_position_intensity
+	_rumble_rotation_intensity = profile.rumble_rotation_intensity
+	_rumble_frequency = profile.rumble_frequency
+	
 	current_grip = _grip
 
 func _set_default_values() -> void:
@@ -216,6 +250,20 @@ func _set_default_values() -> void:
 	_collision_shake_enabled = true
 	_shake_intensity = 0.3
 	_shake_speed_threshold = 20.0
+	
+	# Hover animation defaults
+	_hover_animation_enabled = true
+	_hover_pulse_amplitude = 0.15
+	_hover_pulse_speed = 0.5
+	_hover_pulse_min_intensity = 0.2
+	_hover_wobble_yaw = 3.0
+	_hover_wobble_roll = 2.0
+	_hover_wobble_speed_yaw = 0.3
+	_hover_wobble_speed_roll = 0.4
+	_rumble_speed_threshold = 0.6
+	_rumble_position_intensity = 0.03
+	_rumble_rotation_intensity = 0.8
+	_rumble_frequency = 20.0
 	
 	current_grip = _grip
 
@@ -317,6 +365,12 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 	visual_pitch = 0.0
 	visual_roll = 0.0
 	visual_accel_pitch = 0.0
+	
+	# Reset hover animation accumulators
+	hover_time_accumulator = 0.0
+	hover_yaw_accumulator = 0.0
+	hover_roll_accumulator = 0.0
+	rumble_time = 0.0
 	
 	# Reset airbrake state
 	current_grip = _grip
@@ -606,6 +660,7 @@ func _update_visuals(delta: float) -> void:
 	if not ship_mesh:
 		return
 	
+	# Calculate steering/airbrake roll (existing system)
 	var target_roll := 0.0
 	target_roll += steer_input * deg_to_rad(25.0)
 	target_roll += (airbrake_left - airbrake_right) * deg_to_rad(15.0)
@@ -615,13 +670,77 @@ func _update_visuals(delta: float) -> void:
 	
 	visual_roll = lerp(visual_roll, target_roll, 8.0 * delta)
 	
+	# Calculate acceleration pitch (existing system)
 	var target_accel_pitch = -throttle_input * deg_to_rad(5.0)
 	visual_accel_pitch = lerp(visual_accel_pitch, target_accel_pitch, 6.0 * delta)
 	
+	# Combine pitch components
 	var total_pitch = visual_pitch + visual_accel_pitch
 	
-	ship_mesh.rotation.x = total_pitch
-	ship_mesh.rotation.z = visual_roll
+	# Apply hover animation if enabled
+	if _hover_animation_enabled:
+		_apply_hover_animation(delta)
+	else:
+		# Just apply the basic rotation without animation
+		ship_mesh.rotation = Vector3(total_pitch, 0, visual_roll)
+		ship_mesh.position = Vector3.ZERO
+
+# ============================================================================
+# HOVER ANIMATION SYSTEM
+# ============================================================================
+
+func _apply_hover_animation(delta: float) -> void:
+	var speed_ratio = get_speed_ratio()
+	
+	# Calculate intensity falloff based on speed
+	var intensity = lerp(1.0, _hover_pulse_min_intensity, speed_ratio)
+	
+	# === VERTICAL PULSE ===
+	hover_time_accumulator += delta * _hover_pulse_speed * TAU
+	var vertical_offset = sin(hover_time_accumulator) * _hover_pulse_amplitude * intensity
+	
+	# === YAW WOBBLE ===
+	# Independent frequency for organic feel
+	hover_yaw_accumulator += delta * _hover_wobble_speed_yaw * TAU
+	var yaw_wobble = sin(hover_yaw_accumulator) * deg_to_rad(_hover_wobble_yaw) * intensity
+	
+	# === ROLL WOBBLE ===
+	# Different frequency from yaw for organic motion
+	hover_roll_accumulator += delta * _hover_wobble_speed_roll * TAU
+	var roll_wobble = sin(hover_roll_accumulator) * deg_to_rad(_hover_wobble_roll) * intensity
+	
+	# === HIGH-SPEED RUMBLE ===
+	var rumble_offset := Vector3.ZERO
+	var rumble_rotation := Vector3.ZERO
+	
+	if speed_ratio >= _rumble_speed_threshold:
+		# Calculate rumble intensity (0 at threshold, 1 at max speed)
+		var rumble_intensity = (speed_ratio - _rumble_speed_threshold) / (1.0 - _rumble_speed_threshold)
+		rumble_time += delta * _rumble_frequency * TAU
+		
+		# High-frequency noise using combined sine waves for pseudo-random feel
+		var noise_x = sin(rumble_time * 1.73) * cos(rumble_time * 2.31)
+		var noise_y = sin(rumble_time * 2.11) * cos(rumble_time * 1.89)
+		var noise_z = sin(rumble_time * 1.97) * cos(rumble_time * 2.47)
+		
+		# Position rumble
+		rumble_offset = Vector3(noise_x, noise_y, noise_z) * _rumble_position_intensity * rumble_intensity
+		
+		# Rotation rumble (yaw and roll only, not pitch)
+		var rumble_yaw = noise_x * deg_to_rad(_rumble_rotation_intensity) * rumble_intensity
+		var rumble_roll = noise_z * deg_to_rad(_rumble_rotation_intensity) * rumble_intensity
+		rumble_rotation = Vector3(0, rumble_yaw, rumble_roll)
+	
+	# === COMBINE ALL EFFECTS ===
+	# Position: vertical pulse + rumble
+	ship_mesh.position = Vector3(0, vertical_offset, 0) + rumble_offset
+	
+	# Rotation: existing controls (pitch from input + accel, roll from steering) + hover wobbles + rumble
+	var total_pitch = visual_pitch + visual_accel_pitch
+	var total_yaw = yaw_wobble + rumble_rotation.y
+	var total_roll = visual_roll + roll_wobble + rumble_rotation.z
+	
+	ship_mesh.rotation = Vector3(total_pitch, total_yaw, total_roll)
 
 # ============================================================================
 # PUBLIC API

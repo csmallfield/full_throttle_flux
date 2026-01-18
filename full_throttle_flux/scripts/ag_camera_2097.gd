@@ -4,6 +4,7 @@ class_name AGCamera2097
 ## WipEout 2097 Style Chase Camera
 ## Follows the ship with speed-based zoom and smooth tracking
 ## Now with collision detection to prevent clipping through walls
+## Lateral swing system for dynamic corner presentation
 
 ## Reference to the ship being followed.
 ## Must be set for camera to function.
@@ -51,6 +52,47 @@ class_name AGCamera2097
 ## Should be higher than base_fov. Typical range: 75-90.
 @export var max_fov := 70.0
 
+@export_group("Lateral Swing")
+
+## Enable lateral camera swing during turns
+@export var swing_enabled := true
+
+## Maximum lateral offset at full deflection (units).
+## Positive = camera swings right when ship turns right.
+## Range: 0.5-4.0. Recommended: 2.0-2.5
+@export var swing_max_offset := 0.45
+
+## How much steering input affects swing (0-1).
+## Higher = more responsive to input, feels immediate.
+@export var swing_input_influence := 0.3
+
+## How much actual rotation affects swing (0-1).
+## Higher = follows ship's turning motion more.
+@export var swing_rotation_influence := 0.7
+
+## How much airbrakes add to swing effect (0-1).
+## Multiplied by airbrake amount. 1.0 = same as full steering.
+@export var swing_airbrake_multiplier := 1.2
+
+## How quickly camera swings out when turning (factor per second).
+## Higher = snappier response to turns.
+## Range: 3.0-10.0. Recommended: 6.0-8.0
+@export var swing_out_speed := 3.0
+
+## How quickly camera returns to center when straightening (factor per second).
+## Higher = snappier centering, lower = more cinematic drift.
+## Range: 2.0-8.0. Recommended: 4.0-5.0
+@export var swing_return_speed := 3.0
+
+## Minimum speed ratio for swing to be active (0-1).
+## Below this speed, swing is disabled (prevents weird behavior at idle).
+@export var swing_min_speed := 0.1
+
+## How much speed affects swing intensity (0-1).
+## 0 = constant swing at all speeds above minimum
+## 1 = linear scaling from min speed to max speed (more dramatic at high speed)
+@export var swing_speed_scaling := 0.4
+
 @export_group("Collision")
 
 ## Enable camera collision detection to prevent clipping through walls.
@@ -68,6 +110,7 @@ class_name AGCamera2097
 ## Layer 1 = track surface, Layer 3 = walls. Mask 5 = both (1 + 4).
 @export_flags_3d_physics var collision_mask := 5
 
+# Shake state
 var shake_offset := Vector3.ZERO
 var shake_intensity := 0.0
 
@@ -75,15 +118,29 @@ var shake_intensity := 0.0
 var collision_distance := 0.0  # Current collision-adjusted distance
 var target_collision_distance := 0.0  # Target distance based on raycast
 
+# Swing state
+var current_swing := 0.0  # Current lateral offset
+var last_ship_yaw := 0.0  # Track rotation for rate calculation
+
+func _ready() -> void:
+	if ship:
+		last_ship_yaw = ship.rotation.y
+
 func _physics_process(delta: float) -> void:
 	if not ship:
 		return
 	
 	var speed_ratio = ship.get_speed_ratio()
 	
+	# Calculate lateral swing
+	var swing_offset_x := 0.0
+	if swing_enabled:
+		swing_offset_x = _calculate_swing(delta, speed_ratio)
+	
 	# Calculate desired camera offset with speed-based zoom
 	var dynamic_offset = base_offset
 	dynamic_offset.z += speed_zoom * speed_ratio
+	dynamic_offset.x += swing_offset_x  # Add lateral swing
 	
 	# Transform offset to world space based on ship orientation
 	var ship_basis = ship.global_transform.basis
@@ -111,6 +168,66 @@ func _physics_process(delta: float) -> void:
 	
 	# Dynamic FOV
 	fov = lerp(base_fov, max_fov, speed_ratio)
+
+func _calculate_swing(delta: float, speed_ratio: float) -> float:
+	# Below minimum speed, disable swing
+	if speed_ratio < swing_min_speed:
+		current_swing = lerp(current_swing, 0.0, swing_return_speed * delta)
+		return current_swing
+	
+	# Calculate speed scaling factor
+	# At min speed = 1.0, at max speed = 1.0 + swing_speed_scaling
+	var speed_factor = 1.0
+	if speed_ratio > swing_min_speed:
+		var normalized_speed = (speed_ratio - swing_min_speed) / (1.0 - swing_min_speed)
+		speed_factor = 1.0 + (normalized_speed * swing_speed_scaling)
+	
+	# Component 1: Steering input (immediate, responsive)
+	var input_component = ship.steer_input * swing_input_influence
+	
+	# Component 2: Rotation rate (measured turn speed)
+	var current_yaw = ship.rotation.y
+	var yaw_delta = _angle_difference(current_yaw, last_ship_yaw)
+	last_ship_yaw = current_yaw
+	
+	# Convert yaw rate to normalized steering-like value (-1 to 1)
+	# Typical max turn rate is about 1.5 rad/s, so we scale by that
+	var rotation_rate = yaw_delta / delta
+	var normalized_rotation = clamp(rotation_rate / 1.5, -1.0, 1.0)
+	var rotation_component = normalized_rotation * swing_rotation_influence
+	
+	# Component 3: Airbrakes add extra swing in their direction
+	var airbrake_component = 0.0
+	if ship.airbrake_left > 0.1 or ship.airbrake_right > 0.1:
+		# Left airbrake = negative (camera swings left)
+		# Right airbrake = positive (camera swings right)
+		airbrake_component = (ship.airbrake_right - ship.airbrake_left) * swing_airbrake_multiplier
+	
+	# Combine all components
+	var target_swing = (input_component + rotation_component + airbrake_component) * swing_max_offset * speed_factor
+	
+	# Smooth interpolation with different speeds for engaging vs returning
+	var swing_speed: float
+	if abs(target_swing) > abs(current_swing):
+		# Swinging out - use faster speed
+		swing_speed = swing_out_speed
+	else:
+		# Returning to center - use slower speed for cinematic feel
+		swing_speed = swing_return_speed
+	
+	current_swing = lerp(current_swing, target_swing, swing_speed * delta)
+	
+	return current_swing
+
+func _angle_difference(angle1: float, angle2: float) -> float:
+	"""Calculate shortest angular difference between two angles."""
+	var diff = angle1 - angle2
+	# Normalize to -PI to PI range
+	while diff > PI:
+		diff -= TAU
+	while diff < -PI:
+		diff += TAU
+	return diff
 
 func _apply_collision_detection(ship_pos: Vector3, desired_cam_pos: Vector3, desired_distance: float) -> Vector3:
 	# Cast ray from ship to desired camera position

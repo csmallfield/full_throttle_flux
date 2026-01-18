@@ -21,3 +21,5 @@ hover_damping = 6.0
 track_normal_smoothing = 0.25
 pitch_speed = 0.5
 max_pitch_angle = 5.0
+rumble_position_intensity = 0.0
+rumble_rotation_intensity = 0.1
