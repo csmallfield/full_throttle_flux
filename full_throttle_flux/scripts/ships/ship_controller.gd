@@ -87,6 +87,9 @@ var last_safe_position := Vector3.ZERO
 var last_safe_rotation := Basis.IDENTITY
 var _safe_position_timer := 0.0
 
+# AI control state
+var ai_controlled: bool = false
+
 # ============================================================================
 # CACHED PROFILE VALUES (for performance)
 # ============================================================================
@@ -259,6 +262,11 @@ func _physics_process(delta: float) -> void:
 # ============================================================================
 
 func _read_input() -> void:
+	# AI SUPPORT: Skip input reading when AI controlled
+	# AI sets throttle_input, steer_input, etc. directly
+	if ai_controlled:
+		return
+	
 	if controls_locked:
 		throttle_input = 0.0
 		steer_input = 0.0

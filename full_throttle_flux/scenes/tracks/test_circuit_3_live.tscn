@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://iok12nc8qm3o"]
+[gd_scene load_steps=12 format=3 uid="uid://iok12nc8qm3o"]
 
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_q4s3x"]
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_8wlfk"]
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_yhocl"]
+[ext_resource type="PackedScene" path="res://scenes/ai_debug_tester.tscn" id="4_8wlfk"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
 sky_top_color = Color(0.05, 0.05, 0.15, 1)
@@ -205,3 +206,5 @@ size = Vector3(50, 300, 100)
 [node name="CSGBox3D2" type="CSGBox3D" parent="."]
 transform = Transform3D(0.6819473, 0, 0.7314013, 0, 1, 0, -0.7314013, 0, 0.6819473, -929.8231, 0, -736.39984)
 size = Vector3(50, 300, 100)
+
+[node name="AIDebugTester" parent="." instance=ExtResource("4_8wlfk")]
