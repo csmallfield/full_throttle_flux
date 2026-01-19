@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://cfl0lfoj7rm1s"]
+[gd_scene load_steps=12 format=3 uid="uid://cfl0lfoj7rm1s"]
 
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="1_8a1g2"]
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="2_8a1g2"]
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="3_cxd56"]
+[ext_resource type="PackedScene" path="res://scenes/ai_debug_tester.tscn" id="4_cxd56"]
 
 [sub_resource type="Curve3D" id="Curve3D_lade4"]
 closed = true
@@ -90,10 +91,10 @@ glow_bloom = 0.2
 
 [node name="TestCircuit2" type="Node3D"]
 
-[node name="Path3D" type="Path3D" parent="."]
+[node name="MainSpline" type="Path3D" parent="."]
 curve = SubResource("Curve3D_lade4")
 
-[node name="groundGeo" type="CSGPolygon3D" parent="Path3D"]
+[node name="groundGeo" type="CSGPolygon3D" parent="MainSpline"]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
 polygon = PackedVector2Array(18.94209, 2.2563944, 16.1879, 1.76581, -16.617033, 1.8802173, -19.665726, 2.767276, -19.665726, -3.1930122, 18.990906, -2.6885724)
@@ -110,7 +111,7 @@ path_u_distance = 0.0
 path_joined = true
 material = ExtResource("1_8a1g2")
 
-[node name="wallLeftGeo" type="CSGPolygon3D" parent="Path3D"]
+[node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline"]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
 collision_layer = 4
@@ -128,7 +129,7 @@ path_u_distance = 1.0
 path_joined = false
 material = SubResource("ShaderMaterial_cxd56")
 
-[node name="wallRightGeo" type="CSGPolygon3D" parent="Path3D"]
+[node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline"]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
 collision_layer = 4
@@ -166,3 +167,5 @@ transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -
 light_color = Color(1, 0.95, 0.9, 1)
 shadow_enabled = true
 shadow_blur = 2.0
+
+[node name="AIDebugTester" parent="." instance=ExtResource("4_cxd56")]
