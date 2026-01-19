@@ -6,3 +6,7 @@
 script = ExtResource("1_profile")
 description = "A balanced ship suitable for all tracks. Good handling and speed."
 manufacturer = "Flux Industries"
+hover_height = 2.5
+hover_pulse_amplitude = 0.1
+rumble_position_intensity = 0.0
+rumble_rotation_intensity = 0.1

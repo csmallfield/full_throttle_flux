@@ -171,3 +171,45 @@ class_name ShipProfile
 
 ## Speed threshold for shake to trigger.
 @export var shake_speed_threshold: float = 20.0
+
+# ============================================================================
+# HOVER ANIMATION PARAMETERS (Visual Only)
+# ============================================================================
+
+@export_group("Hover Animation")
+
+## Enable hover animation effects
+@export var hover_animation_enabled: bool = true
+
+## Vertical bobbing amplitude (units)
+@export var hover_pulse_amplitude: float = 0.15
+
+## Vertical pulse speed (cycles per second)
+@export var hover_pulse_speed: float = 0.5
+
+## Minimum pulse intensity at max speed (0-1). 0 = disabled at speed, 1 = full strength always
+@export var hover_pulse_min_intensity: float = 0.2
+
+## Maximum yaw wobble angle (degrees)
+@export var hover_wobble_yaw: float = 3.0
+
+## Maximum roll wobble angle (degrees)
+@export var hover_wobble_roll: float = 2.0
+
+## Yaw oscillation speed (cycles per second)
+@export var hover_wobble_speed_yaw: float = 0.3
+
+## Roll oscillation speed (cycles per second)
+@export var hover_wobble_speed_roll: float = 0.4
+
+## Speed ratio (0-1) where rumble begins
+@export var rumble_speed_threshold: float = 0.6
+
+## Position rumble intensity (units)
+@export var rumble_position_intensity: float = 0.03
+
+## Rotation rumble intensity (degrees)
+@export var rumble_rotation_intensity: float = 0.8
+
+## Rumble frequency (Hz)
+@export var rumble_frequency: float = 20.0
