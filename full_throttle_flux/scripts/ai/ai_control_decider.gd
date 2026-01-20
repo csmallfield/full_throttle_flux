@@ -49,8 +49,8 @@ var min_throttle: float = 0.3
 # TUNING PARAMETERS - AIRBRAKES (User tuned)
 # ============================================================================
 
-## Curvature threshold to start using airbrakes
-var airbrake_curvature_threshold: float = 0.12
+## Curvature threshold to start using airbrakes (LOWERED for large tracks)
+var airbrake_curvature_threshold: float = 0.02
 
 ## Steering threshold to start using airbrakes (helps when struggling to turn)
 var airbrake_steering_threshold: float = 0.35
@@ -209,9 +209,9 @@ func _calculate_throttle_and_brake(
 	var throttle: float = 0.0
 	var brake: float = 0.0
 	
-	# === PHASE DETECTION ===
-	var in_corner: bool = immediate_curvature > 0.15
-	var approaching_corner: bool = max_curvature > 0.25 and corner_distance < brake_distance_threshold
+	# === PHASE DETECTION === (thresholds lowered for large tracks)
+	var in_corner: bool = immediate_curvature > 0.015
+	var approaching_corner: bool = max_curvature > 0.02 and corner_distance < brake_distance_threshold
 	var exiting_corner: bool = corner_phase > 0.55 and immediate_curvature < max_curvature * 0.8
 	
 	# S-curves with good racing line need less braking

@@ -38,30 +38,30 @@ var speed_lookahead_samples: int = 10
 # ============================================================================
 
 ## Maximum lateral offset from centerline (meters) - how wide the AI can go
-var max_lateral_offset: float = 20.0
+var max_lateral_offset: float = 16.0
 
 ## How aggressively to cut corners (0 = centerline, 1 = full apex seeking)
 var apex_seeking_strength: float = 1.0
 
-## Minimum curvature to trigger lateral offset
-var lateral_offset_curvature_threshold: float = 0.10
+## Minimum curvature to trigger lateral offset (LOWERED for large tracks)
+var lateral_offset_curvature_threshold: float = 0.015
 
 ## Track width estimate (used for clamping lateral offset)
 ## Your track polygon shows ~21m on each side, so half-width is ~21m
 var estimated_track_half_width: float = 20.0
 
 ## Wall margin - minimum distance from wall (ship is ~6m wide, so 3.5m from center)
-var wall_margin: float = 0.0
+var wall_margin: float = 3.5
 
 # ============================================================================
-# CONFIGURATION - CURVATURE THRESHOLDS
+# CONFIGURATION - CURVATURE THRESHOLDS (LOWERED for large tracks)
 # ============================================================================
 
 ## Curvature threshold for "tight corner"
-var tight_corner_threshold: float = 0.4
+var tight_corner_threshold: float = 0.05
 
 ## Curvature threshold for "very tight corner" (hairpin-like)
-var very_tight_corner_threshold: float = 0.8
+var very_tight_corner_threshold: float = 0.12
 
 ## How much to reduce lookahead in tight corners (multiplier)
 var corner_lookahead_reduction: float = 0.5
@@ -99,6 +99,7 @@ var has_recorded_data: bool = false
 
 # Cached analysis results (updated each frame)
 var cached_max_upcoming_curvature: float = 0.0
+var cached_max_curvature_signed: float = 0.0  # Signed version for turn direction
 var cached_corner_distance: float = 0.0
 var cached_immediate_curvature: float = 0.0
 var cached_immediate_curvature_signed: float = 0.0  # Positive = right turn, negative = left
@@ -152,6 +153,7 @@ func update_position(world_position: Vector3) -> void:
 func _update_curvature_analysis() -> void:
 	"""Scan ahead and cache curvature information including S-curve detection."""
 	cached_max_upcoming_curvature = 0.0
+	cached_max_curvature_signed = 0.0
 	cached_corner_distance = speed_lookahead_distance
 	cached_immediate_curvature = spline_helper.get_curvature_at_offset(current_spline_offset, 15.0)
 	cached_immediate_curvature_signed = _get_signed_curvature(current_spline_offset, 15.0)
@@ -172,9 +174,10 @@ func _update_curvature_analysis() -> void:
 		var curvature: float = spline_helper.get_curvature_at_offset(sample_offset, 15.0)
 		var signed_curv: float = _get_signed_curvature(sample_offset, 15.0)
 		
-		# Track maximum curvature magnitude
+		# Track maximum curvature magnitude AND its sign
 		if curvature > cached_max_upcoming_curvature:
 			cached_max_upcoming_curvature = curvature
+			cached_max_curvature_signed = signed_curv
 			cached_corner_distance = distance
 		
 		# S-curve detection: look for sign change in curvature
@@ -196,7 +199,8 @@ func _update_curvature_analysis() -> void:
 func _get_signed_curvature(offset: float, sample_distance: float) -> float:
 	"""
 	Get curvature with sign indicating direction.
-	Positive = turning right, Negative = turning left.
+	Positive = turning left, Negative = turning right.
+	(Based on cross product Y component in Godot's coordinate system)
 	"""
 	if not spline_helper or not spline_helper.is_valid:
 		return 0.0
@@ -224,8 +228,9 @@ func _get_signed_curvature(offset: float, sample_distance: float) -> float:
 	var dot: float = dir_current.dot(dir_ahead)
 	
 	# Magnitude from dot product, sign from cross product
+	# In Godot's coordinate system: positive cross.y = left turn, negative = right turn
 	var curvature_magnitude: float = 1.0 - dot
-	var turn_direction: float = -sign(cross.y)  # Negative because of coordinate system
+	var turn_direction: float = sign(cross.y)
 	
 	return curvature_magnitude * turn_direction
 
@@ -243,6 +248,9 @@ func _update_racing_line() -> void:
 	"""
 	cached_target_lateral_offset = 0.0
 	cached_corner_phase = 0.0
+	
+	# Always update apex position for debug, even on straights
+	_update_apex_debug_position()
 	
 	# Don't offset if curvature is too low (straight section)
 	if cached_max_upcoming_curvature < lateral_offset_curvature_threshold:
@@ -281,7 +289,8 @@ func _update_racing_line() -> void:
 		# Key insight: In an S-curve, the exit of turn 1 IS the entry of turn 2
 		# So we need to find a compromise line that works for both turns
 		
-		var first_turn_right: bool = cached_s_curve_first_direction > 0
+		# After fix: positive signed_curv = left turn, negative = right turn
+		var first_turn_right: bool = cached_s_curve_first_direction < 0
 		var transition_progress: float = 0.0
 		
 		if cached_s_curve_transition_distance > 0:
@@ -344,10 +353,18 @@ func _update_racing_line() -> void:
 		# === SINGLE CORNER LOGIC ===
 		# Classic racing line: outside-inside-outside
 		
-		var turn_right: bool = cached_immediate_curvature_signed > 0
-		if abs(cached_immediate_curvature_signed) < 0.1:
-			# Use upcoming curvature direction if immediate is too low
-			turn_right = cached_max_upcoming_curvature > 0 and cached_s_curve_first_direction >= 0
+		# Determine turn direction from the upcoming corner, not just immediate position
+		# After fix: positive signed_curv = left turn, negative = right turn
+		var turn_right: bool
+		if abs(cached_max_curvature_signed) > 0.005:
+			# Use the turn direction at the max curvature point (the actual corner)
+			turn_right = cached_max_curvature_signed < 0  # Negative = right turn
+		elif abs(cached_immediate_curvature_signed) > 0.005:
+			# Fallback to immediate if we're already in a turn
+			turn_right = cached_immediate_curvature_signed < 0
+		else:
+			# No significant curvature detected
+			return
 		
 		# Phase calculation based on distance to corner
 		var corner_phase: float = 0.0
@@ -391,15 +408,6 @@ func _update_racing_line() -> void:
 			else:
 				# Exiting left turn - drift back toward right/center
 				base_offset = lerpf(-apex_offset, -entry_offset * 0.4, phase)
-		
-		# Calculate and store apex world position for debug
-		var apex_corner_phase: float = (entry_phase_end + apex_phase_end) / 2.0
-		var apex_distance: float = cached_corner_distance * (1.0 - apex_corner_phase)
-		cached_apex_spline_offset = spline_helper.get_lookahead_offset(current_spline_offset, apex_distance)
-		var apex_lateral: float = apex_offset if turn_right else -apex_offset
-		cached_apex_world_position = spline_helper.spline_offset_to_world_with_lateral(
-			cached_apex_spline_offset, apex_lateral
-		)
 	
 	# === APPLY MODIFIERS ===
 	
@@ -415,6 +423,76 @@ func _update_racing_line() -> void:
 
 func get_current_spline_offset() -> float:
 	return current_spline_offset
+
+func _update_apex_debug_position() -> void:
+	"""
+	Calculate apex position for debug visualization.
+	Works for straights, single corners, and S-curves.
+	"""
+	if not spline_helper or not spline_helper.is_valid:
+		cached_apex_world_position = Vector3.ZERO
+		return
+	
+	# Find the point of maximum curvature ahead
+	cached_apex_spline_offset = spline_helper.get_lookahead_offset(current_spline_offset, cached_corner_distance)
+	
+	# DEBUG: Print periodically to see what's happening
+	var should_print: bool = Engine.get_physics_frames() % 60 == 0
+	var usable_width: float = estimated_track_half_width - wall_margin
+	
+	if should_print:
+		print("APEX DEBUG: max_curv=%.3f signed=%.3f threshold=%.3f usable_width=%.1f" % [
+			cached_max_upcoming_curvature,
+			cached_max_curvature_signed,
+			lateral_offset_curvature_threshold,
+			usable_width
+		])
+	
+	# If there's significant curvature, calculate the apex with lateral offset
+	if cached_max_upcoming_curvature > lateral_offset_curvature_threshold:
+		# Apex depth based on curvature
+		var curvature_normalized: float = clamp(
+			(cached_max_upcoming_curvature - lateral_offset_curvature_threshold) / 
+			(very_tight_corner_threshold - lateral_offset_curvature_threshold),
+			0.0, 1.0
+		)
+		var apex_depth: float = lerpf(0.60, 0.95, curvature_normalized)
+		var apex_offset: float = usable_width * apex_depth
+		
+		# Determine turn direction using the SIGNED curvature at max point
+		# After fix: positive = left turn, negative = right turn
+		var turn_right: bool
+		if cached_is_s_curve and abs(cached_s_curve_first_direction) > 0.1:
+			turn_right = cached_s_curve_first_direction < 0  # Negative = right turn
+		else:
+			turn_right = cached_max_curvature_signed < 0  # Negative = right turn
+		
+		# Apex is on the INSIDE of the turn
+		# Right turn = inside is RIGHT = positive lateral offset
+		# Left turn = inside is LEFT = negative lateral offset
+		var apex_lateral: float = apex_offset if turn_right else -apex_offset
+		
+		if should_print:
+			print("APEX DEBUG: CORNER! depth=%.2f offset=%.1f turn=%s lateral=%.1f" % [
+				apex_depth, apex_offset, "R" if turn_right else "L", apex_lateral
+			])
+		
+		var center_pos: Vector3 = spline_helper.spline_offset_to_world(cached_apex_spline_offset)
+		var offset_pos: Vector3 = spline_helper.spline_offset_to_world_with_lateral(
+			cached_apex_spline_offset, apex_lateral
+		)
+		
+		if should_print:
+			print("APEX DEBUG: center=%s offset_pos=%s diff=%.1f" % [
+				center_pos, offset_pos, center_pos.distance_to(offset_pos)
+			])
+		
+		cached_apex_world_position = offset_pos
+	else:
+		if should_print:
+			print("APEX DEBUG: STRAIGHT (curv below threshold)")
+		# On a straight - just show centerline at corner distance
+		cached_apex_world_position = spline_helper.spline_offset_to_world(cached_apex_spline_offset)
 
 # ============================================================================
 # TARGET QUERIES - MAIN INTERFACE
@@ -571,7 +649,6 @@ func get_racing_line_preview(num_points: int = 10, preview_distance: float = 100
 		var offset: float = spline_helper.get_lookahead_offset(current_spline_offset, distance)
 		
 		# Calculate what lateral offset would be at this point
-		# (simplified - just use curvature-based estimate)
 		var curv: float = spline_helper.get_curvature_at_offset(offset, 15.0)
 		var signed_curv: float = _get_signed_curvature(offset, 15.0)
 		
@@ -579,7 +656,10 @@ func get_racing_line_preview(num_points: int = 10, preview_distance: float = 100
 		if curv > lateral_offset_curvature_threshold:
 			var usable_width: float = estimated_track_half_width - wall_margin
 			var depth: float = lerpf(0.5, 0.9, clamp(curv / very_tight_corner_threshold, 0.0, 1.0))
-			lateral = usable_width * depth * sign(signed_curv) * -1.0  # Inside of turn
+			# Inside of turn: right turn (negative signed_curv) = positive lateral (right side)
+			#                 left turn (positive signed_curv) = negative lateral (left side)
+			# So we negate the sign
+			lateral = usable_width * depth * -sign(signed_curv)
 		
 		var world_pos: Vector3 = spline_helper.spline_offset_to_world_with_lateral(offset, lateral)
 		
@@ -626,6 +706,10 @@ func get_upcoming_curvature(lookahead: float = 30.0) -> float:
 func get_max_upcoming_curvature() -> float:
 	return cached_max_upcoming_curvature
 
+func get_max_curvature_signed() -> float:
+	"""Get the signed curvature at the max curvature point. Positive = right, negative = left."""
+	return cached_max_curvature_signed
+
 func get_immediate_curvature() -> float:
 	return cached_immediate_curvature
 
@@ -667,11 +751,14 @@ func get_distance_to_finish() -> float:
 
 func get_debug_info() -> String:
 	var s_curve_str: String = "S-CURVE" if cached_is_s_curve else "single"
-	var turn_dir: String = "R" if cached_immediate_curvature_signed > 0 else "L"
-	return "Line: off=%.3f curv=%.2f/%s lat=%.1fm phase=%.0f%% corner@%.0fm [%s]" % [
-		current_spline_offset,
-		cached_immediate_curvature,
+	# After fix: negative signed_curv = right turn, positive = left turn
+	var turn_dir: String = "R" if cached_max_curvature_signed < 0 else "L"
+	var imm_dir: String = "R" if cached_immediate_curvature_signed < 0 else "L"
+	return "Line: curv=%.2f(%s) imm=%.2f(%s) lat=%.1fm phase=%.0f%% @%.0fm [%s]" % [
+		cached_max_upcoming_curvature,
 		turn_dir,
+		cached_immediate_curvature,
+		imm_dir,
 		cached_target_lateral_offset,
 		cached_corner_phase * 100.0,
 		cached_corner_distance,

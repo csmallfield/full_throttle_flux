@@ -236,6 +236,9 @@ func get_distance_to_finish() -> float:
 
 func _setup_debug_visualization() -> void:
 	"""Create debug visualization objects."""
+	# Clean up any existing markers first
+	_cleanup_debug_markers()
+	
 	# Target position marker (YELLOW - where AI is steering toward)
 	debug_target_marker = _create_sphere_marker(Color.YELLOW, 1.0)
 	debug_target_marker.name = "AITargetMarker"
@@ -246,7 +249,7 @@ func _setup_debug_visualization() -> void:
 	debug_apex_marker.name = "AIApexMarker"
 	get_tree().root.add_child(debug_apex_marker)
 	
-	# Centerline reference marker (BLUE - centerline at target distance)
+	# Centerline reference marker (CYAN - centerline at target distance)
 	debug_centerline_marker = _create_sphere_marker(Color.CYAN, 0.8)
 	debug_centerline_marker.name = "AICenterlineMarker"
 	get_tree().root.add_child(debug_centerline_marker)
@@ -273,6 +276,31 @@ func _setup_debug_visualization() -> void:
 	debug_mesh_instance.material_override = line_material
 	
 	get_tree().root.add_child(debug_mesh_instance)
+	
+	print("AIShipController: Debug visualization created")
+	print("  RED = apex position, YELLOW = steering target")
+	print("  CYAN = centerline reference, GREEN = racing line preview")
+
+func _cleanup_debug_markers() -> void:
+	"""Remove existing debug markers to prevent duplicates."""
+	if debug_target_marker and is_instance_valid(debug_target_marker):
+		debug_target_marker.queue_free()
+		debug_target_marker = null
+	if debug_apex_marker and is_instance_valid(debug_apex_marker):
+		debug_apex_marker.queue_free()
+		debug_apex_marker = null
+	if debug_centerline_marker and is_instance_valid(debug_centerline_marker):
+		debug_centerline_marker.queue_free()
+		debug_centerline_marker = null
+	if debug_mesh_instance and is_instance_valid(debug_mesh_instance):
+		debug_mesh_instance.queue_free()
+		debug_mesh_instance = null
+	debug_immediate_draw = null
+	
+	for marker in debug_line_markers:
+		if is_instance_valid(marker):
+			marker.queue_free()
+	debug_line_markers.clear()
 
 func _create_sphere_marker(color: Color, radius: float) -> MeshInstance3D:
 	"""Helper to create a colored sphere marker."""
@@ -303,27 +331,30 @@ func _update_debug_visualization() -> void:
 	)
 	
 	# Update target marker (where AI is steering toward)
-	if debug_target_marker:
+	if debug_target_marker and is_instance_valid(debug_target_marker):
 		var target_world_pos: Vector3 = target.world_position
 		target_world_pos.y += debug_marker_height
 		debug_target_marker.global_position = target_world_pos
+		debug_target_marker.visible = true
 	
-	# Update apex marker
-	if debug_apex_marker:
+	# Update apex marker (RED - calculated apex of upcoming corner)
+	if debug_apex_marker and is_instance_valid(debug_apex_marker):
 		var apex_pos: Vector3 = line_follower.get_apex_world_position()
-		if apex_pos != Vector3.ZERO:
-			apex_pos.y += debug_marker_height + 1.0
-			debug_apex_marker.global_position = apex_pos
-			debug_apex_marker.visible = true
-		else:
-			debug_apex_marker.visible = false
+		apex_pos.y += debug_marker_height + 1.0
+		debug_apex_marker.global_position = apex_pos
+		# Always visible, but dim on straights
+		debug_apex_marker.visible = true
+		var has_corner: bool = line_follower.get_max_upcoming_curvature() > 0.1
+		if debug_apex_marker.material_override:
+			debug_apex_marker.material_override.emission_energy_multiplier = 3.0 if has_corner else 0.5
 	
-	# Update centerline reference (shows where centerline is at the target lookahead)
-	if debug_centerline_marker:
+	# Update centerline reference (CYAN - shows where centerline is at the target lookahead)
+	if debug_centerline_marker and is_instance_valid(debug_centerline_marker):
 		var lookahead: float = target.lookahead_used if target.has("lookahead_used") else 50.0
 		var centerline_pos: Vector3 = line_follower.get_centerline_position_at_distance(lookahead)
 		centerline_pos.y += debug_marker_height
 		debug_centerline_marker.global_position = centerline_pos
+		debug_centerline_marker.visible = true
 	
 	# Update racing line preview
 	var preview: Array[Dictionary] = line_follower.get_racing_line_preview(
@@ -333,10 +364,13 @@ func _update_debug_visualization() -> void:
 	
 	for i in range(min(preview.size(), debug_line_markers.size())):
 		var marker: MeshInstance3D = debug_line_markers[i]
+		if not is_instance_valid(marker):
+			continue
 		var point: Dictionary = preview[i]
 		var pos: Vector3 = point.world_position
 		pos.y += debug_marker_height - 1.0
 		marker.global_position = pos
+		marker.visible = true
 		
 		# Highlight apex points
 		if point.is_apex:
@@ -413,16 +447,4 @@ func _print_debug_info() -> void:
 # ============================================================================
 
 func _exit_tree() -> void:
-	if debug_target_marker and is_instance_valid(debug_target_marker):
-		debug_target_marker.queue_free()
-	if debug_apex_marker and is_instance_valid(debug_apex_marker):
-		debug_apex_marker.queue_free()
-	if debug_centerline_marker and is_instance_valid(debug_centerline_marker):
-		debug_centerline_marker.queue_free()
-	if debug_mesh_instance and is_instance_valid(debug_mesh_instance):
-		debug_mesh_instance.queue_free()
-	
-	for marker in debug_line_markers:
-		if is_instance_valid(marker):
-			marker.queue_free()
-	debug_line_markers.clear()
+	_cleanup_debug_markers()

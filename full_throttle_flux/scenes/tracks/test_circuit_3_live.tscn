@@ -138,7 +138,6 @@ material = ExtResource("3_yhocl")
 
 [node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline"]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
-visible = false
 use_collision = true
 collision_layer = 4
 polygon = PackedVector2Array(28.489079, 8.5183115, 23.549274, 8.43313, 21.121952, 6.5165105, 21.079365, -2.1295757, 28.65942, -2.172171)
@@ -157,7 +156,6 @@ material = SubResource("ShaderMaterial_h2vpo")
 
 [node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline"]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
-visible = false
 use_collision = true
 collision_layer = 4
 polygon = PackedVector2Array(-19.290813, 6.090594, -22.31432, 7.922032, -27.509634, 7.922032, -27.211542, -2.640679, -19.120472, -2.5129018)

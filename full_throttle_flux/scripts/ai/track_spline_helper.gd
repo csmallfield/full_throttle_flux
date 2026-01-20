@@ -165,7 +165,19 @@ func spline_offset_to_world_with_lateral(offset: float, lateral: float) -> Vecto
 	var center := spline_offset_to_world(offset)
 	var tangent := get_tangent_at_offset(offset)
 	var up := get_up_at_offset(offset)
-	var right := tangent.cross(up).normalized()
+	
+	# Calculate right vector - perpendicular to forward, in the track plane
+	# Using up.cross(tangent) to get RIGHT (not tangent.cross(up) which gives LEFT)
+	var right := up.cross(tangent).normalized()
+	
+	# Debug output to verify the calculation
+	if Engine.get_physics_frames() % 120 == 0:
+		print("LATERAL DEBUG: lateral=%.1f tangent=%s up=%s right=%s" % [
+			lateral, tangent, up, right
+		])
+		print("LATERAL DEBUG: center=%s result=%s" % [
+			center, center + right * lateral
+		])
 	
 	return center + right * lateral
 
@@ -277,7 +289,7 @@ func calculate_lateral_offset(world_position: Vector3, spline_offset: float) -> 
 	var center := spline_offset_to_world(spline_offset)
 	var tangent := get_tangent_at_offset(spline_offset)
 	var up := get_up_at_offset(spline_offset)
-	var right := tangent.cross(up).normalized()
+	var right := up.cross(tangent).normalized()
 	
 	var to_position := world_position - center
 	return to_position.dot(right)
