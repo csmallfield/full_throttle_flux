@@ -167,8 +167,8 @@ func spline_offset_to_world_with_lateral(offset: float, lateral: float) -> Vecto
 	var up := get_up_at_offset(offset)
 	
 	# Calculate right vector - perpendicular to forward, in the track plane
-	# Using up.cross(tangent) to get RIGHT (not tangent.cross(up) which gives LEFT)
-	var right := up.cross(tangent).normalized()
+	# tangent.cross(up) gives RIGHT in Godot's coordinate system
+	var right := tangent.cross(up).normalized()  # FIXED: was up.cross(tangent)
 	
 	# Debug output to verify the calculation
 	if Engine.get_physics_frames() % 120 == 0:
@@ -289,7 +289,7 @@ func calculate_lateral_offset(world_position: Vector3, spline_offset: float) -> 
 	var center := spline_offset_to_world(spline_offset)
 	var tangent := get_tangent_at_offset(spline_offset)
 	var up := get_up_at_offset(spline_offset)
-	var right := up.cross(tangent).normalized()
+	var right := tangent.cross(up).normalized()  # FIXED: was up.cross(tangent)
 	
 	var to_position := world_position - center
 	return to_position.dot(right)

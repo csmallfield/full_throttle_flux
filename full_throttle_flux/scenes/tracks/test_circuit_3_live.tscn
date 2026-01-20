@@ -119,7 +119,6 @@ curve = SubResource("Curve3D_8254d")
 
 [node name="groundGeo" type="CSGPolygon3D" parent="MainSpline"]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, -0.22576904, 3.8146973e-06, -0.1640625)
-visible = false
 use_collision = true
 polygon = PackedVector2Array(21.58349, 2.9622357, 17.218266, 2.0412953, -16.617033, 1.8802173, -20.253164, 2.7683895, -20.286919, -1.9581314, 21.968796, -1.8501513)
 mode = 2

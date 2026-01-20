@@ -38,27 +38,27 @@ var speed_lookahead_samples: int = 10
 # ============================================================================
 
 ## Maximum lateral offset from centerline (meters) - how wide the AI can go
-var max_lateral_offset: float = 16.0
+var max_lateral_offset: float = 20.0
 
 ## How aggressively to cut corners (0 = centerline, 1 = full apex seeking)
 var apex_seeking_strength: float = 1.0
 
 ## Minimum curvature to trigger lateral offset (LOWERED for large tracks)
-var lateral_offset_curvature_threshold: float = 0.015
+var lateral_offset_curvature_threshold: float = 0.001
 
 ## Track width estimate (used for clamping lateral offset)
 ## Your track polygon shows ~21m on each side, so half-width is ~21m
-var estimated_track_half_width: float = 20.0
+var estimated_track_half_width: float = 21.0
 
 ## Wall margin - minimum distance from wall (ship is ~6m wide, so 3.5m from center)
-var wall_margin: float = 3.5
+var wall_margin: float = 0.0
 
 # ============================================================================
 # CONFIGURATION - CURVATURE THRESHOLDS (LOWERED for large tracks)
 # ============================================================================
 
 ## Curvature threshold for "tight corner"
-var tight_corner_threshold: float = 0.05
+var tight_corner_threshold: float = 0.03
 
 ## Curvature threshold for "very tight corner" (hairpin-like)
 var very_tight_corner_threshold: float = 0.12
@@ -74,10 +74,10 @@ var corner_lookahead_reduction: float = 0.5
 var phase_distance: float = 80.0
 
 ## Entry phase percentage (0 to this = positioning to outside)
-var entry_phase_end: float = 0.30
+var entry_phase_end: float = 0.10
 
 ## Apex phase percentage (entry_end to this = cutting to inside)
-var apex_phase_end: float = 0.60
+var apex_phase_end: float = 0.50
 
 # ============================================================================
 # SKILL EFFECTS
