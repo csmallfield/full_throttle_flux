@@ -35,6 +35,9 @@ signal ai_disabled()
 ## Print debug info to console
 @export var debug_print_enabled: bool = false
 
+## Height offset for debug target marker (makes it visible above track)
+@export var debug_marker_height: float = 3.0
+
 # ============================================================================
 # COMPONENTS
 # ============================================================================
@@ -250,6 +253,8 @@ func _update_debug_visualization() -> void:
 	)
 	
 	var target_world_pos: Vector3 = target.world_position
+	# Add vertical offset so marker is visible above track
+	target_world_pos.y += debug_marker_height
 	debug_target_marker.global_position = target_world_pos
 
 func _print_debug_info() -> void:
