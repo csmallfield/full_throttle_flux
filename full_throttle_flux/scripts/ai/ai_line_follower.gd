@@ -204,98 +204,176 @@ func _get_signed_curvature(offset: float, sample_distance: float) -> float:
 	return curvature_magnitude * turn_direction
 
 func _update_racing_line() -> void:
-	"""Calculate optimal lateral offset for racing line."""
+	"""
+	Calculate optimal lateral offset for racing line.
+	Uses ACTUAL TRACK WIDTH for geometric apex calculation.
+	
+	Racing line principle:
+	- Entry: Outside of turn (near outside wall)
+	- Apex: Inside of turn (near inside wall) 
+	- Exit: Let the ship drift back out (use full track width)
+	
+	The tighter the corner, the closer to the inside edge the apex should be.
+	"""
 	cached_target_lateral_offset = 0.0
 	
-	# Don't offset if curvature is too low
+	# Don't offset if curvature is too low (straight section)
 	if cached_max_upcoming_curvature < lateral_offset_curvature_threshold:
 		return
+	
+	# === CALCULATE APEX DEPTH BASED ON CORNER TIGHTNESS ===
+	# Tighter corners = deeper into the inside of the track
+	# curvature 0.2 (gentle) = 50% of available width
+	# curvature 0.5 (medium) = 75% of available width  
+	# curvature 0.8+ (tight) = 90% of available width
+	
+	var curvature_normalized: float = clamp(
+		(cached_max_upcoming_curvature - lateral_offset_curvature_threshold) / 
+		(very_tight_corner_threshold - lateral_offset_curvature_threshold),
+		0.0, 1.0
+	)
+	
+	# How close to the inside edge to place the apex (0.5 = halfway, 0.9 = very close to edge)
+	var apex_depth: float = lerpf(0.5, 0.9, curvature_normalized)
+	
+	# Calculate actual apex offset in meters
+	# Leave small margin from wall (based on ship size ~6m, use half + buffer)
+	var wall_margin: float = 5.0
+	var usable_half_width: float = estimated_track_half_width - wall_margin
+	var apex_offset: float = usable_half_width * apex_depth
+	
+	# Entry/exit offset (position on outside of turn)
+	# Less aggressive than apex - use 50-70% of available width
+	var entry_depth: float = lerpf(0.4, 0.65, curvature_normalized)
+	var entry_offset: float = usable_half_width * entry_depth
 	
 	var base_offset: float = 0.0
 	
 	if cached_is_s_curve:
-		# S-CURVE LOGIC: Cut through the apexes
-		# Position to the OUTSIDE of the first turn to set up for the apex
-		# Then transition to the opposite side for the second turn
+		# === S-CURVE LOGIC ===
+		# Key insight: In an S-curve, the exit of turn 1 IS the entry of turn 2
+		# So we need to find a compromise line that works for both turns
 		
 		var first_turn_right: bool = cached_s_curve_first_direction > 0
 		var transition_progress: float = 0.0
 		
 		if cached_s_curve_transition_distance > 0:
-			# How close are we to the transition point?
-			# Before transition: position outside of first turn
-			# After transition: position for second turn apex
 			transition_progress = clamp(cached_corner_distance / cached_s_curve_transition_distance, 0.0, 2.0)
 		
-		if transition_progress < 1.0:
-			# Approaching first turn - position to outside, then cut to apex
-			# Outside of right turn = left side (negative offset)
-			# Outside of left turn = right side (positive offset)
-			var approach_phase: float = transition_progress  # 0 = far from turn, 1 = at apex
+		# S-curve phases:
+		# 0.0 - 0.5: Approaching first turn, set up on outside
+		# 0.5 - 1.0: Through first apex
+		# 1.0 - 1.5: Transition (this is the key "straight line" through the S)
+		# 1.5 - 2.0: Through second apex
+		
+		if transition_progress < 0.5:
+			# Entry to first turn - position to outside
+			var phase: float = transition_progress / 0.5
+			if first_turn_right:
+				# Right turn = start on LEFT side (negative), moving toward center
+				base_offset = lerpf(-entry_offset, -entry_offset * 0.3, phase)
+			else:
+				# Left turn = start on RIGHT side (positive), moving toward center
+				base_offset = lerpf(entry_offset, entry_offset * 0.3, phase)
+				
+		elif transition_progress < 1.0:
+			# First apex - cut to inside
+			var phase: float = (transition_progress - 0.5) / 0.5
+			if first_turn_right:
+				# Right turn apex = RIGHT side (positive)
+				base_offset = lerpf(-entry_offset * 0.3, apex_offset * 0.7, phase)
+			else:
+				# Left turn apex = LEFT side (negative)
+				base_offset = lerpf(entry_offset * 0.3, -apex_offset * 0.7, phase)
+				
+		elif transition_progress < 1.5:
+			# Transition between turns - the "straight line through the S"
+			# This is where we cut across from one apex toward the other
+			var phase: float = (transition_progress - 1.0) / 0.5
 			
 			if first_turn_right:
-				# Right turn: start left, cut to right apex
-				base_offset = lerpf(-max_lateral_offset * 0.5, max_lateral_offset * 0.3, approach_phase)
+				# Was right turn, now going to left turn
+				# Move from right apex area toward left apex area
+				base_offset = lerpf(apex_offset * 0.7, -apex_offset * 0.5, phase)
 			else:
-				# Left turn: start right, cut to left apex
-				base_offset = lerpf(max_lateral_offset * 0.5, -max_lateral_offset * 0.3, approach_phase)
+				# Was left turn, now going to right turn
+				base_offset = lerpf(-apex_offset * 0.7, apex_offset * 0.5, phase)
+				
 		else:
-			# Past first apex, setting up for second turn
+			# Second apex and exit
+			var phase: float = clamp((transition_progress - 1.5) / 0.5, 0.0, 1.0)
 			var second_turn_right: bool = not first_turn_right
-			var setup_phase: float = transition_progress - 1.0  # 0 = just past first apex
 			
 			if second_turn_right:
-				# Setting up for right turn - move toward left then apex
-				base_offset = lerpf(-max_lateral_offset * 0.2, max_lateral_offset * 0.3, clamp(setup_phase, 0.0, 1.0))
+				# Right turn apex, then drift left on exit
+				base_offset = lerpf(apex_offset * 0.5, apex_offset * 0.3, phase)
 			else:
-				# Setting up for left turn - move toward right then apex
-				base_offset = lerpf(max_lateral_offset * 0.2, -max_lateral_offset * 0.3, clamp(setup_phase, 0.0, 1.0))
+				# Left turn apex, then drift right on exit
+				base_offset = lerpf(-apex_offset * 0.5, -apex_offset * 0.3, phase)
 	
 	else:
-		# SINGLE CORNER LOGIC: Classic racing line
-		# Entry: outside of turn
-		# Apex: inside of turn  
-		# Exit: let car drift out
+		# === SINGLE CORNER LOGIC ===
+		# Classic racing line: outside-inside-outside
 		
 		var turn_right: bool = cached_immediate_curvature_signed > 0
+		if abs(cached_immediate_curvature_signed) < 0.1:
+			# Use upcoming curvature direction if immediate is too low
+			turn_right = cached_max_upcoming_curvature > 0 and cached_s_curve_first_direction >= 0
+		
+		# Phase calculation based on distance to corner
+		# Scale the phase distance with track size
+		var phase_distance: float = 100.0  # How far out to start the racing line
 		var corner_phase: float = 0.0
 		
-		if cached_corner_distance < 40.0:
-			# Close to corner - calculate phase (0=entry, 0.5=apex, 1=exit)
-			corner_phase = 1.0 - (cached_corner_distance / 40.0)
+		if cached_corner_distance < phase_distance:
+			corner_phase = 1.0 - (cached_corner_distance / phase_distance)
 		
-		# Intensity based on corner tightness
-		var intensity: float = clamp((cached_max_upcoming_curvature - lateral_offset_curvature_threshold) / 0.5, 0.0, 1.0)
+		# Racing line phases:
+		# 0.0 - 0.35: Entry - position to outside of turn
+		# 0.35 - 0.65: Apex - cut to inside of turn (this is where time is saved!)
+		# 0.65 - 1.0: Exit - drift back toward outside/center
 		
-		if corner_phase < 0.4:
-			# Entry phase - position to outside
-			var entry_progress: float = corner_phase / 0.4
+		if corner_phase < 0.35:
+			# ENTRY: Position to outside of turn
+			var phase: float = corner_phase / 0.35
 			if turn_right:
-				base_offset = lerpf(-max_lateral_offset * 0.4, 0.0, entry_progress) * intensity
+				# Right turn entry = LEFT side (negative offset)
+				base_offset = lerpf(-entry_offset * 0.8, -entry_offset * 0.5, phase)
 			else:
-				base_offset = lerpf(max_lateral_offset * 0.4, 0.0, entry_progress) * intensity
-		elif corner_phase < 0.7:
-			# Apex phase - cut to inside
-			var apex_progress: float = (corner_phase - 0.4) / 0.3
+				# Left turn entry = RIGHT side (positive offset)
+				base_offset = lerpf(entry_offset * 0.8, entry_offset * 0.5, phase)
+				
+		elif corner_phase < 0.65:
+			# APEX: Cut hard to the inside!
+			var phase: float = (corner_phase - 0.35) / 0.3
 			if turn_right:
-				base_offset = lerpf(0.0, max_lateral_offset * 0.3, apex_progress) * intensity
+				# Right turn apex = RIGHT side (positive offset, near inside wall)
+				base_offset = lerpf(-entry_offset * 0.5, apex_offset, phase)
 			else:
-				base_offset = lerpf(0.0, -max_lateral_offset * 0.3, apex_progress) * intensity
+				# Left turn apex = LEFT side (negative offset, near inside wall)
+				base_offset = lerpf(entry_offset * 0.5, -apex_offset, phase)
+				
 		else:
-			# Exit phase - drift back toward center/outside
-			var exit_progress: float = (corner_phase - 0.7) / 0.3
+			# EXIT: Drift back out, using track width
+			var phase: float = (corner_phase - 0.65) / 0.35
 			if turn_right:
-				base_offset = lerpf(max_lateral_offset * 0.3, 0.0, exit_progress) * intensity
+				# Exiting right turn - drift back toward left/center
+				base_offset = lerpf(apex_offset, entry_offset * 0.3, phase)
 			else:
-				base_offset = lerpf(-max_lateral_offset * 0.3, 0.0, exit_progress) * intensity
+				# Exiting left turn - drift back toward right/center
+				base_offset = lerpf(-apex_offset, -entry_offset * 0.3, phase)
 	
-	# Apply apex seeking strength and skill modifier
-	# Higher skill = more aggressive line
-	var skill_modifier: float = lerpf(0.5, 1.0, skill_level)
+	# === APPLY MODIFIERS ===
+	
+	# Skill modifier: Lower skill = less aggressive line
+	var skill_modifier: float = lerpf(0.6, 1.0, skill_level)
+	
+	# Apply apex seeking strength and skill
 	cached_target_lateral_offset = base_offset * apex_seeking_strength * skill_modifier
 	
-	# Clamp to track bounds
-	cached_target_lateral_offset = clamp(cached_target_lateral_offset, -estimated_track_half_width * 0.8, estimated_track_half_width * 0.8)
+	# Clamp to track bounds (leave margin from walls)
+	var max_allowed_offset: float = estimated_track_half_width - 4.0  # 4m minimum from wall
+	cached_target_lateral_offset = clamp(cached_target_lateral_offset, -max_allowed_offset, max_allowed_offset)
 
 func get_current_spline_offset() -> float:
 	return current_spline_offset
