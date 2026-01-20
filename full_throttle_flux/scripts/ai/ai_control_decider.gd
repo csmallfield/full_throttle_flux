@@ -8,6 +8,7 @@ class_name AIControlDecider
 ## - Late braking: Maintains speed longer, brakes harder when needed
 ## - S-curve awareness: Less braking through S-curves with good racing line
 ## - Throttle on exit: Gets back on throttle earlier when exiting corners
+## - More aggressive speed carrying through corners
 
 # ============================================================================
 # TUNING PARAMETERS - STEERING (User tuned)
@@ -17,45 +18,48 @@ class_name AIControlDecider
 var steering_sensitivity: float = 3.5
 
 ## Maximum steering rate of change per second (prevents oscillation)
-var max_steer_rate: float = 10.0
+var max_steer_rate: float = 12.0
 
 # ============================================================================
-# TUNING PARAMETERS - THROTTLE/BRAKE (User tuned + late braking)
+# TUNING PARAMETERS - THROTTLE/BRAKE (TUNED FOR AGGRESSION)
 # ============================================================================
 
 ## How quickly to reach target speed (multiplier on speed error)
-var throttle_responsiveness: float = 0.25
+var throttle_responsiveness: float = 0.30
 
 ## Speed error threshold to cut throttle (units/second over target)
-var throttle_cutoff_threshold: float = 8.0
+var throttle_cutoff_threshold: float = 12.0
 
 ## Speed error threshold to start braking (units/second over target)
-var brake_threshold: float = 4.0
+var brake_threshold: float = 8.0
 
 ## Brake intensity (multiplier on speed error above threshold)
-var brake_intensity: float = 0.5
+var brake_intensity: float = 0.4
 
 ## Distance to corner to START considering braking (late braking = lower value)
-var brake_distance_threshold: float = 60.0
+var brake_distance_threshold: float = 45.0
 
 ## Emergency brake distance (hard brake if this close and too fast)
-var emergency_brake_distance: float = 25.0
+var emergency_brake_distance: float = 18.0
+
+## Minimum throttle to maintain even when near target speed (prevents coasting)
+var min_throttle: float = 0.3
 
 # ============================================================================
 # TUNING PARAMETERS - AIRBRAKES (User tuned)
 # ============================================================================
 
 ## Curvature threshold to start using airbrakes
-var airbrake_curvature_threshold: float = 0.10
+var airbrake_curvature_threshold: float = 0.12
 
 ## Steering threshold to start using airbrakes (helps when struggling to turn)
-var airbrake_steering_threshold: float = 0.3
+var airbrake_steering_threshold: float = 0.35
 
 ## How much curvature affects airbrake intensity
-var airbrake_curvature_factor: float = 1.5
+var airbrake_curvature_factor: float = 1.3
 
 ## Minimum speed ratio to use airbrakes
-var airbrake_min_speed_ratio: float = 0.25
+var airbrake_min_speed_ratio: float = 0.30
 
 ## How much to weight recorded control hints (0 = ignore, 1 = follow exactly)
 var hint_weight: float = 0.3
@@ -105,24 +109,25 @@ func decide_controls(delta: float) -> Dictionary:
 	var immediate_curvature: float = target.immediate_curvature
 	var corner_distance: float = target.corner_distance
 	var is_s_curve: bool = target.is_s_curve
+	var corner_phase: float = target.get("corner_phase", 0.0)
 	
 	# Calculate controls
 	var raw_steer: float = _calculate_steering(target_world_pos, delta)
 	var throttle_brake: Dictionary = _calculate_throttle_and_brake(
 		current_speed, target_speed, max_speed, max_curvature, 
-		immediate_curvature, corner_distance, is_s_curve, target
+		immediate_curvature, corner_distance, is_s_curve, corner_phase, target
 	)
 	var airbrakes: Dictionary = _calculate_airbrakes(
 		current_speed, max_speed, raw_steer, max_curvature, 
 		immediate_curvature, is_s_curve, target
 	)
 	
-	# Smooth controls
-	smoothed_steer = lerpf(smoothed_steer, raw_steer, 12.0 * delta)
-	smoothed_throttle = lerpf(smoothed_throttle, throttle_brake.throttle, 10.0 * delta)
-	smoothed_brake = lerpf(smoothed_brake, throttle_brake.brake, 15.0 * delta)  # Faster brake response
-	smoothed_airbrake_left = lerpf(smoothed_airbrake_left, airbrakes.left, 12.0 * delta)
-	smoothed_airbrake_right = lerpf(smoothed_airbrake_right, airbrakes.right, 12.0 * delta)
+	# Smooth controls (faster response for more aggression)
+	smoothed_steer = lerpf(smoothed_steer, raw_steer, 15.0 * delta)
+	smoothed_throttle = lerpf(smoothed_throttle, throttle_brake.throttle, 12.0 * delta)
+	smoothed_brake = lerpf(smoothed_brake, throttle_brake.brake, 18.0 * delta)  # Faster brake response
+	smoothed_airbrake_left = lerpf(smoothed_airbrake_left, airbrakes.left, 15.0 * delta)
+	smoothed_airbrake_right = lerpf(smoothed_airbrake_right, airbrakes.right, 15.0 * delta)
 	
 	return {
 		"throttle": smoothed_throttle,
@@ -177,7 +182,7 @@ func _calculate_steering(target_position: Vector3, delta: float) -> float:
 	return clamp(steer, -1.0, 1.0)
 
 # ============================================================================
-# THROTTLE AND BRAKE - LATE BRAKING PHILOSOPHY
+# THROTTLE AND BRAKE - AGGRESSIVE LATE BRAKING
 # ============================================================================
 
 func _calculate_throttle_and_brake(
@@ -188,6 +193,7 @@ func _calculate_throttle_and_brake(
 	immediate_curvature: float,
 	corner_distance: float, 
 	is_s_curve: bool,
+	corner_phase: float,
 	target: Dictionary
 ) -> Dictionary:
 	"""
@@ -204,26 +210,29 @@ func _calculate_throttle_and_brake(
 	var brake: float = 0.0
 	
 	# === PHASE DETECTION ===
-	var in_corner: bool = immediate_curvature > 0.2
-	var approaching_corner: bool = max_curvature > 0.3 and corner_distance < brake_distance_threshold
-	var exiting_corner: bool = in_corner and max_curvature < immediate_curvature * 0.7
+	var in_corner: bool = immediate_curvature > 0.15
+	var approaching_corner: bool = max_curvature > 0.25 and corner_distance < brake_distance_threshold
+	var exiting_corner: bool = corner_phase > 0.55 and immediate_curvature < max_curvature * 0.8
 	
 	# S-curves with good racing line need less braking
 	var s_curve_modifier: float = 1.0
 	if is_s_curve:
-		s_curve_modifier = 0.7  # 30% less braking in S-curves
+		s_curve_modifier = 0.6  # 40% less braking in S-curves (more aggressive)
 	
 	# === THROTTLE LOGIC ===
 	if exiting_corner:
-		# CORNER EXIT: Get on throttle early!
-		throttle = clamp(0.7 + speed_error * 0.1, 0.5, 1.0)
+		# CORNER EXIT: Get on throttle early and hard!
+		throttle = clamp(0.85 + speed_error * 0.1, 0.7, 1.0)
 	elif speed_error > 0:
-		# Below target - accelerate
-		throttle = clamp(speed_error * throttle_responsiveness, 0.0, 1.0)
+		# Below target - accelerate hard
+		throttle = clamp(speed_error * throttle_responsiveness, min_throttle, 1.0)
 	elif over_target < throttle_cutoff_threshold:
-		# Slightly over but not dangerous - partial throttle / coast
+		# Slightly over but not dangerous - maintain partial throttle
 		var coast_factor: float = 1.0 - (over_target / throttle_cutoff_threshold)
-		throttle = clamp(coast_factor * 0.5, 0.0, 0.5)
+		throttle = clamp(coast_factor * 0.6, min_throttle, 0.6)
+	else:
+		# Significantly over target - minimal throttle
+		throttle = min_throttle * 0.5
 	
 	# === LATE BRAKING LOGIC ===
 	# Only brake when we really need to
@@ -240,31 +249,31 @@ func _calculate_throttle_and_brake(
 			if corner_distance < emergency_brake_distance:
 				# EMERGENCY: Very close to corner and too fast
 				need_to_brake = true
-				brake_urgency = clamp(speed_excess / target_speed * 2.0, 0.3, 1.0)
+				brake_urgency = clamp(speed_excess / target_speed * 1.8, 0.25, 1.0)
 			elif corner_distance < brake_distance_threshold:
 				# Within braking zone - calculate required deceleration
 				# Simple model: can we slow down in time?
-				var distance_to_brake: float = corner_distance - 5.0  # Leave margin
+				var distance_to_brake: float = corner_distance - 3.0  # Smaller margin for aggression
 				var required_decel: float = (speed_excess * speed_excess) / (2.0 * max(distance_to_brake, 1.0))
 				
 				# If required deceleration is high, brake hard
-				if required_decel > 5.0:  # Threshold for "needs braking"
+				if required_decel > 6.0:  # Higher threshold = later braking
 					need_to_brake = true
-					brake_urgency = clamp(required_decel / 20.0, 0.0, 1.0)
+					brake_urgency = clamp(required_decel / 25.0, 0.0, 0.9)
 	
 	# Also brake if significantly over target in corner
 	if in_corner and over_target > brake_threshold:
 		need_to_brake = true
-		brake_urgency = max(brake_urgency, clamp((over_target - brake_threshold) * brake_intensity, 0.0, 0.8))
+		brake_urgency = max(brake_urgency, clamp((over_target - brake_threshold) * brake_intensity, 0.0, 0.7))
 	
 	# Apply braking
 	if need_to_brake:
 		brake = brake_urgency * s_curve_modifier
 		# Cut throttle when braking hard
-		if brake > 0.3:
-			throttle = 0.0
-		elif brake > 0.1:
-			throttle *= 0.5
+		if brake > 0.4:
+			throttle = min_throttle * 0.3
+		elif brake > 0.2:
+			throttle *= 0.4
 	
 	# === BLEND WITH RECORDED HINTS ===
 	var from_recorded: bool = target.from_recorded_data
@@ -311,26 +320,26 @@ func _calculate_airbrakes(
 	if steer_magnitude > airbrake_steering_threshold:
 		var steer_factor: float = (steer_magnitude - airbrake_steering_threshold) / (1.0 - airbrake_steering_threshold)
 		steer_factor = clamp(steer_factor, 0.0, 1.0)
-		airbrake_intensity = max(airbrake_intensity, steer_factor * 0.8)
+		airbrake_intensity = max(airbrake_intensity, steer_factor * 0.7)
 	
 	# S-curves: Use less airbrake since racing line is straighter
 	if is_s_curve:
-		airbrake_intensity *= 0.6
+		airbrake_intensity *= 0.5
 	
 	# Scale by speed
 	var speed_factor: float = clamp((speed_ratio - airbrake_min_speed_ratio) / (0.8 - airbrake_min_speed_ratio), 0.0, 1.0)
 	airbrake_intensity *= speed_factor
-	airbrake_intensity = clamp(airbrake_intensity, 0.0, 1.0)
+	airbrake_intensity = clamp(airbrake_intensity, 0.0, 0.9)  # Cap at 90%
 	
 	# Apply to appropriate side
-	if steer < -0.15:
+	if steer < -0.12:
 		result.right = airbrake_intensity
-	elif steer > 0.15:
+	elif steer > 0.12:
 		result.left = airbrake_intensity
 	elif effective_curvature > airbrake_curvature_threshold:
 		# Light both for general slowing before turn
-		result.left = airbrake_intensity * 0.25
-		result.right = airbrake_intensity * 0.25
+		result.left = airbrake_intensity * 0.2
+		result.right = airbrake_intensity * 0.2
 	
 	# Blend with recorded hints
 	var from_recorded: bool = target.from_recorded_data

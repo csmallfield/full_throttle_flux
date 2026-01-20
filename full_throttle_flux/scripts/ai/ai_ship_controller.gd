@@ -4,6 +4,7 @@ class_name AIShipController
 ## AI Ship Controller
 ## Main controller that orchestrates AI components and feeds inputs to a ship.
 ## Can control any ShipController by setting its input values directly.
+## Enhanced debug visualization shows racing line and apex positions.
 
 # ============================================================================
 # SIGNALS
@@ -22,7 +23,7 @@ signal ai_disabled()
 @export var ship: ShipController
 
 ## AI skill level (0.0 = easy, 1.0 = expert)
-@export_range(0.0, 1.0) var skill_level: float = 0.5
+@export_range(0.0, 1.0) var skill_level: float = 1.0
 
 ## Enable AI control (can be toggled at runtime)
 @export var ai_active: bool = true
@@ -37,6 +38,12 @@ signal ai_disabled()
 
 ## Height offset for debug target marker (makes it visible above track)
 @export var debug_marker_height: float = 3.0
+
+## Number of preview points for racing line
+@export var debug_preview_points: int = 15
+
+## Preview distance for racing line (meters)
+@export var debug_preview_distance: float = 120.0
 
 # ============================================================================
 # COMPONENTS
@@ -55,6 +62,11 @@ var track_root: Node = null
 
 # Debug visualization
 var debug_target_marker: MeshInstance3D
+var debug_apex_marker: MeshInstance3D
+var debug_centerline_marker: MeshInstance3D
+var debug_line_markers: Array[MeshInstance3D] = []
+var debug_immediate_draw: ImmediateMesh
+var debug_mesh_instance: MeshInstance3D
 
 # ============================================================================
 # INITIALIZATION
@@ -224,27 +236,65 @@ func get_distance_to_finish() -> float:
 
 func _setup_debug_visualization() -> void:
 	"""Create debug visualization objects."""
-	# Target position marker
-	debug_target_marker = MeshInstance3D.new()
+	# Target position marker (YELLOW - where AI is steering toward)
+	debug_target_marker = _create_sphere_marker(Color.YELLOW, 1.0)
 	debug_target_marker.name = "AITargetMarker"
+	get_tree().root.add_child(debug_target_marker)
+	
+	# Apex marker (RED - calculated apex position)
+	debug_apex_marker = _create_sphere_marker(Color.RED, 1.5)
+	debug_apex_marker.name = "AIApexMarker"
+	get_tree().root.add_child(debug_apex_marker)
+	
+	# Centerline reference marker (BLUE - centerline at target distance)
+	debug_centerline_marker = _create_sphere_marker(Color.CYAN, 0.8)
+	debug_centerline_marker.name = "AICenterlineMarker"
+	get_tree().root.add_child(debug_centerline_marker)
+	
+	# Racing line preview markers (GREEN gradient)
+	for i in range(debug_preview_points):
+		var t: float = float(i) / float(debug_preview_points - 1)
+		var color: Color = Color.GREEN.lerp(Color.LIME, t)
+		var marker := _create_sphere_marker(color, 0.5)
+		marker.name = "AILineMarker_%d" % i
+		get_tree().root.add_child(marker)
+		debug_line_markers.append(marker)
+	
+	# ImmediateMesh for drawing lines
+	debug_immediate_draw = ImmediateMesh.new()
+	debug_mesh_instance = MeshInstance3D.new()
+	debug_mesh_instance.name = "AIDebugLines"
+	debug_mesh_instance.mesh = debug_immediate_draw
+	
+	var line_material := StandardMaterial3D.new()
+	line_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	line_material.albedo_color = Color.YELLOW
+	line_material.vertex_color_use_as_albedo = true
+	debug_mesh_instance.material_override = line_material
+	
+	get_tree().root.add_child(debug_mesh_instance)
+
+func _create_sphere_marker(color: Color, radius: float) -> MeshInstance3D:
+	"""Helper to create a colored sphere marker."""
+	var marker := MeshInstance3D.new()
 	
 	var sphere := SphereMesh.new()
-	sphere.radius = 1.0
-	sphere.height = 2.0
-	debug_target_marker.mesh = sphere
+	sphere.radius = radius
+	sphere.height = radius * 2.0
+	marker.mesh = sphere
 	
 	var material := StandardMaterial3D.new()
-	material.albedo_color = Color.YELLOW
+	material.albedo_color = color
 	material.emission_enabled = true
-	material.emission = Color.YELLOW
+	material.emission = color
 	material.emission_energy_multiplier = 2.0
-	debug_target_marker.material_override = material
+	marker.material_override = material
 	
-	get_tree().root.add_child(debug_target_marker)
+	return marker
 
 func _update_debug_visualization() -> void:
 	"""Update debug visualization positions."""
-	if not debug_target_marker or not line_follower:
+	if not line_follower:
 		return
 	
 	var target: Dictionary = line_follower.get_target_position(
@@ -252,10 +302,95 @@ func _update_debug_visualization() -> void:
 		ship.get_max_speed() if ship else 100.0
 	)
 	
-	var target_world_pos: Vector3 = target.world_position
-	# Add vertical offset so marker is visible above track
-	target_world_pos.y += debug_marker_height
-	debug_target_marker.global_position = target_world_pos
+	# Update target marker (where AI is steering toward)
+	if debug_target_marker:
+		var target_world_pos: Vector3 = target.world_position
+		target_world_pos.y += debug_marker_height
+		debug_target_marker.global_position = target_world_pos
+	
+	# Update apex marker
+	if debug_apex_marker:
+		var apex_pos: Vector3 = line_follower.get_apex_world_position()
+		if apex_pos != Vector3.ZERO:
+			apex_pos.y += debug_marker_height + 1.0
+			debug_apex_marker.global_position = apex_pos
+			debug_apex_marker.visible = true
+		else:
+			debug_apex_marker.visible = false
+	
+	# Update centerline reference (shows where centerline is at the target lookahead)
+	if debug_centerline_marker:
+		var lookahead: float = target.lookahead_used if target.has("lookahead_used") else 50.0
+		var centerline_pos: Vector3 = line_follower.get_centerline_position_at_distance(lookahead)
+		centerline_pos.y += debug_marker_height
+		debug_centerline_marker.global_position = centerline_pos
+	
+	# Update racing line preview
+	var preview: Array[Dictionary] = line_follower.get_racing_line_preview(
+		debug_preview_points,
+		debug_preview_distance
+	)
+	
+	for i in range(min(preview.size(), debug_line_markers.size())):
+		var marker: MeshInstance3D = debug_line_markers[i]
+		var point: Dictionary = preview[i]
+		var pos: Vector3 = point.world_position
+		pos.y += debug_marker_height - 1.0
+		marker.global_position = pos
+		
+		# Highlight apex points
+		if point.is_apex:
+			marker.scale = Vector3(2.0, 2.0, 2.0)
+		else:
+			marker.scale = Vector3(1.0, 1.0, 1.0)
+	
+	# Draw connecting lines using ImmediateMesh
+	_draw_debug_lines(target, preview)
+
+func _draw_debug_lines(target: Dictionary, preview: Array[Dictionary]) -> void:
+	"""Draw lines between debug points."""
+	if not debug_immediate_draw:
+		return
+	
+	debug_immediate_draw.clear_surfaces()
+	debug_immediate_draw.surface_begin(Mesh.PRIMITIVE_LINES)
+	
+	# Draw line from ship to target
+	if ship:
+		var ship_pos: Vector3 = ship.global_position
+		ship_pos.y += debug_marker_height
+		var target_pos: Vector3 = target.world_position
+		target_pos.y += debug_marker_height
+		
+		debug_immediate_draw.surface_set_color(Color.YELLOW)
+		debug_immediate_draw.surface_add_vertex(ship_pos)
+		debug_immediate_draw.surface_add_vertex(target_pos)
+	
+	# Draw racing line preview
+	for i in range(preview.size() - 1):
+		var p1: Vector3 = preview[i].world_position
+		var p2: Vector3 = preview[i + 1].world_position
+		p1.y += debug_marker_height - 1.0
+		p2.y += debug_marker_height - 1.0
+		
+		var color: Color = Color.GREEN
+		if preview[i].is_apex or preview[i + 1].is_apex:
+			color = Color.RED
+		
+		debug_immediate_draw.surface_set_color(color)
+		debug_immediate_draw.surface_add_vertex(p1)
+		debug_immediate_draw.surface_add_vertex(p2)
+	
+	# Draw lateral offset indicator (line from centerline to racing line at target)
+	if debug_centerline_marker and debug_target_marker:
+		var center: Vector3 = debug_centerline_marker.global_position
+		var racing: Vector3 = debug_target_marker.global_position
+		
+		debug_immediate_draw.surface_set_color(Color.MAGENTA)
+		debug_immediate_draw.surface_add_vertex(center)
+		debug_immediate_draw.surface_add_vertex(racing)
+	
+	debug_immediate_draw.surface_end()
 
 func _print_debug_info() -> void:
 	"""Print debug information to console."""
@@ -265,7 +400,13 @@ func _print_debug_info() -> void:
 	print("=== AI Debug ===")
 	print("  ", line_follower.get_debug_info())
 	print("  ", control_decider.get_debug_info())
-	print("  Ship speed: %.1f / %.1f" % [ship.velocity.length(), ship.get_max_speed()])
+	print("  Ship speed: %.1f / %.1f (%.0f%%)" % [
+		ship.velocity.length(), 
+		ship.get_max_speed(),
+		(ship.velocity.length() / ship.get_max_speed()) * 100.0
+	])
+	print("  Lateral offset: %.1fm" % line_follower.get_target_lateral_offset())
+	print("  Corner phase: %.0f%%" % (line_follower.get_corner_phase() * 100.0))
 
 # ============================================================================
 # CLEANUP
@@ -274,3 +415,14 @@ func _print_debug_info() -> void:
 func _exit_tree() -> void:
 	if debug_target_marker and is_instance_valid(debug_target_marker):
 		debug_target_marker.queue_free()
+	if debug_apex_marker and is_instance_valid(debug_apex_marker):
+		debug_apex_marker.queue_free()
+	if debug_centerline_marker and is_instance_valid(debug_centerline_marker):
+		debug_centerline_marker.queue_free()
+	if debug_mesh_instance and is_instance_valid(debug_mesh_instance):
+		debug_mesh_instance.queue_free()
+	
+	for marker in debug_line_markers:
+		if is_instance_valid(marker):
+			marker.queue_free()
+	debug_line_markers.clear()
