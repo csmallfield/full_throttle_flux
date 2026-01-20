@@ -3,37 +3,56 @@ class_name AILineFollower
 
 ## AI Line Follower
 ## Responsible for answering: "Where should I be on the track?"
-## Uses dual-lookahead system: near point for steering, far point for speed planning.
-## Curvature-aware lookahead shortens when approaching tight corners.
+## 
+## Key improvements:
+## - S-curve detection: Finds alternating turns and calculates racing line through apexes
+## - Apex-seeking: Calculates lateral offset to cut corners rather than following centerline
+## - Late braking support: Provides corner entry distance for brake timing
 
 # ============================================================================
 # CONFIGURATION - STEERING LOOKAHEAD
 # ============================================================================
 
 ## Base steering lookahead at low speeds (meters)
-var steer_lookahead_min: float = 12.0
+var steer_lookahead_min: float = 25.0
 
 ## Base steering lookahead at high speeds (meters)  
-var steer_lookahead_max: float = 35.0
+var steer_lookahead_max: float = 70.0
 
 ## Minimum steering lookahead in tight corners (meters)
-var steer_lookahead_corner_min: float = 8.0
+var steer_lookahead_corner_min: float = 15.0
 
 # ============================================================================
-# CONFIGURATION - SPEED LOOKAHEAD (for braking decisions)
+# CONFIGURATION - SPEED/CORNER LOOKAHEAD
 # ============================================================================
 
 ## How far ahead to scan for upcoming corners (meters)
-var speed_lookahead_distance: float = 60.0
+var speed_lookahead_distance: float = 120.0
 
 ## Number of points to sample when scanning for corners
-var speed_lookahead_samples: int = 6
+var speed_lookahead_samples: int = 10
 
 # ============================================================================
-# CONFIGURATION - CURVATURE RESPONSE
+# CONFIGURATION - RACING LINE / APEX SEEKING
 # ============================================================================
 
-## Curvature threshold for "tight corner" (triggers lookahead reduction)
+## Maximum lateral offset from centerline (meters) - how wide the AI can go
+var max_lateral_offset: float = 12.0
+
+## How aggressively to cut corners (0 = centerline, 1 = full apex seeking)
+var apex_seeking_strength: float = 1.0
+
+## Minimum curvature to trigger lateral offset
+var lateral_offset_curvature_threshold: float = 0.15
+
+## Track width estimate (used for clamping lateral offset)
+var estimated_track_half_width: float = 16.0
+
+# ============================================================================
+# CONFIGURATION - CURVATURE THRESHOLDS
+# ============================================================================
+
+## Curvature threshold for "tight corner"
 var tight_corner_threshold: float = 0.4
 
 ## Curvature threshold for "very tight corner" (hairpin-like)
@@ -47,7 +66,7 @@ var corner_lookahead_reduction: float = 0.5
 # ============================================================================
 
 ## Skill level of this AI (0.0 = safe, 1.0 = fast)
-var skill_level: float = 0.5
+var skill_level: float = 1.0
 
 # ============================================================================
 # STATE
@@ -64,6 +83,15 @@ var has_recorded_data: bool = false
 var cached_max_upcoming_curvature: float = 0.0
 var cached_corner_distance: float = 0.0
 var cached_immediate_curvature: float = 0.0
+var cached_immediate_curvature_signed: float = 0.0  # Positive = right turn, negative = left
+
+# S-curve detection
+var cached_is_s_curve: bool = false
+var cached_s_curve_first_direction: float = 0.0  # Sign of first turn
+var cached_s_curve_transition_distance: float = 0.0  # Where direction changes
+
+# Racing line
+var cached_target_lateral_offset: float = 0.0
 
 # ============================================================================
 # INITIALIZATION
@@ -93,24 +121,181 @@ func update_position(world_position: Vector3) -> void:
 	if spline_helper and spline_helper.is_valid:
 		current_spline_offset = spline_helper.world_to_spline_offset(world_position)
 		_update_curvature_analysis()
+		_update_racing_line()
 
 func _update_curvature_analysis() -> void:
-	"""Scan ahead and cache curvature information for this frame."""
+	"""Scan ahead and cache curvature information including S-curve detection."""
 	cached_max_upcoming_curvature = 0.0
 	cached_corner_distance = speed_lookahead_distance
 	cached_immediate_curvature = spline_helper.get_curvature_at_offset(current_spline_offset, 15.0)
+	cached_immediate_curvature_signed = _get_signed_curvature(current_spline_offset, 15.0)
 	
-	# Sample multiple points ahead to find the worst corner
+	# Reset S-curve detection
+	cached_is_s_curve = false
+	cached_s_curve_first_direction = 0.0
+	cached_s_curve_transition_distance = 0.0
+	
+	# Sample multiple points ahead
 	var sample_spacing: float = speed_lookahead_distance / float(speed_lookahead_samples)
+	var prev_sign: float = sign(cached_immediate_curvature_signed) if abs(cached_immediate_curvature_signed) > 0.1 else 0.0
+	var first_significant_sign: float = prev_sign
 	
 	for i in range(speed_lookahead_samples):
 		var distance: float = sample_spacing * float(i + 1)
 		var sample_offset: float = spline_helper.get_lookahead_offset(current_spline_offset, distance)
 		var curvature: float = spline_helper.get_curvature_at_offset(sample_offset, 15.0)
+		var signed_curv: float = _get_signed_curvature(sample_offset, 15.0)
 		
+		# Track maximum curvature magnitude
 		if curvature > cached_max_upcoming_curvature:
 			cached_max_upcoming_curvature = curvature
 			cached_corner_distance = distance
+		
+		# S-curve detection: look for sign change in curvature
+		var current_sign: float = sign(signed_curv) if abs(signed_curv) > 0.15 else 0.0
+		
+		if first_significant_sign == 0.0 and current_sign != 0.0:
+			first_significant_sign = current_sign
+		
+		if prev_sign != 0.0 and current_sign != 0.0 and prev_sign != current_sign:
+			# Direction changed - this is an S-curve!
+			if not cached_is_s_curve:
+				cached_is_s_curve = true
+				cached_s_curve_first_direction = prev_sign
+				cached_s_curve_transition_distance = distance
+		
+		if current_sign != 0.0:
+			prev_sign = current_sign
+
+func _get_signed_curvature(offset: float, sample_distance: float) -> float:
+	"""
+	Get curvature with sign indicating direction.
+	Positive = turning right, Negative = turning left.
+	"""
+	if not spline_helper or not spline_helper.is_valid:
+		return 0.0
+	
+	var delta: float = spline_helper.distance_to_offset(sample_distance)
+	
+	var pos_current: Vector3 = spline_helper.spline_offset_to_world(offset)
+	var pos_ahead: Vector3 = spline_helper.spline_offset_to_world(offset + delta)
+	
+	var dir_current: Vector3 = (pos_ahead - pos_current)
+	dir_current.y = 0
+	if dir_current.length_squared() < 0.001:
+		return 0.0
+	dir_current = dir_current.normalized()
+	
+	var pos_further: Vector3 = spline_helper.spline_offset_to_world(offset + delta * 2.0)
+	var dir_ahead: Vector3 = (pos_further - pos_ahead)
+	dir_ahead.y = 0
+	if dir_ahead.length_squared() < 0.001:
+		return 0.0
+	dir_ahead = dir_ahead.normalized()
+	
+	# Cross product Y component tells us turn direction
+	var cross: Vector3 = dir_current.cross(dir_ahead)
+	var dot: float = dir_current.dot(dir_ahead)
+	
+	# Magnitude from dot product, sign from cross product
+	var curvature_magnitude: float = 1.0 - dot
+	var turn_direction: float = -sign(cross.y)  # Negative because of coordinate system
+	
+	return curvature_magnitude * turn_direction
+
+func _update_racing_line() -> void:
+	"""Calculate optimal lateral offset for racing line."""
+	cached_target_lateral_offset = 0.0
+	
+	# Don't offset if curvature is too low
+	if cached_max_upcoming_curvature < lateral_offset_curvature_threshold:
+		return
+	
+	var base_offset: float = 0.0
+	
+	if cached_is_s_curve:
+		# S-CURVE LOGIC: Cut through the apexes
+		# Position to the OUTSIDE of the first turn to set up for the apex
+		# Then transition to the opposite side for the second turn
+		
+		var first_turn_right: bool = cached_s_curve_first_direction > 0
+		var transition_progress: float = 0.0
+		
+		if cached_s_curve_transition_distance > 0:
+			# How close are we to the transition point?
+			# Before transition: position outside of first turn
+			# After transition: position for second turn apex
+			transition_progress = clamp(cached_corner_distance / cached_s_curve_transition_distance, 0.0, 2.0)
+		
+		if transition_progress < 1.0:
+			# Approaching first turn - position to outside, then cut to apex
+			# Outside of right turn = left side (negative offset)
+			# Outside of left turn = right side (positive offset)
+			var approach_phase: float = transition_progress  # 0 = far from turn, 1 = at apex
+			
+			if first_turn_right:
+				# Right turn: start left, cut to right apex
+				base_offset = lerpf(-max_lateral_offset * 0.5, max_lateral_offset * 0.3, approach_phase)
+			else:
+				# Left turn: start right, cut to left apex
+				base_offset = lerpf(max_lateral_offset * 0.5, -max_lateral_offset * 0.3, approach_phase)
+		else:
+			# Past first apex, setting up for second turn
+			var second_turn_right: bool = not first_turn_right
+			var setup_phase: float = transition_progress - 1.0  # 0 = just past first apex
+			
+			if second_turn_right:
+				# Setting up for right turn - move toward left then apex
+				base_offset = lerpf(-max_lateral_offset * 0.2, max_lateral_offset * 0.3, clamp(setup_phase, 0.0, 1.0))
+			else:
+				# Setting up for left turn - move toward right then apex
+				base_offset = lerpf(max_lateral_offset * 0.2, -max_lateral_offset * 0.3, clamp(setup_phase, 0.0, 1.0))
+	
+	else:
+		# SINGLE CORNER LOGIC: Classic racing line
+		# Entry: outside of turn
+		# Apex: inside of turn  
+		# Exit: let car drift out
+		
+		var turn_right: bool = cached_immediate_curvature_signed > 0
+		var corner_phase: float = 0.0
+		
+		if cached_corner_distance < 40.0:
+			# Close to corner - calculate phase (0=entry, 0.5=apex, 1=exit)
+			corner_phase = 1.0 - (cached_corner_distance / 40.0)
+		
+		# Intensity based on corner tightness
+		var intensity: float = clamp((cached_max_upcoming_curvature - lateral_offset_curvature_threshold) / 0.5, 0.0, 1.0)
+		
+		if corner_phase < 0.4:
+			# Entry phase - position to outside
+			var entry_progress: float = corner_phase / 0.4
+			if turn_right:
+				base_offset = lerpf(-max_lateral_offset * 0.4, 0.0, entry_progress) * intensity
+			else:
+				base_offset = lerpf(max_lateral_offset * 0.4, 0.0, entry_progress) * intensity
+		elif corner_phase < 0.7:
+			# Apex phase - cut to inside
+			var apex_progress: float = (corner_phase - 0.4) / 0.3
+			if turn_right:
+				base_offset = lerpf(0.0, max_lateral_offset * 0.3, apex_progress) * intensity
+			else:
+				base_offset = lerpf(0.0, -max_lateral_offset * 0.3, apex_progress) * intensity
+		else:
+			# Exit phase - drift back toward center/outside
+			var exit_progress: float = (corner_phase - 0.7) / 0.3
+			if turn_right:
+				base_offset = lerpf(max_lateral_offset * 0.3, 0.0, exit_progress) * intensity
+			else:
+				base_offset = lerpf(-max_lateral_offset * 0.3, 0.0, exit_progress) * intensity
+	
+	# Apply apex seeking strength and skill modifier
+	# Higher skill = more aggressive line
+	var skill_modifier: float = lerpf(0.5, 1.0, skill_level)
+	cached_target_lateral_offset = base_offset * apex_seeking_strength * skill_modifier
+	
+	# Clamp to track bounds
+	cached_target_lateral_offset = clamp(cached_target_lateral_offset, -estimated_track_half_width * 0.8, estimated_track_half_width * 0.8)
 
 func get_current_spline_offset() -> float:
 	return current_spline_offset
@@ -122,7 +307,7 @@ func get_current_spline_offset() -> float:
 func get_target_position(ship_speed: float, max_speed: float) -> Dictionary:
 	"""
 	Get the target position the AI should steer toward.
-	Returns a dictionary with position, speed hint, and analysis data.
+	Now includes racing line lateral offset for apex-seeking.
 	"""
 	var speed_ratio: float = ship_speed / max_speed if max_speed > 0 else 0.0
 	
@@ -130,7 +315,7 @@ func get_target_position(ship_speed: float, max_speed: float) -> Dictionary:
 	var base_lookahead: float = lerpf(steer_lookahead_min, steer_lookahead_max, speed_ratio)
 	var actual_lookahead: float = _apply_curvature_lookahead_adjustment(base_lookahead)
 	
-	# Skill affects lookahead: lower skill = shorter lookahead (more reactive)
+	# Skill affects lookahead
 	var skill_lookahead_modifier: float = lerpf(0.8, 1.1, skill_level)
 	actual_lookahead *= skill_lookahead_modifier
 	
@@ -140,18 +325,14 @@ func get_target_position(ship_speed: float, max_speed: float) -> Dictionary:
 		return _get_centerline_target(actual_lookahead, max_speed, speed_ratio)
 
 func _apply_curvature_lookahead_adjustment(base_lookahead: float) -> float:
-	"""Reduce lookahead when approaching tight corners for quicker reactions."""
+	"""Reduce lookahead when approaching tight corners."""
 	if cached_max_upcoming_curvature < tight_corner_threshold:
 		return base_lookahead
 	
-	# Calculate reduction based on how tight the corner is
 	var tightness: float = (cached_max_upcoming_curvature - tight_corner_threshold) / (very_tight_corner_threshold - tight_corner_threshold)
 	tightness = clamp(tightness, 0.0, 1.0)
 	
-	# Also consider how close the corner is
 	var proximity_factor: float = 1.0 - clamp(cached_corner_distance / speed_lookahead_distance, 0.0, 1.0)
-	
-	# Combined reduction
 	var reduction: float = tightness * proximity_factor * (1.0 - corner_lookahead_reduction)
 	var adjusted: float = base_lookahead * (1.0 - reduction)
 	
@@ -181,6 +362,7 @@ func _get_recorded_target(lookahead: float, max_speed: float) -> Dictionary:
 		"max_upcoming_curvature": cached_max_upcoming_curvature,
 		"corner_distance": cached_corner_distance,
 		"immediate_curvature": cached_immediate_curvature,
+		"is_s_curve": cached_is_s_curve,
 		"hint_throttle": sample.throttle,
 		"hint_brake": sample.brake,
 		"hint_airbrake_left": sample.airbrake_left,
@@ -188,12 +370,20 @@ func _get_recorded_target(lookahead: float, max_speed: float) -> Dictionary:
 	}
 
 func _get_centerline_target(lookahead: float, max_speed: float, speed_ratio: float) -> Dictionary:
-	"""Fallback: Get target from track centerline with curvature-based speed."""
+	"""Get target with racing line offset applied."""
 	var target_offset: float = spline_helper.get_lookahead_offset(current_spline_offset, lookahead)
-	var world_pos: Vector3 = spline_helper.spline_offset_to_world(target_offset)
-	var tangent: Vector3 = spline_helper.get_tangent_at_offset(target_offset)
 	
-	# Calculate suggested speed based on UPCOMING curvature, not current position
+	# Get base centerline position
+	var centerline_pos: Vector3 = spline_helper.spline_offset_to_world(target_offset)
+	
+	# Apply racing line lateral offset
+	var world_pos: Vector3
+	if abs(cached_target_lateral_offset) > 0.1:
+		world_pos = spline_helper.spline_offset_to_world_with_lateral(target_offset, cached_target_lateral_offset)
+	else:
+		world_pos = centerline_pos
+	
+	var tangent: Vector3 = spline_helper.get_tangent_at_offset(target_offset)
 	var suggested_speed: float = _calculate_corner_safe_speed(max_speed)
 	
 	# Apply skill modifier
@@ -203,7 +393,7 @@ func _get_centerline_target(lookahead: float, max_speed: float, speed_ratio: flo
 	return {
 		"world_position": world_pos,
 		"suggested_speed": suggested_speed,
-		"lateral_offset": 0.0,
+		"lateral_offset": cached_target_lateral_offset,
 		"heading": tangent,
 		"spline_offset": target_offset,
 		"from_recorded_data": false,
@@ -211,6 +401,7 @@ func _get_centerline_target(lookahead: float, max_speed: float, speed_ratio: flo
 		"max_upcoming_curvature": cached_max_upcoming_curvature,
 		"corner_distance": cached_corner_distance,
 		"immediate_curvature": cached_immediate_curvature,
+		"is_s_curve": cached_is_s_curve,
 		"hint_throttle": 1.0,
 		"hint_brake": 0.0,
 		"hint_airbrake_left": 0.0,
@@ -218,39 +409,38 @@ func _get_centerline_target(lookahead: float, max_speed: float, speed_ratio: flo
 	}
 
 func _calculate_corner_safe_speed(max_speed: float) -> float:
-	"""Calculate safe speed considering upcoming corners."""
-	# Use the worst curvature we found in our lookahead scan
+	"""Calculate safe speed - now with late braking support."""
 	var curvature: float = cached_max_upcoming_curvature
-	
-	# Also consider immediate curvature (we might already be in a corner)
 	curvature = max(curvature, cached_immediate_curvature)
 	
-	# Base minimum speed ratio (don't go below this fraction of max speed)
 	var min_speed_ratio: float = 0.3
 	
+	# S-curves can be taken faster due to straighter racing line
+	var s_curve_bonus: float = 1.0
+	if cached_is_s_curve:
+		s_curve_bonus = 1.15  # 15% faster through S-curves with good line
+	
 	# Map curvature to speed reduction
-	# curvature 0.0 = straight, ~0.5 = moderate corner, ~1.0+ = tight corner
-	var speed_reduction: float = curvature * 1.8  # More aggressive than before
+	var speed_reduction: float = curvature * 1.6  # Slightly less aggressive for late braking
 	speed_reduction = clamp(speed_reduction, 0.0, 1.0 - min_speed_ratio)
 	
-	var safe_speed: float = max_speed * (1.0 - speed_reduction)
+	var safe_speed: float = max_speed * (1.0 - speed_reduction) * s_curve_bonus
 	
-	# Additional reduction if corner is very close
-	if cached_corner_distance < 30.0 and curvature > tight_corner_threshold:
-		var proximity_penalty: float = (30.0 - cached_corner_distance) / 30.0 * 0.15
+	# Late braking: only apply proximity penalty when VERY close
+	if cached_corner_distance < 20.0 and curvature > tight_corner_threshold:
+		var proximity_penalty: float = (20.0 - cached_corner_distance) / 20.0 * 0.1
 		safe_speed *= (1.0 - proximity_penalty)
 	
-	return max(safe_speed, max_speed * min_speed_ratio)
+	return clamp(safe_speed, max_speed * min_speed_ratio, max_speed)
 
 # ============================================================================
 # CURRENT SAMPLE (for control hints)
 # ============================================================================
 
 func get_current_sample() -> AIRacingSample:
-	"""Get the sample at the current position (for control hints)."""
+	"""Get the sample at the current position."""
 	if not has_recorded_data:
 		return null
-	
 	return track_ai_data.get_interpolated_sample(current_spline_offset, skill_level)
 
 # ============================================================================
@@ -258,42 +448,43 @@ func get_current_sample() -> AIRacingSample:
 # ============================================================================
 
 func get_upcoming_curvature(lookahead: float = 30.0) -> float:
-	"""Get the curvature of the track at a specific distance ahead."""
 	if not spline_helper or not spline_helper.is_valid:
 		return 0.0
-	
 	var target_offset: float = spline_helper.get_lookahead_offset(current_spline_offset, lookahead)
 	return spline_helper.get_curvature_at_offset(target_offset)
 
 func get_max_upcoming_curvature() -> float:
-	"""Get the maximum curvature found in the speed lookahead scan."""
 	return cached_max_upcoming_curvature
 
 func get_immediate_curvature() -> float:
-	"""Get the curvature at/near current position."""
 	return cached_immediate_curvature
 
+func get_signed_curvature() -> float:
+	"""Get curvature with direction. Positive = right turn, negative = left turn."""
+	return cached_immediate_curvature_signed
+
 func get_corner_distance() -> float:
-	"""Get distance to the tightest upcoming corner."""
 	return cached_corner_distance
 
 func is_approaching_corner(threshold: float = 0.3) -> bool:
-	"""Check if a significant corner is coming up."""
 	return cached_max_upcoming_curvature > threshold
 
 func is_in_corner(threshold: float = 0.25) -> bool:
-	"""Check if currently in a corner."""
 	return cached_immediate_curvature > threshold
 
+func is_in_s_curve() -> bool:
+	return cached_is_s_curve
+
+func get_target_lateral_offset() -> float:
+	"""Get the calculated racing line lateral offset."""
+	return cached_target_lateral_offset
+
 func get_distance_to_finish() -> float:
-	"""Get remaining distance to complete current lap."""
 	if not spline_helper or not spline_helper.is_valid:
 		return 0.0
-	
 	var remaining_offset: float = 1.0 - current_spline_offset
 	if remaining_offset < 0:
 		remaining_offset += 1.0
-	
 	return spline_helper.offset_to_distance(remaining_offset)
 
 # ============================================================================
@@ -301,10 +492,12 @@ func get_distance_to_finish() -> float:
 # ============================================================================
 
 func get_debug_info() -> String:
-	return "LineFollower: offset=%.3f, curv=%.2f/%.2f, corner@%.0fm, skill=%.2f" % [
+	var s_curve_str: String = "S-CURVE" if cached_is_s_curve else "single"
+	return "Line: off=%.3f curv=%.2f/%s lat=%.1fm corner@%.0fm [%s]" % [
 		current_spline_offset,
 		cached_immediate_curvature,
-		cached_max_upcoming_curvature,
+		"R" if cached_immediate_curvature_signed > 0 else "L",
+		cached_target_lateral_offset,
 		cached_corner_distance,
-		skill_level
+		s_curve_str
 	]
