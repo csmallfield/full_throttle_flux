@@ -1,8 +1,8 @@
 extends CanvasLayer
 class_name HUDRace
 
-## Racing HUD displaying countdown, lap progress, timing, and speed
-## Adapts display based on race mode (Time Trial vs Endless)
+## Racing HUD displaying countdown, lap progress, timing, speed, and race position
+## Adapts display based on race mode (Time Trial vs Endless vs Race)
 
 @export var ship: Node3D # Changed to Node3D for broader compatibility, cast as needed
 
@@ -17,6 +17,16 @@ class_name HUDRace
 @export var speed_display_threshold := 0.5
 @export var max_gauge_speed := 1000.0
 
+@export_group("Race Mode")
+## Position tracker reference (set by RaceMode)
+var position_tracker: RacePositionTracker
+
+## Is this a race against opponents?
+var is_race_mode: bool = false
+
+## Total number of racers (for display like "P2/4")
+var total_racers: int = 1
+
 # UI References
 var countdown_label: Label
 var lap_info_label: Label
@@ -25,6 +35,10 @@ var current_time_label: Label
 var fps_label: Label
 var mode_label: Label
 var speed_gauge: SpeedGauge
+
+# Race position UI
+var position_label: Label
+var position_container: PanelContainer
 
 # --------------------------------------------------------------------------------
 # INTERNAL CLASS: SPEED GAUGE
@@ -134,6 +148,9 @@ func _create_ui_elements() -> void:
 	mode_label.text = ""
 	add_child(mode_label)
 	
+	# Race position display (top right, prominent)
+	_create_position_display()
+	
 	# Lap info (top center)
 	lap_info_label = Label.new()
 	lap_info_label.name = "LapInfoLabel"
@@ -165,7 +182,7 @@ func _create_ui_elements() -> void:
 	lap_times_label.text = ""
 	add_child(lap_times_label)
 	
-	# Current time (top right)
+	# Current time (top right, below position in race mode)
 	current_time_label = Label.new()
 	current_time_label.name = "CurrentTimeLabel"
 	current_time_label.position = Vector2(1920 - 320, 20)
@@ -201,10 +218,48 @@ func _create_ui_elements() -> void:
 	fps_label.text = "60 FPS"
 	add_child(fps_label)
 
+func _create_position_display() -> void:
+	"""Create the race position display (P1, P2, etc.)."""
+	# Container panel for position
+	position_container = PanelContainer.new()
+	position_container.name = "PositionContainer"
+	position_container.position = Vector2(1920 - 180, 70)
+	position_container.size = Vector2(160, 80)
+	
+	# Style the panel
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.0, 0.0, 0.0, 0.7)
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_radius_bottom_right = 10
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(1.0, 0.8, 0.0)  # Gold border
+	position_container.add_theme_stylebox_override("panel", style)
+	
+	add_child(position_container)
+	
+	# Position label inside container
+	position_label = Label.new()
+	position_label.name = "PositionLabel"
+	position_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	position_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	position_label.add_theme_font_size_override("font_size", 48)
+	position_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))  # Gold text
+	position_label.text = "P1"
+	position_container.add_child(position_label)
+	
+	# Initially hidden (shown only in race mode)
+	position_container.visible = false
+
 func _process(delta: float) -> void:
 	_update_speed(delta)
 	_update_current_time()
 	_update_fps()
+	_update_position_display()
 
 func _update_speed(delta: float) -> void:
 	if not is_instance_valid(ship):
@@ -234,15 +289,77 @@ func _update_current_time() -> void:
 		var time = RaceManager.get_current_lap_time()
 		current_time_label.text = RaceManager.format_time(time)
 
+func _update_position_display() -> void:
+	"""Update the race position indicator."""
+	if not is_race_mode:
+		position_container.visible = false
+		return
+	
+	position_container.visible = true
+	
+	var current_position: int = -1
+	
+	# Get position from tracker if available
+	if position_tracker:
+		current_position = position_tracker.get_player_position()
+	
+	if current_position < 1:
+		position_label.text = "P?"
+		return
+	
+	# Format as "P1" or "P1/4" 
+	if total_racers > 1:
+		position_label.text = "P%d/%d" % [current_position, total_racers]
+	else:
+		position_label.text = "P%d" % current_position
+	
+	# Color code by position
+	var style = position_container.get_theme_stylebox("panel") as StyleBoxFlat
+	
+	match current_position:
+		1:
+			# Gold for 1st place
+			position_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
+			if style:
+				style.border_color = Color(1.0, 0.8, 0.0)
+		2:
+			# Silver for 2nd
+			position_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+			if style:
+				style.border_color = Color(0.6, 0.6, 0.6)
+		3:
+			# Bronze for 3rd
+			position_label.add_theme_color_override("font_color", Color(0.8, 0.5, 0.2))
+			if style:
+				style.border_color = Color(0.7, 0.4, 0.1)
+		_:
+			# White for other positions
+			position_label.add_theme_color_override("font_color", Color.WHITE)
+			if style:
+				style.border_color = Color(0.4, 0.4, 0.4)
+
 func _reset_display() -> void:
 	# Update mode label
-	if RaceManager.is_endless_mode():
+	if RaceManager.is_race_mode():
+		mode_label.text = "RACE"
+		mode_label.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))
+		lap_info_label.text = "LAP 1/%d" % RaceManager.total_laps
+		is_race_mode = true
+	elif RaceManager.is_endless_mode():
 		mode_label.text = "ENDLESS"
 		mode_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
 		lap_info_label.text = "LAP 1"
+		is_race_mode = false
 	else:
 		mode_label.text = ""
 		lap_info_label.text = "LAP 1/%d" % RaceManager.total_laps
+		is_race_mode = false
+	
+	# Adjust time label position based on mode
+	if is_race_mode:
+		current_time_label.position = Vector2(1920 - 320, 160)  # Below position display
+	else:
+		current_time_label.position = Vector2(1920 - 320, 20)
 	
 	lap_times_label.text = ""
 	current_time_label.text = "00:00.000"
@@ -275,7 +392,12 @@ func _on_race_started() -> void:
 
 func _on_lap_completed(lap_number: int, _lap_time: float) -> void:
 	# Update lap counter based on mode
-	if RaceManager.is_endless_mode():
+	if RaceManager.is_race_mode():
+		if lap_number < RaceManager.total_laps:
+			lap_info_label.text = "LAP %d/%d" % [lap_number + 1, RaceManager.total_laps]
+		else:
+			lap_info_label.text = "FINISHED"
+	elif RaceManager.is_endless_mode():
 		# Endless mode: just show current lap number
 		lap_info_label.text = "LAP %d" % (lap_number + 1)
 	else:
@@ -290,6 +412,29 @@ func _on_lap_completed(lap_number: int, _lap_time: float) -> void:
 
 func _on_race_finished(_total_time: float, _best_lap: float) -> void:
 	lap_info_label.text = "FINISHED"
+	
+	# Show final position in race mode
+	if is_race_mode and position_tracker:
+		var final_pos = position_tracker.get_player_position()
+		position_label.text = _format_position_ordinal(final_pos)
+
+func _format_position_ordinal(position: int) -> String:
+	"""Format position with ordinal suffix (1st, 2nd, 3rd, etc.)."""
+	if position < 1:
+		return "?"
+	
+	var suffix: String
+	match position:
+		1:
+			suffix = "st"
+		2:
+			suffix = "nd"
+		3:
+			suffix = "rd"
+		_:
+			suffix = "th"
+	
+	return "%d%s" % [position, suffix]
 
 func _update_lap_times_display() -> void:
 	var lines: Array[String] = []
@@ -297,7 +442,23 @@ func _update_lap_times_display() -> void:
 	# Find best lap time among displayed laps
 	var best_displayed_time = RaceManager.get_best_displayed_lap_time()
 	
-	if RaceManager.is_endless_mode():
+	if RaceManager.is_race_mode():
+		# Race mode: show lap times similar to time trial
+		if RaceManager.best_lap_time < INF:
+			var best_time_str = RaceManager.format_time(RaceManager.best_lap_time)
+			lines.append("[color=#ffcc00][b]Best: %s[/b][/color]" % best_time_str)
+			lines.append("")
+		
+		for i in range(RaceManager.lap_times.size()):
+			var time = RaceManager.lap_times[i]
+			var time_str = RaceManager.format_time(time)
+			
+			if time == RaceManager.best_lap_time:
+				lines.append("[b]Lap %d: %s[/b]" % [i + 1, time_str])
+			else:
+				lines.append("Lap %d: %s" % [i + 1, time_str])
+	
+	elif RaceManager.is_endless_mode():
 		# Endless mode: show persistent best lap at the top
 		if RaceManager.best_lap_time < INF:
 			var best_time_str = RaceManager.format_time(RaceManager.best_lap_time)

@@ -3,6 +3,7 @@ class_name StartFinishLine
 
 ## Detects when ships cross the start/finish line and triggers lap completion.
 ## Respects global SFX volume from AudioManager.
+## Supports both single-ship and multi-ship (race) modes.
 ## 
 ## Anti-cheat features:
 ## - First crossing only "starts" lap timing, doesn't complete a lap
@@ -21,7 +22,7 @@ class_name StartFinishLine
 
 @export_group("Detection Settings")
 
-## Minimum time between crossing detections (prevents physics jitter)
+## Minimum time between crossing detections per ship (prevents physics jitter)
 ## Keep this short - just enough to prevent double-triggers from same crossing
 @export var crossing_cooldown := 0.3
 
@@ -34,12 +35,18 @@ var _audio_player: AudioStreamPlayer3D
 # Base volume for line cross sound (before SFX offset)
 var _base_volume := -3.0
 
-# Internal state
+# Internal state - now per-ship for race mode
 var _race_started := false
-var _first_crossing_done := false  # Has the ship crossed the line to "start" lap 1?
-var _penalty_mode := false  # Ship went wrong way, need extra crossing to clear
-var _last_crossing_time := -999.0  # Time of last processed crossing
-var _ship_inside := false  # Is ship currently inside the trigger area?
+
+# Per-ship tracking for multi-ship races
+# ship -> { first_crossing_done: bool, penalty_mode: bool, last_crossing_time: float, inside: bool }
+var _ship_states: Dictionary = {}
+
+# Legacy single-ship state (for backwards compatibility)
+var _first_crossing_done := false
+var _penalty_mode := false
+var _last_crossing_time := -999.0
+var _ship_inside := false
 
 func _ready() -> void:
 	# Connect to race manager
@@ -69,15 +76,32 @@ func _setup_audio() -> void:
 
 func _on_race_started() -> void:
 	_race_started = true
+	
+	# Reset legacy state
 	_first_crossing_done = false
 	_penalty_mode = false
 	_last_crossing_time = -999.0
 	_ship_inside = false
+	
+	# Reset per-ship states
+	_ship_states.clear()
+	
 	if debug_enabled:
 		print("StartFinishLine: Race started, state reset")
 
 func _on_race_finished(_total_time: float, _best_lap: float) -> void:
 	_race_started = false
+
+func _get_ship_state(ship: Node3D) -> Dictionary:
+	"""Get or create per-ship state for race mode."""
+	if ship not in _ship_states:
+		_ship_states[ship] = {
+			"first_crossing_done": false,
+			"penalty_mode": false,
+			"last_crossing_time": -999.0,
+			"inside": false
+		}
+	return _ship_states[ship]
 
 func _on_body_entered(body: Node3D) -> void:
 	if not body is ShipController:
@@ -86,6 +110,102 @@ func _on_body_entered(body: Node3D) -> void:
 	if not _race_started:
 		return
 	
+	var ship = body as ShipController
+	
+	# Use per-ship tracking for race mode
+	if RaceManager.is_race_mode():
+		_handle_ship_entry_race_mode(ship)
+	else:
+		_handle_ship_entry_legacy(ship)
+
+func _handle_ship_entry_race_mode(ship: ShipController) -> void:
+	"""Handle ship entry in multi-ship race mode."""
+	var state = _get_ship_state(ship)
+	
+	# Prevent processing if ship is already considered "inside"
+	if state.inside:
+		if debug_enabled:
+			print("StartFinishLine: Ignoring entry for %s - ship already inside" % ship.name)
+		return
+	
+	state.inside = true
+	
+	# Check cooldown
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - state.last_crossing_time < crossing_cooldown:
+		if debug_enabled:
+			print("StartFinishLine: Ignoring %s - cooldown active" % ship.name)
+		return
+	
+	# Get the line's forward direction (valid crossing direction)
+	var line_forward = -global_transform.basis.z
+	
+	# Use velocity to determine crossing direction
+	var velocity_dot = ship.velocity.dot(line_forward)
+	var is_moving_forward = velocity_dot > 0
+	
+	if debug_enabled:
+		print("StartFinishLine: === %s ENTRY ===" % ship.name)
+		print("  Velocity dot: %.2f (forward=%s)" % [velocity_dot, is_moving_forward])
+		print("  State: first_done=%s, penalty=%s" % [state.first_crossing_done, state.penalty_mode])
+	
+	state.last_crossing_time = current_time
+	
+	if is_moving_forward:
+		_handle_forward_crossing_race_mode(ship, state)
+	else:
+		_handle_wrong_way_crossing_race_mode(ship, state)
+
+func _handle_forward_crossing_race_mode(ship: ShipController, state: Dictionary) -> void:
+	"""Handle valid forward crossing in race mode."""
+	if not state.first_crossing_done:
+		# First crossing - this "starts" lap 1, doesn't complete anything
+		state.first_crossing_done = true
+		_play_crossing_effect()
+		_play_crossing_sound()
+		print("StartFinishLine: *** %s First crossing - Lap 1 STARTED ***" % ship.name)
+		return
+	
+	if state.penalty_mode:
+		# Ship went wrong way earlier, this crossing just clears the penalty
+		state.penalty_mode = false
+		_play_crossing_sound()
+		print("StartFinishLine: *** %s Penalty CLEARED ***" % ship.name)
+		return
+	
+	# Valid lap completion!
+	print("StartFinishLine: *** %s LAP COMPLETE! ***" % ship.name)
+	RaceManager.complete_lap(ship)
+	_play_crossing_effect()
+	_play_crossing_sound()
+	
+	# Play lap complete sound via AudioManager (only for player)
+	if ship == RaceManager.player_ship:
+		AudioManager.play_lap_complete()
+		
+		# Check if this was the final lap warning (entering last lap)
+		if RaceManager.current_lap == RaceManager.total_laps:
+			AudioManager.play_final_lap()
+
+func _handle_wrong_way_crossing_race_mode(ship: ShipController, state: Dictionary) -> void:
+	"""Handle wrong-way crossing in race mode."""
+	if not state.first_crossing_done:
+		if debug_enabled:
+			print("StartFinishLine: %s Wrong way ignored - race not started yet" % ship.name)
+		return
+	
+	if not state.penalty_mode:
+		state.penalty_mode = true
+		
+		# Only show warning for player
+		if ship == RaceManager.player_ship:
+			RaceManager.wrong_way_warning.emit()
+			AudioManager.play_wrong_way()
+		
+		print("StartFinishLine: *** %s WRONG WAY - Penalty activated! ***" % ship.name)
+
+func _handle_ship_entry_legacy(ship: ShipController) -> void:
+	"""Legacy single-ship handling for Time Trial / Endless modes."""
 	# Prevent processing if ship is already considered "inside"
 	if _ship_inside:
 		if debug_enabled:
@@ -93,8 +213,6 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	
 	_ship_inside = true
-	
-	var ship = body as ShipController
 	
 	# Check cooldown
 	var current_time = Time.get_ticks_msec() / 1000.0
@@ -107,8 +225,6 @@ func _on_body_entered(body: Node3D) -> void:
 	var line_forward = -global_transform.basis.z
 	
 	# Use ONLY velocity to determine crossing direction
-	# This is more reliable than position checks which can be affected by
-	# exactly where the ship enters the trigger volume
 	var velocity_dot = ship.velocity.dot(line_forward)
 	var is_moving_forward = velocity_dot > 0
 	
@@ -130,11 +246,20 @@ func _on_body_exited(body: Node3D) -> void:
 	if not body is ShipController:
 		return
 	
-	_ship_inside = false
-	if debug_enabled:
-		print("StartFinishLine: Ship exited trigger area")
+	var ship = body as ShipController
+	
+	if RaceManager.is_race_mode():
+		var state = _get_ship_state(ship)
+		state.inside = false
+		if debug_enabled:
+			print("StartFinishLine: %s exited trigger area" % ship.name)
+	else:
+		_ship_inside = false
+		if debug_enabled:
+			print("StartFinishLine: Ship exited trigger area")
 
 func _handle_forward_crossing() -> void:
+	"""Legacy forward crossing for single-ship modes."""
 	if not _first_crossing_done:
 		# First crossing - this "starts" lap 1, doesn't complete anything
 		_first_crossing_done = true
@@ -164,6 +289,7 @@ func _handle_forward_crossing() -> void:
 		AudioManager.play_final_lap()
 
 func _handle_wrong_way_crossing() -> void:
+	"""Legacy wrong-way crossing for single-ship modes."""
 	if not _first_crossing_done:
 		# Haven't even started yet, ignore
 		if debug_enabled:
@@ -171,7 +297,6 @@ func _handle_wrong_way_crossing() -> void:
 		return
 	
 	# Only activate penalty if not already in penalty mode
-	# This prevents stacking penalties
 	if not _penalty_mode:
 		_penalty_mode = true
 		RaceManager.wrong_way_warning.emit()

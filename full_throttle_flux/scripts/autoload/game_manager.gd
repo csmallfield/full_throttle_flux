@@ -27,7 +27,7 @@ var selected_mode: String = "time_trial"
 
 var available_ships: Array[ShipProfile] = []
 var available_tracks: Array[TrackProfile] = []
-var available_modes: Array[String] = ["time_trial", "endless"]
+var available_modes: Array[String] = ["time_trial", "endless", "race"]
 
 # ============================================================================
 # PATHS

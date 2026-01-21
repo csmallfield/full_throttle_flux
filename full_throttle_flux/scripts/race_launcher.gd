@@ -19,6 +19,24 @@ class_name RaceLauncher
 @export var force_default_environment := false
 
 # ============================================================================
+# RACE MODE CONFIGURATION (for direct testing)
+# ============================================================================
+
+@export_group("Race Mode Override")
+
+## Override the GameManager mode selection (for testing)
+@export var override_mode: bool = false
+
+## Mode to use when override is enabled
+@export_enum("time_trial", "endless", "race") var forced_mode: String = "time_trial"
+
+## Number of AI opponents (race mode only)
+@export_range(1, 7) var num_ai_opponents: int = 3
+
+## AI difficulty (race mode only)
+@export_enum("Easy", "Medium", "Hard") var ai_difficulty: int = 1
+
+# ============================================================================
 # MODE INSTANCES
 # ============================================================================
 
@@ -152,7 +170,14 @@ func _create_directional_light() -> void:
 	add_child(sun)
 
 func _create_mode() -> void:
-	var mode_id = GameManager.get_selected_mode()
+	var mode_id: String
+	
+	# Check for mode override (for testing)
+	if override_mode:
+		mode_id = forced_mode
+		print("RaceLauncher: Using forced mode: %s" % mode_id)
+	else:
+		mode_id = GameManager.get_selected_mode()
 	
 	match mode_id:
 		"time_trial":
@@ -161,6 +186,12 @@ func _create_mode() -> void:
 		"endless":
 			current_mode = EndlessMode.new()
 			print("RaceLauncher: Created EndlessMode")
+		"race":
+			var race_mode = RaceMode.new()
+			race_mode.num_ai_opponents = num_ai_opponents
+			race_mode.difficulty = ai_difficulty as RaceMode.Difficulty
+			current_mode = race_mode
+			print("RaceLauncher: Created RaceMode with %d AI opponents (difficulty: %d)" % [num_ai_opponents, ai_difficulty])
 		_:
 			push_error("RaceLauncher: Unknown mode: %s" % mode_id)
 			_return_to_menu()

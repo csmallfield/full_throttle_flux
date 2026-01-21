@@ -2,7 +2,7 @@ extends Node
 
 ## Central race management singleton
 ## Handles timing, lap tracking, leaderboards, and race state
-## Supports both Time Trial and Endless modes
+## Supports Time Trial, Endless, and Race modes
 ## Leaderboards are now per-track and per-mode
 ## NOTE: Music is now handled by MusicPlaylistManager, not here
 
@@ -17,13 +17,19 @@ signal race_finished(total_time: float, best_lap: float)
 signal endless_finished(total_laps: int, total_time: float, best_lap: float)
 signal wrong_way_warning()
 
+# Multi-ship signals (Race Mode)
+signal ship_lap_completed(ship: Node3D, lap_number: int, lap_time: float)
+signal ship_finished_race(ship: Node3D, position: int, total_time: float)
+signal all_ships_finished()
+
 # ============================================================================
 # RACE MODE
 # ============================================================================
 
 enum RaceMode {
 	TIME_TRIAL,
-	ENDLESS
+	ENDLESS,
+	RACE  # New mode for racing against AI
 }
 
 var current_mode: RaceMode = RaceMode.TIME_TRIAL
@@ -43,7 +49,7 @@ enum RaceState {
 var current_state: RaceState = RaceState.NOT_STARTED
 
 # ============================================================================
-# TIMING DATA
+# TIMING DATA (Single-ship modes)
 # ============================================================================
 
 var current_lap: int = 0
@@ -62,6 +68,37 @@ var endless_all_lap_times: Array[float] = []
 # Pause tracking
 var total_paused_time: float = 0.0
 var pause_start_time: float = 0.0
+
+# ============================================================================
+# MULTI-SHIP TRACKING (Race Mode)
+# ============================================================================
+
+## All ships participating in the race (including player)
+var race_ships: Array[Node3D] = []
+
+## The player's ship (for special handling)
+var player_ship: Node3D = null
+
+## Per-ship lap counts: ship -> lap_count
+var ship_lap_counts: Dictionary = {}
+
+## Per-ship lap start times: ship -> time
+var ship_lap_start_times: Dictionary = {}
+
+## Per-ship total race times (set when they finish): ship -> time
+var ship_finish_times: Dictionary = {}
+
+## Per-ship best lap times: ship -> time
+var ship_best_laps: Dictionary = {}
+
+## Per-ship all lap times: ship -> Array[float]
+var ship_all_lap_times: Dictionary = {}
+
+## Finish order (ships that have completed the race)
+var finish_order: Array[Node3D] = []
+
+## Number of ships that have finished
+var ships_finished: int = 0
 
 # ============================================================================
 # LEADERBOARD DATA
@@ -93,6 +130,52 @@ func is_endless_mode() -> bool:
 
 func is_time_trial_mode() -> bool:
 	return current_mode == RaceMode.TIME_TRIAL
+
+func is_race_mode() -> bool:
+	return current_mode == RaceMode.RACE
+
+# ============================================================================
+# MULTI-SHIP REGISTRATION (Race Mode)
+# ============================================================================
+
+func register_race_ships(ships: Array[Node3D], player: Node3D = null) -> void:
+	"""Register all ships participating in a race."""
+	race_ships = ships
+	player_ship = player
+	
+	# Initialize tracking dictionaries
+	ship_lap_counts.clear()
+	ship_lap_start_times.clear()
+	ship_finish_times.clear()
+	ship_best_laps.clear()
+	ship_all_lap_times.clear()
+	finish_order.clear()
+	ships_finished = 0
+	
+	for ship in ships:
+		ship_lap_counts[ship] = 0
+		ship_lap_start_times[ship] = 0.0
+		ship_best_laps[ship] = INF
+		ship_all_lap_times[ship] = []
+	
+	print("RaceManager: Registered %d ships for race" % ships.size())
+
+func get_ship_lap_count(ship: Node3D) -> int:
+	"""Get current lap count for a ship."""
+	return ship_lap_counts.get(ship, 0)
+
+func get_ship_best_lap(ship: Node3D) -> float:
+	"""Get best lap time for a ship."""
+	return ship_best_laps.get(ship, INF)
+
+func has_ship_finished(ship: Node3D) -> bool:
+	"""Check if a ship has completed the race."""
+	return ship in finish_order
+
+func get_ship_finish_position(ship: Node3D) -> int:
+	"""Get the finish position of a ship (1-indexed), or -1 if not finished."""
+	var idx = finish_order.find(ship)
+	return idx + 1 if idx >= 0 else -1
 
 # ============================================================================
 # RACE CONTROL
@@ -136,15 +219,26 @@ func _start_race() -> void:
 	race_start_time = Time.get_ticks_msec() / 1000.0
 	lap_start_time = race_start_time
 	
-	# NOTE: Music is now started by race_controller.gd via MusicPlaylistManager
-	# Do NOT call AudioManager.play_race_music() here
+	# Initialize multi-ship lap start times
+	if is_race_mode():
+		for ship in race_ships:
+			ship_lap_start_times[ship] = race_start_time
+			ship_lap_counts[ship] = 1  # Starting lap 1
 	
 	race_started.emit()
 
-func complete_lap() -> void:
+func complete_lap(ship: Node3D = null) -> void:
+	"""Complete a lap. In race mode, pass the ship that crossed the line."""
 	if current_state != RaceState.RACING:
 		return
 	
+	if is_race_mode() and ship != null:
+		_complete_lap_for_ship(ship)
+	else:
+		_complete_lap_single_ship()
+
+func _complete_lap_single_ship() -> void:
+	"""Original single-ship lap completion logic."""
 	var current_time = Time.get_ticks_msec() / 1000.0
 	var lap_time = (current_time - lap_start_time) - total_paused_time
 	
@@ -173,6 +267,75 @@ func complete_lap() -> void:
 		# Reset paused time for new lap
 		lap_start_time = current_time
 		total_paused_time = 0.0
+
+func _complete_lap_for_ship(ship: Node3D) -> void:
+	"""Multi-ship lap completion for Race Mode."""
+	if ship not in ship_lap_counts:
+		push_warning("RaceManager: Unknown ship crossed finish line")
+		return
+	
+	# Check if ship already finished
+	if has_ship_finished(ship):
+		return
+	
+	var current_time = Time.get_ticks_msec() / 1000.0
+	var lap_start = ship_lap_start_times.get(ship, race_start_time)
+	var lap_time = current_time - lap_start
+	
+	var current_ship_lap = ship_lap_counts[ship]
+	
+	# Store lap time
+	var all_laps: Array = ship_all_lap_times.get(ship, [])
+	all_laps.append(lap_time)
+	ship_all_lap_times[ship] = all_laps
+	
+	# Update best lap
+	if lap_time < ship_best_laps.get(ship, INF):
+		ship_best_laps[ship] = lap_time
+	
+	# Emit per-ship lap completion
+	ship_lap_completed.emit(ship, current_ship_lap, lap_time)
+	
+	# Also emit legacy signal for player ship (for HUD compatibility)
+	if ship == player_ship:
+		lap_completed.emit(current_ship_lap, lap_time)
+		lap_times.append(lap_time)
+		if lap_time < best_lap_time:
+			best_lap_time = lap_time
+		current_lap = current_ship_lap + 1
+	
+	print("RaceManager: %s completed lap %d in %.3f" % [ship.name, current_ship_lap, lap_time])
+	
+	# Check if ship finished the race
+	if current_ship_lap >= total_laps:
+		_ship_finishes_race(ship, current_time)
+	else:
+		# Advance to next lap
+		ship_lap_counts[ship] = current_ship_lap + 1
+		ship_lap_start_times[ship] = current_time
+
+func _ship_finishes_race(ship: Node3D, finish_time: float) -> void:
+	"""Called when a ship completes all laps."""
+	var total_time = finish_time - race_start_time
+	ship_finish_times[ship] = total_time
+	finish_order.append(ship)
+	ships_finished += 1
+	
+	var position = ships_finished
+	
+	print("RaceManager: %s FINISHED in position %d with time %.3f" % [ship.name, position, total_time])
+	
+	ship_finished_race.emit(ship, position, total_time)
+	
+	# If player finished, emit legacy signal
+	if ship == player_ship:
+		current_race_time = total_time
+		race_finished.emit(total_time, best_lap_time)
+	
+	# Check if all ships have finished
+	if ships_finished >= race_ships.size():
+		all_ships_finished.emit()
+		current_state = RaceState.FINISHED
 
 func _finish_race() -> void:
 	current_state = RaceState.FINISHED
@@ -207,6 +370,17 @@ func reset_race() -> void:
 	current_race_time = 0.0
 	total_paused_time = 0.0
 	pause_start_time = 0.0
+	
+	# Reset multi-ship tracking
+	race_ships.clear()
+	player_ship = null
+	ship_lap_counts.clear()
+	ship_lap_start_times.clear()
+	ship_finish_times.clear()
+	ship_best_laps.clear()
+	ship_all_lap_times.clear()
+	finish_order.clear()
+	ships_finished = 0
 
 func pause_race() -> void:
 	if current_state == RaceState.RACING:
@@ -263,6 +437,42 @@ func get_best_displayed_lap_time() -> float:
 		if time < best:
 			best = time
 	return best
+
+# ============================================================================
+# RACE MODE QUERIES
+# ============================================================================
+
+func get_race_results() -> Array[Dictionary]:
+	"""Get final race results sorted by finish position."""
+	var results: Array[Dictionary] = []
+	
+	for i in range(finish_order.size()):
+		var ship = finish_order[i]
+		results.append({
+			"position": i + 1,
+			"ship": ship,
+			"ship_name": ship.name,
+			"is_player": ship == player_ship,
+			"total_time": ship_finish_times.get(ship, INF),
+			"best_lap": ship_best_laps.get(ship, INF),
+			"all_laps": ship_all_lap_times.get(ship, [])
+		})
+	
+	# Add DNF ships (didn't finish)
+	for ship in race_ships:
+		if ship not in finish_order:
+			results.append({
+				"position": -1,
+				"ship": ship,
+				"ship_name": ship.name,
+				"is_player": ship == player_ship,
+				"total_time": INF,
+				"best_lap": ship_best_laps.get(ship, INF),
+				"all_laps": ship_all_lap_times.get(ship, []),
+				"dnf": true
+			})
+	
+	return results
 
 # ============================================================================
 # LEADERBOARD KEY HELPERS

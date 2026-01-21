@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://race_mode_test"]
+
+[ext_resource type="Script" path="res://scripts/test/race_mode_test.gd" id="1_test"]
+
+[node name="RaceModeTest" type="Node"]
+script = ExtResource("1_test")
+test_track_id = "test_circuit_3_live"
+test_ship_id = "default_racer"
+num_ai_opponents = 3
+ai_difficulty = 1
+num_laps = 3
