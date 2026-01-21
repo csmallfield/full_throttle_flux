@@ -32,7 +32,7 @@ enum RaceMode {
 	RACE  # New mode for racing against AI
 }
 
-var current_mode: RaceMode = RaceMode.TIME_TRIAL
+var current_mode: int = RaceMode.TIME_TRIAL
 
 # ============================================================================
 # RACE STATE
@@ -122,7 +122,7 @@ func _ready() -> void:
 # MODE CONTROL
 # ============================================================================
 
-func set_mode(mode: RaceMode) -> void:
+func set_mode(mode: int) -> void:
 	current_mode = mode
 
 func is_endless_mode() -> bool:
