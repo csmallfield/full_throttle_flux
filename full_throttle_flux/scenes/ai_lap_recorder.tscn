@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ai_lap_recorder"]
+
+[ext_resource type="Script" uid="uid://evfxj8fwbdu8" path="res://scripts/ai/ai_lap_recorder.gd" id="1_script"]
+
+[node name="AILapRecorder" type="Node"]
+script = ExtResource("1_script")

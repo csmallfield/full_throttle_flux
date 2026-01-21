@@ -5,6 +5,10 @@ class_name TrackAIData
 ## Track AI Data
 ## Container for all recorded AI training data for a single track.
 ## Handles skill tier organization and sample interpolation.
+##
+## SKILL MODES:
+## - Skill >= 0.95: Uses SINGLE best lap (no blending artifacts)
+## - Skill < 0.95: Interpolates between tier averages
 
 # ============================================================================
 # IDENTITY
@@ -15,6 +19,16 @@ class_name TrackAIData
 
 ## All recorded laps for this track
 @export var recorded_laps: Array[AIRecordedLap] = []
+
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+
+## Skill threshold above which to use single best lap instead of blending
+const SINGLE_LAP_THRESHOLD: float = 0.95
+
+## Use single best lap for expert mode (can be toggled for testing)
+var use_single_lap_for_expert: bool = true
 
 # ============================================================================
 # SKILL TIERS (computed on load)
@@ -34,6 +48,9 @@ var slow_laps: Array[AIRecordedLap] = []
 
 ## Bottom 20% laps (Skill 0.0-0.2)
 var safe_laps: Array[AIRecordedLap] = []
+
+## The single fastest lap (for expert mode)
+var best_lap: AIRecordedLap = null
 
 ## Cached best/worst times for skill calculations
 var best_lap_time: float = INF
@@ -56,9 +73,10 @@ func _compute_skill_tiers() -> void:
 	sorted_laps.assign(recorded_laps.duplicate())
 	sorted_laps.sort_custom(func(a: AIRecordedLap, b: AIRecordedLap) -> bool: return a.lap_time < b.lap_time)
 	
-	# Cache best/worst times
+	# Cache best/worst times and best lap
 	best_lap_time = sorted_laps[0].lap_time
 	worst_lap_time = sorted_laps[-1].lap_time
+	best_lap = sorted_laps[0]
 	
 	# Clear existing tiers
 	fast_laps.clear()
@@ -83,6 +101,8 @@ func _compute_skill_tiers() -> void:
 			slow_laps.append(lap)
 		else:
 			safe_laps.append(lap)
+	
+	print("TrackAIData: Computed tiers - Best lap: %.2fs (%d samples)" % [best_lap_time, best_lap.samples.size() if best_lap else 0])
 
 ## Force recomputation of tiers (call after adding/removing laps)
 func refresh_tiers() -> void:
@@ -95,6 +115,17 @@ func refresh_tiers() -> void:
 ## Get interpolated sample based on position and skill level
 func get_interpolated_sample(spline_offset: float, skill: float) -> AIRacingSample:
 	skill = clamp(skill, 0.0, 1.0)
+	
+	# EXPERT MODE: Use single best lap for very high skill
+	# This prevents blending artifacts (wall clips) from averaging slightly different lines
+	if use_single_lap_for_expert and skill >= SINGLE_LAP_THRESHOLD and best_lap != null:
+		return best_lap.get_interpolated_sample_at_offset(spline_offset)
+	
+	# STANDARD MODE: Blend between tiers
+	return _get_blended_sample(spline_offset, skill)
+
+func _get_blended_sample(spline_offset: float, skill: float) -> AIRacingSample:
+	"""Standard tier-blending logic for skill < 0.95"""
 	
 	# Determine which tiers to blend between
 	var tier_a: Array[AIRecordedLap]
@@ -133,9 +164,9 @@ func get_interpolated_sample(spline_offset: float, skill: float) -> AIRacingSamp
 	if tier_b.is_empty():
 		tier_b = tier_a
 	
-	# Get samples from each tier (average if multiple laps in tier)
-	var sample_a: AIRacingSample = _get_averaged_sample_from_tier(tier_a, spline_offset)
-	var sample_b: AIRacingSample = _get_averaged_sample_from_tier(tier_b, spline_offset)
+	# Get samples from each tier (use first lap in tier for cleaner lines)
+	var sample_a: AIRacingSample = _get_sample_from_tier(tier_a, spline_offset)
+	var sample_b: AIRacingSample = _get_sample_from_tier(tier_b, spline_offset)
 	
 	if sample_a == null:
 		return sample_b
@@ -145,12 +176,22 @@ func get_interpolated_sample(spline_offset: float, skill: float) -> AIRacingSamp
 	# Blend between tiers
 	return _blend_samples(sample_a, sample_b, blend_factor)
 
+func _get_sample_from_tier(tier: Array[AIRecordedLap], spline_offset: float) -> AIRacingSample:
+	"""Get sample from a tier - uses first (fastest) lap in tier for consistency."""
+	if tier.is_empty():
+		return null
+	
+	# Use first lap in tier (fastest within that tier) for cleaner, more consistent lines
+	return tier[0].get_interpolated_sample_at_offset(spline_offset)
+
 func _get_averaged_sample_from_tier(tier: Array[AIRecordedLap], spline_offset: float) -> AIRacingSample:
+	"""DEPRECATED: Average across all laps in tier - can cause wall clips.
+	Kept for reference but _get_sample_from_tier is preferred."""
 	if tier.is_empty():
 		return null
 	
 	# For now, just use first lap in tier
-	# TODO: Average across all laps in tier for smoother lines
+	# TODO: Could implement proper averaging if needed for lower skill tiers
 	return tier[0].get_interpolated_sample_at_offset(spline_offset)
 
 func _blend_samples(a: AIRacingSample, b: AIRacingSample, t: float) -> AIRacingSample:
@@ -188,6 +229,22 @@ func clear_all_laps() -> void:
 	median_laps.clear()
 	slow_laps.clear()
 	safe_laps.clear()
+	best_lap = null
 
 func has_recorded_data() -> bool:
 	return not recorded_laps.is_empty()
+
+# ============================================================================
+# DEBUG INFO
+# ============================================================================
+
+func get_best_lap_info() -> Dictionary:
+	if best_lap == null:
+		return {"exists": false}
+	
+	return {
+		"exists": true,
+		"time": best_lap.lap_time,
+		"samples": best_lap.samples.size(),
+		"date": best_lap.recording_date
+	}

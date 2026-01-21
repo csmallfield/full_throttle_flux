@@ -9,6 +9,8 @@ class_name AILineFollower
 ## - Apex-seeking: Calculates lateral offset to cut corners rather than following centerline
 ## - Late braking support: Provides corner entry distance for brake timing
 ## - Debug visualization: Exposes racing line preview data
+##
+## v2 fix: Control hints now sampled from CURRENT position, not lookahead
 
 # ============================================================================
 # CONFIGURATION - STEERING LOOKAHEAD
@@ -436,17 +438,7 @@ func _update_apex_debug_position() -> void:
 	# Find the point of maximum curvature ahead
 	cached_apex_spline_offset = spline_helper.get_lookahead_offset(current_spline_offset, cached_corner_distance)
 	
-	# DEBUG: Print periodically to see what's happening
-	var should_print: bool = Engine.get_physics_frames() % 60 == 0
 	var usable_width: float = estimated_track_half_width - wall_margin
-	
-	if should_print:
-		print("APEX DEBUG: max_curv=%.3f signed=%.3f threshold=%.3f usable_width=%.1f" % [
-			cached_max_upcoming_curvature,
-			cached_max_curvature_signed,
-			lateral_offset_curvature_threshold,
-			usable_width
-		])
 	
 	# If there's significant curvature, calculate the apex with lateral offset
 	if cached_max_upcoming_curvature > lateral_offset_curvature_threshold:
@@ -472,25 +464,12 @@ func _update_apex_debug_position() -> void:
 		# Left turn = inside is LEFT = negative lateral offset
 		var apex_lateral: float = apex_offset if turn_right else -apex_offset
 		
-		if should_print:
-			print("APEX DEBUG: CORNER! depth=%.2f offset=%.1f turn=%s lateral=%.1f" % [
-				apex_depth, apex_offset, "R" if turn_right else "L", apex_lateral
-			])
-		
-		var center_pos: Vector3 = spline_helper.spline_offset_to_world(cached_apex_spline_offset)
 		var offset_pos: Vector3 = spline_helper.spline_offset_to_world_with_lateral(
 			cached_apex_spline_offset, apex_lateral
 		)
 		
-		if should_print:
-			print("APEX DEBUG: center=%s offset_pos=%s diff=%.1f" % [
-				center_pos, offset_pos, center_pos.distance_to(offset_pos)
-			])
-		
 		cached_apex_world_position = offset_pos
 	else:
-		if should_print:
-			print("APEX DEBUG: STRAIGHT (curv below threshold)")
 		# On a straight - just show centerline at corner distance
 		cached_apex_world_position = spline_helper.spline_offset_to_world(cached_apex_spline_offset)
 
@@ -533,23 +512,42 @@ func _apply_curvature_lookahead_adjustment(base_lookahead: float) -> float:
 	return max(adjusted, steer_lookahead_corner_min)
 
 func _get_recorded_target(lookahead: float, max_speed: float) -> Dictionary:
-	"""Get target from recorded racing line data."""
-	var target_offset: float = spline_helper.get_lookahead_offset(current_spline_offset, lookahead)
-	var sample: AIRacingSample = track_ai_data.get_interpolated_sample(target_offset, skill_level)
+	"""Get target from recorded racing line data.
 	
-	if sample == null:
+	IMPORTANT: We use TWO sample points:
+	1. LOOKAHEAD sample - for racing line position and target speed (where to steer toward)
+	2. CURRENT sample - for control hints (what inputs to use NOW)
+	
+	This prevents the spatial offset bug where AI brakes early / turns late.
+	"""
+	var target_offset: float = spline_helper.get_lookahead_offset(current_spline_offset, lookahead)
+	
+	# Sample at LOOKAHEAD for racing line (where to steer)
+	var lookahead_sample: AIRacingSample = track_ai_data.get_interpolated_sample(target_offset, skill_level)
+	
+	# Sample at CURRENT position for control hints (what to do NOW)
+	var current_sample: AIRacingSample = track_ai_data.get_interpolated_sample(current_spline_offset, skill_level)
+	
+	if lookahead_sample == null:
 		return _get_centerline_target(lookahead, max_speed, 0.5)
 	
 	var world_pos: Vector3 = spline_helper.spline_offset_to_world_with_lateral(
 		target_offset, 
-		sample.lateral_offset
+		lookahead_sample.lateral_offset
 	)
+	
+	# Use lookahead sample for: position, speed target, heading
+	# Use current sample for: throttle, brake, airbrake hints
+	var hint_throttle: float = current_sample.throttle if current_sample else lookahead_sample.throttle
+	var hint_brake: float = current_sample.brake if current_sample else lookahead_sample.brake
+	var hint_airbrake_left: float = current_sample.airbrake_left if current_sample else lookahead_sample.airbrake_left
+	var hint_airbrake_right: float = current_sample.airbrake_right if current_sample else lookahead_sample.airbrake_right
 	
 	return {
 		"world_position": world_pos,
-		"suggested_speed": sample.speed,
-		"lateral_offset": sample.lateral_offset,
-		"heading": sample.heading,
+		"suggested_speed": lookahead_sample.speed,
+		"lateral_offset": lookahead_sample.lateral_offset,
+		"heading": lookahead_sample.heading,
 		"spline_offset": target_offset,
 		"from_recorded_data": true,
 		"lookahead_used": lookahead,
@@ -557,10 +555,10 @@ func _get_recorded_target(lookahead: float, max_speed: float) -> Dictionary:
 		"corner_distance": cached_corner_distance,
 		"immediate_curvature": cached_immediate_curvature,
 		"is_s_curve": cached_is_s_curve,
-		"hint_throttle": sample.throttle,
-		"hint_brake": sample.brake,
-		"hint_airbrake_left": sample.airbrake_left,
-		"hint_airbrake_right": sample.airbrake_right
+		"hint_throttle": hint_throttle,
+		"hint_brake": hint_brake,
+		"hint_airbrake_left": hint_airbrake_left,
+		"hint_airbrake_right": hint_airbrake_right
 	}
 
 func _get_centerline_target(lookahead: float, max_speed: float, speed_ratio: float) -> Dictionary:

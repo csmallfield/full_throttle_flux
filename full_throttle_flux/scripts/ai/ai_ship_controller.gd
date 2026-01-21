@@ -5,6 +5,10 @@ class_name AIShipController
 ## Main controller that orchestrates AI components and feeds inputs to a ship.
 ## Can control any ShipController by setting its input values directly.
 ## Enhanced debug visualization shows racing line and apex positions.
+##
+## v2 Changes:
+## - Properly propagates skill level to control_decider
+## - Better debug output showing hint weight and data source
 
 # ============================================================================
 # SIGNALS
@@ -52,6 +56,7 @@ signal ai_disabled()
 var spline_helper: TrackSplineHelper
 var line_follower: AILineFollower
 var control_decider: AIControlDecider
+var track_ai_data: TrackAIData
 
 # ============================================================================
 # STATE
@@ -124,6 +129,7 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null) -> void
 	Call this after the track scene is loaded.
 	"""
 	track_root = p_track_root
+	track_ai_data = p_track_ai_data
 	
 	# Create spline helper
 	spline_helper = TrackSplineHelper.new(track_root)
@@ -134,11 +140,12 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null) -> void
 	# Create line follower
 	line_follower = AILineFollower.new()
 	line_follower.skill_level = skill_level
-	line_follower.initialize(spline_helper, p_track_ai_data)
+	line_follower.initialize(spline_helper, track_ai_data)
 	
 	# Create control decider
 	control_decider = AIControlDecider.new()
 	control_decider.initialize(ship, line_follower)
+	control_decider.set_skill(skill_level)  # Propagate skill to control decider
 	
 	# Setup debug visualization
 	if debug_draw_enabled:
@@ -149,7 +156,17 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null) -> void
 		ship.ai_controlled = true
 	
 	is_initialized = true
-	print("AIShipController: Initialized successfully (skill: %.2f)" % skill_level)
+	
+	# Print initialization summary
+	var data_status := "geometric fallback"
+	if track_ai_data and track_ai_data.has_recorded_data():
+		var best_info := track_ai_data.get_best_lap_info()
+		if best_info.exists:
+			data_status = "%d laps (best: %.2fs)" % [track_ai_data.recorded_laps.size(), best_info.time]
+		else:
+			data_status = "%d laps" % track_ai_data.recorded_laps.size()
+	
+	print("AIShipController: Initialized (skill: %.2f, data: %s)" % [skill_level, data_status])
 
 # ============================================================================
 # MAIN UPDATE LOOP
@@ -217,6 +234,12 @@ func set_skill(new_skill: float) -> void:
 	skill_level = clamp(new_skill, 0.0, 1.0)
 	if line_follower:
 		line_follower.set_skill(skill_level)
+	if control_decider:
+		control_decider.set_skill(skill_level)
+	
+	# Print current hint weight for debugging
+	if control_decider:
+		print("AIShipController: Skill=%.2f, HintWeight=%.0f%%" % [skill_level, control_decider.hint_weight * 100.0])
 
 func get_current_spline_offset() -> float:
 	"""Get the AI's current position on the track (0-1)."""
@@ -431,7 +454,14 @@ func _print_debug_info() -> void:
 	if not line_follower or not control_decider:
 		return
 	
-	print("=== AI Debug ===")
+	var data_source := "geometric"
+	if track_ai_data and track_ai_data.has_recorded_data():
+		if skill_level >= 0.95 and track_ai_data.use_single_lap_for_expert:
+			data_source = "SINGLE BEST LAP"
+		else:
+			data_source = "blended (%d laps)" % track_ai_data.recorded_laps.size()
+	
+	print("=== AI Debug (skill=%.2f, source=%s) ===" % [skill_level, data_source])
 	print("  ", line_follower.get_debug_info())
 	print("  ", control_decider.get_debug_info())
 	print("  Ship speed: %.1f / %.1f (%.0f%%)" % [
@@ -439,8 +469,6 @@ func _print_debug_info() -> void:
 		ship.get_max_speed(),
 		(ship.velocity.length() / ship.get_max_speed()) * 100.0
 	])
-	print("  Lateral offset: %.1fm" % line_follower.get_target_lateral_offset())
-	print("  Corner phase: %.0f%%" % (line_follower.get_corner_phase() * 100.0))
 
 # ============================================================================
 # CLEANUP
