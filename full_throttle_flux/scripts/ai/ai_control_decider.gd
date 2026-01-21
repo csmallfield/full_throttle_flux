@@ -15,10 +15,10 @@ class_name AIControlDecider
 # ============================================================================
 
 ## Steering sensitivity (higher = more aggressive steering)
-var steering_sensitivity: float = 3.5
+var steering_sensitivity: float = 10.5
 
 ## Maximum steering rate of change per second (prevents oscillation)
-var max_steer_rate: float = 12.0
+var max_steer_rate: float = 30.0
 
 # ============================================================================
 # TUNING PARAMETERS - THROTTLE/BRAKE
@@ -67,13 +67,13 @@ var airbrake_min_speed_ratio: float = 0.30
 # ============================================================================
 
 ## Base hint weight at skill 0.0 (novice trusts calculations more)
-var hint_weight_min: float = 0.2
+var hint_weight_min: float = 0.3
 
 ## Max hint weight at skill 1.0 (expert trusts recordings more)
 var hint_weight_max: float = 1.0
 
 ## Current computed hint weight
-var hint_weight: float = 0.5
+var hint_weight: float = 0.65
 
 # ============================================================================
 # STATE
