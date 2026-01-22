@@ -297,12 +297,14 @@ func _complete_lap_for_ship(ship: Node3D) -> void:
 	ship_lap_completed.emit(ship, current_ship_lap, lap_time)
 	
 	# Also emit legacy signal for player ship (for HUD compatibility)
+	# IMPORTANT: Update lap_times array BEFORE emitting signal, so HUD handlers
+	# can read from the array if needed (matches Time Trial behavior)
 	if ship == player_ship:
-		lap_completed.emit(current_ship_lap, lap_time)
 		lap_times.append(lap_time)
 		if lap_time < best_lap_time:
 			best_lap_time = lap_time
 		current_lap = current_ship_lap + 1
+		lap_completed.emit(current_ship_lap, lap_time)
 	
 	print("RaceManager: %s completed lap %d in %.3f" % [ship.name, current_ship_lap, lap_time])
 	
