@@ -87,6 +87,10 @@ func _ready() -> void:
 
 func _auto_initialize() -> void:
 	"""Try to automatically find track and initialize."""
+	# Skip if already initialized (e.g., by RaceMode)
+	if is_initialized:
+		return
+	
 	# Find the track root (usually the parent of RaceLauncher or similar)
 	track_root = _find_track_root()
 	

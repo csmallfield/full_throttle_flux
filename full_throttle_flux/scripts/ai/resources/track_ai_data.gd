@@ -116,8 +116,16 @@ func refresh_tiers() -> void:
 func get_interpolated_sample(spline_offset: float, skill: float) -> AIRacingSample:
 	skill = clamp(skill, 0.0, 1.0)
 	
+	# DEBUG: Check if best_lap exists
+	if Engine.get_physics_frames() % 300 == 0:
+		print("get_interpolated_sample: skill=%.2f, best_lap=%s, tiers: fast=%d good=%d" % [
+			skill,
+			"EXISTS" if best_lap != null else "NULL",
+			fast_laps.size(),
+			good_laps.size()
+		])
+	
 	# EXPERT MODE: Use single best lap for very high skill
-	# This prevents blending artifacts (wall clips) from averaging slightly different lines
 	if use_single_lap_for_expert and skill >= SINGLE_LAP_THRESHOLD and best_lap != null:
 		return best_lap.get_interpolated_sample_at_offset(spline_offset)
 	

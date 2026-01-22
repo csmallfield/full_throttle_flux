@@ -30,7 +30,7 @@ enum Difficulty { EASY, MEDIUM, HARD }
 @export var medium_skill_range := Vector2(0.35, 0.65)
 
 ## Skill range for Hard difficulty
-@export var hard_skill_range := Vector2(0.70, 0.90)
+@export var hard_skill_range := Vector2(0.70, 0.85)
 
 # ============================================================================
 # RACE STATE

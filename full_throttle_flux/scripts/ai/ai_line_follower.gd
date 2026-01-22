@@ -524,11 +524,19 @@ func _get_recorded_target(lookahead: float, max_speed: float) -> Dictionary:
 	
 	# Sample at LOOKAHEAD for racing line (where to steer)
 	var lookahead_sample: AIRacingSample = track_ai_data.get_interpolated_sample(target_offset, skill_level)
-	
-	# Sample at CURRENT position for control hints (what to do NOW)
 	var current_sample: AIRacingSample = track_ai_data.get_interpolated_sample(current_spline_offset, skill_level)
 	
+	# DEBUG: Print what we're getting from recorded data
+	if Engine.get_physics_frames() % 60 == 0 and lookahead_sample:
+		print("RECORDED DATA: speed=%.1f, lateral=%.2f, throttle=%.2f, offset=%.3f" % [
+			lookahead_sample.speed,
+			lookahead_sample.lateral_offset,
+			lookahead_sample.throttle,
+			lookahead_sample.spline_offset
+		])
+	
 	if lookahead_sample == null:
+		print("WARNING: lookahead_sample is NULL - falling back to centerline!")
 		return _get_centerline_target(lookahead, max_speed, 0.5)
 	
 	var world_pos: Vector3 = spline_helper.spline_offset_to_world_with_lateral(
