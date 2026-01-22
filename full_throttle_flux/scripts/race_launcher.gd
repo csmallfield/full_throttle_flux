@@ -19,7 +19,7 @@ class_name RaceLauncher
 @export var force_default_environment := false
 
 # ============================================================================
-# RACE MODE CONFIGURATION (for direct testing)
+# RACE MODE CONFIGURATION (for direct testing - normally read from GameManager)
 # ============================================================================
 
 @export_group("Race Mode Override")
@@ -30,10 +30,10 @@ class_name RaceLauncher
 ## Mode to use when override is enabled
 @export_enum("time_trial", "endless", "race") var forced_mode: String = "time_trial"
 
-## Number of AI opponents (race mode only)
-@export_range(1, 7) var num_ai_opponents: int = 3
+## Number of AI opponents (race mode only) - used when override_mode is true
+@export_range(1, 7) var num_ai_opponents: int = 7
 
-## AI difficulty (race mode only)
+## AI difficulty (race mode only) - used when override_mode is true
 @export_enum("Easy", "Medium", "Hard") var ai_difficulty: int = 1
 
 # ============================================================================
@@ -188,10 +188,19 @@ func _create_mode() -> void:
 			print("RaceLauncher: Created EndlessMode")
 		"race":
 			var race_mode = RaceMode.new()
-			race_mode.num_ai_opponents = num_ai_opponents
-			race_mode.difficulty = ai_difficulty as RaceMode.Difficulty
+			# Always 7 opponents, 3 laps (hardcoded per requirements)
+			race_mode.num_ai_opponents = 7
+			race_mode.num_laps = 3
+			# Get difficulty from GameManager (or use override)
+			if override_mode:
+				race_mode.difficulty = ai_difficulty as RaceMode.Difficulty
+			else:
+				race_mode.difficulty = GameManager.selected_race_difficulty as RaceMode.Difficulty
 			current_mode = race_mode
-			print("RaceLauncher: Created RaceMode with %d AI opponents (difficulty: %d)" % [num_ai_opponents, ai_difficulty])
+			print("RaceLauncher: Created RaceMode with %d AI opponents (difficulty: %s)" % [
+				race_mode.num_ai_opponents,
+				GameManager.get_race_difficulty_name() if not override_mode else ["Easy", "Medium", "Hard"][ai_difficulty]
+			])
 		_:
 			push_error("RaceLauncher: Unknown mode: %s" % mode_id)
 			_return_to_menu()

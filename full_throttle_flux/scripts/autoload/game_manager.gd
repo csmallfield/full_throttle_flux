@@ -21,6 +21,9 @@ var selected_ship_profile: ShipProfile
 var selected_track_profile: TrackProfile
 var selected_mode: String = "time_trial"
 
+## Race mode difficulty: 0=Easy, 1=Medium, 2=Hard
+var selected_race_difficulty: int = 1
+
 # ============================================================================
 # AVAILABLE OPTIONS (discovered on startup)
 # ============================================================================
@@ -130,6 +133,10 @@ func select_mode(mode_id: String) -> void:
 	else:
 		push_warning("GameManager: Unknown mode - %s" % mode_id)
 
+func select_race_difficulty(difficulty: int) -> void:
+	selected_race_difficulty = clampi(difficulty, 0, 2)
+	print("GameManager: Selected race difficulty - %d" % selected_race_difficulty)
+
 # ============================================================================
 # GETTERS
 # ============================================================================
@@ -142,6 +149,16 @@ func get_selected_track() -> TrackProfile:
 
 func get_selected_mode() -> String:
 	return selected_mode
+
+func get_race_difficulty() -> int:
+	return selected_race_difficulty
+
+func get_race_difficulty_name() -> String:
+	match selected_race_difficulty:
+		0: return "Easy"
+		1: return "Medium"
+		2: return "Hard"
+		_: return "Unknown"
 
 func get_ships_for_mode(mode_id: String) -> Array[ShipProfile]:
 	# For now, all ships work with all modes

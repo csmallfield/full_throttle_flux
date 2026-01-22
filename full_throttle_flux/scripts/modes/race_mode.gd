@@ -11,11 +11,11 @@ class_name RaceMode
 
 @export_group("Race Settings")
 
-## Number of laps to complete
+## Number of laps to complete (hardcoded to 3)
 @export var num_laps: int = 3
 
-## Number of AI opponents (1-7)
-@export_range(1, 7) var num_ai_opponents: int = 3
+## Number of AI opponents (hardcoded to 7)
+@export_range(1, 7) var num_ai_opponents: int = 7
 
 ## AI difficulty preset
 enum Difficulty { EASY, MEDIUM, HARD }
@@ -27,7 +27,7 @@ enum Difficulty { EASY, MEDIUM, HARD }
 @export var easy_skill_range := Vector2(0.20, 0.40)
 
 ## Skill range for Medium difficulty
-@export var medium_skill_range := Vector2(0.35, 0.75)
+@export var medium_skill_range := Vector2(0.40, 0.60)
 
 ## Skill range for Hard difficulty
 @export var hard_skill_range := Vector2(0.60, 0.80)
@@ -50,6 +50,9 @@ var position_tracker: RacePositionTracker
 
 ## Track AI data for AI opponents
 var track_ai_data: TrackAIData
+
+## Player's finishing position (1-indexed)
+var player_finish_position: int = -1
 
 # ============================================================================
 # UI INSTANCES
@@ -107,12 +110,6 @@ func setup_race() -> void:
 	RaceManager.set_mode(RaceManager.RaceMode.RACE)
 	RaceManager.total_laps = num_laps
 	RaceManager.reset_race()
-	
-	# Get lap count from track profile if available
-	var track_profile = GameManager.get_selected_track()
-	if track_profile:
-		num_laps = track_profile.default_laps
-		RaceManager.total_laps = num_laps
 	
 	# Load track AI data
 	_load_track_ai_data()
@@ -474,6 +471,10 @@ func _on_ship_finished(ship: Node3D, position: int, total_time: float) -> void:
 	"""Handle any ship finishing the race."""
 	print("RaceMode: %s finished in position %d (%.3f)" % [ship.name, position, total_time])
 	
+	# Track player's finishing position
+	if ship == ship_instance:
+		player_finish_position = position
+	
 	# If an AI ship finished, disable its controller
 	if ship != ship_instance:
 		for i in range(ai_ships.size()):
@@ -483,7 +484,7 @@ func _on_ship_finished(ship: Node3D, position: int, total_time: float) -> void:
 
 func _on_race_manager_finished(total_time: float, best_lap: float) -> void:
 	"""Handle player finishing the race."""
-	print("RaceMode: Player finished! Total: %.3f, Best lap: %.3f" % [total_time, best_lap])
+	print("RaceMode: Player finished in P%d! Total: %.3f, Best lap: %.3f" % [player_finish_position, total_time, best_lap])
 	
 	# Lock player ship
 	if ship_instance and ship_instance.has_method("lock_controls"):
@@ -509,7 +510,7 @@ func _on_all_ships_finished() -> void:
 	
 	race_finished.emit({
 		"results": results,
-		"player_position": RaceManager.get_ship_finish_position(ship_instance),
+		"player_position": player_finish_position,
 		"total_time": RaceManager.current_race_time,
 		"best_lap": RaceManager.best_lap_time
 	})

@@ -5,6 +5,7 @@ class_name LeaderboardScreen
 ## Music continues from main menu
 ## Now supports browsing all track/mode combinations with left/right navigation
 ## Includes "Erase All Records" button with confirmation dialog
+## Supports Time Trial, Endless, and Race modes
 
 var container: VBoxContainer
 var header_container: HBoxContainer
@@ -240,8 +241,8 @@ func _update_display() -> void:
 	nav_label.text = "%s - %s" % [track_name, mode_name]
 	
 	# Show appropriate leaderboards based on mode
-	if mode_key == "time_trial":
-		# Time trial: show both total time and best lap
+	if mode_key == "time_trial" or mode_key == "race":
+		# Time trial and race: show both total time and best lap
 		var total_vbox = VBoxContainer.new()
 		total_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		total_vbox.custom_minimum_size = Vector2(400, 0)

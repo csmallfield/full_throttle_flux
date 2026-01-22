@@ -29,7 +29,7 @@ signal all_ships_finished()
 enum RaceMode {
 	TIME_TRIAL,
 	ENDLESS,
-	RACE  # New mode for racing against AI
+	RACE  # Racing against AI
 }
 
 var current_mode: int = RaceMode.TIME_TRIAL
@@ -483,7 +483,14 @@ func _get_leaderboard_key(track_id: String, mode: String) -> String:
 
 func _get_current_leaderboard_key() -> String:
 	var track_id = GameManager.selected_track_profile.track_id if GameManager.selected_track_profile else "unknown"
-	var mode = "endless" if current_mode == RaceMode.ENDLESS else "time_trial"
+	var mode: String
+	match current_mode:
+		RaceMode.ENDLESS:
+			mode = "endless"
+		RaceMode.RACE:
+			mode = "race"
+		_:
+			mode = "time_trial"
 	return _get_leaderboard_key(track_id, mode)
 
 func _ensure_leaderboard_exists(key: String) -> void:
@@ -537,6 +544,13 @@ func get_all_possible_leaderboard_combos() -> Array[Dictionary]:
 				"mode": "endless",
 				"mode_name": "Endless"
 			})
+		if "race" in supported_modes:
+			combos.append({
+				"track_id": track.track_id,
+				"track_name": track.display_name,
+				"mode": "race",
+				"mode_name": "Race"
+			})
 	return combos
 
 func check_leaderboard_qualification() -> Dictionary:
@@ -554,9 +568,9 @@ func check_leaderboard_qualification() -> Dictionary:
 	var total_time_board = leaderboards[key]["total_time"] as Array
 	var best_lap_board = leaderboards[key]["best_lap"] as Array
 	
-	# Time trial: check both total time and best lap
+	# Time trial and race mode: check both total time and best lap
 	# Endless: only check best lap (and only if at least one lap completed)
-	if current_mode == RaceMode.TIME_TRIAL:
+	if current_mode == RaceMode.TIME_TRIAL or current_mode == RaceMode.RACE:
 		# Check total time
 		if total_time_board.size() < LEADERBOARD_SIZE:
 			result.total_time_qualified = true
@@ -565,7 +579,7 @@ func check_leaderboard_qualification() -> Dictionary:
 			result.total_time_qualified = true
 			result.total_time_rank = _get_insert_position(total_time_board, current_race_time)
 	
-	# Check best lap (both modes, but endless needs at least one lap)
+	# Check best lap (all modes, but endless needs at least one lap)
 	if current_mode == RaceMode.ENDLESS and endless_all_lap_times.is_empty():
 		return result
 	

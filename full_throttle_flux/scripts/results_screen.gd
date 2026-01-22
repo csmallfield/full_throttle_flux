@@ -2,21 +2,25 @@ extends CanvasLayer
 class_name ResultsScreen
 
 ## Post-race results screen with stats, initial entry, and leaderboards
-## Also handles endless mode summary display
+## Handles Time Trial, Endless, and Race modes
 ## Music continues from race until player returns to menu
-## Now shows ship names and uses track-specific leaderboards
+## Shows ship names and uses track-specific leaderboards
 
 enum State {
 	SHOWING_STATS,
 	ENTERING_INITIALS,
 	SHOWING_LEADERBOARDS,
-	SHOWING_ENDLESS_SUMMARY
+	SHOWING_ENDLESS_SUMMARY,
+	SHOWING_RACE_RESULTS
 }
 
 var current_state: State = State.SHOWING_STATS
 var qualification_info: Dictionary = {}
 var current_initials: String = ""
 var max_initials_length: int = 3
+
+# Race mode specific
+var player_position: int = -1
 
 # Persistent storage for last entered initials
 static var last_entered_initials: String = ""
@@ -31,6 +35,7 @@ var stats_container: VBoxContainer
 var initials_container: VBoxContainer
 var leaderboards_container: VBoxContainer
 var endless_summary_container: VBoxContainer
+var race_results_container: VBoxContainer
 var buttons_container: HBoxContainer
 
 func _ready() -> void:
@@ -49,7 +54,7 @@ func _process(delta: float) -> void:
 			_input_blocked = false
 
 func _create_ui() -> void:
-	# Stats container
+	# Stats container (Time Trial)
 	stats_container = VBoxContainer.new()
 	stats_container.name = "StatsContainer"
 	stats_container.position = Vector2(1920/2 - 300, 150)
@@ -84,6 +89,15 @@ func _create_ui() -> void:
 	endless_summary_container.visible = false
 	add_child(endless_summary_container)
 	
+	# Race results container
+	race_results_container = VBoxContainer.new()
+	race_results_container.name = "RaceResultsContainer"
+	race_results_container.position = Vector2(1920/2 - 400, 100)
+	race_results_container.size = Vector2(800, 700)
+	race_results_container.add_theme_constant_override("separation", 20)
+	race_results_container.visible = false
+	add_child(race_results_container)
+	
 	# Buttons container
 	buttons_container = HBoxContainer.new()
 	buttons_container.name = "ButtonsContainer"
@@ -94,17 +108,29 @@ func _create_ui() -> void:
 	add_child(buttons_container)
 
 func _on_race_finished(total_time: float, best_lap: float) -> void:
-	# Only handle time trial mode here
+	# Handle based on mode
 	if RaceManager.is_endless_mode():
-		return
+		return  # Endless uses its own signal
 	
-	# Play race finish sound (music keeps playing)
-	AudioManager.play_race_finish()
-	
-	await get_tree().create_timer(2.0).timeout
-	
-	visible = true
-	_show_stats(total_time, best_lap)
+	if RaceManager.is_race_mode():
+		# Get player's finishing position
+		player_position = RaceManager.get_ship_finish_position(RaceManager.player_ship)
+		
+		# Play race finish sound
+		AudioManager.play_race_finish()
+		
+		await get_tree().create_timer(2.0).timeout
+		
+		visible = true
+		_show_race_results(total_time, best_lap)
+	else:
+		# Time trial mode
+		AudioManager.play_race_finish()
+		
+		await get_tree().create_timer(2.0).timeout
+		
+		visible = true
+		_show_stats(total_time, best_lap)
 
 func _on_endless_finished(total_laps: int, total_time: float, best_lap: float) -> void:
 	# Check for leaderboard qualification in endless mode
@@ -114,12 +140,116 @@ func _on_endless_finished(total_laps: int, total_time: float, best_lap: float) -
 	visible = true
 	_show_endless_summary(total_laps, total_time, best_lap)
 
+func _show_race_results(total_time: float, best_lap: float) -> void:
+	current_state = State.SHOWING_RACE_RESULTS
+	stats_container.visible = false
+	initials_container.visible = false
+	leaderboards_container.visible = false
+	endless_summary_container.visible = false
+	race_results_container.visible = true
+	buttons_container.visible = false
+	
+	# Clear previous content
+	for child in race_results_container.get_children():
+		child.queue_free()
+	
+	# Title with position
+	var title = Label.new()
+	var position_suffix = _get_position_suffix(player_position)
+	title.text = "%d%s PLACE!" % [player_position, position_suffix]
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 72)
+	
+	# Color based on position
+	var title_color: Color
+	match player_position:
+		1: title_color = Color(1, 0.85, 0.2)  # Gold
+		2: title_color = Color(0.8, 0.8, 0.8)  # Silver
+		3: title_color = Color(0.8, 0.5, 0.3)  # Bronze
+		_: title_color = Color(0.3, 0.8, 1.0)  # Cyan for others
+	title.add_theme_color_override("font_color", title_color)
+	race_results_container.add_child(title)
+	
+	# Track and ship info
+	var info_label = Label.new()
+	var track_name = GameManager.selected_track_profile.display_name if GameManager.selected_track_profile else "Unknown Track"
+	var ship_name = GameManager.selected_ship_profile.display_name if GameManager.selected_ship_profile else "Unknown Ship"
+	var difficulty_name = GameManager.get_race_difficulty_name()
+	info_label.text = "%s  |  %s  |  %s Difficulty" % [track_name, ship_name, difficulty_name]
+	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info_label.add_theme_font_size_override("font_size", 22)
+	info_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	race_results_container.add_child(info_label)
+	
+	# Spacer
+	var spacer1 = Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 20)
+	race_results_container.add_child(spacer1)
+	
+	# Total time
+	var total_label = Label.new()
+	total_label.text = "Total Time: " + RaceManager.format_time(total_time)
+	total_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	total_label.add_theme_font_size_override("font_size", 36)
+	race_results_container.add_child(total_label)
+	
+	# Best lap
+	var best_label = Label.new()
+	best_label.text = "Best Lap: " + RaceManager.format_time(best_lap)
+	best_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	best_label.add_theme_font_size_override("font_size", 36)
+	best_label.add_theme_color_override("font_color", Color(1, 1, 0.3))
+	race_results_container.add_child(best_label)
+	
+	# Spacer
+	var spacer2 = Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 15)
+	race_results_container.add_child(spacer2)
+	
+	# Individual lap times
+	var laps_header = Label.new()
+	laps_header.text = "LAP TIMES"
+	laps_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	laps_header.add_theme_font_size_override("font_size", 24)
+	laps_header.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	race_results_container.add_child(laps_header)
+	
+	for i in range(RaceManager.lap_times.size()):
+		var lap_time = RaceManager.lap_times[i]
+		var lap_label = Label.new()
+		lap_label.text = "Lap %d: %s" % [i + 1, RaceManager.format_time(lap_time)]
+		lap_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lap_label.add_theme_font_size_override("font_size", 22)
+		
+		if lap_time == best_lap:
+			lap_label.add_theme_color_override("font_color", Color(1, 1, 0.3))
+		
+		race_results_container.add_child(lap_label)
+	
+	# Check qualification
+	qualification_info = RaceManager.check_leaderboard_qualification()
+	
+	await get_tree().create_timer(3.0).timeout
+	
+	if qualification_info.total_time_qualified or qualification_info.best_lap_qualified:
+		_show_initials_entry()
+	else:
+		_show_leaderboards()
+
+func _get_position_suffix(pos: int) -> String:
+	match pos:
+		1: return "ST"
+		2: return "ND"
+		3: return "RD"
+		_: return "TH"
+
 func _show_stats(total_time: float, best_lap: float) -> void:
 	current_state = State.SHOWING_STATS
 	stats_container.visible = true
 	initials_container.visible = false
 	leaderboards_container.visible = false
 	endless_summary_container.visible = false
+	race_results_container.visible = false
 	buttons_container.visible = false
 	
 	# Clear previous content
@@ -196,6 +326,7 @@ func _show_endless_summary(total_laps: int, total_time: float, best_lap: float) 
 	initials_container.visible = false
 	leaderboards_container.visible = false
 	endless_summary_container.visible = true
+	race_results_container.visible = false
 	buttons_container.visible = true
 	
 	# Block input briefly to prevent accidental selection
@@ -361,6 +492,7 @@ func _show_initials_entry() -> void:
 	stats_container.visible = false
 	initials_container.visible = true
 	endless_summary_container.visible = false
+	race_results_container.visible = false
 	buttons_container.visible = false
 	
 	# Pre-populate with last entered initials
@@ -484,6 +616,7 @@ func _show_leaderboards() -> void:
 	initials_container.visible = false
 	leaderboards_container.visible = true
 	endless_summary_container.visible = false
+	race_results_container.visible = false
 	buttons_container.visible = true
 	
 	# Block input briefly to prevent accidental selection
@@ -498,8 +631,18 @@ func _show_leaderboards() -> void:
 	# Get current track/mode info
 	var track_name = GameManager.selected_track_profile.display_name if GameManager.selected_track_profile else "Unknown"
 	var track_id = GameManager.selected_track_profile.track_id if GameManager.selected_track_profile else "unknown"
-	var mode_name = "Endless" if RaceManager.is_endless_mode() else "Time Trial"
-	var mode_key = "endless" if RaceManager.is_endless_mode() else "time_trial"
+	var mode_name: String
+	var mode_key: String
+	
+	if RaceManager.is_endless_mode():
+		mode_name = "Endless"
+		mode_key = "endless"
+	elif RaceManager.is_race_mode():
+		mode_name = "Race"
+		mode_key = "race"
+	else:
+		mode_name = "Time Trial"
+		mode_key = "time_trial"
 	
 	# Title with track/mode info
 	var title = Label.new()
@@ -515,8 +658,8 @@ func _show_leaderboards() -> void:
 	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	leaderboards_container.add_child(hbox)
 	
-	if RaceManager.is_time_trial_mode():
-		# Time trial: show both total time and best lap side by side
+	if RaceManager.is_time_trial_mode() or RaceManager.is_race_mode():
+		# Time trial and race: show both total time and best lap side by side
 		var total_vbox = VBoxContainer.new()
 		total_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hbox.add_child(total_vbox)
