@@ -4,4 +4,6 @@
 
 [node name="RaceModeTest" type="Node"]
 script = ExtResource("1_test")
+num_ai_opponents = 7
 ai_difficulty = 2
+num_laps = 4

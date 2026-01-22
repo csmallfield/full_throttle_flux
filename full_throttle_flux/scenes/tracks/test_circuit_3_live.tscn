@@ -125,6 +125,18 @@ gizmo_extents = 3.25
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0.4269888, 6.7302756, 26.625404)
 gizmo_extents = 3.25
 
+[node name="Slot5" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -4.799699, 6.7302766, 30.401123)
+gizmo_extents = 3.25
+
+[node name="Slot6" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.746402, 6.730277, 30.401123)
+gizmo_extents = 3.25
+
+[node name="Slot7" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0.6569808, 6.730278, 35.826473)
+gizmo_extents = 3.25
+
 [node name="MainSpline" type="Path3D" parent="."]
 curve = SubResource("Curve3D_8254d")
 

@@ -24,13 +24,13 @@ enum Difficulty { EASY, MEDIUM, HARD }
 @export_group("AI Skill Ranges")
 
 ## Skill range for Easy difficulty
-@export var easy_skill_range := Vector2(0.20, 0.35)
+@export var easy_skill_range := Vector2(0.20, 0.40)
 
 ## Skill range for Medium difficulty
-@export var medium_skill_range := Vector2(0.35, 0.65)
+@export var medium_skill_range := Vector2(0.35, 0.75)
 
 ## Skill range for Hard difficulty
-@export var hard_skill_range := Vector2(0.70, 0.85)
+@export var hard_skill_range := Vector2(0.60, 0.80)
 
 # ============================================================================
 # RACE STATE
