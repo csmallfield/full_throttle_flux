@@ -29,7 +29,7 @@ class_name TrackRespawnManager
 @export_group("Debug")
 
 ## Show debug visualization of respawn points
-@export var debug_visualization: bool = true
+@export var debug_visualization: bool = false
 
 ## Print debug info during initialization
 @export var debug_print: bool = true

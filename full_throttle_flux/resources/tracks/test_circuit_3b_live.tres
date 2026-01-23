@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3 uid="uid://dbdnjyield6k1"]
+
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_48mv4"]
+
+[resource]
+script = ExtResource("1_48mv4")
+track_id = "test_circuit_3b_live"
+display_name = "Test Circuit 3b"
+description = "A nice balanced track and the most fun so far. With Boosts"
+author = "Flux Industries"

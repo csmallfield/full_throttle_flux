@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://iok12nc8qm3o"]
+[gd_scene load_steps=12 format=3 uid="uid://dckuxfeusu3je"]
 
-[ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_q4s3x"]
-[ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_8wlfk"]
-[ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_yhocl"]
+[ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_j8rn0"]
+[ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_vasfx"]
+[ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_5a75j"]
+[ext_resource type="PackedScene" uid="uid://c8x2boost1pad" path="res://scenes/boost_pad.tscn" id="4_vasfx"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
 sky_top_color = Color(0.05, 0.05, 0.15, 1)
@@ -101,12 +102,12 @@ shadow_blur = 2.0
 
 [node name="StartingPoint" type="Node" parent="."]
 
-[node name="StartFinishLine" parent="StartingPoint" instance=ExtResource("1_q4s3x")]
+[node name="StartFinishLine" parent="StartingPoint" instance=ExtResource("1_j8rn0")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 2.6881704, 0)
 
 [node name="StartingGrid" type="Node3D" parent="StartingPoint"]
 transform = Transform3D(-4.3711392e-08, 0, 1.0000001, 0, 0.99999994, 0, -1.0000001, 0, -4.3711392e-08, 0, 0, 0)
-script = ExtResource("2_8wlfk")
+script = ExtResource("2_vasfx")
 metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
 
 [node name="Slot1" type="Marker3D" parent="StartingPoint/StartingGrid"]
@@ -160,7 +161,7 @@ path_continuous_u = true
 path_u_distance = 100.0
 path_joined = true
 smooth_faces = true
-material = ExtResource("3_yhocl")
+material = ExtResource("3_5a75j")
 
 [node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline"]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
@@ -233,3 +234,15 @@ size = Vector3(50, 300, 100)
 [node name="CSGBox3D2" type="CSGBox3D" parent="."]
 transform = Transform3D(0.6819473, 0, 0.7314013, 0, 1, 0, -0.7314013, 0, 0.6819473, -929.8231, 0, -736.39984)
 size = Vector3(50, 300, 100)
+
+[node name="BoostPad" parent="." instance=ExtResource("4_vasfx")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -103.03406, 1.9351425, 13.437741)
+
+[node name="BoostPad2" parent="." instance=ExtResource("4_vasfx")]
+transform = Transform3D(0.351045, 0.085781574, -0.9324209, 0.15252252, 0.9772568, 0.14732926, 0.9238529, -0.1939344, 0.3299776, -658.3272, -0.49635816, 178.96452)
+
+[node name="BoostPad3" parent="." instance=ExtResource("4_vasfx")]
+transform = Transform3D(-0.9973939, 0.07131195, 0.0109633915, 0.07027483, 0.9946098, -0.07624377, -0.016341383, -0.075274594, -0.99702895, -1005.13715, 2.0183716, -197.97314)
+
+[node name="BoostPad4" parent="." instance=ExtResource("4_vasfx")]
+transform = Transform3D(-0.15064162, 0.058428686, 0.98686045, 0.06480416, 0.9966884, -0.049118392, -0.98646206, 0.056553386, -0.15392913, -785.8908, 19.115896, -875.52484)
