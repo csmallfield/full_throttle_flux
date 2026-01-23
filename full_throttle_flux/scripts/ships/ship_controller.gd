@@ -4,12 +4,14 @@ class_name ShipController
 ## WipEout 2097 Style Anti-Gravity Ship Controller
 ## Based on BallisticNG "2159 Mode" physics specifications
 ## Refactored to use ShipProfile for data-driven configuration.
+## v2: Added ship-to-ship collision handling with separate tuning
 
 # ============================================================================
 # SIGNALS
 # ============================================================================
 
 signal ship_respawned()
+signal ship_collision(other_ship: ShipController, impact_speed: float)  # NEW
 
 # ============================================================================
 # PROFILE
@@ -17,6 +19,9 @@ signal ship_respawned()
 
 ## Ship profile containing all gameplay attributes
 @export var profile: ShipProfile
+
+## Ship collision profile for ship-to-ship interactions (optional)
+@export var collision_profile: ShipCollisionProfile
 
 # ============================================================================
 # EXTERNAL REFERENCES (set at runtime or via editor)
@@ -85,6 +90,10 @@ var _is_scraping_wall := false
 var _scrape_timer := 0.0
 const SCRAPE_TIMEOUT := 0.1
 
+# Ship collision state (NEW)
+var _ship_collision_cooldown := 0.0
+const SHIP_COLLISION_COOLDOWN_TIME := 0.15
+
 # Control lock state (for race end)
 var controls_locked := false
 
@@ -147,6 +156,20 @@ var _rumble_position_intensity: float
 var _rumble_rotation_intensity: float
 var _rumble_frequency: float
 
+# Ship collision cached values (NEW)
+var _ship_velocity_retain: float = 0.8
+var _ship_speed_penalty: float = 5.0
+var _ship_push_force: float = 15.0
+var _ship_min_collision_speed: float = 10.0
+var _ship_spin_force: float = 2.0
+var _ship_max_spin_rate: float = 90.0
+var _ship_angle_spin_factor: float = 0.7
+var _ship_collision_mass: float = 1.0
+var _ship_use_mass_difference: bool = true
+var _ship_shake_enabled: bool = true
+var _ship_shake_intensity: float = 0.4
+var _ship_shake_speed_threshold: float = 25.0
+
 # ============================================================================
 # INITIALIZATION
 # ============================================================================
@@ -154,8 +177,10 @@ var _rumble_frequency: float
 func _ready() -> void:
 	_find_child_nodes()
 	_apply_profile()
+	_apply_collision_profile()  # NEW
 	_setup_hover_ray()
 	_setup_audio_controller()
+	_setup_ship_collision_layer()  # NEW
 	
 	# Initialize safe position to starting position
 	last_safe_position = global_position
@@ -224,6 +249,25 @@ func _apply_profile() -> void:
 	
 	current_grip = _grip
 
+# NEW: Apply ship collision profile
+func _apply_collision_profile() -> void:
+	if not collision_profile:
+		# Use defaults (already set in variable declarations)
+		return
+	
+	_ship_velocity_retain = collision_profile.velocity_retain
+	_ship_speed_penalty = collision_profile.speed_penalty
+	_ship_push_force = collision_profile.push_force
+	_ship_min_collision_speed = collision_profile.min_collision_speed
+	_ship_spin_force = collision_profile.spin_force
+	_ship_max_spin_rate = collision_profile.max_spin_rate
+	_ship_angle_spin_factor = collision_profile.angle_spin_factor
+	_ship_collision_mass = collision_profile.collision_mass
+	_ship_use_mass_difference = collision_profile.use_mass_difference
+	_ship_shake_enabled = collision_profile.collision_shake_enabled
+	_ship_shake_intensity = collision_profile.shake_intensity
+	_ship_shake_speed_threshold = collision_profile.shake_speed_threshold
+
 func _set_default_values() -> void:
 	_max_speed = 120.0
 	_thrust_power = 65.0
@@ -282,6 +326,16 @@ func _setup_audio_controller() -> void:
 	if audio_controller:
 		audio_controller.ship = self
 
+# NEW: Enable ship-to-ship collisions
+func _setup_ship_collision_layer() -> void:
+	# Ships are on layer 2, walls on layer 4 (value 4 = bit 2)
+	# Current mask is 5 = ground (1) + walls (4)
+	# Add ship layer (2) to detect other ships: 5 + 2 = 7
+	if collision_mask & 2 == 0:
+		collision_mask = collision_mask | 2
+		# Note: Ships must also be ON layer 2 for mutual detection
+		# This should already be set in the scene (collision_layer = 2)
+
 # ============================================================================
 # MAIN PHYSICS LOOP
 # ============================================================================
@@ -304,6 +358,7 @@ func _physics_process(delta: float) -> void:
 	_handle_collisions()
 	_update_visuals(delta)
 	_update_scrape_audio(delta)
+	_update_ship_collision_cooldown(delta)  # NEW
 
 # ============================================================================
 # INPUT HANDLING
@@ -433,7 +488,7 @@ func _apply_hover_force(delta: float) -> void:
 	if not is_grounded:
 		# Progressive gravity - increases the longer airborne (1.0x to 2.0x over 0.5s)
 		# This gives short hops a natural arc while pulling down firmly on longer jumps
-		var gravity_multiplier = 1.0 + clamp(time_since_grounded * 2.0, 0.0, 1.0)
+		var gravity_multiplier = 1.0 + clampf(time_since_grounded * 2.0, 0.0, 1.0)
 		velocity.y -= _gravity * gravity_multiplier * delta
 		
 		# Light vertical air drag to smooth landings
@@ -444,7 +499,7 @@ func _apply_hover_force(delta: float) -> void:
 	var vertical_velocity = velocity.dot(current_track_normal)
 	var spring_force = height_error * _hover_stiffness
 	var damping_force = -vertical_velocity * _hover_damping
-	var total_force = clamp(spring_force + damping_force, -_hover_force_max, _hover_force_max)
+	var total_force = clampf(spring_force + damping_force, -_hover_force_max, _hover_force_max)
 	
 	velocity += current_track_normal * total_force * delta
 	
@@ -483,21 +538,21 @@ func _apply_thrust(delta: float) -> void:
 	velocity += forward_dir * thrust_force * delta
 
 func _calculate_pitch_efficiency() -> float:
-	var pitch_factor = abs(visual_pitch) / deg_to_rad(_max_pitch_angle)
+	var pitch_factor = absf(visual_pitch) / deg_to_rad(_max_pitch_angle)
 	var efficiency = 1.0 - (pitch_factor * 0.3)
-	return clamp(efficiency, 0.7, 1.0)
+	return clampf(efficiency, 0.7, 1.0)
 
 # ============================================================================
 # STEERING SYSTEM
 # ============================================================================
 
 func _apply_steering(delta: float) -> void:
-	if abs(steer_input) < 0.01:
+	if absf(steer_input) < 0.01:
 		return
 	
-	var curved_input = sign(steer_input) * pow(abs(steer_input), _steer_curve_power)
+	var curved_input = signf(steer_input) * pow(absf(steer_input), _steer_curve_power)
 	var speed_ratio = velocity.length() / _max_speed
-	var steer_reduction = lerp(1.0, 0.7, speed_ratio)
+	var steer_reduction = lerpf(1.0, 0.7, speed_ratio)
 	var steer_torque = curved_input * _steer_speed * steer_reduction * delta
 	
 	rotate_object_local(Vector3.UP, steer_torque)
@@ -522,11 +577,11 @@ func _apply_grip(delta: float) -> void:
 # ============================================================================
 
 func _apply_airbrakes(delta: float) -> void:
-	var brake_amount = max(airbrake_left, airbrake_right)
+	var brake_amount = maxf(airbrake_left, airbrake_right)
 	is_airbraking = brake_amount > 0.1
 	
 	if not is_airbraking:
-		current_grip = lerp(current_grip, _grip, _airbrake_slip_falloff * delta)
+		current_grip = lerpf(current_grip, _grip, _airbrake_slip_falloff * delta)
 		return
 	
 	# Airbrake rotation - reduced when airborne (cosmetic only, like steering)
@@ -536,7 +591,7 @@ func _apply_airbrakes(delta: float) -> void:
 	
 	# Grip changes only when grounded
 	if is_grounded:
-		current_grip = lerp(_grip, _airbrake_grip, brake_amount)
+		current_grip = lerpf(_grip, _airbrake_grip, brake_amount)
 		
 		var is_opposite = (airbrake_left > 0.5 and steer_input < -0.3) or \
 						  (airbrake_right > 0.5 and steer_input > 0.3)
@@ -544,19 +599,19 @@ func _apply_airbrakes(delta: float) -> void:
 			current_grip *= 0.5
 	
 	# Drag - only affects horizontal velocity when airborne
-	var drag_factor = lerp(1.0, _airbrake_drag, brake_amount)
+	var drag_factor = lerpf(1.0, _airbrake_drag, brake_amount)
 	
 	if is_grounded:
 		velocity *= drag_factor
 		
 		# Full brake (both airbrakes) - only when grounded
 		if airbrake_left > 0.25 and airbrake_right > 0.25:
-			var full_brake = min(airbrake_left, airbrake_right)
-			velocity *= lerp(1.0, 0.85, full_brake)
+			var full_brake = minf(airbrake_left, airbrake_right)
+			velocity *= lerpf(1.0, 0.85, full_brake)
 	else:
 		# Airborne: only apply drag to horizontal components, preserve Y
 		# Also reduced effectiveness
-		var air_drag_factor = lerp(1.0, _airbrake_drag, brake_amount * 0.3)  # 30% effectiveness
+		var air_drag_factor = lerpf(1.0, _airbrake_drag, brake_amount * 0.3)  # 30% effectiveness
 		velocity.x *= air_drag_factor
 		velocity.z *= air_drag_factor
 
@@ -567,16 +622,16 @@ func _apply_airbrakes(delta: float) -> void:
 func _apply_pitch(delta: float) -> void:
 	var can_pitch = is_grounded or time_since_grounded < 0.3
 	
-	if can_pitch and abs(pitch_input) > 0.1:
+	if can_pitch and absf(pitch_input) > 0.1:
 		visual_pitch += pitch_input * _pitch_speed * delta
 	else:
 		var return_speed = _pitch_return_speed
 		if not is_grounded:
 			return_speed *= 2.0
-		visual_pitch = lerp(visual_pitch, 0.0, return_speed * delta)
+		visual_pitch = lerpf(visual_pitch, 0.0, return_speed * delta)
 	
 	var max_pitch_rad = deg_to_rad(_max_pitch_angle)
-	visual_pitch = clamp(visual_pitch, -max_pitch_rad, max_pitch_rad)
+	visual_pitch = clampf(visual_pitch, -max_pitch_rad, max_pitch_rad)
 
 # ============================================================================
 # DRAG SYSTEM
@@ -615,9 +670,14 @@ func _handle_collisions() -> void:
 	
 	for i in get_slide_collision_count():
 		var collision = get_slide_collision(i)
+		var collider = collision.get_collider()
 		var normal = collision.get_normal()
 		
-		if abs(normal.y) < 0.5:
+		# NEW: Check if this is a ship-to-ship collision
+		if collider is ShipController:
+			_handle_ship_collision(collider as ShipController, collision)
+		elif absf(normal.y) < 0.5:
+			# Wall collision (horizontal surface = wall, not ground)
 			_handle_wall_collision(normal)
 			had_wall_collision = true
 	
@@ -641,6 +701,11 @@ func _update_scrape_audio(delta: float) -> void:
 			if audio_controller:
 				audio_controller.stop_wall_scrape()
 
+# NEW: Ship collision cooldown update
+func _update_ship_collision_cooldown(delta: float) -> void:
+	if _ship_collision_cooldown > 0:
+		_ship_collision_cooldown -= delta
+
 func _handle_wall_collision(wall_normal: Vector3) -> void:
 	var impact_speed = velocity.length()
 	
@@ -652,13 +717,109 @@ func _handle_wall_collision(wall_normal: Vector3) -> void:
 	
 	if _collision_shake_enabled and camera and impact_speed > _shake_speed_threshold:
 		var speed_ratio = (impact_speed - _shake_speed_threshold) / (_max_speed - _shake_speed_threshold)
-		speed_ratio = clamp(speed_ratio, 0.0, 1.0)
+		speed_ratio = clampf(speed_ratio, 0.0, 1.0)
 		var final_intensity = _shake_intensity * speed_ratio * 2.0
 		if camera.has_method("apply_shake"):
 			camera.apply_shake(final_intensity)
 	
 	if audio_controller and impact_speed > _shake_speed_threshold:
 		audio_controller.play_wall_hit(impact_speed)
+
+# ============================================================================
+# SHIP-TO-SHIP COLLISION HANDLING (NEW)
+# ============================================================================
+
+func _handle_ship_collision(other_ship: ShipController, collision: KinematicCollision3D) -> void:
+	"""Handle WipEout-style ship-to-ship collision."""
+	# Skip if on cooldown (prevents rapid-fire collision processing)
+	if _ship_collision_cooldown > 0:
+		return
+	
+	var relative_velocity := velocity - other_ship.velocity
+	var relative_speed := relative_velocity.length()
+	
+	# Skip low-speed collisions
+	if relative_speed < _ship_min_collision_speed:
+		return
+	
+	# Set cooldown
+	_ship_collision_cooldown = SHIP_COLLISION_COOLDOWN_TIME
+	
+	# Get collision data
+	var collision_normal := collision.get_normal()
+	var collision_point := collision.get_position()
+	
+	# === MASS RATIO CALCULATION ===
+	var my_mass := _ship_collision_mass
+	var other_mass := other_ship._ship_collision_mass
+	var mass_ratio := 1.0
+	
+	if _ship_use_mass_difference and my_mass + other_mass > 0:
+		# Heavier ship is affected less
+		mass_ratio = other_mass / (my_mass + other_mass)
+	
+	# === VELOCITY RESPONSE ===
+	# WipEout style: Ships push apart with speed loss
+	
+	# Calculate push direction (away from other ship, horizontal only)
+	var push_dir := global_position - other_ship.global_position
+	push_dir.y = 0
+	if push_dir.length() > 0.01:
+		push_dir = push_dir.normalized()
+	else:
+		push_dir = collision_normal
+		push_dir.y = 0
+		push_dir = push_dir.normalized()
+	
+	# Apply velocity changes scaled by mass ratio
+	var speed_loss := _ship_speed_penalty * mass_ratio
+	var push_amount := _ship_push_force * mass_ratio
+	
+	# Retain portion of velocity
+	velocity *= _ship_velocity_retain
+	
+	# Add push force away from collision
+	velocity += push_dir * push_amount
+	
+	# Apply additional speed penalty along current direction
+	var current_dir := velocity.normalized() if velocity.length() > 0.1 else -global_transform.basis.z
+	velocity -= current_dir * speed_loss
+	
+	# === SPIN/ROTATION RESPONSE ===
+	# Calculate spin based on where collision occurred relative to ship center
+	var to_collision := collision_point - global_position
+	var right := global_transform.basis.x
+	
+	# Side impact causes more spin
+	var side_factor := absf(to_collision.dot(right))
+	
+	# Determine spin direction (pushed away from impact side)
+	var spin_direction := signf(to_collision.dot(right))
+	
+	# Calculate spin magnitude
+	var spin_magnitude := _ship_spin_force * relative_speed / _max_speed
+	spin_magnitude *= lerpf(1.0, _ship_angle_spin_factor, side_factor / 2.0)
+	spin_magnitude *= mass_ratio
+	spin_magnitude = clampf(spin_magnitude, 0.0, deg_to_rad(_ship_max_spin_rate) * get_physics_process_delta_time())
+	
+	# Apply spin
+	rotate_y(-spin_direction * spin_magnitude)
+	
+	# === FEEDBACK ===
+	# Camera shake (only for player ship with camera reference)
+	if _ship_shake_enabled and camera and relative_speed > _ship_shake_speed_threshold:
+		var speed_ratio := (relative_speed - _ship_shake_speed_threshold) / (_max_speed - _ship_shake_speed_threshold)
+		speed_ratio = clampf(speed_ratio, 0.0, 1.0)
+		var final_intensity := _ship_shake_intensity * speed_ratio
+		if camera.has_method("apply_shake"):
+			camera.apply_shake(final_intensity)
+	
+	# Audio (reuse wall hit sound, slightly quieter)
+	if audio_controller and relative_speed > _ship_shake_speed_threshold:
+		audio_controller.play_wall_hit(relative_speed * 0.7)
+	
+	# Emit signal for external systems (damage, scoring, etc.)
+	ship_collision.emit(other_ship, relative_speed)
 
 # ============================================================================
 # VISUAL FEEDBACK
@@ -673,14 +834,14 @@ func _update_visuals(delta: float) -> void:
 	target_roll += steer_input * deg_to_rad(25.0)
 	target_roll += (airbrake_left - airbrake_right) * deg_to_rad(15.0)
 	
-	var speed_factor = clamp(velocity.length() / _max_speed, 0.3, 1.0)
+	var speed_factor = clampf(velocity.length() / _max_speed, 0.3, 1.0)
 	target_roll *= speed_factor
 	
-	visual_roll = lerp(visual_roll, target_roll, 8.0 * delta)
+	visual_roll = lerpf(visual_roll, target_roll, 8.0 * delta)
 	
 	# Calculate acceleration pitch (existing system)
 	var target_accel_pitch = -throttle_input * deg_to_rad(5.0)
-	visual_accel_pitch = lerp(visual_accel_pitch, target_accel_pitch, 6.0 * delta)
+	visual_accel_pitch = lerpf(visual_accel_pitch, target_accel_pitch, 6.0 * delta)
 	
 	# Combine pitch components
 	var total_pitch = visual_pitch + visual_accel_pitch
@@ -701,7 +862,7 @@ func _apply_hover_animation(delta: float) -> void:
 	var speed_ratio = get_speed_ratio()
 	
 	# Calculate intensity falloff based on speed
-	var intensity = lerp(1.0, _hover_pulse_min_intensity, speed_ratio)
+	var intensity = lerpf(1.0, _hover_pulse_min_intensity, speed_ratio)
 	
 	# === VERTICAL PULSE ===
 	hover_time_accumulator += delta * _hover_pulse_speed * TAU

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ShipCollisionProfile" load_steps=2 format=3 uid="uid://collision_default"]
+
+[ext_resource type="Script" path="res://scripts/ships/ship_collision_profile.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+
+# Collision Response - WipEout style
+velocity_retain = 0.8
+speed_penalty = 5.0
+push_force = 15.0
+min_collision_speed = 10.0
+
+# Spin Effects - moderate spin on contact
+spin_force = 2.0
+max_spin_rate = 90.0
+angle_spin_factor = 0.7
+
+# Mass System - equal mass ships
+collision_mass = 1.0
+use_mass_difference = true
+
+# Feedback
+collision_shake_enabled = true
+shake_intensity = 0.4
+shake_speed_threshold = 25.0
+
+# Future damage hooks
+base_collision_damage = 10.0
+damage_speed_multiplier = 0.5
