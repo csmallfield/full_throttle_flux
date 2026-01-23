@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://s3b8psg6to1c" path="res://scripts/ships/ship_controller.gd" id="1_lepve"]
 [ext_resource type="Resource" uid="uid://7bbxfm2r4pye" path="res://resources/ships/default_racer.tres" id="2_aqvae"]
 [ext_resource type="PackedScene" uid="uid://du8cy2tcim5ko" path="res://assets/shipTest.glb" id="3_4u8xt"]
-[ext_resource type="Resource" path="res://scripts/resources/default_collision_profile.tres" id="3_aqvae"]
+[ext_resource type="Resource" path="res://resources/ships/default_collision_profile.tres" id="3_aqvae"]
 [ext_resource type="Script" uid="uid://d4f1mpwy8pny2" path="res://scripts/ship_audio_controller.gd" id="4_2x183"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ship"]

@@ -6,9 +6,10 @@ class_name AIShipController
 ## Can control any ShipController by setting its input values directly.
 ## Enhanced debug visualization shows racing line and apex positions.
 ##
-## v2 Changes:
-## - Properly propagates skill level to control_decider
-## - Better debug output showing hint weight and data source
+## v3 Changes:
+## - Added AIShipAvoidance component for ship-to-ship avoidance
+## - Avoidance adjustments applied after control decisions
+## - Race position updates for position-based aggression
 
 # ============================================================================
 # SIGNALS
@@ -31,6 +32,9 @@ signal ai_disabled()
 
 ## Enable AI control (can be toggled at runtime)
 @export var ai_active: bool = true
+
+## Enable ship avoidance behavior
+@export var avoidance_enabled: bool = true
 
 @export_group("Debug")
 
@@ -56,6 +60,7 @@ signal ai_disabled()
 var spline_helper: TrackSplineHelper
 var line_follower: AILineFollower
 var control_decider: AIControlDecider
+var ship_avoidance: AIShipAvoidance  # NEW: Avoidance component
 var track_ai_data: TrackAIData
 
 # ============================================================================
@@ -64,6 +69,10 @@ var track_ai_data: TrackAIData
 
 var is_initialized: bool = false
 var track_root: Node = null
+
+# Race position (updated by RaceMode)
+var current_race_position: int = 1
+var total_race_ships: int = 1
 
 # Debug visualization
 var debug_target_marker: MeshInstance3D
@@ -149,7 +158,12 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null) -> void
 	# Create control decider
 	control_decider = AIControlDecider.new()
 	control_decider.initialize(ship, line_follower)
-	control_decider.set_skill(skill_level)  # Propagate skill to control decider
+	control_decider.set_skill(skill_level)
+	
+	# Create avoidance component (NEW)
+	if avoidance_enabled:
+		ship_avoidance = AIShipAvoidance.new()
+		ship_avoidance.initialize(ship, skill_level)
 	
 	# Setup debug visualization
 	if debug_draw_enabled:
@@ -170,7 +184,33 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null) -> void
 		else:
 			data_status = "%d laps" % track_ai_data.recorded_laps.size()
 	
-	print("AIShipController: Initialized (skill: %.2f, data: %s)" % [skill_level, data_status])
+	var avoidance_status := "enabled" if avoidance_enabled else "disabled"
+	print("AIShipController: Initialized (skill: %.2f, data: %s, avoidance: %s)" % [skill_level, data_status, avoidance_status])
+
+# ============================================================================
+# RACE SHIP REGISTRATION (Called by RaceMode)
+# ============================================================================
+
+func set_race_ships(ships: Array[ShipController]) -> void:
+	"""
+	Register all ships in the race for avoidance awareness.
+	Call this from RaceMode after spawning all ships.
+	"""
+	if ship_avoidance:
+		ship_avoidance.set_race_ships(ships)
+	total_race_ships = ships.size()
+
+func update_race_position(position: int, total: int = -1) -> void:
+	"""
+	Update this AI's race position for aggression scaling.
+	Call this from RaceMode's position tracking.
+	"""
+	current_race_position = position
+	if total > 0:
+		total_race_ships = total
+	
+	if ship_avoidance:
+		ship_avoidance.update_race_position(position, total_race_ships)
 
 # ============================================================================
 # MAIN UPDATE LOOP
@@ -183,8 +223,13 @@ func _physics_process(delta: float) -> void:
 	# Update line follower with current position
 	line_follower.update_position(ship.global_position)
 	
-	# Get control decisions
+	# Get base control decisions (racing line following)
 	var controls := control_decider.decide_controls(delta)
+	
+	# Apply avoidance adjustments (NEW)
+	if ship_avoidance and avoidance_enabled:
+		ship_avoidance.update(delta)
+		controls = ship_avoidance.adjust_controls(controls)
 	
 	# Apply controls to ship
 	_apply_controls(controls)
@@ -240,10 +285,20 @@ func set_skill(new_skill: float) -> void:
 		line_follower.set_skill(skill_level)
 	if control_decider:
 		control_decider.set_skill(skill_level)
+	if ship_avoidance:
+		ship_avoidance.set_skill(skill_level)
 	
 	# Print current hint weight for debugging
 	if control_decider:
 		print("AIShipController: Skill=%.2f, HintWeight=%.0f%%" % [skill_level, control_decider.hint_weight * 100.0])
+
+func set_avoidance_enabled(enabled: bool) -> void:
+	"""Enable or disable ship avoidance at runtime."""
+	avoidance_enabled = enabled
+	
+	if enabled and not ship_avoidance and ship:
+		ship_avoidance = AIShipAvoidance.new()
+		ship_avoidance.initialize(ship, skill_level)
 
 func get_current_spline_offset() -> float:
 	"""Get the AI's current position on the track (0-1)."""
@@ -256,6 +311,18 @@ func get_distance_to_finish() -> float:
 	if line_follower:
 		return line_follower.get_distance_to_finish()
 	return 0.0
+
+func is_avoiding_ship() -> bool:
+	"""Check if AI is currently making avoidance maneuvers."""
+	if ship_avoidance:
+		return ship_avoidance.is_avoiding()
+	return false
+
+func get_nearest_ship_distance() -> float:
+	"""Get distance to nearest other ship."""
+	if ship_avoidance:
+		return ship_avoidance.get_nearest_ship_distance()
+	return INF
 
 # ============================================================================
 # DEBUG VISUALIZATION
@@ -468,6 +535,8 @@ func _print_debug_info() -> void:
 	print("=== AI Debug (skill=%.2f, source=%s) ===" % [skill_level, data_source])
 	print("  ", line_follower.get_debug_info())
 	print("  ", control_decider.get_debug_info())
+	if ship_avoidance:
+		print("  ", ship_avoidance.get_debug_info())
 	print("  Ship speed: %.1f / %.1f (%.0f%%)" % [
 		ship.velocity.length(), 
 		ship.get_max_speed(),

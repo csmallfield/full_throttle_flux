@@ -4,6 +4,8 @@ class_name RaceMode
 ## Race Mode
 ## Player races against AI opponents on a track.
 ## Spawns player + AI ships, manages race state, tracks positions.
+##
+## v2: Added ship-to-ship avoidance integration
 
 # ============================================================================
 # CONFIGURATION
@@ -31,6 +33,11 @@ enum Difficulty { EASY, MEDIUM, HARD }
 
 ## Skill range for Hard difficulty
 @export var hard_skill_range := Vector2(0.60, 0.80)
+
+@export_group("AI Avoidance")
+
+## Enable ship-to-ship avoidance for AI
+@export var ai_avoidance_enabled: bool = true
 
 # ============================================================================
 # RACE STATE
@@ -127,6 +134,10 @@ func setup_race() -> void:
 	var ships_array: Array[Node3D] = []
 	ships_array.assign(all_ships)
 	RaceManager.register_race_ships(ships_array, ship_instance)
+	
+	# Setup AI ship avoidance (NEW)
+	if ai_avoidance_enabled:
+		_setup_ai_avoidance()
 	
 	# Setup camera (follows player)
 	_setup_camera()
@@ -241,6 +252,7 @@ func _spawn_ai_ship(grid_position: int, skill: float) -> void:
 	ai_controller.skill_level = skill
 	ai_controller.ai_active = false  # Activate after countdown
 	ai_controller.debug_draw_enabled = false  # Disable debug visualization
+	ai_controller.avoidance_enabled = ai_avoidance_enabled  # NEW: Set avoidance flag
 	ai_ship.add_child(ai_controller)
 	
 	# Initialize AI with track data
@@ -279,6 +291,61 @@ func _calculate_ai_skill(ai_index: int) -> float:
 	return lerp(skill_range.x, skill_range.y, t)
 
 # ============================================================================
+# AI AVOIDANCE SETUP (NEW)
+# ============================================================================
+
+func _setup_ai_avoidance() -> void:
+	"""Initialize ship avoidance for all AI controllers."""
+	if ai_controllers.is_empty():
+		return
+	
+	# Collect all ShipController references
+	var all_ship_controllers: Array[ShipController] = []
+	
+	# Add player ship
+	if ship_instance and ship_instance is ShipController:
+		all_ship_controllers.append(ship_instance as ShipController)
+	
+	# Add AI ships
+	for ai_ship in ai_ships:
+		if ai_ship is ShipController:
+			all_ship_controllers.append(ai_ship as ShipController)
+	
+	# Tell each AI controller about all ships
+	for ai_controller in ai_controllers:
+		ai_controller.set_race_ships(all_ship_controllers)
+		
+		# Set initial race position based on grid position
+		var grid_pos = ai_controllers.find(ai_controller) + 2  # +2 because player is #1
+		ai_controller.update_race_position(grid_pos, all_ship_controllers.size())
+	
+	print("RaceMode: AI avoidance initialized for %d AI ships (tracking %d total ships)" % [
+		ai_controllers.size(), all_ship_controllers.size()
+	])
+
+func _update_ai_race_positions() -> void:
+	"""Update AI controllers with current race positions for aggression scaling."""
+	if not position_tracker or ai_controllers.is_empty():
+		return
+	
+	var positions = position_tracker.get_positions()
+	var total_ships = positions.size()
+	
+	for entry in positions:
+		var ship = entry.ship
+		var position = entry.position
+		
+		# Skip player ship
+		if ship == ship_instance:
+			continue
+		
+		# Find the AI controller for this ship
+		for ai_controller in ai_controllers:
+			if ai_controller.ship == ship:
+				ai_controller.update_race_position(position, total_ships)
+				break
+
+# ============================================================================
 # POSITION TRACKING
 # ============================================================================
 
@@ -303,6 +370,13 @@ func _on_position_changed(ship: Node3D, old_pos: int, new_pos: int) -> void:
 	if ship == ship_instance:
 		print("RaceMode: Player moved from P%d to P%d" % [old_pos, new_pos])
 		# Could play sound effect here
+	
+	# Update the AI's aggression based on new position (NEW)
+	if ai_avoidance_enabled and ship != ship_instance:
+		for ai_controller in ai_controllers:
+			if ai_controller.ship == ship:
+				ai_controller.update_race_position(new_pos, all_ships.size())
+				break
 
 # ============================================================================
 # UI SETUP
@@ -525,6 +599,10 @@ func _process(delta: float) -> void:
 	# Update position tracker
 	if position_tracker and is_race_active:
 		position_tracker.update(delta)
+	
+	# Update AI race positions periodically for avoidance aggression scaling (NEW)
+	if ai_avoidance_enabled and is_race_active and Engine.get_process_frames() % 15 == 0:
+		_update_ai_race_positions()
 	
 	# Debug: Print positions periodically
 	if is_race_active and Engine.get_process_frames() % 300 == 0:
