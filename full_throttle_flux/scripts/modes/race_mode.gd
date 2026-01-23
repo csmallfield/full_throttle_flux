@@ -234,6 +234,7 @@ func _spawn_ai_ship(grid_position: int, skill: float) -> void:
 	if ai_ship is ShipController:
 		ai_ship.profile = ship_profile
 		ai_ship.ai_controlled = true  # Mark as AI controlled
+		ai_ship.respawn_manager = respawn_manager  # ADD THIS LINE - Assign respawn manager
 	
 	add_child(ai_ship)
 	

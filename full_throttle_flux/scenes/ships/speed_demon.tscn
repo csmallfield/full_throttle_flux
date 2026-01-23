@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://s3b8psg6to1c" path="res://scripts/ships/ship_controller.gd" id="1_lhcrk"]
 [ext_resource type="Resource" uid="uid://cwnf3retb6vwt" path="res://resources/ships/speed_demon.tres" id="2_lhcrk"]
-[ext_resource type="Resource" path="res://resources/ships/default_collision_profile.tres" id="3_o5twe"]
+[ext_resource type="Resource" uid="uid://ci520n0pen75a" path="res://resources/ships/default_collision_profile.tres" id="3_o5twe"]
 [ext_resource type="PackedScene" uid="uid://0xnacsur8x6b" path="res://scenes/ship_test_modified.tscn" id="3_qy5gw"]
 [ext_resource type="Script" uid="uid://d4f1mpwy8pny2" path="res://scripts/ship_audio_controller.gd" id="4_wdfsh"]
 

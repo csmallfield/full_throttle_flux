@@ -105,6 +105,9 @@ var _safe_position_timer := 0.0
 # AI control state
 var ai_controlled: bool = false
 
+## Reference to track respawn manager (set by mode)
+var respawn_manager: TrackRespawnManager = null
+
 # ============================================================================
 # CACHED PROFILE VALUES (for performance)
 # ============================================================================
@@ -406,13 +409,26 @@ func _check_respawn_needed() -> void:
 
 func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = Basis.IDENTITY) -> void:
 	"""Respawn the ship at the last safe position or a custom location."""
-	# Use custom position if provided (non-zero), otherwise use last safe
 	var target_position: Vector3
 	var target_rotation: Basis
 	
+	# Priority 1: Custom position (from RespawnTrigger or direct call)
 	if custom_position != Vector3.ZERO:
 		target_position = custom_position
 		target_rotation = custom_rotation if custom_rotation != Basis.IDENTITY else last_safe_rotation
+	
+	# Priority 2: Respawn manager (procedural safe points)
+	elif respawn_manager and respawn_manager.is_initialized:
+		var respawn_data := respawn_manager.get_nearest_respawn_point(global_position)
+		if respawn_data.found:
+			target_position = respawn_data.position
+			target_rotation = respawn_data.rotation
+		else:
+			# Fallback to last safe
+			target_position = last_safe_position
+			target_rotation = last_safe_rotation
+	
+	# Priority 3: Last safe position (existing behavior)
 	else:
 		target_position = last_safe_position
 		target_rotation = last_safe_rotation
@@ -452,7 +468,14 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 	# Emit signal for UI/audio feedback
 	ship_respawned.emit()
 	
-	print("Ship respawned at: ", target_position)
+	var source := "respawn_manager" if respawn_manager and respawn_manager.is_initialized else "last_safe"
+	if custom_position != Vector3.ZERO:
+		source = "custom"
+	
+	if ai_controlled:
+		print("AI Ship respawned at: %s (source: %s)" % [target_position, source])
+	else:
+		print("Ship respawned at: %s (source: %s)" % [target_position, source])
 
 func set_safe_position(position: Vector3, rotation: Basis) -> void:
 	"""Manually set the safe respawn position (useful for checkpoints)."""

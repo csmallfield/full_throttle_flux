@@ -22,6 +22,7 @@ var ship_instance: Node3D
 var camera_instance: Node3D
 var hud_instance: CanvasLayer
 var starting_grid: StartingGrid
+var respawn_manager: TrackRespawnManager
 
 # ============================================================================
 # STATE
@@ -78,6 +79,7 @@ func setup_race() -> void:
 		return
 	
 	await _load_track()
+	await _setup_respawn_manager()  # CHANGE: Add await
 	await _spawn_ship()
 	_setup_camera()
 	_setup_hud()
@@ -129,9 +131,30 @@ func _find_starting_grid(node: Node) -> StartingGrid:
 			return found
 	return null
 
+
+
 # ============================================================================
 # SHIP SPAWNING
 # ============================================================================
+
+func _setup_respawn_manager() -> void:
+	"""Initialize the track respawn manager."""
+	if not track_instance:
+		return
+	
+	# Create respawn manager
+	respawn_manager = TrackRespawnManager.new()
+	respawn_manager.name = "RespawnManager"
+	
+	# Add as child of mode (will be cleaned up with mode)
+	add_child(respawn_manager)
+	
+	# Initialize with track root (await because initialize is now async)
+	if await respawn_manager.initialize(track_instance):
+		print("ModeBase: Respawn manager initialized")
+	else:
+		push_warning("ModeBase: Failed to initialize respawn manager")
+
 
 func _spawn_ship() -> void:
 	var ship_profile = GameManager.get_selected_ship()
@@ -152,6 +175,7 @@ func _spawn_ship() -> void:
 	# Ensure ship has the correct profile (override what's in scene)
 	if ship_instance is ShipController:
 		ship_instance.profile = ship_profile
+		ship_instance.respawn_manager = respawn_manager  # ADD THIS LINE
 	elif ship_instance.has_method("initialize_with_profile"):
 		ship_instance.initialize_with_profile(ship_profile)
 	

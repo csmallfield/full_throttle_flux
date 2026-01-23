@@ -47,7 +47,41 @@ func _ready() -> void:
 
 func _on_body_entered(body: Node3D) -> void:
 	if body is ShipController:
-		_respawn_ship(body as ShipController)
+		var ship := body as ShipController
+		
+		# Use custom respawn point if specified, otherwise let ship use its respawn manager
+		if use_custom_respawn_point:
+			_respawn_ship_custom(ship)
+		else:
+			_respawn_ship_auto(ship)
+
+func _respawn_ship_custom(ship: ShipController) -> void:
+	"""Respawn to a custom position specified in this trigger."""
+	if debug_mode:
+		print("RespawnTrigger [%s]: Ship entered, respawning to custom point" % name)
+	
+	var position := custom_respawn_position
+	
+	# If we have a marker, use its position instead
+	if respawn_marker:
+		position = respawn_marker.global_position
+	
+	# Build rotation basis from Y rotation
+	var rotation := Basis.IDENTITY.rotated(Vector3.UP, deg_to_rad(custom_respawn_rotation_y))
+	
+	# If marker exists, use its full rotation
+	if respawn_marker:
+		rotation = respawn_marker.global_transform.basis
+	
+	ship.respawn(position, rotation)
+
+func _respawn_ship_auto(ship: ShipController) -> void:
+	"""Respawn using ship's automatic system (respawn manager or last safe)."""
+	if debug_mode:
+		print("RespawnTrigger [%s]: Ship entered, using automatic respawn" % name)
+	
+	# Ship will use its respawn_manager if available, otherwise last_safe_position
+	ship.respawn()
 
 func _respawn_ship(ship: ShipController) -> void:
 	if debug_mode:
