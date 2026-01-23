@@ -13,7 +13,7 @@ dest_files=["res://.godot/imported/engine_idle.wav-6b062d5ff1585b33e864eceb5740c
 [params]
 
 force/8_bit=false
-force/mono=false
+force/mono=true
 force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false

@@ -4,4 +4,4 @@
 
 [resource]
 script = ExtResource("1_script")
-push_force = 1.0
+push_force = 10.0

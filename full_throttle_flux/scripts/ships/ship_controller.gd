@@ -771,9 +771,25 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 		push_dir.y = 0
 		push_dir = push_dir.normalized()
 	
+	# === HEAD-ON COLLISION DETECTION ===
+	# Reduce push force for end-to-end collisions (push aligns with ship forward)
+	var ship_forward := -global_transform.basis.z
+	ship_forward.y = 0
+	ship_forward = ship_forward.normalized()
+	
+	# How aligned is the push with our forward direction? (1 = head-on, 0 = side)
+	var forward_alignment := absf(push_dir.dot(ship_forward))
+	
+	# Reduce push force for head-on collisions (ends of capsule)
+	# Side hits (alignment ~0) get full push, end hits (alignment ~1) get reduced push
+	var head_on_reduction := lerpf(1.0, 0.3, forward_alignment * forward_alignment)
+	
 	# Apply velocity changes scaled by mass ratio
 	var speed_loss := _ship_speed_penalty * mass_ratio
-	var push_amount := _ship_push_force * mass_ratio
+	var push_amount := _ship_push_force * mass_ratio * head_on_reduction
+	
+	# Store velocity before changes for capping
+	var velocity_before := velocity
 	
 	# Retain portion of velocity
 	velocity *= _ship_velocity_retain
@@ -784,6 +800,26 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 	# Apply additional speed penalty along current direction
 	var current_dir := velocity.normalized() if velocity.length() > 0.1 else -global_transform.basis.z
 	velocity -= current_dir * speed_loss
+	
+	# === CAP VELOCITY CHANGE ===
+	# Prevent excessive velocity changes from single collision
+	var max_velocity_change := _max_speed * 0.1  # Max 40% of top speed change
+	var velocity_change := velocity - velocity_before
+	var change_magnitude := velocity_change.length()
+	
+	if change_magnitude > max_velocity_change:
+		velocity = velocity_before + velocity_change.normalized() * max_velocity_change
+	
+	# === PREVENT BACKWARD LAUNCH ===
+	# If collision would reverse our direction significantly, dampen it
+	var original_forward_speed := velocity_before.dot(ship_forward)
+	var new_forward_speed := velocity.dot(ship_forward)
+	
+	# If we were moving forward and now moving backward, limit the reversal
+	if original_forward_speed > 5.0 and new_forward_speed < -5.0:
+		# Remove backward component, keep sideways
+		var sideways := velocity - ship_forward * new_forward_speed
+		velocity = sideways - ship_forward * 5.0  # Allow slight backward, but limited
 	
 	# === SPIN/ROTATION RESPONSE ===
 	# Calculate spin based on where collision occurred relative to ship center
@@ -796,10 +832,11 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 	# Determine spin direction (pushed away from impact side)
 	var spin_direction := signf(to_collision.dot(right))
 	
-	# Calculate spin magnitude
+	# Calculate spin magnitude (reduced for head-on collisions)
 	var spin_magnitude := _ship_spin_force * relative_speed / _max_speed
 	spin_magnitude *= lerpf(1.0, _ship_angle_spin_factor, side_factor / 2.0)
 	spin_magnitude *= mass_ratio
+	spin_magnitude *= (1.0 - forward_alignment * 0.5)  # Less spin for end-to-end
 	spin_magnitude = clampf(spin_magnitude, 0.0, deg_to_rad(_ship_max_spin_rate) * get_physics_process_delta_time())
 	
 	# Apply spin
