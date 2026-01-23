@@ -71,7 +71,7 @@ const SFX_WIND_LOOP := "res://sounds/ship/wind_loop.wav"
 
 @export_group("Airbrake Settings")
 ## Volume of airbrake hydraulic sound (dB)
-@export var airbrake_hydraulic_volume := -6.0
+@export var airbrake_hydraulic_volume := -13.0
 ## Volume of airbrake wind at full airbrake (dB)
 @export var airbrake_wind_max_volume := -6.0
 ## Pitch reduction when airbraking (strain effect)

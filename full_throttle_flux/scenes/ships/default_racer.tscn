@@ -11,8 +11,8 @@ script = ExtResource("3_aqvae")
 push_force = 5.0
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ship"]
-radius = 1.2
-height = 11.638672
+radius = 1.1108398
+height = 10.068848
 
 [node name="DefaultRacer" type="CharacterBody3D"]
 collision_layer = 2
@@ -22,7 +22,7 @@ profile = ExtResource("2_aqvae")
 collision_profile = SubResource("Resource_4u8xt")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(0.585, 0, 0, 0, -2.5571161e-08, -0.585, 0, 0.585, -2.5571161e-08, 0, 0.4741478, 0.36390686)
+transform = Transform3D(0.585, 0, 0, 0, -2.5571161e-08, -0.585, 0, 0.585, -2.5571161e-08, 0, 0.4741478, 0.3463397)
 shape = SubResource("CapsuleShape3D_ship")
 
 [node name="ShipMesh" parent="." instance=ExtResource("3_4u8xt")]
