@@ -105,25 +105,22 @@ var ai_controlled: bool = false
 var respawn_manager: TrackRespawnManager = null
 
 # ============================================================================
-# SHIP COLLISION STATE (v2 - Contact Tracking)
+# SHIP COLLISION STATE (v4 - Torque-Based with Stun)
 # ============================================================================
 
 # Contact state tracking - tracks which ships we're currently in contact with
 # Key: ship instance_id, Value: ContactState dictionary
 var _ship_contacts: Dictionary = {}
 
-# Contact state structure (stored in _ship_contacts)
-# {
-#   "ship": ShipController reference,
-#   "in_contact": bool,
-#   "contact_time": float,        # How long we've been in contact
-#   "last_impact_time": float,    # Time since last collision detected
-#   "impact_cooldown": float,     # Remaining cooldown before next impact
-# }
+# Collision stun state - reduces grip after significant impacts
+var _collision_stun_timer: float = 0.0
+var _collision_stun_intensity: float = 0.0  # 0-1, how much grip is reduced
 
-const IMPACT_COOLDOWN_TIME := 0.25  # Time between impact impulses on same ship
-const CONTACT_TIMEOUT := 0.15       # Time without collision before contact ends
-const MIN_CONTACT_TIME_FOR_RUBBING := 0.05  # Must be in contact this long for "rubbing" mode
+const IMPACT_COOLDOWN_TIME := 0.3   # Time between impact impulses on same ship
+const CONTACT_TIMEOUT := 0.12       # Time without collision before contact ends
+const MIN_CONTACT_TIME_FOR_RUBBING := 0.08  # Must be in contact this long for "rubbing" mode
+const STUN_DURATION := 0.35         # How long grip is reduced after impact
+const STUN_GRIP_MULTIPLIER := 0.25  # Grip multiplied by this during full stun
 
 # ============================================================================
 # CACHED PROFILE VALUES (for performance)
@@ -393,6 +390,7 @@ func _physics_process(delta: float) -> void:
 	_update_visuals(delta)
 	_update_scrape_audio(delta)
 	_update_ship_contacts(delta)
+	_update_collision_stun(delta)
 
 # ============================================================================
 # INPUT HANDLING
@@ -490,8 +488,10 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 	current_track_normal = Vector3.UP
 	smoothed_track_normal = Vector3.UP
 	
-	# Clear ship contacts
+	# Clear ship contacts and collision stun
 	_ship_contacts.clear()
+	_collision_stun_timer = 0.0
+	_collision_stun_intensity = 0.0
 	
 	# Stop any wall scraping audio
 	if _is_scraping_wall:
@@ -626,7 +626,14 @@ func _apply_grip(delta: float) -> void:
 	
 	var target_dir = -global_transform.basis.z
 	var target_velocity = target_dir * current_speed
-	var grip_factor = current_grip * delta
+	
+	# Calculate effective grip (reduced during collision stun)
+	var effective_grip := current_grip
+	if _collision_stun_timer > 0:
+		var stun_factor := _collision_stun_intensity * (1.0 - STUN_GRIP_MULTIPLIER)
+		effective_grip *= (1.0 - stun_factor)
+	
+	var grip_factor = effective_grip * delta
 	velocity = velocity.lerp(target_velocity, grip_factor)
 
 # ============================================================================
@@ -777,9 +784,30 @@ func _handle_wall_collision(wall_normal: Vector3) -> void:
 	if audio_controller and impact_speed > _shake_speed_threshold:
 		audio_controller.play_wall_hit(impact_speed)
 
+
 # ============================================================================
-# SHIP-TO-SHIP COLLISION HANDLING (v3 - One-Sided Processing)
+# SHIP-TO-SHIP COLLISION HANDLING (v4 - Torque-Based with Stun)
 # ============================================================================
+
+func _update_collision_stun(delta: float) -> void:
+	"""Decay collision stun over time."""
+	if _collision_stun_timer > 0:
+		_collision_stun_timer -= delta
+		# Intensity decays with timer
+		_collision_stun_intensity = clampf(_collision_stun_timer / STUN_DURATION, 0.0, 1.0)
+		
+		if _collision_stun_timer <= 0:
+			_collision_stun_timer = 0.0
+			_collision_stun_intensity = 0.0
+
+
+func _apply_collision_stun(intensity: float) -> void:
+	"""Apply collision stun (reduces grip temporarily)."""
+	# Only apply if this would increase the stun
+	if intensity > _collision_stun_intensity:
+		_collision_stun_intensity = clampf(intensity, 0.0, 1.0)
+		_collision_stun_timer = STUN_DURATION
+
 
 func _update_ship_contacts(delta: float) -> void:
 	"""Update contact state tracking and expire old contacts."""
@@ -795,10 +823,6 @@ func _update_ship_contacts(delta: float) -> void:
 		# Update contact timeout
 		contact.last_impact_time += delta
 		
-		# Decay post-collision damping
-		if contact.damping_timer > 0:
-			contact.damping_timer -= delta
-		
 		# If no collision detected recently, end contact
 		if contact.last_impact_time > CONTACT_TIMEOUT:
 			contact.in_contact = false
@@ -812,27 +836,24 @@ func _update_ship_contacts(delta: float) -> void:
 
 func _handle_ship_collision(other_ship: ShipController, collision: KinematicCollision3D) -> void:
 	"""
-	Handle WipEout-style ship-to-ship collision with impulse-based physics.
+	Handle ship-to-ship collision with torque-based rotation physics.
 	
-	v3 improvements:
-	- One-sided processing (lower instance_id handles collision for both ships)
-	- Mutual rear-end detection (detects if hitter OR being hit from behind)
-	- Post-collision damping for weight feel
-	- Prevents double-impulse from both ships processing same collision
+	v4 - Torque-based rotation:
+	- Impact point relative to center of mass determines rotation direction
+	- Hit on rear → nose rotates toward impact
+	- Hit on front → nose rotates away from impact
+	- Collision stun reduces grip temporarily for natural sliding
 	"""
 	var my_id := get_instance_id()
 	var other_id := other_ship.get_instance_id()
 	var collision_normal := collision.get_normal()
+	var collision_point := collision.get_position()
 	var delta := get_physics_process_delta_time()
 	
 	# === ONE-SIDED COLLISION PROCESSING ===
-	# Only the ship with lower instance_id processes the collision for both ships.
-	# This prevents double-application of forces.
 	var i_am_primary := my_id < other_id
 	
 	if not i_am_primary:
-		# We're the secondary ship - just update contact state, don't apply forces
-		# The other ship will handle the physics for both of us
 		_update_contact_state_only(other_ship)
 		return
 	
@@ -844,20 +865,16 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 			"contact_time": 0.0,
 			"last_impact_time": 0.0,
 			"impact_cooldown": 0.0,
-			"damping_timer": 0.0,
 		}
 	
 	var contact: Dictionary = _ship_contacts[other_id]
-	contact.last_impact_time = 0.0  # Reset timeout
+	contact.last_impact_time = 0.0
 	
 	# === CALCULATE RELATIVE VELOCITY ===
 	var relative_velocity := velocity - other_ship.velocity
-	
-	# Project relative velocity onto collision normal
-	# This is the "closing speed" - how fast we're approaching along the collision direction
 	var closing_speed := relative_velocity.dot(-collision_normal)
 	
-	# If ships are separating (negative closing speed), only apply soft separation
+	# If ships are separating, only apply soft separation
 	if closing_speed < _ship_ignore_speed:
 		_apply_mutual_soft_separation(other_ship, collision_normal, delta)
 		contact.in_contact = true
@@ -865,8 +882,6 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 		return
 	
 	# === DETERMINE COLLISION TYPE ===
-	var rear_end_info: Dictionary = _detect_rear_end_collision(other_ship)
-	var is_rear_end: bool = rear_end_info.is_rear_end
 	var is_first_contact: bool = not contact.in_contact
 	var is_rubbing: bool = contact.contact_time > MIN_CONTACT_TIME_FOR_RUBBING
 	var can_apply_impact: bool = contact.impact_cooldown <= 0
@@ -876,31 +891,153 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 	contact.contact_time += delta
 	
 	# === HANDLE BASED ON COLLISION TYPE ===
-	if is_rear_end:
-		_handle_rear_end_collision_mutual(other_ship, collision_normal, closing_speed, rear_end_info, delta)
-	elif is_first_contact and can_apply_impact:
-		# First contact - apply full impact impulse to both ships
-		_apply_mutual_impact_impulse(other_ship, collision_normal, closing_speed, delta)
+	if is_first_contact and can_apply_impact:
+		# First contact - full impact with torque
+		_apply_torque_based_collision(other_ship, collision_normal, collision_point, closing_speed, delta)
 		contact.impact_cooldown = IMPACT_COOLDOWN_TIME
-		contact.damping_timer = 0.15  # Brief damping period for weight feel
 	elif is_rubbing:
-		# Sustained contact - apply friction and soft separation
+		# Sustained contact - friction and soft separation
 		_apply_mutual_rubbing_response(other_ship, collision_normal, relative_velocity, delta)
 	elif can_apply_impact:
-		# Repeated impact (not rubbing, cooldown expired)
-		_apply_mutual_impact_impulse(other_ship, collision_normal, closing_speed * 0.6, delta)
+		# Repeated impact
+		_apply_torque_based_collision(other_ship, collision_normal, collision_point, closing_speed * 0.5, delta)
 		contact.impact_cooldown = IMPACT_COOLDOWN_TIME
 	else:
-		# On cooldown - just soft separation
+		# On cooldown
 		_apply_mutual_soft_separation(other_ship, collision_normal, delta)
 	
-	# === FEEDBACK (only for player ship) ===
+	# === FEEDBACK ===
 	if not ai_controlled:
 		_apply_collision_feedback(closing_speed)
 
 
+func _apply_torque_based_collision(other_ship: ShipController, collision_normal: Vector3, collision_point: Vector3, closing_speed: float, delta: float) -> void:
+	"""
+	Apply collision with proper torque-based rotation.
+	
+	The key insight: impact point relative to center of mass determines rotation.
+	- Lever arm pointing backward (hit on rear) → nose rotates TOWARD impact side
+	- Lever arm pointing forward (hit on front) → nose rotates AWAY from impact side
+	"""
+	if closing_speed < _ship_min_impact_speed:
+		_apply_mutual_soft_separation(other_ship, collision_normal, delta)
+		return
+	
+	# === MASS CALCULATIONS ===
+	var my_mass := _ship_collision_mass
+	var their_mass := other_ship._ship_collision_mass
+	if my_mass < 0.01: my_mass = 1.0
+	if their_mass < 0.01: their_mass = 1.0
+	
+	var total_mass := my_mass + their_mass
+	var my_mass_ratio := their_mass / total_mass      # I move more if they're heavier
+	var their_mass_ratio := my_mass / total_mass      # They move more if I'm heavier
+	
+	# === LINEAR IMPULSE ===
+	var impulse_magnitude := (1.0 + _ship_restitution) * closing_speed
+	impulse_magnitude /= (1.0 / my_mass + 1.0 / their_mass)
+	impulse_magnitude *= 0.6  # Scale for game feel
+	
+	# Horizontal collision normal
+	var push_dir := collision_normal
+	push_dir.y *= 0.1
+	push_dir = push_dir.normalized()
+	
+	# Apply linear velocity changes
+	var my_push := push_dir * impulse_magnitude * my_mass_ratio * 0.5
+	var their_push := -push_dir * impulse_magnitude * their_mass_ratio * 0.5
+	
+	# Cap velocity changes
+	var max_push := _ship_max_separation_speed * 0.7
+	if my_push.length() > max_push:
+		my_push = my_push.normalized() * max_push
+	if their_push.length() > max_push:
+		their_push = their_push.normalized() * max_push
+	
+	velocity += my_push
+	other_ship.velocity += their_push
+	
+	# === TORQUE-BASED ROTATION ===
+	# Calculate for both ships
+	_apply_torque_rotation(collision_point, push_dir, closing_speed, my_mass_ratio, delta)
+	other_ship._apply_torque_rotation(collision_point, -push_dir, closing_speed, their_mass_ratio, delta)
+	
+	# === COLLISION STUN (reduces grip) ===
+	var stun_intensity := clampf(closing_speed / 50.0, 0.3, 1.0)
+	_apply_collision_stun(stun_intensity)
+	other_ship._apply_collision_stun(stun_intensity * 0.8)  # Slightly less stun for ship being hit
+	
+	# === SMALL SPEED LOSS (energy absorption) ===
+	var damping := 0.97
+	velocity *= damping
+	other_ship.velocity *= damping
+	
+	# Emit signals
+	ship_collision.emit(other_ship, closing_speed)
+	other_ship.ship_collision.emit(self, closing_speed)
+
+
+func _apply_torque_rotation(collision_point: Vector3, impact_direction: Vector3, impact_speed: float, mass_ratio: float, delta: float) -> void:
+	"""
+	Apply rotation based on where the ship was hit (torque physics).
+	
+	Lever arm = collision point relative to ship center
+	- Negative forward component (hit on rear) → rotate nose TOWARD impact side
+	- Positive forward component (hit on front) → rotate nose AWAY from impact side
+	- Near zero (hit on center) → minimal rotation
+	"""
+	# Get ship's local axes
+	var ship_center := global_position
+	var ship_forward := -global_transform.basis.z
+	var ship_right := global_transform.basis.x
+	
+	# Calculate lever arm (collision point relative to ship center, horizontal only)
+	var lever_arm := collision_point - ship_center
+	lever_arm.y = 0
+	
+	# How far forward/backward is the hit point?
+	# Positive = hit in front of center, Negative = hit behind center
+	var forward_offset := lever_arm.dot(ship_forward)
+	
+	# How far left/right is the hit point?
+	# Positive = hit on right side, Negative = hit on left side
+	var side_offset := lever_arm.dot(ship_right)
+	
+	# Torque direction:
+	# Hit on rear-right → rotate nose RIGHT (positive yaw)
+	# Hit on rear-left → rotate nose LEFT (negative yaw)
+	# Hit on front-right → rotate nose LEFT (negative yaw)
+	# Hit on front-left → rotate nose RIGHT (positive yaw)
+	
+	# The sign flips based on whether hit is in front or behind center
+	var torque_direction: float
+	if absf(forward_offset) < 0.5:
+		# Hit near center - minimal rotation, based purely on impact direction
+		torque_direction = -signf(side_offset) * 0.3
+	else:
+		# Torque = lever_arm × force (cross product gives rotation direction)
+		# For yaw rotation: positive forward_offset with positive side = negative rotation
+		torque_direction = -signf(forward_offset) * signf(side_offset)
+	
+	# Torque magnitude based on:
+	# - How far off-center the hit is (lever arm length)
+	# - Impact speed
+	# - Mass ratio (lighter ships rotate more)
+	var lever_length := lever_arm.length()
+	var torque_magnitude := impact_speed * _ship_spin_impulse_factor * mass_ratio
+	torque_magnitude *= clampf(lever_length / 2.0, 0.3, 1.5)  # Scale by lever arm
+	torque_magnitude *= delta
+	
+	# Cap rotation rate
+	var max_rotation := deg_to_rad(_ship_max_spin_rate) * delta
+	torque_magnitude = clampf(torque_magnitude, 0.0, max_rotation)
+	
+	# Apply rotation
+	rotate_y(torque_direction * torque_magnitude)
+
+
 func _update_contact_state_only(other_ship: ShipController) -> void:
-	"""Update contact tracking without applying forces (for secondary ship in collision pair)."""
+	"""Update contact tracking without applying forces (for secondary ship)."""
 	var other_id := other_ship.get_instance_id()
 	
 	if not _ship_contacts.has(other_id):
@@ -910,7 +1047,6 @@ func _update_contact_state_only(other_ship: ShipController) -> void:
 			"contact_time": 0.0,
 			"last_impact_time": 0.0,
 			"impact_cooldown": 0.0,
-			"damping_timer": 0.0,
 		}
 	
 	var contact: Dictionary = _ship_contacts[other_id]
@@ -919,239 +1055,40 @@ func _update_contact_state_only(other_ship: ShipController) -> void:
 	contact.contact_time += get_physics_process_delta_time()
 
 
-func _detect_rear_end_collision(other_ship: ShipController) -> Dictionary:
-	"""
-	Detect rear-end collision from either perspective (hitter or being hit).
-	Returns info about which ship is the hitter and which is being hit.
-	"""
-	var result := {
-		"is_rear_end": false,
-		"hitter": null,  # The faster ship hitting from behind
-		"victim": null,  # The slower ship being hit
-	}
-	
-	# Get forward directions (horizontal)
-	var my_forward := -global_transform.basis.z
-	my_forward.y = 0
-	if my_forward.length() < 0.1:
-		return result
-	my_forward = my_forward.normalized()
-	
-	var their_forward := -other_ship.global_transform.basis.z
-	their_forward.y = 0
-	if their_forward.length() < 0.1:
-		return result
-	their_forward = their_forward.normalized()
-	
-	# Check if ships are facing roughly the same direction
-	var threshold_rad := deg_to_rad(_ship_rear_end_angle_threshold)
-	var alignment := my_forward.dot(their_forward)
-	if alignment < cos(threshold_rad):
-		return result  # Not same direction, not a rear-end
-	
-	# Direction vectors
-	var to_other := other_ship.global_position - global_position
-	to_other.y = 0
-	if to_other.length() < 0.1:
-		return result
-	to_other = to_other.normalized()
-	
-	var my_speed := velocity.length()
-	var their_speed := other_ship.velocity.length()
-	var speed_threshold := 3.0  # Minimum speed difference for rear-end
-	
-	# Check if I'm hitting them from behind
-	var i_face_them := my_forward.dot(to_other) > 0.5
-	var they_face_away := their_forward.dot(to_other) > 0.3
-	var i_am_faster := my_speed > their_speed + speed_threshold
-	
-	if i_face_them and they_face_away and i_am_faster:
-		result.is_rear_end = true
-		result.hitter = self
-		result.victim = other_ship
-		return result
-	
-	# Check if they're hitting me from behind
-	var to_me := -to_other
-	var they_face_me := their_forward.dot(to_me) > 0.5
-	var i_face_away := my_forward.dot(to_me) > 0.3
-	var they_are_faster := their_speed > my_speed + speed_threshold
-	
-	if they_face_me and i_face_away and they_are_faster:
-		result.is_rear_end = true
-		result.hitter = other_ship
-		result.victim = self
-		return result
-	
-	return result
-
-
-func _apply_mutual_impact_impulse(other_ship: ShipController, collision_normal: Vector3, closing_speed: float, delta: float) -> void:
-	"""
-	Apply physics-based impulse to BOTH ships (called only by primary ship).
-	Uses coefficient of restitution and mass ratio for realistic momentum transfer.
-	"""
-	if closing_speed < _ship_min_impact_speed:
-		_apply_mutual_soft_separation(other_ship, collision_normal, delta)
-		return
-	
-	# === CALCULATE IMPULSE MAGNITUDE ===
-	# Using impulse formula: j = -(1 + e) * v_rel / (1/m1 + 1/m2)
-	var my_mass := _ship_collision_mass
-	var their_mass := other_ship._ship_collision_mass
-	
-	if my_mass < 0.01:
-		my_mass = 1.0
-	if their_mass < 0.01:
-		their_mass = 1.0
-	
-	var impulse_magnitude := (1.0 + _ship_restitution) * closing_speed
-	impulse_magnitude /= (1.0 / my_mass + 1.0 / their_mass)
-	
-	# Increase base impulse for more weight feel (was 0.5, now 0.8)
-	impulse_magnitude *= 0.8
-	
-	# === APPLY IMPULSE TO BOTH SHIPS ===
-	var impulse := collision_normal * impulse_magnitude
-	
-	# I get pushed in the collision normal direction
-	var my_velocity_change := impulse / my_mass
-	# They get pushed in the opposite direction
-	var their_velocity_change := -impulse / their_mass
-	
-	# Cap velocity changes
-	var max_change := _ship_max_separation_speed
-	if my_velocity_change.length() > max_change:
-		my_velocity_change = my_velocity_change.normalized() * max_change
-	if their_velocity_change.length() > max_change:
-		their_velocity_change = their_velocity_change.normalized() * max_change
-	
-	velocity += my_velocity_change
-	other_ship.velocity += their_velocity_change
-	
-	# === POST-COLLISION DAMPING (weight feel) ===
-	# Briefly reduce both ships' velocities to simulate energy absorption
-	var damping := 0.95  # 5% speed loss on impact
-	velocity *= damping
-	other_ship.velocity *= damping
-	
-	# === APPLY SPIN TO BOTH ===
-	_apply_collision_spin(collision_normal, closing_speed, delta)
-	other_ship._apply_collision_spin(-collision_normal, closing_speed, delta)
-	
-	# Emit signals
-	ship_collision.emit(other_ship, closing_speed)
-	other_ship.ship_collision.emit(self, closing_speed)
-
-
-func _handle_rear_end_collision_mutual(other_ship: ShipController, collision_normal: Vector3, closing_speed: float, rear_end_info: Dictionary, delta: float) -> void:
-	"""
-	Handle rear-end collision for both ships.
-	The hitter slows down, the victim gets a small push forward.
-	"""
-	var hitter: ShipController = rear_end_info.hitter
-	var victim: ShipController = rear_end_info.victim
-	
-	if hitter == null or victim == null:
-		_apply_mutual_soft_separation(other_ship, collision_normal, delta)
-		return
-	
-	var hitter_speed := hitter.velocity.length()
-	var victim_speed := victim.velocity.length()
-	var speed_diff := hitter_speed - victim_speed
-	
-	if speed_diff < 1.0:
-		_apply_mutual_soft_separation(other_ship, collision_normal, delta)
-		return
-	
-	# Get hitter's forward direction
-	var hitter_forward := -hitter.global_transform.basis.z
-	hitter_forward.y = 0
-	hitter_forward = hitter_forward.normalized()
-	
-	# Get victim's forward direction
-	var victim_forward := -victim.global_transform.basis.z
-	victim_forward.y = 0
-	victim_forward = victim_forward.normalized()
-	
-	# === BRAKE THE HITTER ===
-	var brake_amount := speed_diff * _ship_rear_end_brake_factor * delta * 8.0
-	brake_amount = minf(brake_amount, speed_diff * 0.4)
-	hitter.velocity -= hitter_forward * brake_amount
-	
-	# === PUSH THE VICTIM FORWARD (small boost) ===
-	var push_amount := speed_diff * _ship_rear_end_push_factor * delta * 5.0
-	push_amount = minf(push_amount, 10.0 * delta)  # Cap the push
-	victim.velocity += victim_forward * push_amount
-	
-	# === SLIGHT LATERAL SEPARATION ===
-	var lateral := collision_normal
-	lateral.y = 0
-	if lateral.length() > 0.1:
-		lateral = lateral.normalized()
-		var lateral_force := _ship_separation_force * 0.2 * delta
-		
-		# Push both ships apart slightly
-		if hitter == self:
-			velocity += lateral * lateral_force
-			other_ship.velocity -= lateral * lateral_force
-		else:
-			velocity -= lateral * lateral_force
-			other_ship.velocity += lateral * lateral_force
-	
-	# === MINIMAL SPIN ===
-	var spin_amount := closing_speed * _ship_spin_impulse_factor * 0.15 * delta
-	spin_amount = clampf(spin_amount, 0.0, deg_to_rad(_ship_max_spin_rate * 0.2) * delta)
-	
-	var to_other := other_ship.global_position - global_position
-	var spin_dir := signf(to_other.dot(global_transform.basis.x))
-	rotate_y(-spin_dir * spin_amount)
-	other_ship.rotate_y(spin_dir * spin_amount * 0.5)
-	
-	# Emit signals with reduced intensity
-	ship_collision.emit(other_ship, closing_speed * 0.3)
-	other_ship.ship_collision.emit(self, closing_speed * 0.3)
-
-
 func _apply_mutual_rubbing_response(other_ship: ShipController, collision_normal: Vector3, relative_velocity: Vector3, delta: float) -> void:
-	"""
-	Handle sustained contact (ships rubbing against each other).
-	Applies friction and soft separation to both ships.
-	"""
-	# === SOFT SEPARATION ===
+	"""Handle sustained contact with friction."""
 	_apply_mutual_soft_separation(other_ship, collision_normal, delta)
 	
-	# === FRICTION ===
+	# Friction
 	var normal_component := collision_normal * relative_velocity.dot(collision_normal)
 	var tangent_velocity := relative_velocity - normal_component
 	
 	if tangent_velocity.length() > 1.0:
-		var friction_force := tangent_velocity.normalized() * _ship_friction * delta * 15.0
+		var friction_force := tangent_velocity.normalized() * _ship_friction * delta * 12.0
 		
-		if friction_force.length() > tangent_velocity.length() * 0.3:
-			friction_force = tangent_velocity * 0.3
+		if friction_force.length() > tangent_velocity.length() * 0.25:
+			friction_force = tangent_velocity * 0.25
 		
-		# Apply friction to both ships (half each)
 		velocity -= friction_force * 0.5
 		other_ship.velocity += friction_force * 0.5
+	
+	# Light stun during rubbing
+	_apply_collision_stun(0.2)
+	other_ship._apply_collision_stun(0.2)
 
 
 func _apply_mutual_soft_separation(other_ship: ShipController, collision_normal: Vector3, delta: float) -> void:
-	"""
-	Apply gentle separation force to BOTH ships to prevent overlap.
-	"""
+	"""Apply gentle separation force to both ships."""
 	var distance := global_position.distance_to(other_ship.global_position)
 	var overlap := _ship_contact_distance - distance
 	
 	if overlap <= 0:
 		return
 	
-	# Separation force increases with overlap depth
 	var force_magnitude := overlap * _ship_separation_force * _ship_separation_stiffness
 	
-	# Direction: away from other ship (horizontal)
 	var separation_dir := collision_normal
-	separation_dir.y *= 0.1
+	separation_dir.y *= 0.05
 	if separation_dir.length() > 0.1:
 		separation_dir = separation_dir.normalized()
 	else:
@@ -1162,33 +1099,18 @@ func _apply_mutual_soft_separation(other_ship: ShipController, collision_normal:
 		else:
 			separation_dir = Vector3.RIGHT
 	
-	# Calculate separation velocity
 	var separation_velocity := separation_dir * force_magnitude * delta
 	
-	# Cap separation speed
-	var max_sep := _ship_max_separation_speed * delta
+	var max_sep := _ship_max_separation_speed * delta * 0.5
 	if separation_velocity.length() > max_sep:
 		separation_velocity = separation_velocity.normalized() * max_sep
 	
-	# Apply to both ships (half each for balanced response)
 	velocity += separation_velocity * 0.5
 	other_ship.velocity -= separation_velocity * 0.5
 
 
-func _apply_collision_spin(collision_normal: Vector3, impact_speed: float, delta: float) -> void:
-	"""Apply rotational response to collision."""
-	var right := global_transform.basis.x
-	var hit_side := collision_normal.dot(right)
-	
-	var spin_magnitude := impact_speed * _ship_spin_impulse_factor * delta
-	spin_magnitude *= absf(hit_side)
-	spin_magnitude = clampf(spin_magnitude, 0.0, deg_to_rad(_ship_max_spin_rate) * delta)
-	
-	rotate_y(-signf(hit_side) * spin_magnitude)
-
-
 func _apply_collision_feedback(impact_speed: float) -> void:
-	"""Apply camera shake and audio feedback for collision."""
+	"""Apply camera shake and audio feedback."""
 	if _ship_shake_enabled and camera and impact_speed > _ship_shake_speed_threshold:
 		var intensity_ratio := (impact_speed - _ship_shake_speed_threshold) / 50.0
 		intensity_ratio = clampf(intensity_ratio, 0.0, 1.0)

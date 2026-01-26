@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 restitution = 0.6
+collision_mass = 10.0
 friction = 0.25
 min_impact_speed = 8.0
 ignore_speed = 3.0
