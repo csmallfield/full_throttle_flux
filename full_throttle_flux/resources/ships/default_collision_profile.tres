@@ -4,38 +4,20 @@
 
 [resource]
 script = ExtResource("1_script")
-
-; Impulse Physics
-restitution = 0.35
-collision_mass = 1.0
+restitution = 0.6
 friction = 0.25
-
-; Thresholds
 min_impact_speed = 8.0
 ignore_speed = 3.0
 contact_distance = 3.8
-
-; Separation
 separation_force = 30.0
 max_separation_speed = 18.0
 separation_stiffness = 2.5
-
-; Spin Effects
 spin_impulse_factor = 0.6
 max_spin_rate = 50.0
 contact_spin_damping = 0.6
-
-; Rear-End Collisions
 rear_end_brake_factor = 0.5
 rear_end_push_factor = 0.35
 rear_end_angle_threshold = 40.0
-
-; Feedback
-collision_shake_enabled = true
 shake_intensity = 0.3
 shake_speed_threshold = 12.0
 sound_speed_threshold = 8.0
-
-; Damage (Future)
-base_collision_damage = 10.0
-damage_speed_multiplier = 0.5
