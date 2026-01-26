@@ -4,21 +4,3 @@
 
 [resource]
 script = ExtResource("1_script")
-restitution = 0.6
-collision_mass = 10.0
-friction = 0.25
-min_impact_speed = 8.0
-ignore_speed = 3.0
-contact_distance = 3.8
-separation_force = 30.0
-max_separation_speed = 18.0
-separation_stiffness = 2.5
-spin_impulse_factor = 0.6
-max_spin_rate = 50.0
-contact_spin_damping = 0.6
-rear_end_brake_factor = 0.5
-rear_end_push_factor = 0.35
-rear_end_angle_threshold = 40.0
-shake_intensity = 0.3
-shake_speed_threshold = 12.0
-sound_speed_threshold = 8.0

@@ -1025,7 +1025,7 @@ func _apply_torque_rotation(collision_point: Vector3, impact_direction: Vector3,
 	# - Mass ratio (lighter ships rotate more)
 	var lever_length := lever_arm.length()
 	var torque_magnitude := impact_speed * _ship_spin_impulse_factor * mass_ratio
-	torque_magnitude *= clampf(lever_length / 2.0, 0.3, 1.5)  # Scale by lever arm
+	torque_magnitude *= clampf(lever_length / 2.0, 0.3, 2.5)  # Scale by lever arm
 	torque_magnitude *= delta
 	
 	# Cap rotation rate
