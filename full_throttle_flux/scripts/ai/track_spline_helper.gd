@@ -171,13 +171,13 @@ func spline_offset_to_world_with_lateral(offset: float, lateral: float) -> Vecto
 	var right := tangent.cross(up).normalized()  # FIXED: was up.cross(tangent)
 	
 	# Debug output to verify the calculation
-	if Engine.get_physics_frames() % 120 == 0:
-		print("LATERAL DEBUG: lateral=%.1f tangent=%s up=%s right=%s" % [
-			lateral, tangent, up, right
-		])
-		print("LATERAL DEBUG: center=%s result=%s" % [
-			center, center + right * lateral
-		])
+	#if Engine.get_physics_frames() % 120 == 0:
+		#print("LATERAL DEBUG: lateral=%.1f tangent=%s up=%s right=%s" % [
+			#lateral, tangent, up, right
+		#])
+		#print("LATERAL DEBUG: center=%s result=%s" % [
+			#center, center + right * lateral
+		#])
 	
 	return center + right * lateral
 

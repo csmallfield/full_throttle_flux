@@ -8,3 +8,4 @@ separation_force = 5.0
 separation_stiffness = 1.0
 spin_impulse_factor = 1.8
 max_spin_rate = 90.0
+rear_end_brake_factor = 0.1

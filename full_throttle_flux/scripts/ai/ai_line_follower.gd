@@ -128,13 +128,13 @@ func initialize(p_spline_helper: TrackSplineHelper, p_track_ai_data: TrackAIData
 	track_ai_data = p_track_ai_data
 	has_recorded_data = track_ai_data != null and track_ai_data.has_recorded_data()
 	
-	if has_recorded_data:
-		print("AILineFollower: Initialized with recorded data (skill: %.2f)" % skill_level)
-	else:
-		print("AILineFollower: Initialized in centerline fallback mode (skill: %.2f)" % skill_level)
-		print("  Track half-width: %.1fm, Wall margin: %.1fm, Usable: %.1fm" % [
-			estimated_track_half_width, wall_margin, estimated_track_half_width - wall_margin
-		])
+	#if has_recorded_data:
+		#print("AILineFollower: Initialized with recorded data (skill: %.2f)" % skill_level)
+	#else:
+		#print("AILineFollower: Initialized in centerline fallback mode (skill: %.2f)" % skill_level)
+		#print("  Track half-width: %.1fm, Wall margin: %.1fm, Usable: %.1fm" % [
+			#estimated_track_half_width, wall_margin, estimated_track_half_width - wall_margin
+		#])
 
 func set_skill(skill: float) -> void:
 	skill_level = clamp(skill, 0.0, 1.0)
@@ -527,13 +527,13 @@ func _get_recorded_target(lookahead: float, max_speed: float) -> Dictionary:
 	var current_sample: AIRacingSample = track_ai_data.get_interpolated_sample(current_spline_offset, skill_level)
 	
 	# DEBUG: Print what we're getting from recorded data
-	if Engine.get_physics_frames() % 60 == 0 and lookahead_sample:
-		print("RECORDED DATA: speed=%.1f, lateral=%.2f, throttle=%.2f, offset=%.3f" % [
-			lookahead_sample.speed,
-			lookahead_sample.lateral_offset,
-			lookahead_sample.throttle,
-			lookahead_sample.spline_offset
-		])
+	#if Engine.get_physics_frames() % 60 == 0 and lookahead_sample:
+		#print("RECORDED DATA: speed=%.1f, lateral=%.2f, throttle=%.2f, offset=%.3f" % [
+			#lookahead_sample.speed,
+			#lookahead_sample.lateral_offset,
+			#lookahead_sample.throttle,
+			#lookahead_sample.spline_offset
+		#])
 	
 	if lookahead_sample == null:
 		print("WARNING: lookahead_sample is NULL - falling back to centerline!")
