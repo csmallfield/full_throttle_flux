@@ -183,8 +183,8 @@ var _ship_contact_distance: float = 3.5
 var _ship_separation_force: float = 25.0
 var _ship_max_separation_speed: float = 15.0
 var _ship_separation_stiffness: float = 2.0
-var _ship_spin_impulse_factor: float = 0.8
-var _ship_max_spin_rate: float = 60.0
+var _ship_spin_impulse_factor: float = 1.8
+var _ship_max_spin_rate: float = 90.0
 var _ship_contact_spin_damping: float = 0.5
 var _ship_rear_end_brake_factor: float = 0.6
 var _ship_rear_end_push_factor: float = 0.4
@@ -1025,7 +1025,7 @@ func _apply_torque_rotation(collision_point: Vector3, impact_direction: Vector3,
 	# - Mass ratio (lighter ships rotate more)
 	var lever_length := lever_arm.length()
 	var torque_magnitude := impact_speed * _ship_spin_impulse_factor * mass_ratio
-	torque_magnitude *= clampf(lever_length / 2.0, 0.3, 2.5)  # Scale by lever arm
+	torque_magnitude *= clampf(lever_length / 2.0, 0.3, 5.5)  # Scale by lever arm
 	torque_magnitude *= delta
 	
 	# Cap rotation rate
