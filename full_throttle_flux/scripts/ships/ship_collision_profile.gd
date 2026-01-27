@@ -107,7 +107,7 @@ class_name ShipCollisionProfile
 @export var shake_speed_threshold: float = 15.0
 
 ## Impact speed threshold for collision sound
-@export var sound_speed_threshold: float = 10.0
+@export var sound_speed_threshold: float = 1.0
 
 # ============================================================================
 # FUTURE: DAMAGE SYSTEM HOOKS

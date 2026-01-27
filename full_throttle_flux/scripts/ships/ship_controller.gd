@@ -183,16 +183,16 @@ var _ship_contact_distance: float = 3.5
 var _ship_separation_force: float = 25.0
 var _ship_max_separation_speed: float = 15.0
 var _ship_separation_stiffness: float = 2.0
-var _ship_spin_impulse_factor: float = 1.8
-var _ship_max_spin_rate: float = 90.0
+var _ship_spin_impulse_factor: float = 0.8
+var _ship_max_spin_rate: float = 60.0
 var _ship_contact_spin_damping: float = 0.5
 var _ship_rear_end_brake_factor: float = 0.6
 var _ship_rear_end_push_factor: float = 0.4
 var _ship_rear_end_angle_threshold: float = 35.0
 var _ship_shake_enabled: bool = true
 var _ship_shake_intensity: float = 0.35
-var _ship_shake_speed_threshold: float = 15.0
-var _ship_sound_speed_threshold: float = 10.0
+var _ship_shake_speed_threshold: float = 10.0
+var _ship_sound_speed_threshold: float = 0.1
 
 # ============================================================================
 # INITIALIZATION
@@ -1025,7 +1025,7 @@ func _apply_torque_rotation(collision_point: Vector3, impact_direction: Vector3,
 	# - Mass ratio (lighter ships rotate more)
 	var lever_length := lever_arm.length()
 	var torque_magnitude := impact_speed * _ship_spin_impulse_factor * mass_ratio
-	torque_magnitude *= clampf(lever_length / 2.0, 0.3, 5.5)  # Scale by lever arm
+	torque_magnitude *= clampf(lever_length / 2.0, 0.3, 1.5)  # Scale by lever arm
 	torque_magnitude *= delta
 	
 	# Cap rotation rate
@@ -1111,6 +1111,8 @@ func _apply_mutual_soft_separation(other_ship: ShipController, collision_normal:
 
 func _apply_collision_feedback(impact_speed: float) -> void:
 	"""Apply camera shake and audio feedback."""
+	print("_apply_collision_feedback called with impact_speed: ", impact_speed, " threshold: ", _ship_sound_speed_threshold)  # DEBUG
+	
 	if _ship_shake_enabled and camera and impact_speed > _ship_shake_speed_threshold:
 		var intensity_ratio := (impact_speed - _ship_shake_speed_threshold) / 50.0
 		intensity_ratio = clampf(intensity_ratio, 0.0, 1.0)
@@ -1118,8 +1120,12 @@ func _apply_collision_feedback(impact_speed: float) -> void:
 		if camera.has_method("apply_shake"):
 			camera.apply_shake(final_intensity)
 	
-	if audio_controller and impact_speed > _ship_sound_speed_threshold:
-		audio_controller.play_wall_hit(impact_speed * 0.6)
+	# Use a lower threshold for ship collision sounds (closing speeds are often lower than wall impacts)
+	var ship_sound_threshold := _ship_sound_speed_threshold * 0.5  # Half the normal threshold
+	if audio_controller and impact_speed > ship_sound_threshold:
+		audio_controller.play_ship_collision(impact_speed)
+	else:
+		print("  -> Sound NOT played: impact_speed ", impact_speed, " <= threshold ", ship_sound_threshold)  # DEBUG
 
 # ============================================================================
 # VISUAL FEEDBACK

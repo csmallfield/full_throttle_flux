@@ -19,6 +19,7 @@ const SFX_ENGINE_BOOST := "res://sounds/ship/engine_boost_layer.wav"
 const SFX_BOOST_SURGE := "res://sounds/ship/boost_surge.wav"
 const SFX_WALL_HIT := "res://sounds/ship/wall_hit.wav"
 const SFX_WALL_SCRAPE := "res://sounds/ship/wall_scrape.wav"
+const SFX_SHIP_COLLISION := "res://sounds/ship/ship_collision.wav"
 const SFX_AIRBRAKE_HYDRAULIC := "res://sounds/ship/airbrake_hydraulic.wav"
 const SFX_AIRBRAKE_WIND := "res://sounds/ship/airbrake_wind.wav"
 const SFX_SHIP_LAND := "res://sounds/ship/ship_land.wav"
@@ -88,6 +89,12 @@ const SFX_WIND_LOOP := "res://sounds/ship/wind_loop.wav"
 @export var wall_hit_volume := 0.0
 ## Volume of wall scrape loop (dB)
 @export var wall_scrape_volume := -6.0
+## Volume of ship-to-ship collision sound (dB)
+@export var ship_collision_volume := -6.0
+## Minimum pitch for ship collision (low speed impacts)
+@export var ship_collision_min_pitch := 0.85
+## Maximum pitch for ship collision (high speed impacts)
+@export var ship_collision_max_pitch := 1.15
 ## Volume of landing sound (dB)
 @export var land_volume := -3.0
 ## Minimum airborne time to trigger landing sound
@@ -103,11 +110,14 @@ var _engine_mid: AudioStreamPlayer3D
 var _engine_high: AudioStreamPlayer3D
 var _engine_boost_layer: AudioStreamPlayer3D
 
-# One-shot sounds
+# One-shot sounds (3D positional)
 var _boost_surge: AudioStreamPlayer3D
 var _wall_hit: AudioStreamPlayer3D
 var _ship_land: AudioStreamPlayer3D
 var _airbrake_hydraulic: AudioStreamPlayer3D
+
+# Non-positional sounds (for player feedback that should always be audible)
+var _ship_collision_local: AudioStreamPlayer
 
 # Looping effects
 var _wall_scrape: AudioStreamPlayer3D
@@ -142,11 +152,14 @@ func _create_audio_players() -> void:
 	_engine_high = _create_player_3d("EngineHigh", true)
 	_engine_boost_layer = _create_player_3d("EngineBoostLayer", true)
 	
-	# One-shots
+	# One-shots (3D positional)
 	_boost_surge = _create_player_3d("BoostSurge", false)
 	_wall_hit = _create_player_3d("WallHit", false)
 	_ship_land = _create_player_3d("ShipLand", false)
 	_airbrake_hydraulic = _create_player_3d("AirbrakeHydraulic", false)
+	
+	# Non-positional collision sound (always audible for player ship-to-ship feedback)
+	_ship_collision_local = _create_player_local("ShipCollisionLocal")
 	
 	# Looping effects
 	_wall_scrape = _create_player_3d("WallScrape", true)
@@ -158,6 +171,14 @@ func _create_player_3d(player_name: String, looping: bool) -> AudioStreamPlayer3
 	player.name = player_name
 	player.max_distance = 100.0
 	player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	add_child(player)
+	return player
+
+func _create_player_local(player_name: String) -> AudioStreamPlayer:
+	## Creates a non-positional audio player for sounds that should always be
+	## clearly audible regardless of camera distance (player feedback sounds)
+	var player = AudioStreamPlayer.new()
+	player.name = player_name
 	add_child(player)
 	return player
 
@@ -173,8 +194,17 @@ func _load_sounds() -> void:
 	_load_stream(_airbrake_wind, SFX_AIRBRAKE_WIND)
 	_load_stream(_ship_land, SFX_SHIP_LAND)
 	_load_stream(_wind_loop, SFX_WIND_LOOP)
+	
+	# Load non-positional ship collision sound
+	_load_stream_local(_ship_collision_local, SFX_SHIP_COLLISION)
 
 func _load_stream(player: AudioStreamPlayer3D, path: String) -> void:
+	if ResourceLoader.exists(path):
+		player.stream = load(path)
+	else:
+		print("ShipAudioController: Sound not found (placeholder): ", path)
+
+func _load_stream_local(player: AudioStreamPlayer, path: String) -> void:
 	if ResourceLoader.exists(path):
 		player.stream = load(path)
 	else:
@@ -409,6 +439,8 @@ func _play_landing() -> void:
 # COLLISION SOUNDS (Called externally from ship)
 # ============================================================================
 
+## Play wall hit sound with volume/pitch based on impact speed
+## Uses 3D positional audio so distant ships' wall hits are quieter
 func play_wall_hit(impact_speed: float) -> void:
 	if _wall_hit.stream:
 		# Volume and pitch based on impact speed
@@ -416,6 +448,28 @@ func play_wall_hit(impact_speed: float) -> void:
 		_wall_hit.volume_db = _apply_sfx_offset(wall_hit_volume + (speed_factor * 6.0))
 		_wall_hit.pitch_scale = lerp(0.9, 2.0, speed_factor)
 		_wall_hit.play()
+
+## Play ship-to-ship collision sound with volume/pitch based on impact speed
+## Uses non-positional audio for consistent player feedback regardless of camera distance
+func play_ship_collision(impact_speed: float) -> void:
+	print("play_ship_collision called with impact_speed: ", impact_speed)  # DEBUG
+	
+	# Use ship collision sound if available, otherwise fall back to wall hit (3D)
+	if _ship_collision_local.stream:
+		var speed_factor = clamp(impact_speed / ship.max_speed, 0.0, 1.0)
+		var volume_bonus = speed_factor * 4.0
+		_ship_collision_local.volume_db = _apply_sfx_offset(ship_collision_volume + volume_bonus)
+		_ship_collision_local.pitch_scale = lerp(ship_collision_min_pitch, ship_collision_max_pitch, speed_factor)
+		_ship_collision_local.pitch_scale *= randf_range(0.97, 1.03)
+		_ship_collision_local.play()
+		print("  -> Playing ship_collision_local at volume: ", _ship_collision_local.volume_db)  # DEBUG
+	elif _wall_hit.stream:
+		# Fallback to wall hit sound if ship_collision.wav doesn't exist
+		var speed_factor = clamp(impact_speed / ship.max_speed, 0.0, 1.0)
+		_wall_hit.volume_db = _apply_sfx_offset(ship_collision_volume + (speed_factor * 4.0))
+		_wall_hit.pitch_scale = lerp(ship_collision_min_pitch, ship_collision_max_pitch, speed_factor)
+		_wall_hit.play()
+		print("  -> Falling back to wall_hit sound")  # DEBUG
 
 func start_wall_scrape() -> void:
 	if _is_scraping:
