@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3 uid="uid://bphk7y17ib0c1"]
+
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_qrhon"]
+
+[resource]
+script = ExtResource("1_qrhon")
+track_id = "test_circuit_5_live"
+display_name = "Test Circuit 5"
+description = "A swoopy affair"
+author = "Flux Industries"
