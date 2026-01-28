@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3 uid="uid://gp4xnq86c5ko"]
+
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_1y24l"]
+
+[resource]
+script = ExtResource("1_1y24l")
+track_id = "test_circuit_7_live"
+display_name = "Test Circuit 7"
+description = "A big drop."
+author = "Flux Industries"

@@ -1,0 +1,198 @@
+[gd_scene load_steps=11 format=3 uid="uid://bq74yi6nrpllj"]
+
+[ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_2rtgt"]
+[ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_o4fg8"]
+[ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_2a4sv"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
+sky_top_color = Color(0.05, 0.05, 0.15, 1)
+sky_horizon_color = Color(0.2, 0.15, 0.3, 1)
+ground_bottom_color = Color(0.02, 0.02, 0.05, 1)
+ground_horizon_color = Color(0.2, 0.15, 0.3, 1)
+
+[sub_resource type="Sky" id="Sky_xfmcy"]
+sky_material = SubResource("ProceduralSkyMaterial_8a1g2")
+
+[sub_resource type="Environment" id="Environment_cxd56"]
+background_mode = 2
+sky = SubResource("Sky_xfmcy")
+ambient_light_source = 2
+ambient_light_color = Color(0.25, 0.25, 0.35, 1)
+ambient_light_energy = 0.4
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.2
+
+[sub_resource type="Curve3D" id="Curve3D_2rtgt"]
+closed = true
+_data = {
+"points": PackedVector3Array(146.0427, 0, 1.2665257, -146.0427, 0, -1.2665257, -0.1182251, 0, 6.5417175, 86.800385, 0, 0.42549706, -86.800385, 0, -0.42549706, -401.01666, 0, 65.434326, 138.78131, -0.9969673, 83.974335, -138.78131, 0.9969673, -83.974335, -858.43243, 9.716206, 31.696667, -114.90234, 7.7470703, -20.707176, 114.90234, -7.7470703, 20.707176, -762.64636, 0, -92.693, -28.28656, 0, 6.161812, 28.28656, 0, -6.161812, -581.8315, 0, -90.99521, 3.588562, 0, 61.604004, -3.588562, 0, -61.604004, -491.77615, 0, -147.49173, 31.383057, 0, 71.3586, -31.383057, 0, -71.3586, -630.21857, 0, -230.21417, -169.80585, -0.00017929077, 0.5298767, 169.80585, 0.00017929077, -0.5298767, -455.34595, 15.320492, -336.42218, -114.32785, 6.866455e-05, 72.22711, 114.32785, -6.866455e-05, -72.22711, 47.200623, 24.83831, -214.93405, 101.835175, 0, 43.66931, -101.835175, 0, -43.66931, -115.73187, 0, -401.69122, 108.86337, 0, 7.8635254, -108.86337, 0, -7.8635254, -429.8791, 0, -421.21585, 2.6484985, 0, 158.33072, -2.6484985, 0, -158.33072, -667.57, 0, -551.94586, -103.17111, 0, 77.91394, 103.17111, 0, -77.91394, -434.2743, 0, -670.5736, -154.9071, 0, 58.01544, 154.9071, 0, -58.01544, -403.7713, 0, -847.0122, -25.733719, 0, -113.116394, 25.733719, 0, 113.116394, -22.783447, 0, -742.3452, 99.02458, 0, -19.343872, -99.02458, 0, 19.343872, -143.93767, 0, -625.51154, 47.318604, -13.482071, -11.081665, -47.318604, 13.482071, 11.081665, -272.12103, 16.795761, -637.39606, -20.149536, 0, -63.3898, 20.149536, 0, 63.3898, -458.02936, 36.596077, -520.66016, -95.324814, 2.670288e-05, -72.66803, 95.324814, -2.670288e-05, 72.66803, 101.393265, -20.302708, -548.26196, -99.12694, 0, -67.3302, 99.12694, 0, 67.3302, 187.14862, 0, -222.00076, -104.30078, 0, -14.927887, 104.30078, 0, 14.927887, 439.54547, 0, -266.85806, 74.12607, 0.00019073486, -74.68516, -74.12607, -0.00019073486, 74.68516, 514.8057, 10.5553665, 0.12496535),
+"tilts": PackedFloat32Array(0, 0.08726646, 0.2617994, 0.08726646, -0.17453292, -0.17453292, 0.08726646, 0.17453292, -0.17453292, -0.17453292, 0.08726646, 0.2617994, -0.2617994, 0.17453292, 0.2617994, 0.17453292, -0.17453292, -0.17453292, 0.2617994, -0.2617994, 0.2617994, 0.34906584)
+}
+point_count = 22
+
+[sub_resource type="Shader" id="Shader_242es"]
+code = "shader_type spatial;
+
+uniform vec4 grid_color : source_color = vec4(0.0, 0.8, 1.0, 1.0);  // Cyan
+uniform vec4 background_color : source_color = vec4(0.05, 0.05, 0.1, 1.0);  // Dark blue
+uniform float grid_size : hint_range(0.1, 10.0) = 1.0;  // Size of each grid square
+uniform float line_width : hint_range(0.01, 0.5) = 0.05;  // Thickness of lines
+uniform float major_grid_every : hint_range(0.0, 20.0) = 5.0;  // Thicker line every N squares
+uniform float major_line_width : hint_range(0.01, 1.0) = 0.1;
+
+void fragment() {
+    // Get world position (UV * object scale)
+    vec2 pos = UV * 100.0;  // Adjust 100.0 to match your track scale
+
+    // Calculate grid
+    vec2 grid = abs(fract(pos / grid_size - 0.5) - 0.5) / fwidth(pos / grid_size);
+    float line = min(grid.x, grid.y);
+
+    // Major grid lines
+    vec2 major_grid = abs(fract(pos / (grid_size * major_grid_every) - 0.5) - 0.5) / fwidth(pos / (grid_size * major_grid_every));
+    float major_line = min(major_grid.x, major_grid.y);
+
+    // Combine lines
+    float grid_mask = 1.0 - min(line / line_width, 1.0);
+    float major_mask = 1.0 - min(major_line / major_line_width, 1.0);
+
+    // Mix colors
+    vec3 color = background_color.rgb;
+    color = mix(color, grid_color.rgb, grid_mask * 0.3);  // Regular grid
+    color = mix(color, grid_color.rgb, major_mask * 0.6);  // Major grid brighter
+
+    ALBEDO = color;
+    ROUGHNESS = 0.8;
+    METALLIC = 0.0;
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h2vpo"]
+render_priority = 0
+shader = SubResource("Shader_242es")
+shader_parameter/grid_color = Color(0, 0.8, 1, 1)
+shader_parameter/background_color = Color(0.05, 0.05, 0.1, 1)
+shader_parameter/grid_size = 10.0
+shader_parameter/line_width = 0.5
+shader_parameter/major_grid_every = 10.000000475
+shader_parameter/major_line_width = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nrqn6"]
+render_priority = 0
+shader = SubResource("Shader_242es")
+shader_parameter/grid_color = Color(0, 0.8, 1, 1)
+shader_parameter/background_color = Color(0.05, 0.05, 0.1, 1)
+shader_parameter/grid_size = 10.0
+shader_parameter/line_width = 0.5
+shader_parameter/major_grid_every = 10.000000475
+shader_parameter/major_line_width = 1.0
+
+[node name="TestCircuit6" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_cxd56")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 50, 0)
+light_color = Color(1, 0.95, 0.9, 1)
+shadow_enabled = true
+shadow_blur = 2.0
+
+[node name="StartingPoint" type="Node" parent="."]
+
+[node name="StartFinishLine" parent="StartingPoint" instance=ExtResource("1_2rtgt")]
+transform = Transform3D(-6.556708e-08, 0, 1.5, 0, 1.5, 0, -1.5, 0, -6.556708e-08, 0, 2.1540594, 0)
+
+[node name="StartingGrid" type="Node3D" parent="StartingPoint"]
+transform = Transform3D(-4.3711392e-08, 0, 1.0000001, 0, 0.99999994, 0, -1.0000001, 0, -4.3711392e-08, 0, 0, 0)
+script = ExtResource("2_o4fg8")
+metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
+
+[node name="Slot1" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -14.271941, 2.3442652, 15.830228)
+gizmo_extents = 3.25
+
+[node name="Slot2" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 1.5692892, 2.3442652, 16.8683)
+gizmo_extents = 3.25
+
+[node name="Slot3" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -13.593717, 2.3442652, 28.928858)
+gizmo_extents = 3.25
+
+[node name="Slot4" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 2.2871537, 2.3442652, 27.568953)
+gizmo_extents = 3.25
+
+[node name="Slot5" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -13.328071, 2.3442652, 39.24788)
+gizmo_extents = 3.25
+
+[node name="Slot6" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 1.8058243, 2.3442652, 37.290146)
+gizmo_extents = 3.25
+
+[node name="Slot7" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0.6675193, 3.8861585, 48.85233)
+gizmo_extents = 3.25
+
+[node name="Slot8" type="Marker3D" parent="StartingPoint/StartingGrid"]
+transform = Transform3D(0.9999998, 0, 0, 0, 1, 0, 0, 0, 0.9999998, -13.336262, 3.438211, 48.458977)
+gizmo_extents = 3.25
+
+[node name="MainSpline" type="Path3D" parent="."]
+curve = SubResource("Curve3D_2rtgt")
+
+[node name="groundGeo" type="CSGPolygon3D" parent="MainSpline"]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, -0.22576904, 3.8146973e-06, -0.1640625)
+use_collision = true
+polygon = PackedVector2Array(21.58349, 2.9622357, 17.218266, 2.0412953, -16.617033, 1.8802173, -20.253164, 2.7683895, -20.286919, -1.9581314, 21.968796, -1.8501513)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 0.5
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = true
+path_local = false
+path_continuous_u = true
+path_u_distance = 100.0
+path_joined = true
+material = ExtResource("3_2a4sv")
+
+[node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline"]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(28.489079, 8.5183115, 23.549274, 8.43313, 21.121952, 6.5165105, 21.079365, -2.1295757, 28.65942, -2.172171)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = true
+path_local = false
+path_continuous_u = true
+path_u_distance = 50.0
+path_joined = true
+material = SubResource("ShaderMaterial_h2vpo")
+
+[node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline"]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(-19.290813, 6.090594, -22.31432, 7.922032, -27.509634, 7.922032, -27.211542, -2.640679, -19.120472, -2.5129018)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = true
+path_local = false
+path_continuous_u = true
+path_u_distance = 50.0
+path_joined = true
+material = SubResource("ShaderMaterial_nrqn6")

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3 uid="uid://bmr7g7dnesi5w"]
+
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_riodn"]
+
+[resource]
+script = ExtResource("1_riodn")
+track_id = "test_circuit_6_live"
+display_name = "Test Circuit 6"
+description = "A flat and fast F1 style track"
+author = "Flux Industries"
