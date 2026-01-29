@@ -1,11 +1,60 @@
-[gd_resource type="Resource" script_class="ShipCollisionProfile" load_steps=2 format=3 uid="uid://ci520n0pen75a"]
+[gd_resource type="Resource" script_class="ShipCollisionProfile" load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://c2432tofej8aq" path="res://scripts/ships/ship_collision_profile.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/ships/ship_collision_profile.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")
-separation_force = 5.0
-separation_stiffness = 1.0
-spin_impulse_factor = 1.8
-max_spin_rate = 90.0
-rear_end_brake_factor = 0.1
+
+# Classification
+rear_end_angle_threshold = 40.0
+head_on_angle_threshold = 50.0
+rear_end_speed_diff_min = 5.0
+min_collision_speed = 3.0
+
+# Rear-End (bumper drafting viable)
+rear_end_attacker_brake = 0.12
+rear_end_victim_boost = 0.35
+rear_end_max_boost = 20.0
+rear_end_cooldown = 0.5
+
+# Side-Swipe
+sideswipe_speed_loss = 0.08
+sideswipe_lateral_force = 12.0
+sideswipe_lateral_strength = 0.4
+
+# Head-On
+head_on_speed_loss = 0.25
+head_on_separation_force = 18.0
+head_on_stun_multiplier = 1.5
+
+# Velocity Limits (CRITICAL - prevents explosions)
+max_speed_gain = 25.0
+max_speed_loss = 35.0
+max_lateral_push = 15.0
+
+# Forward-Bias (keeps ships racing forward)
+forward_bias_strength = 0.75
+lateral_damping = 0.3
+
+# Collision Stun
+stun_enabled = true
+stun_duration = 0.35
+stun_grip_multiplier = 0.25
+stun_speed_threshold = 40.0
+
+# Rotation (optional, subtle)
+rotation_enabled = true
+rotation_strength = 0.6
+max_rotation_degrees = 25.0
+
+# Contact (gentle separation when overlapping)
+contact_distance = 3.5
+separation_force = 15.0
+max_separation_speed = 12.0
+contact_timeout = 0.15
+
+# Feedback
+shake_enabled = true
+shake_intensity = 0.4
+shake_speed_threshold = 15.0
+sound_speed_threshold = 5.0
