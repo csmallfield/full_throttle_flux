@@ -5,16 +5,16 @@
 [resource]
 script = ExtResource("1_script")
 
-# Classification
-rear_end_angle_threshold = 40.0
+# Classification - v5.4: Much more forgiving angles for racing
+rear_end_angle_threshold = 70.0
 head_on_angle_threshold = 50.0
-rear_end_speed_diff_min = 5.0
+rear_end_speed_diff_min = 2.0
 min_collision_speed = 3.0
 
-# Rear-End (bumper drafting viable)
-rear_end_attacker_brake = 0.12
-rear_end_victim_boost = 0.35
-rear_end_max_boost = 20.0
+# Rear-End (bumper drafting viable) - v5.3: Bidirectional support
+rear_end_attacker_brake = 0.10
+rear_end_victim_boost = 0.30
+rear_end_max_boost = 18.0
 rear_end_cooldown = 0.5
 
 # Side-Swipe
@@ -27,10 +27,10 @@ head_on_speed_loss = 0.25
 head_on_separation_force = 18.0
 head_on_stun_multiplier = 1.5
 
-# Velocity Limits (CRITICAL - prevents explosions)
-max_speed_gain = 25.0
-max_speed_loss = 35.0
-max_lateral_push = 15.0
+# Velocity Limits (CRITICAL - prevents explosions) - v5.1: More conservative
+max_speed_gain = 20.0
+max_speed_loss = 30.0
+max_lateral_push = 12.0
 
 # Forward-Bias (keeps ships racing forward)
 forward_bias_strength = 0.75
@@ -47,10 +47,10 @@ rotation_enabled = true
 rotation_strength = 0.6
 max_rotation_degrees = 25.0
 
-# Contact (gentle separation when overlapping)
+# Contact (gentle separation when overlapping) - v5.1: Reduced separation force
 contact_distance = 3.5
-separation_force = 15.0
-max_separation_speed = 12.0
+separation_force = 10.0
+max_separation_speed = 10.0
 contact_timeout = 0.15
 
 # Feedback

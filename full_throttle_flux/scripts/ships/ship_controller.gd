@@ -119,6 +119,13 @@ var _collision_stun_intensity: float = 0.0  # 0-1, how much grip is reduced
 # Collision type enum
 enum CollisionType { REAR_END, SIDE_SWIPE, HEAD_ON, GENTLE }
 
+# Debug collision system (set to true to see collision details)
+var debug_collisions: bool = false
+
+# Pre-collision velocity tracking (captured before move_and_slide modifies it)
+var _pre_collision_velocity: Vector3 = Vector3.ZERO
+var _pre_collision_speed: float = 0.0
+
 # ============================================================================
 # CACHED PROFILE VALUES (for performance)
 # ============================================================================
@@ -440,6 +447,10 @@ func _setup_ship_collision_layer() -> void:
 # ============================================================================
 
 func _physics_process(delta: float) -> void:
+	# Store velocity BEFORE move_and_slide modifies it (for accurate collision debug)
+	_pre_collision_velocity = velocity
+	_pre_collision_speed = velocity.length()
+	
 	_read_input()
 	_update_ground_detection()
 	_update_safe_position(delta)
@@ -799,6 +810,7 @@ func _align_to_track(delta: float) -> void:
 func _handle_collisions() -> void:
 	var had_wall_collision := false
 	var current_speed = velocity.length()
+	var had_ship_collision := false
 	
 	for i in get_slide_collision_count():
 		var collision = get_slide_collision(i)
@@ -807,11 +819,20 @@ func _handle_collisions() -> void:
 		
 		# Check if this is a ship-to-ship collision
 		if collider is ShipController:
+			had_ship_collision = true
+			# CRITICAL: Restore pre-collision velocity BEFORE our handler
+			# Godot's move_and_slide already applied its aggressive response
+			# We want to handle ship collisions ourselves
+			velocity = _pre_collision_velocity
+			
 			_handle_ship_collision(collider as ShipController, collision)
 		elif absf(normal.y) < 0.5:
 			# Wall collision (horizontal surface = wall, not ground)
 			_handle_wall_collision(normal)
 			had_wall_collision = true
+	
+	# For ship collisions, we've already set velocity in our handler
+	# For wall collisions, Godot's response is fine
 	
 	if had_wall_collision and current_speed >= _wall_scrape_min_speed:
 		_is_scraping_wall = true
@@ -921,44 +942,36 @@ func _classify_collision(other_ship: ShipController, collision_normal: Vector3) 
 		"closing_speed": float,
 		"relative_velocity": Vector3,
 		"is_i_faster": bool,
-		"speed_difference": float
+		"speed_difference": float,
+		"i_am_attacker": bool  # NEW: who initiated the collision
 	}
 	"""
-	var my_velocity := velocity
-	var their_velocity := other_ship.velocity
+	# CRITICAL: Use PRE-COLLISION velocities!
+	# By the time this function runs, move_and_slide() has already modified velocities
+	var my_velocity := _pre_collision_velocity
+	var their_velocity := other_ship._pre_collision_velocity
 	var relative_velocity := my_velocity - their_velocity
 	
 	# Closing speed along collision normal
 	var closing_speed := relative_velocity.dot(-collision_normal)
 	
-	# If barely touching, it's gentle
-	if closing_speed < _coll_min_speed:
-		return {
-			"type": CollisionType.GENTLE,
-			"closing_speed": closing_speed,
-			"relative_velocity": relative_velocity,
-			"is_i_faster": false,
-			"speed_difference": 0.0
-		}
+	# Speed comparison (calculate EARLY so it's available for all returns)
+	var my_speed := my_velocity.length()
+	var their_speed := their_velocity.length()
+	var speed_diff := my_speed - their_speed
+	var abs_speed_diff := absf(speed_diff)
+	var is_i_faster := abs_speed_diff > _coll_rear_speed_diff_min and speed_diff > 0
+	var is_they_faster := abs_speed_diff > _coll_rear_speed_diff_min and speed_diff < 0
 	
 	# Get ship orientations
 	var my_forward := -global_transform.basis.z
 	var their_forward := -other_ship.global_transform.basis.z
 	
-	# Speed comparison
-	var my_speed := my_velocity.length()
-	var their_speed := their_velocity.length()
-	var speed_diff := my_speed - their_speed
-	var is_i_faster := speed_diff > _coll_rear_speed_diff_min
-	
 	# Direction of relative velocity (which way is the collision happening?)
 	var collision_dir := relative_velocity.normalized() if relative_velocity.length() > 0.1 else -collision_normal
 	
-	# === REAR-END DETECTION ===
-	# I'm rear-ending them if:
-	# 1. I'm moving significantly faster
-	# 2. Collision direction aligns with my forward vector
-	# 3. Collision direction opposes their forward vector
+	# === REAR-END DETECTION (BIDIRECTIONAL) ===
+	# Check if I'm rear-ending them
 	if is_i_faster:
 		var my_alignment := collision_dir.dot(my_forward)
 		var their_alignment := collision_dir.dot(their_forward)
@@ -973,8 +986,42 @@ func _classify_collision(other_ship: ShipController, collision_normal: Vector3) 
 				"closing_speed": closing_speed,
 				"relative_velocity": relative_velocity,
 				"is_i_faster": true,
-				"speed_difference": speed_diff
+				"speed_difference": abs_speed_diff,
+				"i_am_attacker": true  # I'm hitting them
 			}
+	
+	# Check if THEY'RE rear-ending ME
+	if is_they_faster:
+		# For them hitting me, reverse the collision direction
+		var reverse_collision_dir := -collision_dir
+		var my_alignment := reverse_collision_dir.dot(my_forward)
+		var their_alignment := reverse_collision_dir.dot(their_forward)
+		
+		# Check if they're hitting me from behind
+		var angle_to_their_forward := rad_to_deg(acos(clampf(their_alignment, -1.0, 1.0)))
+		var angle_to_my_forward := rad_to_deg(acos(clampf(-my_alignment, -1.0, 1.0)))
+		
+		if angle_to_their_forward < _coll_rear_end_angle and angle_to_my_forward < _coll_rear_end_angle:
+			return {
+				"type": CollisionType.REAR_END,
+				"closing_speed": closing_speed,
+				"relative_velocity": relative_velocity,
+				"is_i_faster": false,  # They're faster
+				"speed_difference": abs_speed_diff,
+				"i_am_attacker": false  # They're hitting me
+			}
+	
+	# === GENTLE CONTACT ===
+	# Only gentle if BOTH low closing speed AND low speed difference
+	if absf(closing_speed) < _coll_min_speed and abs_speed_diff < _coll_rear_speed_diff_min:
+		return {
+			"type": CollisionType.GENTLE,
+			"closing_speed": closing_speed,
+			"relative_velocity": relative_velocity,
+			"is_i_faster": is_i_faster,
+			"speed_difference": abs_speed_diff,
+			"i_am_attacker": false
+		}
 	
 	# === HEAD-ON DETECTION ===
 	# Head-on if ships are moving toward each other
@@ -988,7 +1035,8 @@ func _classify_collision(other_ship: ShipController, collision_normal: Vector3) 
 			"closing_speed": closing_speed,
 			"relative_velocity": relative_velocity,
 			"is_i_faster": is_i_faster,
-			"speed_difference": absf(speed_diff)
+			"speed_difference": abs_speed_diff,
+			"i_am_attacker": false
 		}
 	
 	# === DEFAULT: SIDE-SWIPE ===
@@ -997,7 +1045,8 @@ func _classify_collision(other_ship: ShipController, collision_normal: Vector3) 
 		"closing_speed": closing_speed,
 		"relative_velocity": relative_velocity,
 		"is_i_faster": is_i_faster,
-		"speed_difference": absf(speed_diff)
+		"speed_difference": abs_speed_diff,
+		"i_am_attacker": false
 	}
 
 func _handle_ship_collision(other_ship: ShipController, collision: KinematicCollision3D) -> void:
@@ -1033,6 +1082,49 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 	
 	contact.last_collision_type = classification.type
 	
+	# === DEBUG OUTPUT ===
+	if debug_collisions and not ai_controlled:
+		print("=== COLLISION DEBUG ===")
+		print("  Type: %s" % CollisionType.keys()[classification.type])
+		print("  Closing speed: %.1f" % classification.closing_speed)
+		print("  My speed (PRE-collision): %.1f | Their speed: %.1f" % [_pre_collision_speed, other_ship._pre_collision_speed])
+		print("  My speed (after move_and_slide): %.1f | Their speed: %.1f" % [velocity.length(), other_ship.velocity.length()])
+		print("  Speed diff: %.1f (is_i_faster: %s)" % [classification.speed_difference, classification.is_i_faster])
+		
+		# DEBUG: Show angle information for rear-end detection
+		if classification.type == CollisionType.SIDE_SWIPE and absf(classification.speed_difference) > _coll_rear_speed_diff_min:
+			print("  ⚠ Large speed diff but not REAR_END - checking angles:")
+			var my_forward := -global_transform.basis.z
+			var their_forward := -other_ship.global_transform.basis.z
+			var rel_vel := _pre_collision_velocity - other_ship._pre_collision_velocity  # Use PRE-collision!
+			var collision_dir := rel_vel.normalized() if rel_vel.length() > 0.1 else -collision_normal
+			
+			var my_alignment := collision_dir.dot(my_forward)
+			var their_alignment := collision_dir.dot(their_forward)
+			var angle_to_my_forward := rad_to_deg(acos(clampf(my_alignment, -1.0, 1.0)))
+			var angle_to_their_forward := rad_to_deg(acos(clampf(-their_alignment, -1.0, 1.0)))
+			
+			print("    My angle: %.1f° (threshold: %.1f°)" % [angle_to_my_forward, _coll_rear_end_angle])
+			print("    Their angle: %.1f° (threshold: %.1f°)" % [angle_to_their_forward, _coll_rear_end_angle])
+			print("    Collision dir (PRE): %s" % collision_dir)
+			print("    My forward: %s" % my_forward)
+			print("    Their forward: %s" % their_forward)
+		
+		# Show classification reasoning
+		if classification.type == CollisionType.REAR_END:
+			var attacker_role := "I AM ATTACKER" if classification.i_am_attacker else "THEY ARE ATTACKER"
+			print("  → Rear-end: %s (Speed diff > %.1f and angles OK)" % [attacker_role, _coll_rear_speed_diff_min])
+		elif classification.type == CollisionType.GENTLE:
+			print("  → Gentle: Closing < %.1f AND speed_diff < %.1f" % [_coll_min_speed, _coll_rear_speed_diff_min])
+		elif classification.type == CollisionType.SIDE_SWIPE:
+			print("  → Side-swipe: Default (not rear-end/head-on/gentle)")
+		elif classification.type == CollisionType.HEAD_ON:
+			print("  → Head-on: Velocities opposing")
+	
+	# Store velocities BEFORE collision for debug
+	var my_vel_before := velocity.length()
+	var their_vel_before := other_ship.velocity.length()
+	
 	# === HANDLE BY TYPE ===
 	match classification.type:
 		CollisionType.REAR_END:
@@ -1046,6 +1138,14 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 		
 		CollisionType.GENTLE:
 			_handle_gentle_contact(other_ship, collision_normal)
+	
+	# === DEBUG OUTPUT (AFTER) ===
+	if debug_collisions and not ai_controlled:
+		print("  AFTER: My speed: %.1f (Δ%.1f) | Their speed: %.1f (Δ%.1f)" % [
+			velocity.length(), velocity.length() - my_vel_before,
+			other_ship.velocity.length(), other_ship.velocity.length() - their_vel_before
+		])
+		print("====================")
 	
 	# === OPTIONAL ROTATION ===
 	if _coll_rotation_enabled and classification.type != CollisionType.GENTLE:
@@ -1064,7 +1164,7 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 func _handle_rear_end_collision(other_ship: ShipController, classification: Dictionary, collision_normal: Vector3, contact: Dictionary) -> void:
 	"""
 	Handle rear-end collision (bumper drafting).
-	Faster ship loses a little speed, slower ship gets a boost forward.
+	Now supports bidirectional - either ship can be the attacker.
 	"""
 	
 	# Check rear-end cooldown
@@ -1076,33 +1176,54 @@ func _handle_rear_end_collision(other_ship: ShipController, classification: Dict
 	# Set cooldown
 	contact.rear_end_cooldown = _coll_rear_cooldown
 	
-	var my_forward := -global_transform.basis.z
-	var their_forward := -other_ship.global_transform.basis.z
+	# Determine who is attacker and victim based on classification
+	var i_am_attacker: bool = classification.i_am_attacker
+	var attacker = self if i_am_attacker else other_ship
+	var victim = other_ship if i_am_attacker else self
+	
+	var attacker_forward: Vector3 = -attacker.global_transform.basis.z
+	var victim_forward: Vector3 = -victim.global_transform.basis.z
 	var speed_diff: float = classification.speed_difference
 	
-	# === ATTACKER (faster ship - me) ===
-	var my_speed_loss: float = velocity.length() * _coll_rear_attacker_brake
-	my_speed_loss = clampf(my_speed_loss, 0.0, _coll_max_speed_loss)
+	# === ATTACKER (faster ship) ===
+	# Calculate speed loss as a delta, not a direct change
+	var attacker_current_speed: float = attacker.velocity.length()
+	var attacker_speed_loss: float = attacker_current_speed * _coll_rear_attacker_brake
+	attacker_speed_loss = clampf(attacker_speed_loss, 0.0, _coll_max_speed_loss)
 	
-	var my_velocity_change: Vector3 = -my_forward * my_speed_loss
-	velocity += _apply_forward_bias(my_velocity_change, my_forward)
+	# Apply as a velocity magnitude reduction along forward direction
+	var attacker_new_speed: float = maxf(attacker_current_speed - attacker_speed_loss, 0.0)
+	if attacker_current_speed > 0.1:
+		var speed_ratio: float = attacker_new_speed / attacker_current_speed
+		attacker.velocity *= speed_ratio
 	
 	# Light stun for attacker
 	var stun_intensity: float = clampf(classification.closing_speed / _coll_stun_speed_threshold, 0.2, 0.6)
-	_apply_collision_stun(stun_intensity)
+	attacker._apply_collision_stun(stun_intensity)
 	
-	# === VICTIM (slower ship - them) ===
-	var their_speed_gain: float = speed_diff * _coll_rear_victim_boost
-	their_speed_gain = clampf(their_speed_gain, 0.0, _coll_rear_max_boost)
+	# === VICTIM (slower ship) ===
+	# Calculate boost amount
+	var victim_speed_gain: float = speed_diff * _coll_rear_victim_boost
+	victim_speed_gain = clampf(victim_speed_gain, 0.0, _coll_rear_max_boost)
 	
-	var their_velocity_change: Vector3 = their_forward * their_speed_gain
-	other_ship.velocity += other_ship._apply_forward_bias(their_velocity_change, their_forward)
+	# Apply boost along their forward direction (already clamped)
+	var victim_boost_vector: Vector3 = victim_forward * victim_speed_gain
+	
+	# Apply with forward-bias (this will further clamp if needed)
+	victim.velocity += victim._apply_forward_bias(victim_boost_vector, victim_forward)
 	
 	# Minimal stun for victim (they got a boost!)
-	other_ship._apply_collision_stun(stun_intensity * 0.3)
+	victim._apply_collision_stun(stun_intensity * 0.3)
 	
 	if not ai_controlled:
-		print("Rear-end: I lost %.1f speed, they gained %.1f" % [my_speed_loss, their_speed_gain])
+		if i_am_attacker:
+			print("Rear-end: I attacked - lost %.1f speed (%.1f → %.1f), they gained %.1f boost" % [
+				attacker_speed_loss, attacker_current_speed, attacker.velocity.length(), victim_speed_gain
+			])
+		else:
+			print("Rear-end: I was victim - gained %.1f boost, they lost %.1f speed" % [
+				victim_speed_gain, attacker_speed_loss
+			])
 
 func _handle_side_swipe_collision(other_ship: ShipController, classification: Dictionary, collision_normal: Vector3) -> void:
 	"""
@@ -1219,17 +1340,17 @@ func _handle_gentle_contact(other_ship: ShipController, collision_normal: Vector
 	else:
 		return  # Can't determine direction
 	
-	# Soft separation force
-	var force: float = overlap * _coll_separation_force
+	# Soft separation force (reduced from original to prevent compounding)
+	var force: float = overlap * _coll_separation_force * 0.5  # REDUCED by 50%
 	var delta: float = get_physics_process_delta_time()
 	var separation_velocity: Vector3 = separation_dir * force * delta
 	
-	# Clamp
-	var max_sep: float = _coll_max_separation * delta * 0.5
+	# Tighter clamp to prevent excessive separation
+	var max_sep: float = _coll_max_separation * delta * 0.3  # REDUCED from 0.5 to 0.3
 	if separation_velocity.length() > max_sep:
 		separation_velocity = separation_velocity.normalized() * max_sep
 	
-	# Apply to both ships
+	# Apply to both ships (equally distributed)
 	velocity += separation_velocity
 	other_ship.velocity -= separation_velocity
 
@@ -1245,6 +1366,11 @@ func _apply_forward_bias(velocity_change: Vector3, forward: Vector3) -> Vector3:
 	# Decompose into forward and lateral components
 	var forward_component := velocity_change.dot(forward) * forward
 	var lateral_component := velocity_change - forward_component
+	
+	# CRITICAL: Clamp forward component to prevent excessive forward changes
+	var forward_magnitude := forward_component.length() * signf(forward_component.dot(forward))
+	if absf(forward_magnitude) > _coll_max_speed_gain:
+		forward_component = forward.normalized() * signf(forward_magnitude) * _coll_max_speed_gain
 	
 	# Apply lateral damping
 	lateral_component *= _coll_lateral_damping

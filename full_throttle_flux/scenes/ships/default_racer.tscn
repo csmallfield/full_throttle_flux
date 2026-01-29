@@ -2,17 +2,19 @@
 
 [ext_resource type="Script" uid="uid://s3b8psg6to1c" path="res://scripts/ships/ship_controller.gd" id="1_lepve"]
 [ext_resource type="Resource" uid="uid://7bbxfm2r4pye" path="res://resources/ships/default_racer.tres" id="2_aqvae"]
-[ext_resource type="Resource" uid="uid://ci520n0pen75a" path="res://resources/ships/default_collision_profile.tres" id="3_2x183"]
+[ext_resource type="Resource" path="res://resources/ships/default_collision_profile.tres" id="3_2x183"]
 [ext_resource type="PackedScene" uid="uid://du8cy2tcim5ko" path="res://assets/shipTest.glb" id="3_4u8xt"]
 [ext_resource type="Script" uid="uid://d4f1mpwy8pny2" path="res://scripts/ship_audio_controller.gd" id="4_2x183"]
 [ext_resource type="ArrayMesh" uid="uid://ddjsiphp0cxv" path="res://assets/ship_col.obj" id="6_4u8xt"]
 
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_2x183"]
-points = PackedVector3Array(0.828038, 0.15361947, 2.023311, -0.831869, 0.1467831, 2.016537, -0.72040695, 0.06384724, 1.8742838, 0.70682716, 0.06348743, 1.868413, 0.5675808, -0.022147, 0.49961996, 0.64800894, 0.09308168, 0.49961996, 0.4192356, 0.24519074, -1.0687791, 0.33100832, 0.63477343, -1.0538764, 0.37975264, 0.81638676, 0.49961996, 0.54743314, 0.65762126, 2.513295, -0.5475271, 0.65762126, 2.513295, -0.6481029, 0.09308168, 0.49961996, -0.56767476, -0.022147, 0.49961996, -0.38000903, 0.81638676, 0.49961996, -0.33142716, 0.63414377, -1.0538764, -0.4190045, 0.24716967, -1.0687791, 0.16787726, -0.020797718, -2.013522, 0.26341617, 0.09272187, -1.9990706, 0.2513926, 0.30132088, -1.9408145, 0.22084618, 0.72310644, -1.0502636, 0.15032929, 0.3995486, -1.9412662, 0.26471603, 0.896804, 0.49961996, 0.41013658, 0.75404996, 2.4446518, -0.410393, 0.75404996, 2.4446518, -0.2648099, 0.896804, 0.49961996, -0.26351005, 0.09272187, -1.9990706, -0.16813368, -0.020797718, -2.013522, -0.22110254, 0.72310644, -1.0502636, -0.15172309, 0.3991888, -1.9421693, -0.25164896, 0.30132088, -1.9408145, 0.1566661, 0.080938146, -2.099777, 0.14772964, 0.29574382, -2.0383596, -0.14782351, 0.29574382, -2.0383596, -0.15464771, 0.08408647, -2.0993254)
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4u8xt"]
+radius = 0.6196289
+height = 5.1467285
 
 [node name="DefaultRacer" type="CharacterBody3D"]
 collision_layer = 2
 collision_mask = 5
+safe_margin = 0.1
 script = ExtResource("1_lepve")
 profile = ExtResource("2_aqvae")
 collision_profile = ExtResource("3_2x183")
@@ -42,5 +44,5 @@ visible = false
 mesh = ExtResource("6_4u8xt")
 
 [node name="CollisionShape3D2" type="CollisionShape3D" parent="."]
-transform = Transform3D(1.2999998, 0, 0, 0, 1.2999998, -3.5527137e-15, 0, 3.5527137e-15, 1.2999998, 0, 2.9802322e-08, 2.9802322e-08)
-shape = SubResource("ConvexPolygonShape3D_2x183")
+transform = Transform3D(1.2999998, 0, 0, 0, -5.68248e-08, -1.2999998, 0, 1.2999998, -5.68248e-08, 0, 0.2665615, 0.67618406)
+shape = SubResource("CapsuleShape3D_4u8xt")
