@@ -1427,7 +1427,7 @@ func _apply_collision_feedback(impact_speed: float) -> void:
 		if camera.has_method("apply_shake"):
 			camera.apply_shake(final_intensity)
 	
-	# Audio
+	# Audio (3D positional from ship's position)
 	if audio_controller and impact_speed > _coll_sound_threshold:
 		audio_controller.play_ship_collision(impact_speed)
 
