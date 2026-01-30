@@ -5,6 +5,7 @@ class_name ShipController
 ## Based on BallisticNG "2159 Mode" physics specifications
 ## Refactored to use ShipProfile for data-driven configuration.
 ## v5: BallisticNG-style arcade collision system
+## v5.1: Fixed collision feedback loops and hover-on-ship detection
 
 # ============================================================================
 # SIGNALS
@@ -125,6 +126,10 @@ var debug_collisions: bool = false
 # Pre-collision velocity tracking (captured before move_and_slide modifies it)
 var _pre_collision_velocity: Vector3 = Vector3.ZERO
 var _pre_collision_speed: float = 0.0
+
+# Minimum time between processing collisions with the same ship (seconds)
+# Prevents collision feedback loops and rapid-fire audio
+const COLLISION_PROCESS_COOLDOWN: float = 0.15  # 100ms between impacts
 
 # ============================================================================
 # CACHED PROFILE VALUES (for performance)
@@ -423,7 +428,9 @@ func _set_default_values() -> void:
 func _setup_hover_ray() -> void:
 	if hover_ray:
 		hover_ray.target_position = Vector3.DOWN * (_hover_height * 3.0)
-		hover_ray.collision_mask = 3  # NEW - ground (1) + ships (2) = 3
+		# FIXED: Detect both ground (Layer 1) and ships (Layer 2)
+		# This prevents the "rocketing forward" bug when landing on another ship
+		hover_ray.collision_mask = 3  # 1 (ground) + 2 (ships) = 3
 
 func _setup_audio_controller() -> void:
 	if not audio_controller:
@@ -820,19 +827,17 @@ func _handle_collisions() -> void:
 		# Check if this is a ship-to-ship collision
 		if collider is ShipController:
 			had_ship_collision = true
-			# CRITICAL: Restore pre-collision velocity BEFORE our handler
-			# Godot's move_and_slide already applied its aggressive response
-			# We want to handle ship collisions ourselves
-			velocity = _pre_collision_velocity
-			
+			# Pass collision to handler - velocity restoration happens inside
+			# (only if we're actually going to process the collision)
 			_handle_ship_collision(collider as ShipController, collision)
 		elif absf(normal.y) < 0.5:
 			# Wall collision (horizontal surface = wall, not ground)
 			_handle_wall_collision(normal)
 			had_wall_collision = true
 	
-	# For ship collisions, we've already set velocity in our handler
-	# For wall collisions, Godot's response is fine
+	# Velocity restoration happens in _handle_ship_collision for both cooldown and active processing
+	# This prevents Godot's momentum-killing physics while keeping position separation
+	# Wall collisions: Godot's move_and_slide response is fine
 	
 	if had_wall_collision and current_speed >= _wall_scrape_min_speed:
 		_is_scraping_wall = true
@@ -898,6 +903,45 @@ func _apply_collision_stun(intensity: float) -> void:
 		_collision_stun_intensity = clampf(intensity, 0.0, 1.0)
 		_collision_stun_timer = _coll_stun_duration
 
+func _apply_cooldown_separation(other_ship: ShipController, collision_normal: Vector3) -> void:
+	"""
+	Apply very gentle separation during collision cooldown.
+	Prevents overlap accumulation without applying collision forces.
+	Much lighter than _handle_gentle_contact to avoid energy buildup.
+	"""
+	var distance: float = global_position.distance_to(other_ship.global_position)
+	var overlap: float = _coll_contact_distance - distance
+	
+	if overlap <= 0:
+		return
+	
+	# Separation direction (horizontal)
+	var separation_dir := collision_normal
+	separation_dir.y = 0
+	if separation_dir.length() < 0.1:
+		separation_dir = (global_position - other_ship.global_position)
+		separation_dir.y = 0
+	
+	if separation_dir.length() > 0.1:
+		separation_dir = separation_dir.normalized()
+	else:
+		return
+	
+	# Very light separation force (much weaker than gentle contact)
+	# This is just to prevent overlap, not to push apart
+	var force: float = overlap * _coll_separation_force * 0.1  # Only 10% of normal
+	var delta: float = get_physics_process_delta_time()
+	var separation_velocity: Vector3 = separation_dir * force * delta
+	
+	# Very tight clamp
+	var max_sep: float = _coll_max_separation * delta * 0.1  # Very conservative
+	if separation_velocity.length() > max_sep:
+		separation_velocity = separation_velocity.normalized() * max_sep
+	
+	# Apply to both ships
+	velocity += separation_velocity
+	other_ship.velocity -= separation_velocity
+
 func _update_ship_contacts(delta: float) -> void:
 	"""Update contact state tracking and expire old contacts."""
 	var to_remove: Array[int] = []
@@ -908,6 +952,10 @@ func _update_ship_contacts(delta: float) -> void:
 		# Update cooldowns
 		if contact.has("rear_end_cooldown") and contact.rear_end_cooldown > 0:
 			contact.rear_end_cooldown -= delta
+		
+		# Update collision processing cooldown
+		if contact.has("collision_process_cooldown") and contact.collision_process_cooldown > 0:
+			contact.collision_process_cooldown -= delta
 		
 		# Update contact timeout
 		contact.time_since_last_collision += delta
@@ -929,7 +977,8 @@ func _get_or_create_contact(other_ship: ShipController) -> Dictionary:
 			"ship": other_ship,
 			"time_since_last_collision": 0.0,
 			"rear_end_cooldown": 0.0,
-			"last_collision_type": CollisionType.GENTLE
+			"last_collision_type": CollisionType.GENTLE,
+			"collision_process_cooldown": 0.0  # Universal collision cooldown
 		}
 	
 	return _ship_contacts[other_id]
@@ -1059,6 +1108,13 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 	- Forward-biased velocity changes
 	- Hard velocity clamps
 	- Bilateral processing coordination
+	
+	v5.1 Fix:
+	- Universal collision cooldown prevents feedback loops
+	
+	v5.2 Fix:
+	- Always restore velocity to prevent Godot's slowdown
+	- Cooldown only prevents custom force application, not velocity restoration
 	"""
 	
 	# === BILATERAL PROCESSING COORDINATION ===
@@ -1067,13 +1123,31 @@ func _handle_ship_collision(other_ship: ShipController, collision: KinematicColl
 	var other_id := other_ship.get_instance_id()
 	var i_am_primary := my_id < other_id
 	
+	# CRITICAL: ALWAYS restore pre-collision velocity for BOTH ships
+	# This prevents Godot's move_and_slide from killing racing momentum
+	# The position separation is fine, we just don't want the velocity dampening
+	if i_am_primary:
+		velocity = _pre_collision_velocity
+		other_ship.velocity = other_ship._pre_collision_velocity
+	
 	# Get or create contact state
 	var contact := _get_or_create_contact(other_ship)
 	contact.time_since_last_collision = 0.0
 	
+	# CRITICAL FIX: Check universal collision cooldown
+	# Prevents feedback loops when ships push laterally or get stuck
+	if contact.collision_process_cooldown > 0:
+		# On cooldown - velocity already restored, apply ONLY gentle separation
+		# This prevents overlap accumulation without applying collision forces
+		_apply_cooldown_separation(other_ship, collision.get_normal())
+		return
+	
 	# Only primary ship calculates forces
 	if not i_am_primary:
 		return
+	
+	# Set cooldown for next collision
+	contact.collision_process_cooldown = COLLISION_PROCESS_COOLDOWN
 	
 	# === CLASSIFY COLLISION ===
 	var collision_normal := collision.get_normal()

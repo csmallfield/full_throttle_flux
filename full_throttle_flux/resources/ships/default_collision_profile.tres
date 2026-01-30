@@ -4,10 +4,3 @@
 
 [resource]
 script = ExtResource("1_script")
-rear_end_speed_diff_min = 2.0
-rear_end_victim_boost = 0.3
-rear_end_max_boost = 18.0
-max_speed_loss = 30.0
-max_lateral_push = 12.0
-separation_force = 10.0
-max_separation_speed = 10.0
