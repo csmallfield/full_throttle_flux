@@ -110,35 +110,35 @@ script = ExtResource("2_o4fg8")
 metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
 
 [node name="Slot1" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -14.271941, 2.3442652, 15.830228)
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -14.271941, 6.2796774, 15.830228)
 gizmo_extents = 3.25
 
 [node name="Slot2" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 1.5692892, 2.3442652, 16.8683)
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 1.5692886, 6.2796774, 31.021149)
 gizmo_extents = 3.25
 
 [node name="Slot3" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -13.593717, 2.3442652, 28.928858)
+transform = Transform3D(0.9962401, 0, -0.086634114, 0, 1, 0, 0.086634114, 0, 0.9962401, -16.526896, 6.2796774, 49.49984)
 gizmo_extents = 3.25
 
 [node name="Slot4" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 2.2871537, 2.3442652, 27.568953)
+transform = Transform3D(0.9962401, 0, -0.086634114, 0, 1, 0, 0.086634114, 0, 0.9962401, -0.58791995, 6.2796774, 62.043156)
 gizmo_extents = 3.25
 
 [node name="Slot5" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -13.328071, 2.3442652, 39.24788)
+transform = Transform3D(0.9916845, 0, -0.12869173, 0, 1, 0, 0.12869173, 0, 0.9916845, -18.01563, 6.2796774, 83.948555)
 gizmo_extents = 3.25
 
 [node name="Slot6" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 1.8058243, 2.3442652, 37.290146)
+transform = Transform3D(0.9916845, 0, -0.12869173, 0, 1, 0, 0.12869173, 0, 0.9916845, -2.7556367, 6.279678, 101.05889)
 gizmo_extents = 3.25
 
 [node name="Slot7" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0.6675193, 3.8861585, 48.85233)
+transform = Transform3D(0.9916845, 0, -0.12869173, 0, 1, 0, 0.12869173, 0, 0.9916845, -21.34636, 7.821576, 118.97954)
 gizmo_extents = 3.25
 
 [node name="Slot8" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999998, 0, 0, 0, 1, 0, 0, 0, 0.9999998, -13.336262, 3.438211, 48.458977)
+transform = Transform3D(0.9916843, 0, -0.1286917, 0, 1, 0, 0.1286917, 0, 0.9916843, -10.034448, 7.3736277, 131.95357)
 gizmo_extents = 3.25
 
 [node name="MainSpline" type="Path3D" parent="."]

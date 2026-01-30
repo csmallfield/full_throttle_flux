@@ -114,31 +114,31 @@ transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -7.402765, 2.
 gizmo_extents = 3.25
 
 [node name="Slot2" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 8.438465, 2.3442652, 16.8683)
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 8.438465, 2.3442688, 27.692455)
 gizmo_extents = 3.25
 
 [node name="Slot3" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -6.724541, 2.3442652, 28.928858)
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -6.724542, 2.3442688, 44.439926)
 gizmo_extents = 3.25
 
 [node name="Slot4" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 9.15633, 2.3442652, 27.568953)
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 9.156328, 2.3442688, 56.828327)
 gizmo_extents = 3.25
 
 [node name="Slot5" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -6.4588947, 2.3442652, 39.24788)
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -6.458897, 2.3442688, 73.939926)
 gizmo_extents = 3.25
 
 [node name="Slot6" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 8.675, 2.3442652, 37.290146)
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 8.674997, 2.3442688, 83.87726)
 gizmo_extents = 3.25
 
 [node name="Slot7" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 7.5366955, 3.8861587, 48.85233)
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -5.8463035, 3.8861694, 100.77817)
 gizmo_extents = 3.25
 
 [node name="Slot8" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999998, 0, 0, 0, 1, 0, 0, 0, 0.9999998, -6.467086, 3.4382112, 48.458977)
+transform = Transform3D(0.9999998, 0, 0, 0, 1, 0, 0, 0, 0.9999998, 5.6480904, 3.438202, 111.56906)
 gizmo_extents = 3.25
 
 [node name="MainSpline" type="Path3D" parent="."]
