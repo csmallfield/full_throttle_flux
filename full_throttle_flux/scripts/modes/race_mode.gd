@@ -237,17 +237,18 @@ func _spawn_ai_ship(grid_position: int, skill: float) -> void:
 		ai_ship.ai_controlled = true  # Mark as AI controlled
 		ai_ship.respawn_manager = respawn_manager  # Assign respawn manager
 	
-	add_child(ai_ship)
-	
-	# Wait one frame for scene to be fully ready
-	await get_tree().process_frame
-	
-	# Apply random hull color to AI ship
-	_apply_random_hull_color(ai_ship)
-	
-	# Position on grid
+	# NEW ORDER - position BEFORE adding to scene:
+# Position on grid first (while not in scene tree)
 	if starting_grid:
 		ai_ship.global_transform = starting_grid.get_start_transform(grid_position)
+
+	add_child(ai_ship)
+
+	# Wait one frame for scene to be fully ready
+	await get_tree().process_frame
+
+	# Apply random hull color to AI ship
+	_apply_random_hull_color(ai_ship)
 	
 	# Lock controls until race starts
 	if ai_ship.has_method("lock_controls"):

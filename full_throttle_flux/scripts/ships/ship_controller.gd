@@ -423,7 +423,7 @@ func _set_default_values() -> void:
 func _setup_hover_ray() -> void:
 	if hover_ray:
 		hover_ray.target_position = Vector3.DOWN * (_hover_height * 3.0)
-		hover_ray.collision_mask = 1
+		hover_ray.collision_mask = 3  # NEW - ground (1) + ships (2) = 3
 
 func _setup_audio_controller() -> void:
 	if not audio_controller:
