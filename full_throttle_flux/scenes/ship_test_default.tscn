@@ -1,13 +1,9 @@
 [gd_scene load_steps=3 format=3 uid="uid://xhbtv0q3cwhc"]
 
 [ext_resource type="PackedScene" uid="uid://du8cy2tcim5ko" path="res://assets/shipTest.glb" id="1_dsqmn"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xa5l8"]
-albedo_color = Color(0.18279478, 0.44451466, 0.5405549, 1)
-metallic = 0.73
-roughness = 0.52
+[ext_resource type="Material" uid="uid://bivab4sdn0vqh" path="res://shaders/ship_test_default_hull.tres" id="2_xa5l8"]
 
 [node name="shipTest" instance=ExtResource("1_dsqmn")]
 
 [node name="hull" parent="ship01" index="1"]
-material_override = SubResource("StandardMaterial3D_xa5l8")
+material_override = ExtResource("2_xa5l8")

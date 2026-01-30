@@ -6,6 +6,7 @@ class_name RaceMode
 ## Spawns player + AI ships, manages race state, tracks positions.
 ##
 ## v2: Added ship-to-ship avoidance integration
+## v3: Added random hull colors for AI ships (using find_child for robustness)
 
 # ============================================================================
 # CONFIGURATION
@@ -234,9 +235,15 @@ func _spawn_ai_ship(grid_position: int, skill: float) -> void:
 	if ai_ship is ShipController:
 		ai_ship.profile = ship_profile
 		ai_ship.ai_controlled = true  # Mark as AI controlled
-		ai_ship.respawn_manager = respawn_manager  # ADD THIS LINE - Assign respawn manager
+		ai_ship.respawn_manager = respawn_manager  # Assign respawn manager
 	
 	add_child(ai_ship)
+	
+	# Wait one frame for scene to be fully ready
+	await get_tree().process_frame
+	
+	# Apply random hull color to AI ship
+	_apply_random_hull_color(ai_ship)
 	
 	# Position on grid
 	if starting_grid:
@@ -253,7 +260,7 @@ func _spawn_ai_ship(grid_position: int, skill: float) -> void:
 	ai_controller.skill_level = skill
 	ai_controller.ai_active = false  # Activate after countdown
 	ai_controller.debug_draw_enabled = false  # Disable debug visualization
-	ai_controller.avoidance_enabled = ai_avoidance_enabled  # NEW: Set avoidance flag
+	ai_controller.avoidance_enabled = ai_avoidance_enabled  # Set avoidance flag
 	ai_ship.add_child(ai_controller)
 	
 	# Initialize AI with track data
@@ -292,7 +299,89 @@ func _calculate_ai_skill(ai_index: int) -> float:
 	return lerp(skill_range.x, skill_range.y, t)
 
 # ============================================================================
-# AI AVOIDANCE SETUP (NEW)
+# SHIP APPEARANCE (UPDATED - using find_child)
+# ============================================================================
+
+func _apply_random_hull_color(ship: Node3D) -> void:
+	"""Apply a random vibrant color to the ship's hull with maximum distinction."""
+	# Get the ship's index to ensure distinct colors
+	var ship_index = ai_ships.find(ship)
+	if ship_index == -1:
+		ship_index = ai_ships.size()  # Fallback for ships not yet in array
+	
+	# Evenly space hues around the color wheel for maximum distinction
+	var hue = (float(ship_index) / float(num_ai_opponents)) + randf_range(-0.05, 0.05)
+	hue = fmod(hue, 1.0)  # Wrap around if needed
+	
+	var saturation = randf_range(0.7, 0.95)  # High saturation
+	var value = randf_range(0.6, 0.85)  # Good brightness
+	
+	var random_color = Color.from_hsv(hue, saturation, value)
+	
+	ship.set_meta("hull_color", random_color)
+	_set_hull_color(ship, random_color)
+	
+	print("RaceMode: Applied hull color to %s: %s (hue: %.2f)" % [ship.name, random_color, hue])
+
+func _set_hull_color(ship: Node3D, color: Color) -> void:
+	"""Set the hull color on a ship's mesh using find_child (robust for inherited scenes)."""
+	# Use find_child to recursively search for the hull node
+	# This works better with inherited scenes and GLB imports
+	var hull = ship.find_child("hull", true, false)  # recursive=true, owned=false
+	
+	if not hull:
+		push_warning("RaceMode: hull node not found on %s" % ship.name)
+		print("RaceMode: Could not find 'hull' node in scene tree")
+		return
+	
+	if not hull is MeshInstance3D:
+		push_warning("RaceMode: hull found but is not a MeshInstance3D (it's a %s)" % hull.get_class())
+		return
+	
+	print("RaceMode: Found hull at path: %s" % hull.get_path())
+	
+	# Get the current material or create a new one
+	var material: StandardMaterial3D
+	
+	# Try multiple sources for the material
+	if hull.material_override and hull.material_override is StandardMaterial3D:
+		# Duplicate the material_override
+		material = hull.material_override.duplicate()
+		print("  Duplicating material_override")
+	elif hull.get_surface_override_material(0) and hull.get_surface_override_material(0) is StandardMaterial3D:
+		# Try surface override
+		material = hull.get_surface_override_material(0).duplicate()
+		print("  Duplicating surface material")
+	else:
+		# Create a new StandardMaterial3D with default ship values
+		material = StandardMaterial3D.new()
+		material.metallic = 0.73
+		material.roughness = 0.52
+		print("  Creating new material")
+	
+	print("  Material albedo before: %s" % material.albedo_color)
+	
+	# Apply the new color
+	material.albedo_color = color
+	
+	print("  Material albedo after: %s" % material.albedo_color)
+	
+	# Assign the modified material to the hull (try both methods)
+	hull.material_override = material
+	hull.set_surface_override_material(0, material)
+	
+	print("  Material applied to hull!")
+	print("  Verification - hull.material_override.albedo_color: %s" % hull.material_override.albedo_color)
+
+func restore_hull_color_on_respawn(ship: Node3D) -> void:
+	"""Restore the ship's hull color after respawning (if needed)."""
+	if ship.has_meta("hull_color"):
+		var stored_color = ship.get_meta("hull_color")
+		_set_hull_color(ship, stored_color)
+		print("RaceMode: Restored hull color for %s" % ship.name)
+
+# ============================================================================
+# AI AVOIDANCE SETUP
 # ============================================================================
 
 func _setup_ai_avoidance() -> void:
@@ -372,7 +461,7 @@ func _on_position_changed(ship: Node3D, old_pos: int, new_pos: int) -> void:
 		print("RaceMode: Player moved from P%d to P%d" % [old_pos, new_pos])
 		# Could play sound effect here
 	
-	# Update the AI's aggression based on new position (NEW)
+	# Update the AI's aggression based on new position
 	if ai_avoidance_enabled and ship != ship_instance:
 		for ai_controller in ai_controllers:
 			if ai_controller.ship == ship:
@@ -601,7 +690,7 @@ func _process(delta: float) -> void:
 	if position_tracker and is_race_active:
 		position_tracker.update(delta)
 	
-	# Update AI race positions periodically for avoidance aggression scaling (NEW)
+	# Update AI race positions periodically for avoidance aggression scaling
 	if ai_avoidance_enabled and is_race_active and Engine.get_process_frames() % 15 == 0:
 		_update_ai_race_positions()
 	
