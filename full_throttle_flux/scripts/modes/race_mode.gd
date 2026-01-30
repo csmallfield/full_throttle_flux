@@ -180,19 +180,29 @@ func _spawn_all_ships() -> void:
 	ai_ships.clear()
 	ai_controllers.clear()
 	
-	# Spawn player at pole position (grid slot 0)
-	await _spawn_player_ship()
+	# NEW: Randomly select player's starting position (0-7)
+	var total_slots = num_ai_opponents + 1  # Player + AI opponents
+	var player_grid_position = randi() % total_slots
 	
-	# Spawn AI ships at remaining grid positions
-	for i in range(num_ai_opponents):
-		var grid_position = i + 1  # AI starts at position 1
-		var skill = _calculate_ai_skill(i)
+	print("RaceMode: Player will start in grid position %d" % player_grid_position)
+	
+	# Spawn player at random position
+	await _spawn_player_ship(player_grid_position)
+	
+	# Spawn AI ships at remaining grid positions (skip player's slot)
+	var ai_slot_index = 0
+	for grid_position in range(total_slots):
+		if grid_position == player_grid_position:
+			continue  # Skip player's position
+		
+		var skill = _calculate_ai_skill(ai_slot_index)
 		await _spawn_ai_ship(grid_position, skill)
+		ai_slot_index += 1
 	
 	print("RaceMode: Spawned %d total ships (1 player + %d AI)" % [all_ships.size(), ai_ships.size()])
 
-func _spawn_player_ship() -> void:
-	"""Spawn the player's ship at pole position."""
+func _spawn_player_ship(grid_position: int = 0) -> void:
+	"""Spawn the player's ship at the specified grid position."""
 	var ship_profile = GameManager.get_selected_ship()
 	
 	# Load ship scene
@@ -210,17 +220,17 @@ func _spawn_player_ship() -> void:
 	
 	add_child(ship_instance)
 	
-	# Position at pole
+	# Position at specified grid slot (CHANGED from hardcoded 0)
 	if starting_grid:
-		ship_instance.global_transform = starting_grid.get_start_transform(0)
+		ship_instance.global_transform = starting_grid.get_start_transform(grid_position)
 	
 	# Lock controls until race starts
 	if ship_instance.has_method("lock_controls"):
 		ship_instance.lock_controls()
 	
 	all_ships.append(ship_instance)
-	print("RaceMode: Player ship spawned at pole position")
-
+	print("RaceMode: Player ship spawned at grid position %d" % grid_position)
+	
 func _spawn_ai_ship(grid_position: int, skill: float) -> void:
 	"""Spawn an AI-controlled ship at the given grid position."""
 	var ship_profile = GameManager.get_selected_ship()  # Use same ship for now
