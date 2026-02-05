@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1_riodn")
 track_id = "test_circuit_6_live"
-display_name = "Test Circuit 6"
+display_name = "Hairpin Alley"
 description = "A flat and fast F1 style track"
 author = "Flux Industries"

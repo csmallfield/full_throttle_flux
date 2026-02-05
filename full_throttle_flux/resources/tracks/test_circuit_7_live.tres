@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1_1y24l")
 track_id = "test_circuit_7_live"
-display_name = "Test Circuit 7"
+display_name = "The Drop"
 description = "A big drop."
 author = "Flux Industries"
