@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TrackManifest" load_steps=7 format=3 uid="uid://d1rfxu0wg1vwp"]
+
+[ext_resource type="Script" uid="uid://xkwdxftnktqx" path="res://scripts/resources/track_manifest.gd" id="1_hpy4w"]
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="2_01lol"]
+[ext_resource type="Resource" uid="uid://by3u3mqi3spa8" path="res://resources/tracks/test_circuit_3_live.tres" id="3_2so11"]
+[ext_resource type="Resource" uid="uid://bphk7y17ib0c1" path="res://resources/tracks/test_circuit_5_live.tres" id="4_352ji"]
+[ext_resource type="Resource" uid="uid://bmr7g7dnesi5w" path="res://resources/tracks/test_circuit_6_live.tres" id="5_4y0dv"]
+[ext_resource type="Resource" uid="uid://gp4xnq86c5ko" path="res://resources/tracks/test_circuit_7_live.tres" id="6_atc04"]
+
+[resource]
+script = ExtResource("1_hpy4w")
+tracks = Array[ExtResource("2_01lol")]([ExtResource("3_2so11"), ExtResource("4_352ji"), ExtResource("5_4y0dv"), ExtResource("6_atc04")])
+metadata/_custom_type_script = "uid://xkwdxftnktqx"

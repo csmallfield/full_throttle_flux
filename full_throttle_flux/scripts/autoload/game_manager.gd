@@ -2,7 +2,8 @@ extends Node
 
 ## GameManager Autoload
 ## Central manager for game state: selected ship, track, mode.
-## Discovers available profiles on startup.
+## Uses manifest resources for exported builds (required).
+## Falls back to directory scanning in editor for convenience.
 ## Add to Project Settings → Autoload as "GameManager"
 
 # ============================================================================
@@ -25,7 +26,7 @@ var selected_mode: String = "time_trial"
 var selected_race_difficulty: int = 1
 
 # ============================================================================
-# AVAILABLE OPTIONS (discovered on startup)
+# AVAILABLE OPTIONS (loaded from manifests)
 # ============================================================================
 
 var available_ships: Array[ShipProfile] = []
@@ -33,9 +34,13 @@ var available_tracks: Array[TrackProfile] = []
 var available_modes: Array[String] = ["time_trial", "endless", "race"]
 
 # ============================================================================
-# PATHS
+# MANIFEST PATHS
 # ============================================================================
 
+const SHIP_MANIFEST_PATH := "res://resources/ships/ship_manifest.tres"
+const TRACK_MANIFEST_PATH := "res://resources/tracks/track_manifest.tres"
+
+# Legacy paths for editor fallback
 const SHIPS_PATH := "res://resources/ships/"
 const TRACKS_PATH := "res://resources/tracks/"
 
@@ -44,16 +49,55 @@ const TRACKS_PATH := "res://resources/tracks/"
 # ============================================================================
 
 func _ready() -> void:
-	_discover_profiles()
+	_load_profiles()
 	_set_defaults()
 	print("GameManager: Initialized with %d ships, %d tracks" % [available_ships.size(), available_tracks.size()])
 
-func _discover_profiles() -> void:
-	_discover_ship_profiles()
-	_discover_track_profiles()
+func _load_profiles() -> void:
+	_load_ship_profiles()
+	_load_track_profiles()
 
-func _discover_ship_profiles() -> void:
+func _load_ship_profiles() -> void:
 	available_ships.clear()
+	
+	# Try to load from manifest first (required for exports)
+	if ResourceLoader.exists(SHIP_MANIFEST_PATH):
+		var manifest = load(SHIP_MANIFEST_PATH) as ShipManifest
+		if manifest:
+			available_ships = manifest.get_all_ships()
+			print("GameManager: Loaded %d ships from manifest" % available_ships.size())
+			return
+	
+	# Fallback to directory scanning (editor only - won't work in exports)
+	if OS.has_feature("editor"):
+		print("GameManager: No ship manifest found, falling back to directory scan (editor only)")
+		_discover_ship_profiles_legacy()
+	else:
+		push_error("GameManager: Ship manifest not found at %s - create it for exports to work!" % SHIP_MANIFEST_PATH)
+
+func _load_track_profiles() -> void:
+	available_tracks.clear()
+	
+	# Try to load from manifest first (required for exports)
+	if ResourceLoader.exists(TRACK_MANIFEST_PATH):
+		var manifest = load(TRACK_MANIFEST_PATH) as TrackManifest
+		if manifest:
+			available_tracks = manifest.get_all_tracks()
+			print("GameManager: Loaded %d tracks from manifest" % available_tracks.size())
+			return
+	
+	# Fallback to directory scanning (editor only - won't work in exports)
+	if OS.has_feature("editor"):
+		print("GameManager: No track manifest found, falling back to directory scan (editor only)")
+		_discover_track_profiles_legacy()
+	else:
+		push_error("GameManager: Track manifest not found at %s - create it for exports to work!" % TRACK_MANIFEST_PATH)
+
+# ============================================================================
+# LEGACY DIRECTORY SCANNING (Editor Fallback)
+# ============================================================================
+
+func _discover_ship_profiles_legacy() -> void:
 	var dir = DirAccess.open(SHIPS_PATH)
 	if not dir:
 		push_warning("GameManager: Could not open ships directory: %s" % SHIPS_PATH)
@@ -62,16 +106,17 @@ func _discover_ship_profiles() -> void:
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
 	while file_name != "":
-		if file_name.ends_with(".tres") or file_name.ends_with(".res"):
-			var profile = load(SHIPS_PATH + file_name) as ShipProfile
-			if profile:
-				available_ships.append(profile)
-				print("GameManager: Discovered ship - %s" % profile.display_name)
+		# Skip manifest file and subdirectories
+		if not dir.current_is_dir() and (file_name.ends_with(".tres") or file_name.ends_with(".res")):
+			if file_name != "ship_manifest.tres":
+				var profile = load(SHIPS_PATH + file_name) as ShipProfile
+				if profile:
+					available_ships.append(profile)
+					print("GameManager: Discovered ship - %s" % profile.display_name)
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
-func _discover_track_profiles() -> void:
-	available_tracks.clear()
+func _discover_track_profiles_legacy() -> void:
 	var dir = DirAccess.open(TRACKS_PATH)
 	if not dir:
 		push_warning("GameManager: Could not open tracks directory: %s" % TRACKS_PATH)
@@ -80,11 +125,13 @@ func _discover_track_profiles() -> void:
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
 	while file_name != "":
-		if file_name.ends_with(".tres") or file_name.ends_with(".res"):
-			var profile = load(TRACKS_PATH + file_name) as TrackProfile
-			if profile:
-				available_tracks.append(profile)
-				print("GameManager: Discovered track - %s" % profile.display_name)
+		# Skip manifest file and subdirectories
+		if not dir.current_is_dir() and (file_name.ends_with(".tres") or file_name.ends_with(".res")):
+			if file_name != "track_manifest.tres":
+				var profile = load(TRACKS_PATH + file_name) as TrackProfile
+				if profile:
+					available_tracks.append(profile)
+					print("GameManager: Discovered track - %s" % profile.display_name)
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
@@ -177,8 +224,8 @@ func get_tracks_for_mode(mode_id: String) -> Array[TrackProfile]:
 # ============================================================================
 
 func refresh_profiles() -> void:
-	"""Re-scan for profiles. Call if profiles added at runtime."""
-	_discover_profiles()
+	"""Re-load profiles from manifests (or rescan in editor)."""
+	_load_profiles()
 
 func has_valid_selection() -> bool:
 	"""Check if we have everything needed to start a race."""
