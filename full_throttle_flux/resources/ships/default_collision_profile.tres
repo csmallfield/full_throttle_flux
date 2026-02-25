@@ -1,6 +1,0 @@
-[gd_resource type="Resource" script_class="ShipCollisionProfile" load_steps=2 format=3 uid="uid://bhrb6r8vveffc"]
-
-[ext_resource type="Script" uid="uid://c2432tofej8aq" path="res://scripts/ships/ship_collision_profile.gd" id="1_script"]
-
-[resource]
-script = ExtResource("1_script")
