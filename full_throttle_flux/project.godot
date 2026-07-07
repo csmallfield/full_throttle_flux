@@ -8,13 +8,17 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="full_throttle_flux"
 config/description="The second released prototype, now with 4 tracks and an AI racing mode."
 config/version="Prototype v0.2"
 run/main_scene="res://scenes/main_menu.tscn"
-config/features=PackedStringArray("4.5", "Forward Plus")
+config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
