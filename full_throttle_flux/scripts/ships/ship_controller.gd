@@ -4,7 +4,8 @@ class_name ShipController
 ## WipEout 2097 Style Anti-Gravity Ship Controller
 ## Based on BallisticNG "2159 Mode" physics specifications
 ## Refactored to use ShipProfile for data-driven configuration.
-## v6: Simplified ship-to-ship collisions — depenetration only, no bounce/shunt
+## v7: Ship-to-ship collisions via symmetric impulse exchange (momentum-
+##     conserving), feedback driven by relative closing speed with cooldown
 
 # ============================================================================
 # SIGNALS
@@ -102,12 +103,16 @@ var ai_controlled: bool = false
 var respawn_manager: TrackRespawnManager = null
 
 # ============================================================================
-# SHIP COLLISION STATE (v6 - Simplified)
+# SHIP COLLISION STATE (v7 - Impulse Exchange)
 # ============================================================================
 
 # Pre-collision velocity (captured before move_and_slide modifies it)
 var _pre_collision_velocity: Vector3 = Vector3.ZERO
 var _pre_collision_speed: float = 0.0
+
+# Cooldown so sustained pushing doesn't retrigger collision SFX every frame
+var _ship_collision_feedback_cooldown: float = 0.0
+const SHIP_COLLISION_FEEDBACK_INTERVAL := 0.25
 
 # Debug collision system (set to true to see collision details)
 var debug_collisions: bool = false
@@ -143,6 +148,9 @@ var _max_pitch_angle: float
 var _wall_scrape_min_speed: float
 var _wall_bounce_retain: float
 var _wall_rotation_force: float
+var _ship_collision_restitution: float
+var _ship_collision_max_impulse: float
+var _ship_collision_feedback_min_speed: float
 var _gravity: float
 var _slope_gravity_factor: float
 var _collision_shake_enabled: bool
@@ -219,6 +227,9 @@ func _apply_profile() -> void:
 	_wall_scrape_min_speed = profile.wall_scrape_min_speed
 	_wall_bounce_retain = profile.wall_bounce_retain
 	_wall_rotation_force = profile.wall_rotation_force
+	_ship_collision_restitution = profile.ship_collision_restitution
+	_ship_collision_max_impulse = profile.ship_collision_max_impulse
+	_ship_collision_feedback_min_speed = profile.ship_collision_feedback_min_speed
 	_gravity = profile.gravity
 	_slope_gravity_factor = profile.slope_gravity_factor
 	_collision_shake_enabled = profile.collision_shake_enabled
@@ -265,6 +276,9 @@ func _set_default_values() -> void:
 	_wall_scrape_min_speed = 20.0
 	_wall_bounce_retain = 0.9
 	_wall_rotation_force = 1.5
+	_ship_collision_restitution = 0.35
+	_ship_collision_max_impulse = 40.0
+	_ship_collision_feedback_min_speed = 5.0
 	_gravity = 25.0
 	_slope_gravity_factor = 0.8
 	_collision_shake_enabled = true
@@ -331,6 +345,7 @@ func _physics_process(delta: float) -> void:
 	
 	move_and_slide()
 	
+	_ship_collision_feedback_cooldown = maxf(0.0, _ship_collision_feedback_cooldown - delta)
 	_handle_collisions()
 	_update_visuals(delta)
 	_update_scrape_audio(delta)
@@ -455,6 +470,21 @@ func _update_ground_detection() -> void:
 	hover_ray.force_raycast_update()
 	
 	if hover_ray.is_colliding():
+		# --- v7 fix: another ship's hull is NOT track surface ---
+		# Previously, riding over another ship fed its hull normal into
+		# smoothed_track_normal, so the hover spring (+ _align_to_track)
+		# fired along the other ship's hull and launched/spun both craft.
+		# Instead: treat as airborne and gently drift off sideways.
+		var ray_collider := hover_ray.get_collider()
+		if ray_collider is ShipController:
+			is_grounded = false
+			time_since_grounded += get_physics_process_delta_time()
+			var away: Vector3 = global_position - (ray_collider as Node3D).global_position
+			away.y = 0.0
+			if away.length() > 0.01:
+				velocity += away.normalized() * 15.0 * get_physics_process_delta_time()
+			return
+		
 		is_grounded = true
 		time_since_grounded = 0.0
 		ground_distance = global_position.distance_to(hover_ray.get_collision_point())
@@ -640,13 +670,36 @@ func _handle_collisions() -> void:
 	var had_wall_collision := false
 	var current_speed = velocity.length()
 	
+	# --- Pass 1: ship-to-ship contacts (impulse exchange) ---
+	# move_and_slide() gives us correct positional separation but mangles our
+	# velocity on ship contact (slides it along the other hull). We keep the
+	# separation, discard the mangled velocity, and rebuild it ourselves:
+	# start from the pre-contact velocity, then apply proper contact impulses.
+	var ship_contacts: Array[KinematicCollision3D] = []
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		if collision.get_collider() is ShipController:
+			ship_contacts.append(collision)
+	
+	if not ship_contacts.is_empty():
+		velocity = _pre_collision_velocity
+		var resolved_pairs: Dictionary = {}
+		for collision in ship_contacts:
+			var other := collision.get_collider() as ShipController
+			var other_id := other.get_instance_id()
+			if resolved_pairs.has(other_id):
+				continue  # multiple contact points vs same ship = one impulse
+			resolved_pairs[other_id] = true
+			_resolve_ship_contact(other, collision.get_normal())
+	
+	# --- Pass 2: walls ---
 	for i in get_slide_collision_count():
 		var collision = get_slide_collision(i)
 		var collider = collision.get_collider()
 		var normal = collision.get_normal()
 		
 		if collider is ShipController:
-			_handle_ship_collision(collider as ShipController, collision)
+			continue  # handled in pass 1
 		elif absf(normal.y) < 0.5:
 			_handle_wall_collision(normal)
 			had_wall_collision = true
@@ -691,63 +744,71 @@ func _handle_wall_collision(wall_normal: Vector3) -> void:
 		audio_controller.play_wall_hit(impact_speed)
 
 # ============================================================================
-# SHIP-TO-SHIP COLLISION HANDLING (v6 - Simplified Depenetration)
+# SHIP-TO-SHIP COLLISION HANDLING (v7 - Impulse Exchange)
 # ============================================================================
 #
-# Philosophy: Let move_and_slide() handle separation (it already does this well
-# for CharacterBody3D). The only problem is that move_and_slide() also kills
-# forward momentum on contact. So we restore the forward speed component after
-# the collision, keeping the positional separation Godot calculated.
+# Philosophy: momentum must be conserved. We control velocity on BOTH ships
+# (they're CharacterBody3D), so we resolve contact ourselves with a symmetric
+# equal-mass collision impulse along the contact normal:
 #
-# This replaces ~500 lines of collision classification, velocity transfer,
-# forward-bias, stun, contact tracking, and cooldown systems.
+#   - Positional separation: still handled by move_and_slide() (it's good at it)
+#   - Velocity: rebuilt from _pre_collision_velocity + contact impulse
+#
+# Why this fixes the v6 "explosive rear-end shunt":
+#   v6 restored the rear ship's full forward speed every frame, so it re-
+#   penetrated the leader every frame forever; the leader was never given any
+#   velocity, so Godot's depenetration recovery shoved it positionally each
+#   frame in whatever direction the overlapping hulls happened to resolve.
+#   With a real impulse, the rear ship *loses* its closing speed and the
+#   leader *gains* it — one clean exchange, then they're separating and
+#   subsequent frames are no-ops.
+#
+# Why no instance-id "primary" gate anymore:
+#   In a rear-end, usually only the rear ship reports a slide collision. The
+#   old gate dropped the event entirely whenever that ship had the higher id.
+#   The impulse is self-deduplicating instead: after resolution the pair is
+#   separating along the normal, so if the other ship detects the same contact
+#   later this frame, relative velocity along its normal is >= 0 and it no-ops.
 
-func _handle_ship_collision(other_ship: ShipController, collision: KinematicCollision3D) -> void:
-	"""Simple ship collision: preserve forward speed, let Godot handle separation."""
+func _resolve_ship_contact(other_ship: ShipController, normal: Vector3) -> void:
+	"""Resolve one ship-to-ship contact with a symmetric collision impulse.
 	
-	# Only process once per pair per frame (lower instance_id handles it)
-	var i_am_primary := get_instance_id() < other_ship.get_instance_id()
-	if not i_am_primary:
-		return
+	normal points from the other ship's surface toward us (KinematicCollision3D
+	convention), so a negative relative velocity along it means we're closing.
+	"""
+	var rel_vel: Vector3 = velocity - other_ship.velocity
+	var closing_speed: float = rel_vel.dot(normal)
 	
-	# --- Restore forward racing speed for BOTH ships ---
-	# move_and_slide() correctly separates the ships positionally,
-	# but it also dampens velocity. We restore the forward component
-	# so racing momentum isn't killed by side-contact or bumps.
-	_restore_forward_speed()
-	other_ship._restore_forward_speed()
+	if closing_speed >= -0.01:
+		return  # already separating or resting contact — nothing to resolve
 	
-	# --- Audio/visual feedback ---
-	var impact_speed := absf(_pre_collision_speed - velocity.length())
-	if impact_speed > 5.0:
+	# Equal-mass impulse split between both ships, capped to avoid spikes
+	var impulse_mag: float = -(1.0 + _ship_collision_restitution) * closing_speed * 0.5
+	impulse_mag = minf(impulse_mag, _ship_collision_max_impulse)
+	
+	velocity += normal * impulse_mag
+	other_ship.velocity -= normal * impulse_mag
+	
+	# --- Feedback: driven by relative closing speed (the physically ---
+	# --- meaningful impact measure), not own-speed delta ---
+	var impact_speed := absf(closing_speed)
+	if impact_speed >= _ship_collision_feedback_min_speed:
 		_play_ship_collision_feedback(impact_speed)
 		other_ship._play_ship_collision_feedback(impact_speed)
 		ship_collision.emit(other_ship, impact_speed)
 		other_ship.ship_collision.emit(self, impact_speed)
 	
-	# --- Debug ---
 	if debug_collisions and not ai_controlled:
-		print("Ship collision: pre=%.1f post=%.1f impact=%.1f" % [
-			_pre_collision_speed, velocity.length(), impact_speed
+		print("Ship contact: closing=%.1f impulse=%.1f normal=%s" % [
+			closing_speed, impulse_mag, normal
 		])
 
-func _restore_forward_speed() -> void:
-	"""Restore forward velocity component that move_and_slide() dampened."""
-	var forward := -global_transform.basis.z
-	forward.y = 0.0
-	if forward.length() < 0.01:
-		return
-	forward = forward.normalized()
-	
-	var pre_forward_speed := _pre_collision_velocity.dot(forward)
-	var post_forward_speed := velocity.dot(forward)
-	
-	# Only restore if we lost forward speed (don't add speed we didn't have)
-	if post_forward_speed < pre_forward_speed:
-		velocity += forward * (pre_forward_speed - post_forward_speed)
-
 func _play_ship_collision_feedback(impact_speed: float) -> void:
-	"""Play audio and camera shake for ship collision."""
+	"""Play audio and camera shake for ship collision (rate-limited)."""
+	if _ship_collision_feedback_cooldown > 0.0:
+		return
+	_ship_collision_feedback_cooldown = SHIP_COLLISION_FEEDBACK_INTERVAL
+	
 	# Camera shake
 	if _collision_shake_enabled and camera and impact_speed > _shake_speed_threshold:
 		var intensity_ratio := clampf((impact_speed - _shake_speed_threshold) / 50.0, 0.0, 1.0)
@@ -756,7 +817,7 @@ func _play_ship_collision_feedback(impact_speed: float) -> void:
 			camera.apply_shake(final_intensity)
 	
 	# Audio
-	if audio_controller and impact_speed > 5.0:
+	if audio_controller:
 		audio_controller.play_ship_collision(impact_speed)
 
 # ============================================================================

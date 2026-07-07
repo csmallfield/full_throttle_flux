@@ -95,6 +95,11 @@ const SFX_WIND_LOOP := "res://sounds/ship/wind_loop.wav"
 @export var ship_collision_min_pitch := 0.85
 ## Maximum pitch for ship collision (high speed impacts)
 @export var ship_collision_max_pitch := 1.15
+## Relative closing speed treated as a "maximum" impact for volume/pitch
+## scaling. Ship collisions report RELATIVE speed between the two ships
+## (a rear-end nudge at 200 vs 195 is a 5 u/s impact), so this is much
+## lower than ship max_speed.
+@export var ship_collision_ref_speed := 50.0
 ## Volume of landing sound (dB)
 @export var land_volume := -3.0
 ## Minimum airborne time to trigger landing sound
@@ -430,11 +435,14 @@ func play_wall_hit(impact_speed: float) -> void:
 		_wall_hit.play()
 
 ## Play ship-to-ship collision sound with volume/pitch based on impact speed
-## CHANGED: Now uses 3D positional audio like wall hits - distant ships' collisions are quieter
+## impact_speed is the RELATIVE closing speed between the two ships, scaled
+## against ship_collision_ref_speed (not ship.max_speed).
+## Uses 3D positional audio like wall hits - distant ships' collisions are quieter
 func play_ship_collision(impact_speed: float) -> void:
+	var speed_factor = clamp(impact_speed / ship_collision_ref_speed, 0.0, 1.0)
+	
 	# Use ship collision sound if available, otherwise fall back to wall hit
 	if _ship_collision.stream:
-		var speed_factor = clamp(impact_speed / ship.max_speed, 0.0, 1.0)
 		var volume_bonus = speed_factor * 4.0
 		_ship_collision.volume_db = _apply_sfx_offset(ship_collision_volume + volume_bonus)
 		_ship_collision.pitch_scale = lerp(ship_collision_min_pitch, ship_collision_max_pitch, speed_factor)
@@ -442,7 +450,6 @@ func play_ship_collision(impact_speed: float) -> void:
 		_ship_collision.play()
 	elif _wall_hit.stream:
 		# Fallback to wall hit sound if ship_collision.wav doesn't exist
-		var speed_factor = clamp(impact_speed / ship.max_speed, 0.0, 1.0)
 		_wall_hit.volume_db = _apply_sfx_offset(ship_collision_volume + (speed_factor * 4.0))
 		_wall_hit.pitch_scale = lerp(ship_collision_min_pitch, ship_collision_max_pitch, speed_factor)
 		_wall_hit.play()

@@ -151,6 +151,20 @@ class_name ShipProfile
 ## Speed retained while scraping along walls (per frame).
 @export var wall_friction: float = 0.9
 
+## --- Ship-to-ship collision ---
+
+## Bounciness of ship-to-ship contact (0 = ships stop dead against each
+## other, 1 = fully elastic billiard-ball bounce). ~0.3-0.5 feels arcade-y.
+@export var ship_collision_restitution: float = 0.35
+
+## Hard cap on the per-contact velocity change (units/sec) either ship can
+## receive from a single ship-to-ship impulse. Prevents physics spikes.
+@export var ship_collision_max_impulse: float = 40.0
+
+## Minimum relative closing speed for collision feedback (sound/shake/signal).
+## Below this, contact is resolved silently (gentle nudges while pack racing).
+@export var ship_collision_feedback_min_speed: float = 5.0
+
 ## Downward force when ship is airborne.
 @export var gravity: float = 25.0
 
