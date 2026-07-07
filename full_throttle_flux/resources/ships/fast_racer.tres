@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShipProfile" load_steps=2 format=3 uid="uid://bt6qq2cglf3pv"]
+
+[ext_resource type="Script" uid="uid://c6tw7wvs5p0n1" path="res://scripts/resources/ship_profile.gd" id="1_nr1hc"]
+
+[resource]
+script = ExtResource("1_nr1hc")
+ship_id = "fast_racer"
+display_name = "Fast Racer"
+description = "A fast ship suitable for all tracks. Good handling and speed."
+manufacturer = "Flux Industries"
+max_speed = 1000.0
+thrust_power = 100.0
+air_drag = 0.98
+steer_curve_power = 2.0
+airbrake_grip = 0.2
+airbrake_drag = 0.99
+hover_height = 2.75
+hover_stiffness = 200.0
+hover_pulse_amplitude = 0.1
+rumble_position_intensity = 0.0
+rumble_rotation_intensity = 0.1

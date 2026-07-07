@@ -768,8 +768,8 @@ func _update_visuals(delta: float) -> void:
 		return
 	
 	var target_roll := 0.0
-	target_roll += steer_input * deg_to_rad(25.0)
-	target_roll += (airbrake_left - airbrake_right) * deg_to_rad(15.0)
+	target_roll += steer_input * deg_to_rad(45.0)
+	target_roll += (airbrake_left - airbrake_right) * deg_to_rad(75.0)
 	
 	var speed_factor = clampf(velocity.length() / _max_speed, 0.3, 1.0)
 	target_roll *= speed_factor
