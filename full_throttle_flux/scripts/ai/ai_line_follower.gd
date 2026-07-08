@@ -137,7 +137,7 @@ var prefer_baked_over_recorded: bool = false
 
 ## Cap geometric-fallback cruise speed at profile.max_speed (see
 ## ShipPerformanceModel.equilibrium_speed note).
-var respect_profile_max_speed: bool = true
+var respect_profile_max_speed: bool = false
 
 # ============================================================================
 # STATE

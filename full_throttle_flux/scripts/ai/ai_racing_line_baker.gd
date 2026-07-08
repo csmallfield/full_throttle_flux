@@ -20,7 +20,7 @@ class_name AIRacingLineBaker
 ## The output line and speeds are achievable within the ship's real physics
 ## (same steering rate, grip, thrust, and airbrake behavior the player has).
 
-const WALL_COLLISION_MASK := 3  # walls live on layer 4 (see track scenes)
+const WALL_COLLISION_MASK := 4  # walls live on layer 4 (see track scenes)
 const CACHE_DIR := "user://baked_lines/"
 
 # ============================================================================
@@ -28,10 +28,10 @@ const CACHE_DIR := "user://baked_lines/"
 # ============================================================================
 
 ## Approximate distance between line samples (meters).
-var sample_spacing_target: float = 6.0
+var sample_spacing_target: float = 3.0
 
 var min_samples: int = 256
-var max_samples: int = 2048
+var max_samples: int = 4096
 
 ## Elastic-band relaxation iterations (early-out on convergence).
 var relaxation_iterations: int = 800
@@ -46,7 +46,7 @@ var ship_clearance: float = 4.0
 ## error (~2-3m entering corners at speed). The speed profile recomputes
 ## consistently for the slightly tighter line, so this trades a little
 ## theoretical pace for not scraping walls -- a very good trade.
-var line_margin: float = 1.0
+var line_margin: float = 1.5
 
 ## Corridor half-width used where wall raycasts miss (open track edges).
 var fallback_half_width: float = 12.0
@@ -74,12 +74,12 @@ var surface_probe_length: float = 140.0
 var surface_max_deviation: float = 60.0
 
 ## Cornering confidence passed to the ShipPerformanceModel (see its docs).
-var cornering_confidence: float = 0.95
+var cornering_confidence: float = 0.98
 
 ## Planned airbrake application for braking zones. Lower = earlier, longer,
 ## easier-to-track braking zones (the controller has smoothing lag, so
 ## planning at full application produces zones too short to execute).
-var planned_brake_application: float = 0.8
+var planned_brake_application: float = 0.7
 
 ## If true, straightaway speeds cap at profile.max_speed. The physics itself
 ## has no clamp (true top speed is the thrust/drag equilibrium, ~134 with

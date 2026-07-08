@@ -243,4 +243,4 @@ size = Vector3(50, 300, 100)
 material_override = SubResource("StandardMaterial3D_8wlfk")
 mesh = ExtResource("4_8wlfk")
 
-[node name="AIDebugTester" parent="." unique_id=765011118 instance=ExtResource("5_yhocl")]
+[node name="AIDebugTester" parent="." unique_id=1134183329 instance=ExtResource("5_yhocl")]

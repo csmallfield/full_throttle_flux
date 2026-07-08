@@ -34,12 +34,12 @@ const GRIP_ROTATION_MARGIN := 0.85
 ## Multiplier on the theoretical corner speed limit. Absorbs modeling error:
 ## slip transients on corner entry, banking, hover wobble, mid-corner speed
 ## decay from the grip lerp. 1.0 = theoretical limit, lower = safety margin.
-var cornering_confidence: float = 0.92
+var cornering_confidence: float = 0.98
 
 ## Airbrake application assumed when planning braking distances (0-1).
 ## The control decider can command up to 1.0, so planning at less than that
 ## builds real margin into every braking zone.
-var planned_brake_application: float = 0.5
+var planned_brake_application: float = 0.7
 
 # ============================================================================
 # PROFILE-DERIVED STATE

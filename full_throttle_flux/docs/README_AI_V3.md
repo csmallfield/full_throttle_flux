@@ -123,11 +123,44 @@ integrating `_apply_thrust`. No invented constants; one confidence margin.
   path uses `true`. Long-term, consider migrating the recorder to the
   tilted frame too (re-record after switching — frames must match).
 
+## Multi-track tuning (v3.1)
+
+Defaults were swept and validated in closed-loop simulation across FOUR
+tracks (test_circuit_2, 3, 5, 6 -- circuit 4 excluded, see below). Final
+defaults: `cornering_confidence 0.98`, `planned_brake_application 0.7`,
+`line_margin 1.5`, `sample_spacing_target 3.0` (max_samples 4096).
+
+| Track | Old defaults | New defaults | Theoretical | Scrapes |
+|---|---|---|---|---|
+| c2 (16.8km, flat-out) | 153.0s | 152.1s | 144.8s | 0 |
+| c3 (6.0km) | 64.8s | 63.6s | 61.2s | 0 |
+| c5 (8.3km, banked) | 91.0s | 87.2s | 85.1s | 0 |
+| c6 (7.0km, twisty) | 80.6s | 78.0s | 77.4s | 0 |
+
+Findings from the sweep:
+- The controller tracks the plan at 100-105% everywhere, so pace lives in
+  the PLAN knobs (confidence, margins), not the controller.
+- **Higher sample density alone made laps SLOWER** (sharper curvature peaks
+  produce a faster plan that tracks worse); it only helps combined with the
+  confidence/margin changes. Both are now default.
+- **The missing max-speed clamp is worth ~8s/lap on flat-out tracks**: with
+  `respect_profile_max_speed = false` the AI laps c2 in 143.9s (vs 152.1
+  capped), at the cost of ~1 scrape/lap. A player holding W reaches ~134
+  today, so the current player-vs-AI state (player 134, AI 120) is the one
+  indefensible configuration: either clamp the ship at max_speed, or uncap
+  the AI. Recommend the clamp.
+- **test_circuit_4 is structurally unsupported**: its MainSpline is a 1km
+  4-point stub; the drivable circuit appears to be the second Path3D node.
+  Everything spline-based (AI, position tracking, respawn) binds to
+  MainSpline -- move the real circuit's curve into MainSpline (one spline
+  per track) and the AI will handle it like the others.
+
 ## Tuning guide
 
-- `ShipPerformanceModel.cornering_confidence` (0.92): the single most
-  important knob. Raise toward 1.0 if AI corners look lazy; lower if they
-  wash wide. Watch corner exits with debug draw on.
+- `AIRacingLineBaker.cornering_confidence` (0.98): the single most
+  important knob. 1.0 = theoretical steering limit (validated clean on all
+  four test tracks); lower it first if a new track or ship profile washes
+  wide. Watch corner exits with debug draw on.
 - `AIRacingLineBaker.planned_brake_application` (0.5): higher = later,
   shorter braking zones. The controller has smoothing lag, so leave headroom
   below the decider's max (1.0) or the AI can't track its own plan.
