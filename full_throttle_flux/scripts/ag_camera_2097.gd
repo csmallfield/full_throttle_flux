@@ -16,17 +16,17 @@ class_name AGCamera2097
 ## Higher Y = camera sits higher above ship.
 ## Higher Z = camera sits further behind ship.
 ## Typical values: Y = 2.5-4.0, Z = 6.0-10.0
-@export var base_offset := Vector3(0, 3.0, 5.5)
+@export var base_offset := Vector3(0, 3.0, 6.5)
 
 ## Extra distance added at maximum speed.
 ## Camera pulls back as you go faster, enhancing sense of speed.
 ## 0 = no zoom effect, 2-4 = noticeable pullback at top speed.
-@export var speed_zoom := 1
+@export var speed_zoom := -11
 
 ## How quickly camera moves to target position (units per second factor).
 ## Higher = snappier following, lower = more floaty/cinematic.
 ## Range: 4.0-12.0. Start with 8.0 for balanced feel.
-@export var follow_speed := 12.0
+@export var follow_speed := 15.0
 
 @export_group("Look")
 
@@ -45,12 +45,12 @@ class_name AGCamera2097
 ## Field of view at rest / low speed (degrees).
 ## Standard FOV, used when ship is slow or stationary.
 ## Typical range: 60-70.
-@export var base_fov := 65.0
+@export var base_fov := 60.0
 
 ## Field of view at maximum speed (degrees).
 ## FOV increases with speed to enhance sense of velocity.
 ## Should be higher than base_fov. Typical range: 75-90.
-@export var max_fov := 70.0
+@export var max_fov := 120.0
 
 @export_group("Lateral Swing")
 
@@ -198,7 +198,7 @@ func _calculate_swing(delta: float, speed_ratio: float) -> float:
 	
 	# Component 3: Airbrakes add extra swing in their direction
 	var airbrake_component = 0.0
-	if ship.airbrake_left > 0.1 or ship.airbrake_right > 0.1:
+	if ship.airbrake_left > 0.2 or ship.airbrake_right > 0.2:
 		# Left airbrake = negative (camera swings left)
 		# Right airbrake = positive (camera swings right)
 		airbrake_component = (ship.airbrake_right - ship.airbrake_left) * swing_airbrake_multiplier
