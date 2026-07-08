@@ -29,7 +29,7 @@ class_name AIControlDecider
 # ============================================================================
 
 ## Steering sensitivity (higher = more aggressive steering)
-var steering_sensitivity: float = 10.5
+var steering_sensitivity: float = 11.5
 
 ## Maximum steering rate of change per second (prevents oscillation)
 var max_steer_rate: float = 30.0
@@ -59,7 +59,7 @@ var throttle_floor_under_target: float = 0.6
 # ============================================================================
 
 ## |steer| above this counts as saturated (understeering).
-var assist_steer_saturation: float = 0.92
+var assist_steer_saturation: float = 0.95
 
 ## Steering must be saturated this long (seconds) before assist engages.
 var assist_min_saturation_time: float = 0.25
