@@ -7,6 +7,10 @@ class_name RaceMode
 ##
 ## v2: Added ship-to-ship avoidance integration
 ## v3: Added random hull colors for AI ships (using find_child for robustness)
+## v4: Bakes a shared BakedRacingLine (optimized line + speed profile) once
+##     per race and hands it to every AI controller; skill ranges raised so
+##     Hard actually reaches skill 1.0 (previously capped at 0.80, which
+##     meant the expert tuning never ran in real races)
 
 # ============================================================================
 # CONFIGURATION
@@ -27,13 +31,14 @@ enum Difficulty { EASY, MEDIUM, HARD }
 @export_group("AI Skill Ranges")
 
 ## Skill range for Easy difficulty
-@export var easy_skill_range := Vector2(0.20, 0.40)
+@export var easy_skill_range := Vector2(0.25, 0.45)
 
 ## Skill range for Medium difficulty
-@export var medium_skill_range := Vector2(0.40, 0.60)
+@export var medium_skill_range := Vector2(0.50, 0.72)
 
-## Skill range for Hard difficulty
-@export var hard_skill_range := Vector2(0.60, 0.80)
+## Skill range for Hard difficulty (top AI now runs the full computed
+## profile -- skill no longer acts as an artificial speed governor)
+@export var hard_skill_range := Vector2(0.78, 1.0)
 
 @export_group("AI Avoidance")
 
@@ -58,6 +63,9 @@ var position_tracker: RacePositionTracker
 
 ## Track AI data for AI opponents
 var track_ai_data: TrackAIData
+
+## Shared baked racing line (baked once, used by every AI controller)
+var baked_racing_line: BakedRacingLine
 
 ## Player's finishing position (1-indexed)
 var player_finish_position: int = -1
@@ -125,6 +133,9 @@ func setup_race() -> void:
 	# Load track (from parent)
 	await _load_track()
 	
+	# Bake the shared AI racing line (cached after first run per track+ship)
+	await _bake_racing_line()
+	
 	# Spawn all ships (player + AI)
 	await _spawn_all_ships()
 	
@@ -168,7 +179,39 @@ func _load_track_ai_data() -> void:
 	if track_ai_data:
 		print("RaceMode: Loaded AI data - %d recorded laps" % track_ai_data.recorded_laps.size())
 	else:
-		print("RaceMode: No AI data found, AI will use geometric fallback")
+		print("RaceMode: No AI data found, AI will use baked racing line")
+
+func _bake_racing_line() -> void:
+	"""Bake (or cache-load) the shared racing line + speed profile for this
+	track + ship profile combo. All AI controllers receive the same line;
+	NOTE: all AIs currently race the player's selected ship profile, so one
+	bake covers everyone. If per-AI profiles are introduced later, bake once
+	per unique profile (the cache makes repeats near-free)."""
+	var ship_profile = GameManager.get_selected_ship()
+	if not ship_profile or not track_instance:
+		push_warning("RaceMode: cannot bake racing line (missing ship profile or track)")
+		return
+	
+	# CSG wall collision shapes build during the first physics frames after
+	# the track loads; the baker raycasts against them to measure track width.
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	
+	var helper := TrackSplineHelper.new(track_instance)
+	if not helper.is_valid:
+		push_warning("RaceMode: no valid track spline - AI will use geometric fallback")
+		return
+	
+	var track_profile = GameManager.get_selected_track()
+	var track_id: String = track_profile.track_id if track_profile else String(track_instance.name)
+	
+	var baker := AIRacingLineBaker.new()
+	baked_racing_line = baker.bake(helper, ship_profile, get_viewport().find_world_3d(), track_id)
+	
+	if baked_racing_line:
+		print("RaceMode: Racing line ready - %s" % baked_racing_line.get_debug_info())
+	else:
+		push_warning("RaceMode: racing line bake failed - AI will use geometric fallback")
 
 # ============================================================================
 # SHIP SPAWNING
@@ -274,8 +317,8 @@ func _spawn_ai_ship(grid_position: int, skill: float) -> void:
 	ai_controller.avoidance_enabled = ai_avoidance_enabled  # Set avoidance flag
 	ai_ship.add_child(ai_controller)
 	
-	# Initialize AI with track data
-	ai_controller.initialize(track_instance, track_ai_data)
+	# Initialize AI with track data + shared baked racing line
+	ai_controller.initialize(track_instance, track_ai_data, baked_racing_line)
 	
 	all_ships.append(ai_ship)
 	ai_ships.append(ai_ship)

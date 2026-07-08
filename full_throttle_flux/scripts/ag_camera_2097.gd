@@ -21,7 +21,7 @@ class_name AGCamera2097
 ## Extra distance added at maximum speed.
 ## Camera pulls back as you go faster, enhancing sense of speed.
 ## 0 = no zoom effect, 2-4 = noticeable pullback at top speed.
-@export var speed_zoom := -11
+@export var speed_zoom := -5
 
 ## How quickly camera moves to target position (units per second factor).
 ## Higher = snappier following, lower = more floaty/cinematic.
@@ -50,7 +50,7 @@ class_name AGCamera2097
 ## Field of view at maximum speed (degrees).
 ## FOV increases with speed to enhance sense of velocity.
 ## Should be higher than base_fov. Typical range: 75-90.
-@export var max_fov := 120.0
+@export var max_fov := 110.0
 
 @export_group("Lateral Swing")
 

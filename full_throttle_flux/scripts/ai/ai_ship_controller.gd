@@ -10,6 +10,15 @@ class_name AIShipController
 ## - Added AIShipAvoidance component for ship-to-ship avoidance
 ## - Avoidance adjustments applied after control decisions
 ## - Race position updates for position-based aggression
+##
+## v4 Changes:
+## - BakedRacingLine + ShipPerformanceModel integration: initialize() accepts
+##   a pre-baked line (RaceMode bakes once and shares it across all AIs);
+##   when none is provided and auto_bake_if_missing is on, this controller
+##   bakes/loads-from-cache itself (covers time trial testing, AIDebugTester)
+## - Brake output from the decider is now real: the decider merges braking
+##   into both airbrake channels (the only actual brake in this physics),
+##   and _apply_controls forwards them unchanged
 
 # ============================================================================
 # SIGNALS
@@ -35,6 +44,11 @@ signal ai_disabled()
 
 ## Enable ship avoidance behavior
 @export var avoidance_enabled: bool = true
+
+## If initialize() receives no baked racing line, bake one here (or load it
+## from the user:// cache). RaceMode passes a shared line, so this mainly
+## serves standalone use (time trial AI testing, AIDebugTester).
+@export var auto_bake_if_missing: bool = true
 
 @export_group("Debug")
 
@@ -62,6 +76,8 @@ var line_follower: AILineFollower
 var control_decider: AIControlDecider
 var ship_avoidance: AIShipAvoidance  # NEW: Avoidance component
 var track_ai_data: TrackAIData
+var baked_line: BakedRacingLine  # v4: optimized line + speed profile
+var perf_model: ShipPerformanceModel  # v4: honest ship limits
 
 # ============================================================================
 # STATE
@@ -136,13 +152,17 @@ func _search_for_path3d(node: Node) -> Node:
 			return found
 	return null
 
-func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null) -> void:
+func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
+		p_baked_line: BakedRacingLine = null) -> void:
 	"""
 	Initialize the AI controller with a track.
 	Call this after the track scene is loaded.
+	RaceMode passes a shared BakedRacingLine; standalone users can rely on
+	auto_bake_if_missing (cached after the first bake).
 	"""
 	track_root = p_track_root
 	track_ai_data = p_track_ai_data
+	baked_line = p_baked_line
 	
 	# Create spline helper
 	spline_helper = TrackSplineHelper.new(track_root)
@@ -150,10 +170,24 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null) -> void
 		push_error("AIShipController: Failed to initialize spline helper")
 		return
 	
+	# Performance model from the ship's real profile (honest limits)
+	if ship and ship.profile:
+		perf_model = ShipPerformanceModel.new(ship.profile)
+	else:
+		perf_model = null
+		push_warning("AIShipController: no ship profile - perf model unavailable, speed targets will use legacy heuristics")
+	
+	# Self-bake if no line was provided (cache makes repeats near-free)
+	if baked_line == null and auto_bake_if_missing and ship and ship.profile:
+		var world: World3D = ship.get_world_3d()
+		if world:
+			var baker := AIRacingLineBaker.new()
+			baked_line = baker.bake(spline_helper, ship.profile, world, _guess_track_id())
+	
 	# Create line follower
 	line_follower = AILineFollower.new()
 	line_follower.skill_level = skill_level
-	line_follower.initialize(spline_helper, track_ai_data)
+	line_follower.initialize(spline_helper, track_ai_data, baked_line, perf_model)
 	
 	# Create control decider
 	control_decider = AIControlDecider.new()
@@ -180,12 +214,20 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null) -> void
 	if track_ai_data and track_ai_data.has_recorded_data():
 		var best_info := track_ai_data.get_best_lap_info()
 		if best_info.exists:
-			data_status = "%d laps (best: %.2fs)" % [track_ai_data.recorded_laps.size(), best_info.time]
+			data_status = "%d recorded laps (best: %.2fs)" % [track_ai_data.recorded_laps.size(), best_info.time]
 		else:
-			data_status = "%d laps" % track_ai_data.recorded_laps.size()
+			data_status = "%d recorded laps" % track_ai_data.recorded_laps.size()
+	elif baked_line and baked_line.is_usable():
+		data_status = "baked line (%d samples)" % baked_line.sample_count
 	
 	var avoidance_status := "enabled" if avoidance_enabled else "disabled"
 	print("AIShipController: Initialized (skill: %.2f, data: %s, avoidance: %s)" % [skill_level, data_status, avoidance_status])
+
+func _guess_track_id() -> String:
+	"""Best-effort track id for the bake cache when none is supplied."""
+	if track_root:
+		return String(track_root.name)
+	return ""
 
 # ============================================================================
 # RACE SHIP REGISTRATION (Called by RaceMode)
@@ -248,8 +290,9 @@ func _apply_controls(controls: Dictionary) -> void:
 	ship.airbrake_left = controls.airbrake_left
 	ship.airbrake_right = controls.airbrake_right
 	
-	# Note: We don't have a brake input in the current ship controller
-	# Braking is handled via reduced throttle and airbrakes
+	# Braking is executed through the airbrake channels: the decider merges
+	# its brake command into BOTH airbrakes (dual airbrakes are the only real
+	# brake in this ship physics). controls.brake is kept for telemetry.
 
 # ============================================================================
 # PUBLIC API
@@ -531,6 +574,8 @@ func _print_debug_info() -> void:
 			data_source = "SINGLE BEST LAP"
 		else:
 			data_source = "blended (%d laps)" % track_ai_data.recorded_laps.size()
+	elif baked_line and baked_line.is_usable():
+		data_source = "BAKED LINE"
 	
 	print("=== AI Debug (skill=%.2f, source=%s) ===" % [skill_level, data_source])
 	print("  ", line_follower.get_debug_info())

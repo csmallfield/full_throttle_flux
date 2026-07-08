@@ -3,15 +3,29 @@ class_name AIControlDecider
 
 ## AI Control Decider
 ## Responsible for answering: "How should I control the ship?"
-## 
-## v2 Changes:
-## - Skill-dependent hint_weight (expert trusts recordings more)
-## - More aggressive throttle on corner exit
-## - Later braking for expert skill levels
-## - Reduced over-caution on speed targets
+##
+## v3 Changes (major rework):
+## - BRAKE IS NOW EXECUTED: brake output is merged into BOTH airbrakes, which
+##   is the only real brake in this ship physics (there is no brake input on
+##   ShipController; v2's brake output was silently discarded).
+## - Speed control is a clean tracking law around a DISTANCE-AWARE target
+##   speed supplied by AILineFollower (baked profile / perf model). The old
+##   phase heuristics (approaching/exiting corner, S-curve modifiers) are
+##   gone -- braking points now live in the speed profile itself.
+## - Airbrakes no longer trigger from 120m-lookahead curvature (which dragged
+##   speed on straights). Steering-assist airbraking only fires as understeer
+##   recovery: steering saturated at speed. NOTE: in this physics, airbraking
+##   mid-corner REDUCES achievable path curvature (grip drops 4.0 -> 0.5, and
+##   the velocity vector can only rotate at `grip` rad/s), so airbrakes are
+##   for braking, not for turning. Full-grip full-lock is the fastest way
+##   through a corner.
+## - Honest skill effects: skill no longer multiplies speed here (margins are
+##   applied in the follower). Skill affects control smoothing (reaction
+##   crispness) and adds low-frequency steering wobble at low skill. Same
+##   ship limits at every skill level.
 
 # ============================================================================
-# TUNING PARAMETERS - STEERING (User tuned)
+# TUNING PARAMETERS - STEERING
 # ============================================================================
 
 ## Steering sensitivity (higher = more aggressive steering)
@@ -21,49 +35,44 @@ var steering_sensitivity: float = 10.5
 var max_steer_rate: float = 30.0
 
 # ============================================================================
-# TUNING PARAMETERS - THROTTLE/BRAKE
+# TUNING PARAMETERS - SPEED TRACKING
 # ============================================================================
 
-## How quickly to reach target speed (multiplier on speed error)
-var throttle_responsiveness: float = 0.35
+## Overspeed (units/s) tolerated with a lifted throttle before braking starts.
+var coast_band: float = 4.0
 
-## Speed error threshold to cut throttle (units/second over target)
-var throttle_cutoff_threshold: float = 15.0
+## Overspeed range mapped onto 0..max brake application above the coast band.
+## Smaller = snappier braking response.
+var brake_response_range: float = 16.0
 
-## Speed error threshold to start braking (units/second over target)
-var brake_threshold: float = 10.0
+## Maximum airbrake application from normal braking (1.0 = slam).
+var max_brake_application: float = 0.95
 
-## Brake intensity (multiplier on speed error above threshold)
-var brake_intensity: float = 0.35
+## Overspeed beyond which we slam full brakes regardless.
+var emergency_overspeed: float = 30.0
 
-## Distance to corner to START considering braking (late braking = lower value)
-## This is the BASE value - expert skill reduces it further
-var brake_distance_threshold: float = 50.0
-
-## Emergency brake distance (hard brake if this close and too fast)
-var emergency_brake_distance: float = 15.0
-
-## Minimum throttle to maintain even when near target speed (prevents coasting)
-var min_throttle: float = 0.35
+## Throttle floor while under target (keeps corner-exit drive strong).
+var throttle_floor_under_target: float = 0.6
 
 # ============================================================================
-# TUNING PARAMETERS - AIRBRAKES (User tuned)
+# TUNING PARAMETERS - UNDERSTEER RECOVERY AIRBRAKE
 # ============================================================================
 
-## Curvature threshold to start using airbrakes (LOWERED for large tracks)
-var airbrake_curvature_threshold: float = 0.02
+## |steer| above this counts as saturated (understeering).
+var assist_steer_saturation: float = 0.92
 
-## Steering threshold to start using airbrakes (helps when struggling to turn)
-var airbrake_steering_threshold: float = 0.35
+## Steering must be saturated this long (seconds) before assist engages.
+var assist_min_saturation_time: float = 0.25
 
-## How much curvature affects airbrake intensity
-var airbrake_curvature_factor: float = 1.3
+## Minimum speed ratio for assist (pointless at low speed).
+var assist_min_speed_ratio: float = 0.45
 
-## Minimum speed ratio to use airbrakes
-var airbrake_min_speed_ratio: float = 0.30
+## Single-side airbrake application during understeer recovery. Keep modest:
+## airbraking costs grip, so this trades speed for rotation. 0 disables.
+var steering_assist_strength: float = 0.35
 
 # ============================================================================
-# TUNING PARAMETERS - HINT WEIGHT (SKILL DEPENDENT)
+# TUNING PARAMETERS - HINT WEIGHT (SKILL DEPENDENT, recorded data only)
 # ============================================================================
 
 ## Base hint weight at skill 0.0 (novice trusts calculations more)
@@ -76,12 +85,31 @@ var hint_weight_max: float = 1.0
 var hint_weight: float = 0.65
 
 # ============================================================================
+# SKILL-DEPENDENT CONTROL FEEL
+# ============================================================================
+
+## Control smoothing rate range (novice sluggish -> expert crisp).
+var smoothing_rate_min: float = 7.0
+var smoothing_rate_max: float = 16.0
+
+## Low-frequency steering wobble amplitude at skill 0 (0 at skill 1).
+## Honest imperfection: noise within the same input range the player has.
+var steer_wobble_amplitude_max: float = 0.05
+var steer_wobble_frequency: float = 0.6
+
+# ============================================================================
 # STATE
 # ============================================================================
 
 var ship: ShipController
 var line_follower: AILineFollower
 var skill_level: float = 1.0
+
+var _smoothing_rate: float = 16.0
+var _wobble_amplitude: float = 0.0
+var _wobble_phase: float = 0.0
+var _time: float = 0.0
+var _steer_saturated_time: float = 0.0
 
 # Smoothed control values to prevent jitter
 var smoothed_steer: float = 0.0
@@ -100,6 +128,7 @@ var prev_steer: float = 0.0
 func initialize(p_ship: ShipController, p_line_follower: AILineFollower) -> void:
 	ship = p_ship
 	line_follower = p_line_follower
+	_wobble_phase = randf() * TAU
 	if line_follower:
 		skill_level = line_follower.skill_level
 	_update_skill_dependent_params()
@@ -110,15 +139,9 @@ func set_skill(skill: float) -> void:
 
 func _update_skill_dependent_params() -> void:
 	"""Update parameters that vary based on skill level."""
-	# Hint weight: novice 0.2, expert 0.85
 	hint_weight = lerpf(hint_weight_min, hint_weight_max, skill_level)
-	
-	# Expert brakes later (reduce brake distance threshold)
-	# Novice: 50m, Expert: 30m
-	brake_distance_threshold = lerpf(50.0, 30.0, skill_level)
-	
-	# Expert maintains more throttle
-	min_throttle = lerpf(0.25, 0.4, skill_level)
+	_smoothing_rate = lerpf(smoothing_rate_min, smoothing_rate_max, skill_level)
+	_wobble_amplitude = lerpf(steer_wobble_amplitude_max, 0.0, skill_level)
 
 # ============================================================================
 # MAIN DECISION FUNCTION
@@ -128,38 +151,87 @@ func decide_controls(delta: float) -> Dictionary:
 	"""Calculate control inputs for this frame."""
 	if not ship or not line_follower:
 		return _neutral_controls()
-	
+
+	_time += delta
+
 	var current_speed: float = ship.velocity.length()
 	var max_speed: float = ship.get_max_speed()
 	var target: Dictionary = line_follower.get_target_position(current_speed, max_speed)
-	
-	# Extract data from target
+
 	var target_world_pos: Vector3 = target.world_position
 	var target_speed: float = target.suggested_speed
-	var max_curvature: float = target.max_upcoming_curvature
-	var immediate_curvature: float = target.immediate_curvature
-	var corner_distance: float = target.corner_distance
-	var is_s_curve: bool = target.is_s_curve
-	var corner_phase: float = target.get("corner_phase", 0.0)
-	
-	# Calculate controls
+
+	# --- Steering ---
 	var raw_steer: float = _calculate_steering(target_world_pos, delta)
-	var throttle_brake: Dictionary = _calculate_throttle_and_brake(
-		current_speed, target_speed, max_speed, max_curvature, 
-		immediate_curvature, corner_distance, is_s_curve, corner_phase, target
-	)
-	var airbrakes: Dictionary = _calculate_airbrakes(
-		current_speed, max_speed, raw_steer, max_curvature, 
-		immediate_curvature, is_s_curve, target
-	)
-	
-	# Smooth controls (faster response for more aggression)
-	smoothed_steer = lerpf(smoothed_steer, raw_steer, 15.0 * delta)
-	smoothed_throttle = lerpf(smoothed_throttle, throttle_brake.throttle, 12.0 * delta)
-	smoothed_brake = lerpf(smoothed_brake, throttle_brake.brake, 18.0 * delta)
-	smoothed_airbrake_left = lerpf(smoothed_airbrake_left, airbrakes.left, 15.0 * delta)
-	smoothed_airbrake_right = lerpf(smoothed_airbrake_right, airbrakes.right, 15.0 * delta)
-	
+
+	# Low-skill wobble (honest imperfection, stays within input range)
+	if _wobble_amplitude > 0.001:
+		raw_steer = clampf(
+			raw_steer + sin(_time * steer_wobble_frequency * TAU + _wobble_phase) * _wobble_amplitude,
+			-1.0, 1.0
+		)
+
+	# --- Speed tracking: throttle + brake ---
+	var speed_error: float = target_speed - current_speed
+	var throttle: float = 0.0
+	var brake: float = 0.0
+
+	if speed_error >= 0.0:
+		# Under target: drive. Full throttle beyond a small error.
+		throttle = clampf(throttle_floor_under_target + speed_error * 0.1,
+			throttle_floor_under_target, 1.0)
+	else:
+		var over: float = -speed_error
+		if over <= coast_band:
+			# Slightly over: lift and let drag work.
+			throttle = lerpf(0.45, 0.0, over / coast_band)
+		else:
+			# Genuinely over the (distance-aware) target: brake.
+			throttle = 0.0
+			brake = clampf((over - coast_band) / brake_response_range, 0.0, 1.0) \
+				* max_brake_application
+			if over > emergency_overspeed:
+				brake = 1.0
+
+	# --- Understeer recovery (single-side airbrake) ---
+	var speed_ratio: float = current_speed / max_speed if max_speed > 0 else 0.0
+	if absf(raw_steer) > assist_steer_saturation and speed_ratio > assist_min_speed_ratio:
+		_steer_saturated_time += delta
+	else:
+		_steer_saturated_time = 0.0
+
+	var assist: float = 0.0
+	if steering_assist_strength > 0.0 \
+			and _steer_saturated_time > assist_min_saturation_time \
+			and brake < 0.2:
+		assist = steering_assist_strength
+
+	# --- Merge braking into airbrakes (the only real brake this ship has) ---
+	var ab_left: float = brake
+	var ab_right: float = brake
+	if assist > 0.0:
+		# steer > 0 = turning left = left airbrake adds yaw in that direction
+		if raw_steer > 0.0:
+			ab_left = maxf(ab_left, assist)
+		else:
+			ab_right = maxf(ab_right, assist)
+
+	# --- Blend with recorded hints (skill dependent, recorded data only) ---
+	var from_recorded: bool = target.get("from_recorded_data", false)
+	if from_recorded and hint_weight > 0:
+		throttle = lerpf(throttle, target.hint_throttle, hint_weight)
+		brake = lerpf(brake, target.hint_brake, hint_weight)
+		ab_left = lerpf(ab_left, maxf(target.hint_airbrake_left, target.hint_brake), hint_weight)
+		ab_right = lerpf(ab_right, maxf(target.hint_airbrake_right, target.hint_brake), hint_weight)
+
+	# --- Smooth controls (rate scales with skill: novice sluggish, expert crisp) ---
+	var s: float = _smoothing_rate * delta
+	smoothed_steer = lerpf(smoothed_steer, raw_steer, minf(s, 1.0))
+	smoothed_throttle = lerpf(smoothed_throttle, throttle, minf(s * 0.8, 1.0))
+	smoothed_brake = lerpf(smoothed_brake, brake, minf(s * 1.2, 1.0))
+	smoothed_airbrake_left = lerpf(smoothed_airbrake_left, ab_left, minf(s * 1.2, 1.0))
+	smoothed_airbrake_right = lerpf(smoothed_airbrake_right, ab_right, minf(s * 1.2, 1.0))
+
 	return {
 		"throttle": smoothed_throttle,
 		"brake": smoothed_brake,
@@ -185,208 +257,45 @@ func _calculate_steering(target_position: Vector3, delta: float) -> float:
 	"""Calculate steering input to reach target position."""
 	var ship_pos: Vector3 = ship.global_position
 	var ship_forward: Vector3 = -ship.global_transform.basis.z
-	
+
 	var to_target: Vector3 = target_position - ship_pos
 	to_target.y = 0
 	if to_target.length_squared() < 0.01:
 		return 0.0
 	to_target = to_target.normalized()
-	
+
 	ship_forward.y = 0
 	if ship_forward.length_squared() < 0.01:
 		return 0.0
 	ship_forward = ship_forward.normalized()
-	
+
 	var cross: Vector3 = ship_forward.cross(to_target)
 	var dot: float = ship_forward.dot(to_target)
-	
+
 	var angle_sign: float = sign(cross.y)
 	var angle: float = acos(clamp(dot, -1.0, 1.0))
-	
+
 	var steer: float = angle * angle_sign * steering_sensitivity
-	
+
 	# Rate limit steering
 	var max_change: float = max_steer_rate * delta
 	steer = clamp(steer, prev_steer - max_change, prev_steer + max_change)
+	steer = clamp(steer, -1.0, 1.0)
 	prev_steer = steer
-	
-	return clamp(steer, -1.0, 1.0)
 
-# ============================================================================
-# THROTTLE AND BRAKE - AGGRESSIVE WITH HINT RELIANCE
-# ============================================================================
-
-func _calculate_throttle_and_brake(
-	current_speed: float, 
-	target_speed: float, 
-	max_speed: float,
-	max_curvature: float, 
-	immediate_curvature: float,
-	corner_distance: float, 
-	is_s_curve: bool,
-	corner_phase: float,
-	target: Dictionary
-) -> Dictionary:
-	"""
-	Aggressive throttle/brake with strong hint reliance at high skill.
-	Expert AI trusts recorded inputs more, novice AI is more conservative.
-	"""
-	var speed_error: float = target_speed - current_speed
-	var over_target: float = current_speed - target_speed
-	var speed_ratio: float = current_speed / max_speed if max_speed > 0 else 0.0
-	
-	var throttle: float = 0.0
-	var brake: float = 0.0
-	
-	# === PHASE DETECTION ===
-	var in_corner: bool = immediate_curvature > 0.015
-	var approaching_corner: bool = max_curvature > 0.02 and corner_distance < brake_distance_threshold
-	var exiting_corner: bool = corner_phase > 0.55 and immediate_curvature < max_curvature * 0.8
-	
-	# S-curves with good racing line need less braking
-	var s_curve_modifier: float = 1.0
-	if is_s_curve:
-		s_curve_modifier = 0.55  # 45% less braking in S-curves
-	
-	# === THROTTLE LOGIC ===
-	if exiting_corner:
-		# CORNER EXIT: Get on throttle early and hard!
-		throttle = clamp(0.9 + speed_error * 0.1, 0.75, 1.0)
-	elif speed_error > 0:
-		# Below target - accelerate hard
-		throttle = clamp(speed_error * throttle_responsiveness, min_throttle, 1.0)
-	elif over_target < throttle_cutoff_threshold:
-		# Slightly over but not dangerous - maintain partial throttle
-		var coast_factor: float = 1.0 - (over_target / throttle_cutoff_threshold)
-		throttle = clamp(coast_factor * 0.65, min_throttle, 0.65)
-	else:
-		# Significantly over target - minimal throttle
-		throttle = min_throttle * 0.5
-	
-	# === LATE BRAKING LOGIC ===
-	var need_to_brake: bool = false
-	var brake_urgency: float = 0.0
-	
-	if approaching_corner and not exiting_corner:
-		var speed_excess: float = current_speed - target_speed
-		
-		if speed_excess > 0:
-			if corner_distance < emergency_brake_distance:
-				# EMERGENCY: Very close to corner and too fast
-				need_to_brake = true
-				brake_urgency = clamp(speed_excess / target_speed * 1.6, 0.2, 1.0)
-			elif corner_distance < brake_distance_threshold:
-				# Within braking zone - calculate required deceleration
-				var distance_to_brake: float = corner_distance - 2.0  # Smaller margin
-				var required_decel: float = (speed_excess * speed_excess) / (2.0 * max(distance_to_brake, 1.0))
-				
-				# Higher threshold = later braking (expert brakes at 8.0, novice at 5.0)
-				var decel_threshold: float = lerpf(5.0, 8.0, skill_level)
-				if required_decel > decel_threshold:
-					need_to_brake = true
-					brake_urgency = clamp(required_decel / 25.0, 0.0, 0.85)
-	
-	# Also brake if significantly over target in corner
-	if in_corner and over_target > brake_threshold:
-		need_to_brake = true
-		brake_urgency = max(brake_urgency, clamp((over_target - brake_threshold) * brake_intensity, 0.0, 0.65))
-	
-	# Apply braking
-	if need_to_brake:
-		brake = brake_urgency * s_curve_modifier
-		if brake > 0.4:
-			throttle = min_throttle * 0.25
-		elif brake > 0.2:
-			throttle *= 0.35
-	
-	# === BLEND WITH RECORDED HINTS (SKILL DEPENDENT) ===
-	var from_recorded: bool = target.from_recorded_data
-	if from_recorded and hint_weight > 0:
-		var hint_throttle: float = target.hint_throttle
-		var hint_brake: float = target.hint_brake
-		
-		# Expert: trust hints heavily (0.85 weight)
-		# This is crucial for matching recorded lap times
-		throttle = lerpf(throttle, hint_throttle, hint_weight)
-		brake = lerpf(brake, hint_brake, hint_weight)
-	
-	return {"throttle": clamp(throttle, 0.0, 1.0), "brake": clamp(brake, 0.0, 1.0)}
-
-# ============================================================================
-# AIRBRAKES
-# ============================================================================
-
-func _calculate_airbrakes(
-	current_speed: float, 
-	max_speed: float, 
-	steer: float, 
-	max_curvature: float, 
-	immediate_curvature: float,
-	is_s_curve: bool,
-	target: Dictionary
-) -> Dictionary:
-	"""Calculate airbrake inputs for cornering assistance."""
-	var result: Dictionary = {"left": 0.0, "right": 0.0}
-	
-	var speed_ratio: float = current_speed / max_speed if max_speed > 0 else 0.0
-	
-	if speed_ratio < airbrake_min_speed_ratio:
-		return result
-	
-	var airbrake_intensity: float = 0.0
-	var effective_curvature: float = max(max_curvature, immediate_curvature)
-	
-	# Curvature-based airbrakes
-	if effective_curvature > airbrake_curvature_threshold:
-		var curvature_factor: float = (effective_curvature - airbrake_curvature_threshold) / (1.0 - airbrake_curvature_threshold)
-		curvature_factor = clamp(curvature_factor, 0.0, 1.0)
-		airbrake_intensity = curvature_factor * airbrake_curvature_factor
-	
-	# Steering effort-based airbrakes
-	var steer_magnitude: float = abs(steer)
-	if steer_magnitude > airbrake_steering_threshold:
-		var steer_factor: float = (steer_magnitude - airbrake_steering_threshold) / (1.0 - airbrake_steering_threshold)
-		steer_factor = clamp(steer_factor, 0.0, 1.0)
-		airbrake_intensity = max(airbrake_intensity, steer_factor * 0.7)
-	
-	# S-curves: Use less airbrake since racing line is straighter
-	if is_s_curve:
-		airbrake_intensity *= 0.45
-	
-	# Scale by speed
-	var speed_factor: float = clamp((speed_ratio - airbrake_min_speed_ratio) / (0.8 - airbrake_min_speed_ratio), 0.0, 1.0)
-	airbrake_intensity *= speed_factor
-	airbrake_intensity = clamp(airbrake_intensity, 0.0, 0.85)
-	
-	# Apply to appropriate side
-	if steer < -0.12:
-		result.right = airbrake_intensity
-	elif steer > 0.12:
-		result.left = airbrake_intensity
-	elif effective_curvature > airbrake_curvature_threshold:
-		result.left = airbrake_intensity * 0.15
-		result.right = airbrake_intensity * 0.15
-	
-	# Blend with recorded hints (skill dependent)
-	var from_recorded: bool = target.from_recorded_data
-	if from_recorded and hint_weight > 0:
-		var hint_left: float = target.hint_airbrake_left
-		var hint_right: float = target.hint_airbrake_right
-		result.left = lerpf(result.left, hint_left, hint_weight)
-		result.right = lerpf(result.right, hint_right, hint_weight)
-	
-	return result
+	return steer
 
 # ============================================================================
 # DEBUG
 # ============================================================================
 
 func get_debug_info() -> String:
-	return "Controls: T=%.2f B=%.2f S=%.2f AB=L%.2f/R%.2f (hint=%.0f%%)" % [
+	return "Controls: T=%.2f B=%.2f S=%.2f AB=L%.2f/R%.2f (hint=%.0f%%, smooth=%.0f/s)" % [
 		smoothed_throttle,
 		smoothed_brake,
 		smoothed_steer,
 		smoothed_airbrake_left,
 		smoothed_airbrake_right,
-		hint_weight * 100.0
+		hint_weight * 100.0,
+		_smoothing_rate
 	]

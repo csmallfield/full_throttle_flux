@@ -157,27 +157,25 @@ func spline_offset_to_world(offset: float) -> Vector3:
 	var local_point := curve.sample_baked(distance)
 	return track_path.global_transform * local_point
 
-func spline_offset_to_world_with_lateral(offset: float, lateral: float) -> Vector3:
-	"""Get world position at spline offset with lateral offset from centerline."""
+func spline_offset_to_world_with_lateral(offset: float, lateral: float, apply_tilt: bool = false) -> Vector3:
+	"""Get world position at spline offset with lateral offset from centerline.
+
+	apply_tilt = true computes the lateral in the BANKED track frame (curve
+	tilts applied), matching how CSGPolygon3D PATH_FOLLOW extrudes the track
+	geometry. Default false preserves the legacy unbanked frame that existing
+	recorded-lap data was captured in (recording and playback are
+	self-consistent either way, but must use the SAME frame).
+	The baked racing line pipeline always uses the tilted frame."""
 	if not is_valid:
 		return Vector3.ZERO
 	
 	var center := spline_offset_to_world(offset)
 	var tangent := get_tangent_at_offset(offset)
-	var up := get_up_at_offset(offset)
+	var up := get_up_at_offset(offset, apply_tilt)
 	
 	# Calculate right vector - perpendicular to forward, in the track plane
 	# tangent.cross(up) gives RIGHT in Godot's coordinate system
 	var right := tangent.cross(up).normalized()  # FIXED: was up.cross(tangent)
-	
-	# Debug output to verify the calculation
-	#if Engine.get_physics_frames() % 120 == 0:
-		#print("LATERAL DEBUG: lateral=%.1f tangent=%s up=%s right=%s" % [
-			#lateral, tangent, up, right
-		#])
-		#print("LATERAL DEBUG: center=%s result=%s" % [
-			#center, center + right * lateral
-		#])
 	
 	return center + right * lateral
 
@@ -193,8 +191,13 @@ func get_tangent_at_offset(offset: float) -> Vector3:
 	
 	return (pos_after - pos_before).normalized()
 
-func get_up_at_offset(offset: float) -> Vector3:
-	"""Get the up vector at a spline offset (accounts for track banking)."""
+func get_up_at_offset(offset: float, apply_tilt: bool = false) -> Vector3:
+	"""Get the up vector at a spline offset.
+
+	apply_tilt = true includes the curve's per-point tilt (track banking) --
+	this matches the actual extruded track geometry (CSGPolygon3D
+	PATH_FOLLOW applies tilt). Default false is the legacy behavior:
+	sample_baked_up_vector() does NOT apply tilt unless asked."""
 	if not is_valid:
 		return Vector3.UP
 	
@@ -203,7 +206,7 @@ func get_up_at_offset(offset: float) -> Vector3:
 		offset += 1.0
 	
 	var distance := offset * total_length
-	var up := curve.sample_baked_up_vector(distance)
+	var up := curve.sample_baked_up_vector(distance, apply_tilt)
 	
 	# Transform to world space
 	return track_path.global_transform.basis * up
@@ -278,17 +281,20 @@ func estimate_safe_speed(offset: float, max_speed: float, min_speed_ratio: float
 # LATERAL OFFSET CALCULATION
 # ============================================================================
 
-func calculate_lateral_offset(world_position: Vector3, spline_offset: float) -> float:
+func calculate_lateral_offset(world_position: Vector3, spline_offset: float, apply_tilt: bool = false) -> float:
 	"""
 	Calculate how far a position is from the track centerline.
 	Negative = left of center, Positive = right of center.
+	apply_tilt = true measures in the banked track frame (see
+	spline_offset_to_world_with_lateral). Keep recording and playback on the
+	same setting.
 	"""
 	if not is_valid:
 		return 0.0
 	
 	var center := spline_offset_to_world(spline_offset)
 	var tangent := get_tangent_at_offset(spline_offset)
-	var up := get_up_at_offset(spline_offset)
+	var up := get_up_at_offset(spline_offset, apply_tilt)
 	var right := tangent.cross(up).normalized()  # FIXED: was up.cross(tangent)
 	
 	var to_position := world_position - center
