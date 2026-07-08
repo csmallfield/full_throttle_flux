@@ -4,7 +4,6 @@
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_8wlfk"]
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_yhocl"]
 [ext_resource type="ArrayMesh" uid="uid://y130yslft22d" path="res://assets/groundMesh.obj" id="4_8wlfk"]
-[ext_resource type="PackedScene" path="res://scenes/ai_debug_tester.tscn" id="5_yhocl"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
 sky_top_color = Color(0.05, 0.05, 0.15, 1)
@@ -242,5 +241,3 @@ size = Vector3(50, 300, 100)
 [node name="GroundMesh" type="MeshInstance3D" parent="." unique_id=1603205808]
 material_override = SubResource("StandardMaterial3D_8wlfk")
 mesh = ExtResource("4_8wlfk")
-
-[node name="AIDebugTester" parent="." unique_id=1134183329 instance=ExtResource("5_yhocl")]

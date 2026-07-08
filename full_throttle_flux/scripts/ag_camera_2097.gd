@@ -21,7 +21,7 @@ class_name AGCamera2097
 ## Extra distance added at maximum speed.
 ## Camera pulls back as you go faster, enhancing sense of speed.
 ## 0 = no zoom effect, 2-4 = noticeable pullback at top speed.
-@export var speed_zoom := -5
+@export var speed_zoom := -7
 
 ## How quickly camera moves to target position (units per second factor).
 ## Higher = snappier following, lower = more floaty/cinematic.
