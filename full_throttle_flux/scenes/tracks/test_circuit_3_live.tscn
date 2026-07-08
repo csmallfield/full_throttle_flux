@@ -1,9 +1,10 @@
-[gd_scene load_steps=13 format=3 uid="uid://iok12nc8qm3o"]
+[gd_scene format=3 uid="uid://iok12nc8qm3o"]
 
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_q4s3x"]
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_8wlfk"]
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_yhocl"]
 [ext_resource type="ArrayMesh" uid="uid://y130yslft22d" path="res://assets/groundMesh.obj" id="4_8wlfk"]
+[ext_resource type="PackedScene" path="res://scenes/ai_debug_tester.tscn" id="5_yhocl"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
 sky_top_color = Color(0.05, 0.05, 0.15, 1)
@@ -92,63 +93,63 @@ shader_parameter/major_line_width = 1.0
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8wlfk"]
 albedo_color = Color(0.5448767, 0.46117342, 0.32201117, 1)
 
-[node name="TestCircuit3" type="Node3D"]
+[node name="TestCircuit3" type="Node3D" unique_id=654334514]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=196554730]
 environment = SubResource("Environment_cxd56")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1186802391]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 50, 0)
 light_color = Color(1, 0.95, 0.9, 1)
 shadow_enabled = true
 shadow_blur = 2.0
 
-[node name="StartingPoint" type="Node" parent="."]
+[node name="StartingPoint" type="Node" parent="." unique_id=1873279731]
 
-[node name="StartFinishLine" parent="StartingPoint" instance=ExtResource("1_q4s3x")]
+[node name="StartFinishLine" parent="StartingPoint" unique_id=761214711 instance=ExtResource("1_q4s3x")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 2.6881704, 0)
 
-[node name="StartingGrid" type="Node3D" parent="StartingPoint"]
+[node name="StartingGrid" type="Node3D" parent="StartingPoint" unique_id=1427322691]
 transform = Transform3D(-4.3711392e-08, 0, 1.0000001, 0, 0.99999994, 0, -1.0000001, 0, -4.3711392e-08, 0, 0, 0)
 script = ExtResource("2_8wlfk")
 metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
 
-[node name="Slot1" type="Marker3D" parent="StartingPoint/StartingGrid"]
+[node name="Slot1" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1405319578]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.1534395, 6.7302737, 14.1989565)
 gizmo_extents = 3.25
 
-[node name="Slot2" type="Marker3D" parent="StartingPoint/StartingGrid"]
+[node name="Slot2" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=467539723]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -5.4472556, 6.730275, 27.941135)
 gizmo_extents = 3.25
 
-[node name="Slot3" type="Marker3D" parent="StartingPoint/StartingGrid"]
+[node name="Slot3" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1037944066]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.064587, 6.730276, 35.63126)
 gizmo_extents = 3.25
 
-[node name="Slot4" type="Marker3D" parent="StartingPoint/StartingGrid"]
+[node name="Slot4" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1887740336]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.6061196, 6.730278, 49.955036)
 gizmo_extents = 3.25
 
-[node name="Slot5" type="Marker3D" parent="StartingPoint/StartingGrid"]
+[node name="Slot5" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1041427802]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -4.7997003, 6.730279, 62.82162)
 gizmo_extents = 3.25
 
-[node name="Slot6" type="Marker3D" parent="StartingPoint/StartingGrid"]
+[node name="Slot6" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=466896348]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.7464, 6.73028, 73.8328)
 gizmo_extents = 3.25
 
-[node name="Slot7" type="Marker3D" parent="StartingPoint/StartingGrid"]
+[node name="Slot7" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=300566446]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -1.5246893, 6.730282, 85.8434)
 gizmo_extents = 3.25
 
-[node name="Slot8" type="Marker3D" parent="StartingPoint/StartingGrid"]
+[node name="Slot8" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=907243069]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.2678022, 6.7302833, 100.848145)
 gizmo_extents = 3.25
 
-[node name="MainSpline" type="Path3D" parent="."]
+[node name="MainSpline" type="Path3D" parent="." unique_id=1712864977]
 curve = SubResource("Curve3D_8254d")
 
-[node name="groundGeo" type="CSGPolygon3D" parent="MainSpline"]
+[node name="groundGeo" type="CSGPolygon3D" parent="MainSpline" unique_id=1185508489]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, -0.22576904, 3.8146973e-06, -0.1640625)
 use_collision = true
 polygon = PackedVector2Array(21.58349, 2.9622357, 17.218266, 2.0412953, -16.617033, 1.8802173, -20.253164, 2.7683895, -20.286919, -1.9581314, 21.968796, -1.8501513)
@@ -166,10 +167,10 @@ path_joined = true
 smooth_faces = true
 material = ExtResource("3_yhocl")
 
-[node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline"]
+[node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline" unique_id=1330079837]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
-collision_layer = 4
+collision_layer = 12
 polygon = PackedVector2Array(28.489079, 8.5183115, 23.549274, 8.43313, 21.121952, 6.5165105, 21.079365, -2.1295757, 28.65942, -2.172171)
 mode = 2
 path_node = NodePath("..")
@@ -184,10 +185,10 @@ path_u_distance = 50.0
 path_joined = false
 material = SubResource("ShaderMaterial_h2vpo")
 
-[node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline"]
+[node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline" unique_id=363480878]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
-collision_layer = 4
+collision_layer = 12
 polygon = PackedVector2Array(-19.290813, 6.090594, -22.31432, 7.922032, -27.509634, 7.922032, -27.211542, -2.640679, -19.120472, -2.5129018)
 mode = 2
 path_node = NodePath("..")
@@ -202,42 +203,44 @@ path_u_distance = 50.0
 path_joined = false
 material = SubResource("ShaderMaterial_nrqn6")
 
-[node name="CSGTorus3D" type="CSGTorus3D" parent="."]
+[node name="CSGTorus3D" type="CSGTorus3D" parent="." unique_id=159350460]
 transform = Transform3D(-3.496911e-07, -8, 0, 8, -3.496911e-07, 0, 0, 0, 8, 75.66658, 10.877743, -3.7573605)
 inner_radius = 5.312
 outer_radius = 8.859
 sides = 20
 ring_sides = 10
 
-[node name="CSGTorus3D2" type="CSGTorus3D" parent="."]
+[node name="CSGTorus3D2" type="CSGTorus3D" parent="." unique_id=987928120]
 transform = Transform3D(-3.496911e-07, -8, 0, 8, -3.496911e-07, 0, 0, 0, 8, 121.32084, 10.877743, -3.7573605)
 inner_radius = 5.312
 outer_radius = 8.859
 sides = 20
 ring_sides = 10
 
-[node name="CSGTorus3D3" type="CSGTorus3D" parent="."]
+[node name="CSGTorus3D3" type="CSGTorus3D" parent="." unique_id=1239591614]
 transform = Transform3D(-3.496911e-07, -8, 0, 8, -3.496911e-07, 0, 0, 0, 8, 171.89388, 10.877743, -3.7573605)
 inner_radius = 5.312
 outer_radius = 8.859
 sides = 20
 ring_sides = 10
 
-[node name="CSGTorus3D4" type="CSGTorus3D" parent="."]
+[node name="CSGTorus3D4" type="CSGTorus3D" parent="." unique_id=112047914]
 transform = Transform3D(-3.496911e-07, -8, 0, 8, -3.496911e-07, 0, 0, 0, 8, 213.60025, 10.877743, -3.7573605)
 inner_radius = 5.312
 outer_radius = 8.859
 sides = 20
 ring_sides = 10
 
-[node name="CSGBox3D" type="CSGBox3D" parent="."]
+[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=1628125202]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -281.34314, 0, -821.6252)
 size = Vector3(50, 300, 100)
 
-[node name="CSGBox3D2" type="CSGBox3D" parent="."]
+[node name="CSGBox3D2" type="CSGBox3D" parent="." unique_id=6819012]
 transform = Transform3D(0.6819473, 0, 0.7314013, 0, 1, 0, -0.7314013, 0, 0.6819473, -929.8231, 0, -736.39984)
 size = Vector3(50, 300, 100)
 
-[node name="GroundMesh" type="MeshInstance3D" parent="."]
+[node name="GroundMesh" type="MeshInstance3D" parent="." unique_id=1603205808]
 material_override = SubResource("StandardMaterial3D_8wlfk")
 mesh = ExtResource("4_8wlfk")
+
+[node name="AIDebugTester" parent="." unique_id=765011118 instance=ExtResource("5_yhocl")]

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="TrackManifest" load_steps=7 format=3 uid="uid://d1rfxu0wg1vwp"]
+[gd_resource type="Resource" script_class="TrackManifest" format=3 uid="uid://d1rfxu0wg1vwp"]
 
 [ext_resource type="Script" uid="uid://xkwdxftnktqx" path="res://scripts/resources/track_manifest.gd" id="1_hpy4w"]
 [ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="2_01lol"]

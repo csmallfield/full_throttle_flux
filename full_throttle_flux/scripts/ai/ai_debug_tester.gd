@@ -10,6 +10,7 @@ class_name AIDebugTester
 ## Press F5 to print AI data summary.
 ## Press F6 to BAKE user data to bundled (for release/git).
 ## Press F7 to CLEAR user data (revert to bundled).
+## Press F8 to toggle baked-line vs recorded-data priority (A/B testing).
 
 # ============================================================================
 # CONFIGURATION
@@ -22,6 +23,7 @@ class_name AIDebugTester
 @export var summary_key: Key = KEY_F5
 @export var bake_key: Key = KEY_F6
 @export var clear_user_data_key: Key = KEY_F7
+@export var source_toggle_key: Key = KEY_F8
 
 ## Enable lap recording functionality
 @export var enable_recording: bool = true
@@ -74,12 +76,27 @@ func _ready() -> void:
 	print("  F5: Print AI data summary")
 	print("  F6: BAKE user data to bundled (for git/release)")
 	print("  F7: CLEAR user data (revert to bundled)")
+	print("  F8: Toggle baked-line vs recorded priority")
 	if track_ai_data:
 		var source := AIDataManager.get_data_source(_get_track_id())
 		print("  AI Data: %d laps loaded (source: %s)" % [track_ai_data.recorded_laps.size(), source])
 	else:
-		print("  AI Data: None (using geometric fallback)")
+		print("  AI Data: None")
+	_print_active_source()
 	print(separator)
+
+func _print_active_source() -> void:
+	"""State unambiguously which steering/speed source the AI is using."""
+	if not ai_controller or not ai_controller.line_follower:
+		print("  ACTIVE SOURCE: (AI not initialized)")
+		return
+	var f := ai_controller.line_follower
+	if f.has_recorded_data and not (f.prefer_baked_over_recorded and f.has_baked_line()):
+		print("  ACTIVE SOURCE: RECORDED LAPS (press F8 to switch to baked line)")
+	elif f.has_baked_line():
+		print("  ACTIVE SOURCE: BAKED RACING LINE (%d samples)" % ai_controller.baked_line.sample_count)
+	else:
+		print("  ACTIVE SOURCE: GEOMETRIC FALLBACK (no baked line, no recordings)")
 
 func _find_ship() -> ShipController:
 	"""Search for a ShipController in the scene."""
@@ -189,6 +206,17 @@ func _input(event: InputEvent) -> void:
 				_bake_to_bundled()
 			clear_user_data_key:
 				_clear_user_data()
+			source_toggle_key:
+				_toggle_source_priority()
+
+func _toggle_source_priority() -> void:
+	"""A/B toggle: prefer the baked line even when recorded laps exist."""
+	if not ai_controller or not ai_controller.line_follower:
+		return
+	var f := ai_controller.line_follower
+	f.prefer_baked_over_recorded = not f.prefer_baked_over_recorded
+	print(">>> prefer_baked_over_recorded = %s" % str(f.prefer_baked_over_recorded))
+	_print_active_source()
 
 func _toggle_ai() -> void:
 	"""Toggle AI control on/off."""

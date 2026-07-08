@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="TrackAIData" load_steps=20812 format=3 uid="uid://cohv2x5t42ixo"]
+[gd_resource type="Resource" script_class="TrackAIData" format=3 uid="uid://cohv2x5t42ixo"]
 
 [ext_resource type="Script" uid="uid://ba5dq8rcif4vm" path="res://scripts/ai/resources/ai_recorded_lap.gd" id="1_fi25c"]
 [ext_resource type="Script" uid="uid://bodlkjcwtfe8x" path="res://scripts/ai/resources/ai_racing_sample.gd" id="2_ywvvr"]

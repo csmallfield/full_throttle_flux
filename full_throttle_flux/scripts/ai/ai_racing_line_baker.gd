@@ -46,7 +46,7 @@ var ship_clearance: float = 4.0
 ## error (~2-3m entering corners at speed). The speed profile recomputes
 ## consistently for the slightly tighter line, so this trades a little
 ## theoretical pace for not scraping walls -- a very good trade.
-var line_margin: float = 2.5
+var line_margin: float = 2.0
 
 ## Corridor half-width used where wall raycasts miss (open track edges).
 var fallback_half_width: float = 12.0
@@ -79,7 +79,7 @@ var cornering_confidence: float = 0.92
 ## Planned airbrake application for braking zones. Lower = earlier, longer,
 ## easier-to-track braking zones (the controller has smoothing lag, so
 ## planning at full application produces zones too short to execute).
-var planned_brake_application: float = 0.5
+var planned_brake_application: float = 0.7
 
 ## If true, straightaway speeds cap at profile.max_speed. The physics itself
 ## has no clamp (true top speed is the thrust/drag equilibrium, ~134 with

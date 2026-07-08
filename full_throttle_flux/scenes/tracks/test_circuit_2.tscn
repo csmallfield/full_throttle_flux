@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://cfl0lfoj7rm1s"]
+[gd_scene format=3 uid="uid://cfl0lfoj7rm1s"]
 
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="1_8a1g2"]
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="2_8a1g2"]
@@ -89,12 +89,12 @@ glow_enabled = true
 glow_intensity = 0.6
 glow_bloom = 0.2
 
-[node name="TestCircuit2" type="Node3D"]
+[node name="TestCircuit2" type="Node3D" unique_id=153403712]
 
-[node name="MainSpline" type="Path3D" parent="."]
+[node name="MainSpline" type="Path3D" parent="." unique_id=1409909461]
 curve = SubResource("Curve3D_lade4")
 
-[node name="groundGeo" type="CSGPolygon3D" parent="MainSpline"]
+[node name="groundGeo" type="CSGPolygon3D" parent="MainSpline" unique_id=142908251]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
 polygon = PackedVector2Array(18.94209, 2.2563944, 16.1879, 1.76581, -16.617033, 1.8802173, -19.665726, 2.767276, -19.665726, -3.1930122, 18.990906, -2.6885724)
@@ -111,7 +111,7 @@ path_u_distance = 0.0
 path_joined = true
 material = ExtResource("1_8a1g2")
 
-[node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline"]
+[node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline" unique_id=1450056646]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
 collision_layer = 4
@@ -129,7 +129,7 @@ path_u_distance = 1.0
 path_joined = false
 material = SubResource("ShaderMaterial_cxd56")
 
-[node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline"]
+[node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline" unique_id=1267454148]
 transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
 use_collision = true
 collision_layer = 4
@@ -147,25 +147,55 @@ path_u_distance = 1.0
 path_joined = false
 material = SubResource("ShaderMaterial_10ghd")
 
-[node name="StartFinishLine" parent="." instance=ExtResource("2_8a1g2")]
-transform = Transform3D(0.053744398, 0.033174716, 0.9980034, -0.045083392, 0.9985093, -0.030763682, -0.9975365, -0.043339983, 0.05516005, -54.97947, -29.214176, 1754.1183)
-
-[node name="StartingGrid" type="Node3D" parent="."]
-transform = Transform3D(-0.32014036, 0.008164005, 0.94733506, -0.07847882, 0.9962974, -0.035106916, -0.9441141, -0.08558487, -0.31831428, -42.709, -23.63087, 1756.7993)
-script = ExtResource("3_cxd56")
-metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
-
-[node name="Slot1" type="Marker3D" parent="StartingGrid"]
-transform = Transform3D(0.93969256, 0, -0.3420201, 0, 1, 0, 0.3420201, 0, 0.93969256, -3.3510475, -3, 7.9537964)
-gizmo_extents = 3.25
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1396352142]
 environment = SubResource("Environment_cxd56")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1287207175]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 50, 0)
 light_color = Color(1, 0.95, 0.9, 1)
 shadow_enabled = true
 shadow_blur = 2.0
 
-[node name="AIDebugTester" parent="." instance=ExtResource("4_cxd56")]
+[node name="AIDebugTester" parent="." unique_id=1290026683 instance=ExtResource("4_cxd56")]
+
+[node name="StartingPoint" type="Node" parent="." unique_id=1045493972]
+
+[node name="StartFinishLine" parent="StartingPoint" unique_id=296164126 instance=ExtResource("2_8a1g2")]
+transform = Transform3D(0.18034643, 0, 0.98360324, 0, 1, 0, -0.98360324, 0, 0.18034643, 1.38974, -30.117897, 1764.8502)
+
+[node name="StartingGrid" type="Node3D" parent="StartingPoint" unique_id=526345779]
+transform = Transform3D(0.18034643, 0, 0.98360324, 0, 0.99999994, 0, -0.98360324, 0, 0.18034643, 1.38974, -32.80607, 1764.8502)
+script = ExtResource("3_cxd56")
+metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
+
+[node name="Slot1" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1014893858]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.1534395, 6.7302737, 14.1989565)
+gizmo_extents = 3.25
+
+[node name="Slot2" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1295342630]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -5.4472556, 6.730275, 27.941135)
+gizmo_extents = 3.25
+
+[node name="Slot3" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1088498723]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.064587, 6.730276, 35.63126)
+gizmo_extents = 3.25
+
+[node name="Slot4" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1538387508]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.6061196, 6.730278, 49.955036)
+gizmo_extents = 3.25
+
+[node name="Slot5" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1433050739]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -4.7997003, 6.730279, 62.82162)
+gizmo_extents = 3.25
+
+[node name="Slot6" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1438471924]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.7464, 6.73028, 73.8328)
+gizmo_extents = 3.25
+
+[node name="Slot7" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=1308661527]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -1.5246893, 6.730282, 85.8434)
+gizmo_extents = 3.25
+
+[node name="Slot8" type="Marker3D" parent="StartingPoint/StartingGrid" unique_id=915229407]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.2678022, 6.7302833, 100.848145)
+gizmo_extents = 3.25
