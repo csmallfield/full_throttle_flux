@@ -6,8 +6,9 @@
 [ext_resource type="Resource" uid="uid://bphk7y17ib0c1" path="res://resources/tracks/test_circuit_5_live.tres" id="4_352ji"]
 [ext_resource type="Resource" uid="uid://bmr7g7dnesi5w" path="res://resources/tracks/test_circuit_6_live.tres" id="5_4y0dv"]
 [ext_resource type="Resource" uid="uid://gp4xnq86c5ko" path="res://resources/tracks/test_circuit_7_live.tres" id="6_atc04"]
+[ext_resource type="Resource" uid="uid://dy1jancd0gwe4" path="res://resources/tracks/test_circuit_4_live.tres" id="7_352ji"]
 
 [resource]
 script = ExtResource("1_hpy4w")
-tracks = Array[ExtResource("2_01lol")]([ExtResource("3_2so11"), ExtResource("4_352ji"), ExtResource("5_4y0dv"), ExtResource("6_atc04")])
+tracks = Array[ExtResource("2_01lol")]([ExtResource("3_2so11"), ExtResource("4_352ji"), ExtResource("5_4y0dv"), ExtResource("6_atc04"), ExtResource("7_352ji")])
 metadata/_custom_type_script = "uid://xkwdxftnktqx"

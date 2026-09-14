@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://d4kic6qjimqte"]
+[gd_scene format=3 uid="uid://d4kic6qjimqte"]
 
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_7fkgi"]
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_m4xxh"]
@@ -95,149 +95,177 @@ _data = {
 }
 point_count = 7
 
-[node name="TestCircuit3" type="Node3D"]
+[node name="TestCircuit3" type="Node3D" unique_id=163487051]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=7849082]
 environment = SubResource("Environment_cxd56")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=2074052074]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 50, 0)
 light_color = Color(1, 0.95, 0.9, 1)
 shadow_enabled = true
 shadow_blur = 2.0
 
-[node name="StartingPoint" type="Node" parent="."]
+[node name="StartingPoint" type="Node" parent="." unique_id=260149715]
 
-[node name="StartFinishLine" parent="StartingPoint" instance=ExtResource("1_7fkgi")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 2.6881704, 0)
+[node name="MainSpline" type="Path3D" parent="." unique_id=1488486422]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 91.68784, 0, 0)
+curve = SubResource("Curve3D_8254d")
 
-[node name="StartingGrid" type="Node3D" parent="StartingPoint"]
+[node name="groundGeo" type="CSGPolygon3D" parent="MainSpline" unique_id=1547799839]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, -0.22576904, 3.8146973e-06, -0.1640625)
+use_collision = true
+polygon = PackedVector2Array(21.58349, 2.9622357, 17.218266, 2.0412953, -16.617033, 1.8802173, -20.253164, 2.7683895, -20.286919, -1.9581314, 21.968796, -1.8501513)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 0.5
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = true
+path_local = false
+path_continuous_u = true
+path_u_distance = 100.0
+path_joined = false
+smooth_faces = true
+material = ExtResource("3_niut7")
+
+[node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline" unique_id=1158703872]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(28.489079, 8.5183115, 23.549274, 8.43313, 21.121952, 6.5165105, 21.079365, -2.1295757, 28.65942, -2.172171)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 50.0
+path_joined = false
+material = SubResource("ShaderMaterial_h2vpo")
+
+[node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline" unique_id=1232407007]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(-19.290813, 6.090594, -22.31432, 7.922032, -27.509634, 7.922032, -27.211542, -2.640679, -19.120472, -2.5129018)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 50.0
+path_joined = false
+material = SubResource("ShaderMaterial_nrqn6")
+
+[node name="Path3D" type="Path3D" parent="." unique_id=1203646179]
+curve = SubResource("Curve3D_7fkgi")
+
+[node name="groundGeo" type="CSGPolygon3D" parent="Path3D" unique_id=522921723]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, -0.22576904, 3.8146973e-06, -0.1640625)
+use_collision = true
+polygon = PackedVector2Array(21.58349, 2.9622357, 17.218266, 2.0412953, -16.617033, 1.8802173, -20.253164, 2.7683895, -20.286919, -1.9581314, 21.968796, -1.8501513)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 0.5
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = true
+path_local = false
+path_continuous_u = true
+path_u_distance = 100.0
+path_joined = false
+smooth_faces = true
+material = ExtResource("3_niut7")
+
+[node name="wallLeftGeo" type="CSGPolygon3D" parent="Path3D" unique_id=520080813]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(28.489079, 8.5183115, 23.549274, 8.43313, 21.121952, 6.5165105, 21.079365, -2.1295757, 28.65942, -2.172171)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 50.0
+path_joined = false
+material = SubResource("ShaderMaterial_h2vpo")
+
+[node name="wallRightGeo" type="CSGPolygon3D" parent="Path3D" unique_id=1784021856]
+transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
+use_collision = true
+collision_layer = 4
+polygon = PackedVector2Array(-19.290813, 6.090594, -22.31432, 7.922032, -27.509634, 7.922032, -27.211542, -2.640679, -19.120472, -2.5129018)
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 1.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 50.0
+path_joined = false
+material = SubResource("ShaderMaterial_nrqn6")
+
+[node name="BoostPad" parent="." unique_id=2022517844 instance=ExtResource("4_m4xxh")]
+transform = Transform3D(0.024862828, 0.086164646, -0.99597067, -0.002150294, 0.9962808, 0.08613782, 0.9996886, 1.16174105e-10, 0.02495564, 274.2453, 16.13158, 8.76103)
+
+[node name="BoostPad2" parent="." unique_id=1099950746 instance=ExtResource("4_m4xxh")]
+transform = Transform3D(0.9976095, 0.060004886, 0.034273937, -0.06851117, 0.9236331, 0.37710574, -0.009028345, -0.3785523, 0.9255358, -264.5196, 20.339586, 663.53516)
+boost_strength = 80.0
+
+[node name="StartFinishLine" parent="." unique_id=2143867104 instance=ExtResource("1_7fkgi")]
+transform = Transform3D(-6.586409e-08, 0, 1, 0, 1, 0, -1.5067948, 0, -4.371139e-08, 0, 2.6881704, 2.0025024)
+
+[node name="StartingGrid" type="Node3D" parent="." unique_id=603136806]
 transform = Transform3D(-4.3711392e-08, 0, 1.0000001, 0, 0.99999994, 0, -1.0000001, 0, -4.3711392e-08, 0, 0, 0)
 script = ExtResource("2_m4xxh")
 metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
 
-[node name="Slot1" type="Marker3D" parent="StartingPoint/StartingGrid"]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -5.684342e-14, 6.7302732, 14.1989565)
+[node name="Slot1" type="Marker3D" parent="StartingGrid" unique_id=1407950748]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.1534395, 6.7302737, 14.1989565)
 gizmo_extents = 3.25
 
-[node name="MainSpline" type="Path3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 91.68784, 0, 0)
-curve = SubResource("Curve3D_8254d")
+[node name="Slot2" type="Marker3D" parent="StartingGrid" unique_id=1382980642]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -5.4472556, 6.730275, 27.941135)
+gizmo_extents = 3.25
 
-[node name="groundGeo" type="CSGPolygon3D" parent="MainSpline"]
-transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, -0.22576904, 3.8146973e-06, -0.1640625)
-use_collision = true
-polygon = PackedVector2Array(21.58349, 2.9622357, 17.218266, 2.0412953, -16.617033, 1.8802173, -20.253164, 2.7683895, -20.286919, -1.9581314, 21.968796, -1.8501513)
-mode = 2
-path_node = NodePath("..")
-path_interval_type = 0
-path_interval = 0.5
-path_simplify_angle = 1.0
-path_rotation = 2
-path_rotation_accurate = true
-path_local = false
-path_continuous_u = true
-path_u_distance = 100.0
-path_joined = false
-smooth_faces = true
-material = ExtResource("3_niut7")
+[node name="Slot3" type="Marker3D" parent="StartingGrid" unique_id=1371629303]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.064587, 6.730276, 35.63126)
+gizmo_extents = 3.25
 
-[node name="wallLeftGeo" type="CSGPolygon3D" parent="MainSpline"]
-transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
-use_collision = true
-collision_layer = 4
-polygon = PackedVector2Array(28.489079, 8.5183115, 23.549274, 8.43313, 21.121952, 6.5165105, 21.079365, -2.1295757, 28.65942, -2.172171)
-mode = 2
-path_node = NodePath("..")
-path_interval_type = 0
-path_interval = 1.0
-path_simplify_angle = 1.0
-path_rotation = 2
-path_rotation_accurate = false
-path_local = false
-path_continuous_u = true
-path_u_distance = 50.0
-path_joined = false
-material = SubResource("ShaderMaterial_h2vpo")
+[node name="Slot4" type="Marker3D" parent="StartingGrid" unique_id=134972396]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.6061196, 6.730278, 49.955036)
+gizmo_extents = 3.25
 
-[node name="wallRightGeo" type="CSGPolygon3D" parent="MainSpline"]
-transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
-use_collision = true
-collision_layer = 4
-polygon = PackedVector2Array(-19.290813, 6.090594, -22.31432, 7.922032, -27.509634, 7.922032, -27.211542, -2.640679, -19.120472, -2.5129018)
-mode = 2
-path_node = NodePath("..")
-path_interval_type = 0
-path_interval = 1.0
-path_simplify_angle = 1.0
-path_rotation = 2
-path_rotation_accurate = false
-path_local = false
-path_continuous_u = true
-path_u_distance = 50.0
-path_joined = false
-material = SubResource("ShaderMaterial_nrqn6")
+[node name="Slot5" type="Marker3D" parent="StartingGrid" unique_id=631789855]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -4.7997003, 6.730279, 62.82162)
+gizmo_extents = 3.25
 
-[node name="Path3D" type="Path3D" parent="."]
-curve = SubResource("Curve3D_7fkgi")
+[node name="Slot6" type="Marker3D" parent="StartingGrid" unique_id=1897536384]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.7464, 6.73028, 73.8328)
+gizmo_extents = 3.25
 
-[node name="groundGeo" type="CSGPolygon3D" parent="Path3D"]
-transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, -0.22576904, 3.8146973e-06, -0.1640625)
-use_collision = true
-polygon = PackedVector2Array(21.58349, 2.9622357, 17.218266, 2.0412953, -16.617033, 1.8802173, -20.253164, 2.7683895, -20.286919, -1.9581314, 21.968796, -1.8501513)
-mode = 2
-path_node = NodePath("..")
-path_interval_type = 0
-path_interval = 0.5
-path_simplify_angle = 1.0
-path_rotation = 2
-path_rotation_accurate = true
-path_local = false
-path_continuous_u = true
-path_u_distance = 100.0
-path_joined = false
-smooth_faces = true
-material = ExtResource("3_niut7")
+[node name="Slot7" type="Marker3D" parent="StartingGrid" unique_id=86475489]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, -1.5246893, 6.730282, 85.8434)
+gizmo_extents = 3.25
 
-[node name="wallLeftGeo" type="CSGPolygon3D" parent="Path3D"]
-transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
-use_collision = true
-collision_layer = 4
-polygon = PackedVector2Array(28.489079, 8.5183115, 23.549274, 8.43313, 21.121952, 6.5165105, 21.079365, -2.1295757, 28.65942, -2.172171)
-mode = 2
-path_node = NodePath("..")
-path_interval_type = 0
-path_interval = 1.0
-path_simplify_angle = 1.0
-path_rotation = 2
-path_rotation_accurate = false
-path_local = false
-path_continuous_u = true
-path_u_distance = 50.0
-path_joined = false
-material = SubResource("ShaderMaterial_h2vpo")
-
-[node name="wallRightGeo" type="CSGPolygon3D" parent="Path3D"]
-transform = Transform3D(1, 0, 0, 0, 0.999836, -0.0181155, 0, 0.0181155, 0.999836, 0, 0, 0)
-use_collision = true
-collision_layer = 4
-polygon = PackedVector2Array(-19.290813, 6.090594, -22.31432, 7.922032, -27.509634, 7.922032, -27.211542, -2.640679, -19.120472, -2.5129018)
-mode = 2
-path_node = NodePath("..")
-path_interval_type = 0
-path_interval = 1.0
-path_simplify_angle = 1.0
-path_rotation = 2
-path_rotation_accurate = false
-path_local = false
-path_continuous_u = true
-path_u_distance = 50.0
-path_joined = false
-material = SubResource("ShaderMaterial_nrqn6")
-
-[node name="BoostPad" parent="." instance=ExtResource("4_m4xxh")]
-transform = Transform3D(0.024862828, 0.086164646, -0.99597067, -0.002150294, 0.9962808, 0.08613782, 0.9996886, 1.16174105e-10, 0.02495564, 274.2453, 16.13158, 8.76103)
-
-[node name="BoostPad2" parent="." instance=ExtResource("4_m4xxh")]
-transform = Transform3D(0.9976095, 0.060004886, 0.034273937, -0.06851117, 0.9236331, 0.37710574, -0.009028345, -0.3785523, 0.9255358, -264.5196, 20.339586, 663.53516)
-boost_strength = 80.0
+[node name="Slot8" type="Marker3D" parent="StartingGrid" unique_id=972600411]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 5.2678022, 6.7302833, 100.848145)
+gizmo_extents = 3.25
