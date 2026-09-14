@@ -14,7 +14,7 @@ class_name BakedRacingLine
 ## already encodes where braking must begin, so "speed at my current offset"
 ## is a complete instruction -- no separate corner-distance logic needed.
 
-const CURRENT_BAKE_VERSION := 2
+const CURRENT_BAKE_VERSION := 3
 
 @export var bake_version: int = CURRENT_BAKE_VERSION
 

@@ -6,6 +6,12 @@ class_name ShipController
 ## Refactored to use ShipProfile for data-driven configuration.
 ## v7: Ship-to-ship collisions via symmetric impulse exchange (momentum-
 ##     conserving), feedback driven by relative closing speed with cooldown
+## v8: TIME NORMALISATION + HANDLING/AESTHETIC REWORK
+##     - All decay rates are per-second; behaviour is now tick-rate independent
+##     - _apply_grip() runs every frame, not only while steering
+##     - grip rotates velocity (magnitude preserving); scrub is the speed cost
+##     - max_speed is authoritative via a soft limiter; speed_ratio is 0..1
+##     - visual roll is a spring driven by MEASURED yaw rate and slip angle
 
 # ============================================================================
 # SIGNALS
@@ -72,10 +78,28 @@ var airbrake_right := 0.0
 var current_grip: float
 var is_airbraking := false
 
+## Vertical velocity retained per second while airborne (was 0.995/frame)
+const AIRBORNE_VERTICAL_RETAIN := 0.74
+
 # Visual state (applied to mesh, not physics)
 var visual_pitch := 0.0
 var visual_roll := 0.0
+var visual_roll_velocity := 0.0
+var visual_yaw := 0.0
 var visual_accel_pitch := 0.0
+
+# Measured motion state (drives the aesthetic rotations)
+var measured_yaw_rate := 0.0   ## rad/s about the ship's own up axis, + = left
+var slip_angle := 0.0          ## rad between velocity and facing, + = vel left
+var longitudinal_accel := 0.0  ## u/s^2 along facing, for the camera FOV kick
+var _prev_forward := Vector3.FORWARD
+var _prev_forward_speed := 0.0
+
+# Cornering scrub (lateral speed loss), mirrors current_grip
+var current_scrub: float = 0.0
+
+# Overspeed headroom granted by boost; decays back to zero
+var _boost_overspeed := 0.0
 
 # Hover animation state
 var hover_time_accumulator := 0.0
@@ -129,12 +153,16 @@ var _max_speed: float
 var _thrust_power: float
 var _drag_coefficient: float
 var _air_drag: float
+var _overspeed_damping: float
 var _steer_speed: float
 var _grip: float
 var _steer_curve_power: float
+var _lateral_scrub: float
 var _airbrake_turn_rate: float
 var _airbrake_grip: float
 var _airbrake_drag: float
+var _airbrake_lateral_scrub: float
+var _dual_airbrake_drag: float
 var _airbrake_slip_falloff: float
 var _hover_height: float
 var _hover_stiffness: float
@@ -145,6 +173,14 @@ var _track_normal_smoothing: float
 var _pitch_speed: float
 var _pitch_return_speed: float
 var _max_pitch_angle: float
+var _roll_max_angle: float
+var _roll_from_yaw_rate: float
+var _roll_from_slip: float
+var _roll_from_input: float
+var _roll_frequency: float
+var _roll_damping_ratio: float
+var _visual_yaw_from_slip: float
+var _visual_yaw_max: float
 var _wall_scrape_min_speed: float
 var _wall_bounce_retain: float
 var _wall_rotation_force: float
@@ -185,6 +221,7 @@ func _ready() -> void:
 	# Initialize safe position to starting position
 	last_safe_position = global_position
 	last_safe_rotation = global_transform.basis
+	_prev_forward = -global_transform.basis.z
 
 func _find_child_nodes() -> void:
 	ship_mesh = get_node_or_null("ShipMesh")
@@ -206,14 +243,18 @@ func _apply_profile() -> void:
 	
 	_max_speed = profile.max_speed
 	_thrust_power = profile.thrust_power
-	_drag_coefficient = profile.drag_coefficient
-	_air_drag = profile.air_drag
+	_drag_coefficient = _migrate_rate(profile.drag_coefficient, "drag_coefficient")
+	_air_drag = _migrate_rate(profile.air_drag, "air_drag")
+	_overspeed_damping = profile.overspeed_damping
 	_steer_speed = profile.steer_speed
 	_grip = profile.grip
 	_steer_curve_power = profile.steer_curve_power
+	_lateral_scrub = profile.lateral_scrub
 	_airbrake_turn_rate = profile.airbrake_turn_rate
 	_airbrake_grip = profile.airbrake_grip
-	_airbrake_drag = profile.airbrake_drag
+	_airbrake_drag = _migrate_rate(profile.airbrake_drag, "airbrake_drag")
+	_airbrake_lateral_scrub = profile.airbrake_lateral_scrub
+	_dual_airbrake_drag = _migrate_rate(profile.dual_airbrake_drag, "dual_airbrake_drag")
 	_airbrake_slip_falloff = profile.airbrake_slip_falloff
 	_hover_height = profile.hover_height
 	_hover_stiffness = profile.hover_stiffness
@@ -224,6 +265,14 @@ func _apply_profile() -> void:
 	_pitch_speed = profile.pitch_speed
 	_pitch_return_speed = profile.pitch_return_speed
 	_max_pitch_angle = profile.max_pitch_angle
+	_roll_max_angle = profile.roll_max_angle
+	_roll_from_yaw_rate = profile.roll_from_yaw_rate
+	_roll_from_slip = profile.roll_from_slip
+	_roll_from_input = profile.roll_from_input
+	_roll_frequency = profile.roll_frequency
+	_roll_damping_ratio = profile.roll_damping_ratio
+	_visual_yaw_from_slip = profile.visual_yaw_from_slip
+	_visual_yaw_max = profile.visual_yaw_max
 	_wall_scrape_min_speed = profile.wall_scrape_min_speed
 	_wall_bounce_retain = profile.wall_bounce_retain
 	_wall_rotation_force = profile.wall_rotation_force
@@ -251,28 +300,58 @@ func _apply_profile() -> void:
 	_rumble_frequency = profile.rumble_frequency
 	
 	current_grip = _grip
+	current_scrub = _lateral_scrub
+	_warn_if_track_normal_smoothing_legacy(profile.track_normal_smoothing)
+
+## v8: retention coefficients moved from per-frame to per-second. A legacy
+## per-frame value (0.95-1.0) would mean almost no drag at all under the new
+## interpretation, so convert it and say so rather than failing silently.
+func _migrate_rate(value: float, field_name: String) -> float:
+	if value > 0.95 and value < 1.0:
+		var converted: float = pow(value, 60.0)
+		push_warning("ShipProfile '%s': %s = %.4f looks like a legacy per-frame value; using %.4f per second. Update the .tres." % [
+			profile.ship_id if profile else "?", field_name, value, converted])
+		return converted
+	return clampf(value, 0.0, 1.0)
+
+func _warn_if_track_normal_smoothing_legacy(value: float) -> void:
+	if value > 0.0 and value <= 1.0:
+		push_warning("ShipProfile '%s': track_normal_smoothing = %.3f looks like a legacy per-frame weight. It is now a per-second rate (try 9.0)." % [
+			profile.ship_id if profile else "?", value])
 
 func _set_default_values() -> void:
 	_max_speed = 120.0
 	_thrust_power = 65.0
-	_drag_coefficient = 0.992
-	_air_drag = 0.97
+	_drag_coefficient = 0.617
+	_air_drag = 0.161
+	_overspeed_damping = 2.5
 	_steer_speed = 1.345
 	_grip = 4.0
 	_steer_curve_power = 2.5
-	_airbrake_turn_rate = 0.5
-	_airbrake_grip = 0.5
-	_airbrake_drag = 0.98
-	_airbrake_slip_falloff = 25.0
+	_lateral_scrub = 0.8
+	_airbrake_turn_rate = 1.0
+	_airbrake_grip = 0.35
+	_airbrake_drag = 0.90
+	_airbrake_lateral_scrub = 1.8
+	_dual_airbrake_drag = 0.30
+	_airbrake_slip_falloff = 6.0
 	_hover_height = 2.0
 	_hover_stiffness = 65.0
 	_hover_damping = 5.5
 	_hover_force_max = 200.0
 	_track_align_speed = 8.0
-	_track_normal_smoothing = 0.15
+	_track_normal_smoothing = 9.0
 	_pitch_speed = 1.0
 	_pitch_return_speed = 2.0
 	_max_pitch_angle = 10.0
+	_roll_max_angle = 32.0
+	_roll_from_yaw_rate = 16.0
+	_roll_from_slip = 30.0
+	_roll_from_input = 7.0
+	_roll_frequency = 2.2
+	_roll_damping_ratio = 0.62
+	_visual_yaw_from_slip = 0.40
+	_visual_yaw_max = 9.0
 	_wall_scrape_min_speed = 20.0
 	_wall_bounce_retain = 0.9
 	_wall_rotation_force = 1.5
@@ -300,6 +379,7 @@ func _set_default_values() -> void:
 	_rumble_frequency = 20.0
 	
 	current_grip = _grip
+	current_scrub = _lateral_scrub
 
 func _setup_hover_ray() -> void:
 	if hover_ray:
@@ -339,16 +419,39 @@ func _physics_process(delta: float) -> void:
 	_apply_thrust(delta)
 	_apply_steering(delta)
 	_apply_airbrakes(delta)
+	_apply_grip(delta)          # v8: every frame, not only while steering
 	_apply_pitch(delta)
-	_apply_drag()
+	_apply_drag(delta)
+	_apply_speed_limit(delta)
 	_align_to_track(delta)
 	
 	move_and_slide()
 	
 	_ship_collision_feedback_cooldown = maxf(0.0, _ship_collision_feedback_cooldown - delta)
 	_handle_collisions()
+	_update_motion_state(delta)
 	_update_visuals(delta)
 	_update_scrape_audio(delta)
+
+# ============================================================================
+# TIME NORMALISATION HELPERS
+# ============================================================================
+
+## Frame-rate independent smoothing weight. Use in place of `rate * delta`
+## as a lerp weight: lerpf(a, b, _smooth(rate, delta)).
+static func _smooth(rate: float, delta: float) -> float:
+	return 1.0 - exp(-maxf(rate, 0.0) * delta)
+
+## Frame-rate independent retention. `retain_per_second` is the fraction of a
+## quantity surviving one full second.
+static func _decay(retain_per_second: float, delta: float) -> float:
+	return pow(clampf(retain_per_second, 0.0, 1.0), delta)
+
+## Split a vector into the component along `axis` and the component in the
+## plane perpendicular to it. Returns [planar, along_axis_scalar].
+static func _split_on_axis(v: Vector3, axis: Vector3) -> Array:
+	var along: float = v.dot(axis)
+	return [v - axis * along, along]
 
 # ============================================================================
 # INPUT HANDLING
@@ -420,7 +523,15 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 	# Reset visual states
 	visual_pitch = 0.0
 	visual_roll = 0.0
+	visual_roll_velocity = 0.0
+	visual_yaw = 0.0
 	visual_accel_pitch = 0.0
+	measured_yaw_rate = 0.0
+	slip_angle = 0.0
+	longitudinal_accel = 0.0
+	_prev_forward = -global_transform.basis.z
+	_prev_forward_speed = 0.0
+	_boost_overspeed = 0.0
 	hover_time_accumulator = 0.0
 	hover_yaw_accumulator = 0.0
 	hover_roll_accumulator = 0.0
@@ -428,6 +539,7 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 	
 	# Reset airbrake state
 	current_grip = _grip
+	current_scrub = _lateral_scrub
 	is_airbraking = false
 	
 	# Reset track normal
@@ -439,6 +551,11 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 		_is_scraping_wall = false
 		if audio_controller:
 			audio_controller.stop_wall_scrape()
+	
+	# Re-snap the camera so it does not sweep across the level after a
+	# respawn (v2 camera has no large world-space lag to absorb the jump).
+	if camera and camera.has_method("reset_to_ship"):
+		camera.reset_to_ship()
 	
 	ship_respawned.emit()
 	
@@ -490,18 +607,21 @@ func _update_ground_detection() -> void:
 		ground_distance = global_position.distance_to(hover_ray.get_collision_point())
 		
 		var new_normal = hover_ray.get_collision_normal()
-		smoothed_track_normal = smoothed_track_normal.lerp(new_normal, _track_normal_smoothing).normalized()
+		var dt: float = get_physics_process_delta_time()
+		smoothed_track_normal = smoothed_track_normal.lerp(
+				new_normal, _smooth(_track_normal_smoothing, dt)).normalized()
 		current_track_normal = smoothed_track_normal
 	else:
 		is_grounded = false
-		time_since_grounded += get_physics_process_delta_time()
-		current_track_normal = current_track_normal.lerp(Vector3.UP, 2.0 * get_physics_process_delta_time())
+		var dt_air: float = get_physics_process_delta_time()
+		time_since_grounded += dt_air
+		current_track_normal = current_track_normal.lerp(Vector3.UP, _smooth(2.0, dt_air))
 
 func _apply_hover_force(delta: float) -> void:
 	if not is_grounded:
 		var gravity_multiplier = 1.0 + clampf(time_since_grounded * 2.0, 0.0, 1.0)
 		velocity.y -= _gravity * gravity_multiplier * delta
-		velocity.y *= 0.995
+		velocity.y *= _decay(AIRBORNE_VERTICAL_RETAIN, delta)
 		return
 	
 	var height_error = _hover_height - ground_distance
@@ -565,20 +685,53 @@ func _apply_steering(delta: float) -> void:
 	var steer_torque = curved_input * _steer_speed * steer_reduction * delta
 	
 	rotate_object_local(Vector3.UP, steer_torque)
-	_apply_grip(delta)
 
+## v8 rewrite. Two separate jobs that v1 conflated into one lerp:
+##   grip  -- ROTATES the velocity toward the ship's facing, magnitude
+##            preserving. This is the ship "biting".
+##   scrub -- DESTROYS lateral velocity outright. This is the speed cost of
+##            sliding, and it is what makes a corner feel like it costs
+##            something. v1 had no such cost: the lerp preserved magnitude,
+##            so cornering was free and all the speed loss came from the
+##            airbrake's blunt isotropic drag instead.
+## Called every physics frame. v1 only called it from _apply_steering(), which
+## early-returned on zero stick, so an airbrake-only turn never redirected
+## velocity at all (measured: 7.3 deg of slip still present 1.3s after
+## release, i.e. the ship entered the next corner still crabbing).
 func _apply_grip(delta: float) -> void:
 	if not is_grounded:
 		return
 	
-	var current_speed = velocity.length()
-	if current_speed < 1.0:
+	var axis: Vector3 = current_track_normal.normalized()
+	var split: Array = _split_on_axis(velocity, axis)
+	var planar: Vector3 = split[0]
+	var vertical: float = split[1]
+	
+	var planar_speed: float = planar.length()
+	if planar_speed < 1.0:
 		return
 	
-	var target_dir = -global_transform.basis.z
-	var target_velocity = target_dir * current_speed
-	var grip_factor = current_grip * delta
-	velocity = velocity.lerp(target_velocity, grip_factor)
+	var forward: Vector3 = -global_transform.basis.z
+	forward = forward - axis * forward.dot(axis)
+	if forward.length() < 0.01:
+		return
+	forward = forward.normalized()
+	
+	# --- grip: rotate velocity toward facing, preserving planar speed ---
+	var dir: Vector3 = planar / planar_speed
+	var misalignment: float = acos(clampf(dir.dot(forward), -1.0, 1.0))
+	if misalignment > 0.0001:
+		var max_rotation: float = current_grip * delta
+		var t: float = clampf(max_rotation / misalignment, 0.0, 1.0)
+		dir = dir.slerp(forward, t).normalized()
+	planar = dir * planar_speed
+	
+	# --- scrub: destroy what lateral velocity remains ---
+	var lateral_axis: Vector3 = axis.cross(forward).normalized()
+	var lateral: float = planar.dot(lateral_axis)
+	planar -= lateral_axis * (lateral * _smooth(current_scrub, delta))
+	
+	velocity = planar + axis * vertical
 
 # ============================================================================
 # AIRBRAKE SYSTEM
@@ -589,33 +742,45 @@ func _apply_airbrakes(delta: float) -> void:
 	is_airbraking = brake_amount > 0.1
 	
 	if not is_airbraking:
-		current_grip = lerpf(current_grip, _grip, _airbrake_slip_falloff * delta)
+		var recover: float = _smooth(_airbrake_slip_falloff, delta)
+		current_grip = lerpf(current_grip, _grip, recover)
+		current_scrub = lerpf(current_scrub, _lateral_scrub, recover)
 		return
 	
 	var rotation_effectiveness = 1.0 if is_grounded else 0.3
-	var brake_rotation = (airbrake_left - airbrake_right) * _airbrake_turn_rate * rotation_effectiveness * delta
+	
+	# v8: airbrake yaw authority now RISES with speed. v1 held it flat at
+	# 0.5 rad/s while steering was cut to 0.7x at speed, so the airbrake was
+	# weakest exactly where it is supposed to be the primary cornering tool.
+	var authority: float = lerpf(0.55, 1.0, get_speed_ratio())
+	var brake_rotation = (airbrake_left - airbrake_right) * _airbrake_turn_rate \
+			* rotation_effectiveness * authority * delta
 	rotate_object_local(Vector3.UP, brake_rotation)
 	
 	if is_grounded:
 		current_grip = lerpf(_grip, _airbrake_grip, brake_amount)
+		current_scrub = lerpf(_lateral_scrub, _airbrake_lateral_scrub, brake_amount)
 		
 		var is_opposite = (airbrake_left > 0.5 and steer_input < -0.3) or \
 						  (airbrake_right > 0.5 and steer_input > 0.3)
 		if is_opposite:
 			current_grip *= 0.5
+			current_scrub *= 1.4
 	
-	var drag_factor = lerpf(1.0, _airbrake_drag, brake_amount)
+	# Longitudinal braking only; lateral loss is handled by scrub in
+	# _apply_grip(). Applied in the track plane so it never fights the hover.
+	var axis: Vector3 = current_track_normal.normalized() if is_grounded else Vector3.UP
+	var retain: float = _decay(lerpf(1.0, _airbrake_drag, brake_amount), delta)
 	
 	if is_grounded:
-		velocity *= drag_factor
-		
 		if airbrake_left > 0.25 and airbrake_right > 0.25:
 			var full_brake = minf(airbrake_left, airbrake_right)
-			velocity *= lerpf(1.0, 0.85, full_brake)
+			retain *= _decay(lerpf(1.0, _dual_airbrake_drag, full_brake), delta)
 	else:
-		var air_drag_factor = lerpf(1.0, _airbrake_drag, brake_amount * 0.3)
-		velocity.x *= air_drag_factor
-		velocity.z *= air_drag_factor
+		retain = _decay(lerpf(1.0, _airbrake_drag, brake_amount * 0.3), delta)
+	
+	var split: Array = _split_on_axis(velocity, axis)
+	velocity = (split[0] as Vector3) * retain + axis * (split[1] as float)
 
 # ============================================================================
 # PITCH SYSTEM (Visual Only)
@@ -639,10 +804,34 @@ func _apply_pitch(delta: float) -> void:
 # DRAG SYSTEM
 # ============================================================================
 
-func _apply_drag() -> void:
-	var drag = _drag_coefficient if is_grounded else _air_drag
-	velocity.x *= drag
-	velocity.z *= drag
+func _apply_drag(delta: float) -> void:
+	var retain: float = _decay(_drag_coefficient if is_grounded else _air_drag, delta)
+	var axis: Vector3 = current_track_normal.normalized() if is_grounded else Vector3.UP
+	var split: Array = _split_on_axis(velocity, axis)
+	velocity = (split[0] as Vector3) * retain + axis * (split[1] as float)
+
+# ============================================================================
+# SPEED LIMIT
+# ============================================================================
+
+## v8: makes profile.max_speed authoritative.
+## v1 had no clamp, so the real top speed was the thrust/drag fixed point.
+## Measured on default_racer: 134.2 against a declared max_speed of 120, i.e.
+## speed_ratio peaked at 1.119. Everything keyed to speed_ratio (camera
+## distance, FOV, roll scaling, rumble threshold, HUD, AI planning) was
+## therefore mis-scaled, and Godot's lerp() does not clamp, so the camera ran
+## at 116 degrees FOV against a declared max_fov of 110.
+## Boost is still allowed to exceed the cap; the headroom decays back to zero.
+func _apply_speed_limit(delta: float) -> void:
+	if _overspeed_damping > 0.0:
+		_boost_overspeed *= _decay(exp(-_overspeed_damping), delta)
+		if _boost_overspeed < 0.01:
+			_boost_overspeed = 0.0
+	
+	var limit: float = _max_speed + _boost_overspeed
+	var speed: float = velocity.length()
+	if speed > limit and speed > 0.001:
+		velocity *= limit / speed
 
 # ============================================================================
 # TRACK ALIGNMENT
@@ -654,7 +843,7 @@ func _align_to_track(delta: float) -> void:
 	
 	var current_up = global_transform.basis.y
 	var target_up = current_track_normal
-	var new_up = current_up.slerp(target_up, _track_align_speed * delta)
+	var new_up = current_up.slerp(target_up, _smooth(_track_align_speed, delta))
 	
 	var forward = -global_transform.basis.z
 	var right = forward.cross(new_up).normalized()
@@ -824,28 +1013,87 @@ func _play_ship_collision_feedback(impact_speed: float) -> void:
 # VISUAL FEEDBACK
 # ============================================================================
 
+## Measures what the ship is actually doing, so the aesthetic rotations can be
+## driven by physical state instead of by button state.
+func _update_motion_state(delta: float) -> void:
+	if delta <= 0.0:
+		return
+	
+	var up: Vector3 = global_transform.basis.y
+	var forward: Vector3 = -global_transform.basis.z
+	
+	var flat_now: Vector3 = forward - up * forward.dot(up)
+	var flat_prev: Vector3 = _prev_forward - up * _prev_forward.dot(up)
+	
+	if flat_now.length() > 0.01 and flat_prev.length() > 0.01:
+		flat_now = flat_now.normalized()
+		flat_prev = flat_prev.normalized()
+		var turned: float = acos(clampf(flat_prev.dot(flat_now), -1.0, 1.0))
+		var turn_sign: float = signf(flat_prev.cross(flat_now).dot(up))
+		measured_yaw_rate = (turn_sign * turned) / delta
+	else:
+		measured_yaw_rate = 0.0
+	_prev_forward = forward
+	
+	# Slip angle: signed angle from facing to velocity, positive = velocity
+	# lies to the LEFT of the nose (i.e. the ship is crabbed to the right).
+	var planar_velocity: Vector3 = velocity - up * velocity.dot(up)
+	if planar_velocity.length() > 2.0 and flat_now.length() > 0.01:
+		var vel_dir: Vector3 = planar_velocity.normalized()
+		var offset: float = acos(clampf(flat_now.dot(vel_dir), -1.0, 1.0))
+		var offset_sign: float = signf(flat_now.cross(vel_dir).dot(up))
+		slip_angle = offset_sign * offset
+	else:
+		slip_angle = lerpf(slip_angle, 0.0, _smooth(8.0, delta))
+	
+	# Longitudinal acceleration, for the camera's FOV kick.
+	var forward_speed: float = velocity.dot(forward)
+	longitudinal_accel = (forward_speed - _prev_forward_speed) / delta
+	_prev_forward_speed = forward_speed
+
 func _update_visuals(delta: float) -> void:
 	if not ship_mesh:
 		return
 	
-	var target_roll := 0.0
-	target_roll += steer_input * deg_to_rad(45.0)
-	target_roll += (airbrake_left - airbrake_right) * deg_to_rad(75.0)
+	# --- v8: bank is a spring driven by measured state ---
+	# v1 set target_roll from raw input (steer * 45 + airbrake * 75, stacking
+	# additively to a 120 degree request) and lerped at a fixed 8.0. Measured
+	# result: 71-80 degrees of bank in corners, with a purely exponential rise
+	# and fall and no overshoot, which reads as an animation clip rather than
+	# a physical response.
+	var max_roll: float = deg_to_rad(_roll_max_angle)
+	var target_roll: float = 0.0
+	target_roll += deg_to_rad(_roll_from_yaw_rate) * measured_yaw_rate
+	target_roll -= deg_to_rad(_roll_from_slip) * slip_angle
+	target_roll += deg_to_rad(_roll_from_input) * steer_input
 	
-	var speed_factor = clampf(velocity.length() / _max_speed, 0.3, 1.0)
-	target_roll *= speed_factor
+	var speed_factor: float = clampf(get_speed_ratio(), 0.25, 1.0)
+	target_roll = clampf(target_roll * speed_factor, -max_roll, max_roll)
 	
-	visual_roll = lerpf(visual_roll, target_roll, 8.0 * delta)
+	# Second-order spring. roll_damping_ratio below 1.0 gives the overshoot
+	# and settle that a first-order lerp cannot produce.
+	var omega: float = TAU * maxf(_roll_frequency, 0.01)
+	var accel: float = (target_roll - visual_roll) * omega * omega \
+			- visual_roll_velocity * (2.0 * _roll_damping_ratio * omega)
+	visual_roll_velocity += accel * delta
+	visual_roll += visual_roll_velocity * delta
+	visual_roll = clampf(visual_roll, -max_roll * 1.35, max_roll * 1.35)
+	
+	# --- visual yaw: nose points further into the slide ---
+	var target_yaw: float = clampf(
+			-_visual_yaw_from_slip * slip_angle,
+			-deg_to_rad(_visual_yaw_max), deg_to_rad(_visual_yaw_max))
+	visual_yaw = lerpf(visual_yaw, target_yaw, _smooth(9.0, delta))
 	
 	var target_accel_pitch = -throttle_input * deg_to_rad(5.0)
-	visual_accel_pitch = lerpf(visual_accel_pitch, target_accel_pitch, 6.0 * delta)
+	visual_accel_pitch = lerpf(visual_accel_pitch, target_accel_pitch, _smooth(6.0, delta))
 	
 	var total_pitch = visual_pitch + visual_accel_pitch
 	
 	if _hover_animation_enabled:
 		_apply_hover_animation(delta)
 	else:
-		ship_mesh.rotation = Vector3(total_pitch, 0, visual_roll)
+		ship_mesh.rotation = Vector3(total_pitch, visual_yaw, visual_roll)
 		ship_mesh.position = Vector3.ZERO
 
 # ============================================================================
@@ -889,7 +1137,7 @@ func _apply_hover_animation(delta: float) -> void:
 	ship_mesh.position = Vector3(0, vertical_offset, 0) + rumble_offset
 	
 	var total_pitch = visual_pitch + visual_accel_pitch
-	var total_yaw = yaw_wobble + rumble_rotation.y
+	var total_yaw = visual_yaw + yaw_wobble + rumble_rotation.y
 	var total_roll = visual_roll + roll_wobble + rumble_rotation.z
 	
 	ship_mesh.rotation = Vector3(total_pitch, total_yaw, total_roll)
@@ -901,15 +1149,29 @@ func _apply_hover_animation(delta: float) -> void:
 func get_speed() -> float:
 	return velocity.length()
 
+## Normalised speed, clamped to 0..1. v8: max_speed is now enforced by
+## _apply_speed_limit(), and every consumer (camera, FOV, HUD, roll scaling)
+## can rely on this never exceeding 1.0. Use get_speed_ratio_raw() if you
+## specifically want to detect boost overspeed.
 func get_speed_ratio() -> float:
+	return clampf(velocity.length() / _max_speed, 0.0, 1.0)
+
+## Unclamped ratio. Exceeds 1.0 only while boost overspeed is active.
+func get_speed_ratio_raw() -> float:
 	return velocity.length() / _max_speed
+
+## How far above max_speed the ship is currently allowed to run (boost).
+func get_boost_overspeed() -> float:
+	return _boost_overspeed
 
 func get_max_speed() -> float:
 	return _max_speed
 
 func get_debug_info() -> String:
-	return "Speed: %.0f / %.0f\nGrip: %.1f\nGrounded: %s\nAirbrake: %s" % [
-		velocity.length(), _max_speed, current_grip, is_grounded, is_airbraking
+	return "Speed: %.0f / %.0f\nGrip: %.1f  Scrub: %.1f\nGrounded: %s\nAirbrake: %s\nYaw: %.0f deg/s  Slip: %.0f deg\nRoll: %.0f deg" % [
+		velocity.length(), _max_speed, current_grip, current_scrub,
+		is_grounded, is_airbraking,
+		rad_to_deg(measured_yaw_rate), rad_to_deg(slip_angle), rad_to_deg(visual_roll)
 	]
 
 func lock_controls() -> void:
@@ -933,6 +1195,15 @@ func apply_boost(amount: float) -> void:
 			forward = forward.normalized()
 	
 	velocity += forward * amount
+	
+	# Let the boost carry the ship above max_speed; the headroom decays back
+	# to zero at overspeed_damping (see _apply_speed_limit).
+	_boost_overspeed = maxf(_boost_overspeed, amount)
+	
+	# Give the camera an explicit FOV kick rather than relying on the speed
+	# ramp, which is what made the lens breathe constantly in v1.
+	if camera and camera.has_method("apply_fov_kick"):
+		camera.apply_fov_kick(1.0)
 	
 	if audio_controller:
 		audio_controller.trigger_boost()

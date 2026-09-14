@@ -20,12 +20,13 @@ const STEER_HIGH_SPEED_FACTOR := 0.7
 ## _apply_airbrakes(): dual-brake bonus applies when both airbrakes > 0.25
 const DUAL_AIRBRAKE_MIN := 0.25
 
-## _apply_airbrakes(): velocity *= lerpf(1.0, 0.85, full_brake)
-const DUAL_AIRBRAKE_FACTOR := 0.85
-
-## _apply_grip(): velocity can rotate at most `grip` rad/s (at full slip);
-## we plan with a margin since sin(slip) < 1 in practice.
+## _apply_grip(): velocity rotates toward facing at exactly `grip` rad/s.
+## v8 made this a true rotation rather than a vector lerp, so this bound is
+## now exact rather than approximate; the margin is pure safety.
 const GRIP_ROTATION_MARGIN := 0.85
+
+## _apply_airbrakes(): yaw authority scales with speed ratio in v8.
+const AIRBRAKE_AUTHORITY_MIN := 0.55
 
 # ============================================================================
 # CONFIGURATION
@@ -47,18 +48,24 @@ var planned_brake_application: float = 0.7
 
 var max_speed_ref: float = 120.0
 var thrust_power: float = 65.0
-var drag_coefficient: float = 0.992
+var drag_coefficient: float = 0.617      ## per SECOND as of v8
 var steer_speed: float = 1.345
 var grip: float = 4.0
-var airbrake_drag: float = 0.98
+var airbrake_drag: float = 0.90          ## per SECOND as of v8
+var dual_airbrake_drag: float = 0.30     ## per SECOND as of v8
+var airbrake_turn_rate: float = 1.0
+
+## Continuous drag rate lambda, where dv/dt = thrust - lambda * v.
+var _drag_lambda: float = 0.0
 
 var tick_rate: float = 60.0
 var dt: float = 1.0 / 60.0
 
-## Analytic top speed: the thrust/drag fixed point v = (v + T*dt) * drag.
-## NOTE: ship_controller.gd has NO velocity clamp, so this -- not
-## profile.max_speed -- is the true top speed for player and AI alike.
-## With default profile values this is ~134, above max_speed (120).
+## Analytic thrust/drag fixed point, v = thrust / lambda.
+## v8 NOTE: ship_controller.gd now enforces profile.max_speed with a soft
+## limiter (_apply_speed_limit), so the TRUE top speed is
+## min(equilibrium_speed, max_speed). Previously there was no clamp and the
+## real top speed was ~134 against a declared max_speed of 120.
 var equilibrium_speed: float = 0.0
 
 ## Velocity shed per meter traveled while braking at the planned application.
@@ -80,36 +87,53 @@ func _init(profile: ShipProfile = null) -> void:
 func configure(profile: ShipProfile) -> void:
 	max_speed_ref = profile.max_speed
 	thrust_power = profile.thrust_power
-	drag_coefficient = profile.drag_coefficient
+	drag_coefficient = _as_per_second(profile.drag_coefficient)
 	steer_speed = profile.steer_speed
 	grip = profile.grip
-	airbrake_drag = profile.airbrake_drag
+	airbrake_drag = _as_per_second(profile.airbrake_drag)
+	dual_airbrake_drag = _as_per_second(profile.dual_airbrake_drag)
+	airbrake_turn_rate = profile.airbrake_turn_rate
 	_recompute()
 
+## Mirrors ShipController._migrate_rate() so a legacy per-frame profile is
+## modelled the same way the physics actually runs it.
+func _as_per_second(value: float) -> float:
+	if value > 0.95 and value < 1.0:
+		return pow(value, 60.0)
+	return clampf(value, 0.0, 1.0)
+
 func _recompute() -> void:
-	# Thrust/drag equilibrium: v' = (v + thrust*dt) * drag  ->  fixed point
-	if drag_coefficient >= 0.99999:
+	# v8: drag is a per-second retention, so the continuous model is
+	#     dv/dt = thrust - lambda * v,  lambda = -ln(drag_per_second)
+	# giving the fixed point v = thrust / lambda.
+	if drag_coefficient >= 0.99999 or drag_coefficient <= 0.0:
+		_drag_lambda = 0.0001
 		equilibrium_speed = max_speed_ref * 2.0  # degenerate profile guard
 	else:
-		equilibrium_speed = (thrust_power * dt * drag_coefficient) / (1.0 - drag_coefficient)
+		_drag_lambda = -log(drag_coefficient)
+		equilibrium_speed = thrust_power / _drag_lambda
 
-	# Braking model. Per physics frame at application b (throttle off, grounded):
-	#   velocity *= lerp(1, airbrake_drag, b)          [airbrake drag]
-	#   velocity *= lerp(1, 0.85, b)  if b > 0.25      [dual airbrake bonus]
-	#   velocity *= drag_coefficient                   [regular drag]
-	# Pure multiplicative decay v_k = v0 * m^k gives a constant velocity loss
-	# per meter: distance from v0 to v1 = (v0 - v1) * dt / (1 - m), therefore
-	# dv/dm = (1 - m) / dt.
-	var m := brake_frame_multiplier(planned_brake_application)
-	_brake_dv_per_meter = maxf((1.0 - m) / dt, 0.05)
+	# Braking model. Velocity decays as v(t) = v0 * exp(-lambda_b * t), so
+	#     dx = v dt  ->  dv/dx = -lambda_b
+	# i.e. a constant velocity loss per meter, exactly as before but now
+	# expressed continuously instead of per tick.
+	# NOTE: this models longitudinal braking only. The v8 lateral scrub adds
+	# further deceleration while actually sliding, so real braking distances
+	# are slightly SHORTER than planned here. That direction is safe.
+	_brake_dv_per_meter = maxf(brake_lambda(planned_brake_application), 0.05)
 
-## Per-frame velocity multiplier while braking at application b (0-1).
-func brake_frame_multiplier(b: float) -> float:
+## Continuous decay rate (1/s) applied to speed while braking at application b.
+func brake_lambda(b: float) -> float:
 	b = clampf(b, 0.0, 1.0)
-	var m := lerpf(1.0, airbrake_drag, b)
+	var retain := lerpf(1.0, airbrake_drag, b)
 	if b > DUAL_AIRBRAKE_MIN:
-		m *= lerpf(1.0, DUAL_AIRBRAKE_FACTOR, b)
-	return m * drag_coefficient
+		retain *= lerpf(1.0, dual_airbrake_drag, b)
+	retain = clampf(retain * drag_coefficient, 0.0001, 0.9999)
+	return -log(retain)
+
+## Retained for callers that still want a per-frame figure.
+func brake_frame_multiplier(b: float) -> float:
+	return exp(-brake_lambda(b) * dt)
 
 # ============================================================================
 # QUERIES
@@ -137,8 +161,12 @@ func corner_speed(kappa: float, respect_profile_max: bool = true) -> float:
 	var cap := top_speed(respect_profile_max)
 	if kappa < 0.0001:
 		return cap
+	# v8: airbrakes contribute real yaw authority (turn rate raised, and it now
+	# scales UP with speed instead of staying flat), so corner planning must
+	# account for the brake the AI is assumed to be holding.
+	var brake_yaw := airbrake_turn_rate * planned_brake_application * AIRBRAKE_AUTHORITY_MIN
 	var steer_falloff := (1.0 - STEER_HIGH_SPEED_FACTOR) * steer_speed / maxf(max_speed_ref, 1.0)
-	var v_steer := steer_speed / (kappa + steer_falloff)
+	var v_steer := (steer_speed + brake_yaw) / (kappa + steer_falloff)
 	var v_grip := (grip * GRIP_ROTATION_MARGIN) / kappa
 	var v := minf(v_steer, v_grip) * cornering_confidence
 	return clampf(v, 5.0, cap)
@@ -161,15 +189,18 @@ func braking_distance(v_from: float, v_to: float) -> float:
 ## handful of frames per baker segment).
 func speed_after_full_throttle(v_from: float, distance: float) -> float:
 	var v := maxf(v_from, 1.0)
+	var cap := top_speed(true)
 	var d := 0.0
 	var guard := 0
 	while d < distance and guard < 100000:
-		v = (v + thrust_power * dt) * drag_coefficient
+		v += (thrust_power - _drag_lambda * v) * dt
+		v = minf(v, cap)  # v8: the speed limiter is real now
 		d += v * dt
 		guard += 1
 	return v
 
 func get_debug_info() -> String:
-	return "PerfModel: v_eq=%.1f v_top=%.1f brake=%.1f u/m confidence=%.2f" % [
-		equilibrium_speed, top_speed(), _brake_dv_per_meter, cornering_confidence
+	return "PerfModel: v_eq=%.1f v_top=%.1f lambda=%.3f brake=%.2f u/m confidence=%.2f" % [
+		equilibrium_speed, top_speed(), _drag_lambda,
+		_brake_dv_per_meter, cornering_confidence
 	]

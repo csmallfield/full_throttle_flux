@@ -5,6 +5,22 @@ class_name ShipProfile
 ## Ship Profile Resource
 ## Defines all tunable parameters for an anti-gravity racing ship.
 ## Create .tres files from this in resources/ships/
+##
+## v2 -- TIME-NORMALISED UNITS
+## ---------------------------------------------------------------------------
+## All decay/retention coefficients are now PER SECOND, not per physics frame.
+## Previously `drag_coefficient = 0.992` meant "retain 99.2% of velocity each
+## physics tick", making the whole handling model a function of
+## Engine.physics_ticks_per_second. Measured: top speed halved from 131 to 66
+## when the tick rate was raised from 60 to 120.
+##
+## Conversion: per_second = per_frame ^ 60
+##     0.992 -> 0.617   (drag_coefficient)
+##     0.970 -> 0.161   (air_drag)
+##     0.980 -> 0.298   (airbrake_drag)
+##
+## ShipController migrates legacy per-frame values automatically at load and
+## logs a warning, so old .tres files keep working. Update them when you can.
 
 # ============================================================================
 # IDENTITY
@@ -42,17 +58,24 @@ class_name ShipProfile
 
 @export_group("Speed")
 
-## Maximum velocity the ship can reach under normal thrust.
+## Maximum velocity under normal thrust. AUTHORITATIVE as of v2: a soft
+## limiter holds the ship here, so speed_ratio genuinely reaches 1.0 and no
+## higher. Boost may exceed it temporarily (see overspeed_damping).
 @export var max_speed: float = 120.0
 
-## How much forward force is applied when accelerating.
+## Forward force applied when accelerating. Governs how quickly the ship
+## reaches max_speed, no longer what the top speed actually is.
 @export var thrust_power: float = 65.0
 
-## Velocity retained each physics frame (1.0 = no drag, 0.9 = heavy drag).
-@export var drag_coefficient: float = 0.992
+## Velocity retained per SECOND while grounded (see header note on units).
+@export var drag_coefficient: float = 0.617
 
-## Additional drag applied when ship is airborne.
-@export var air_drag: float = 0.97
+## Velocity retained per SECOND while airborne.
+@export var air_drag: float = 0.161
+
+## How quickly overspeed (from boost) bleeds back to max_speed, per second.
+## Higher = shorter-lived boost overspeed. 0 disables the limiter entirely.
+@export var overspeed_damping: float = 2.5
 
 # ============================================================================
 # STEERING PARAMETERS
@@ -63,15 +86,21 @@ class_name ShipProfile
 ## How fast the ship rotates when steering (radians per second).
 @export var steer_speed: float = 1.345
 
-## Affects the sliding/drifting behavior during turns.
+## Legacy. No longer read by ShipController; kept so old .tres files load.
 @export var steer_slide: float = 10.0
 
-## How quickly velocity follows the ship's facing direction.
+## Rate (rad/s) at which the velocity vector rotates toward the ship's facing.
 ## THIS IS THE KEY HANDLING STAT. Higher = tighter, lower = slidier.
+## As of v2 this is applied EVERY frame, not only while steering.
 @export var grip: float = 4.0
 
 ## Input response curve power. Higher = more precision at small inputs.
 @export var steer_curve_power: float = 2.5
+
+## Lateral velocity destroyed per second during normal cornering. This is the
+## speed COST of sliding, kept separate from `grip` (which only rotates the
+## velocity and preserves its magnitude). Higher = corners scrub more speed.
+@export var lateral_scrub: float = 0.8
 
 # ============================================================================
 # AIRBRAKE PARAMETERS
@@ -79,17 +108,28 @@ class_name ShipProfile
 
 @export_group("Airbrakes")
 
-## Rotation speed when using airbrakes (radians per second).
-@export var airbrake_turn_rate: float = 0.5
+## Rotation speed when using airbrakes (radians per second). Raised in v2:
+## airbrakes are meant to be the primary cornering tool at racing speed.
+@export var airbrake_turn_rate: float = 1.0
 
-## Grip value while airbraking. LOWER than normal grip = more slide.
-@export var airbrake_grip: float = 0.5
+## Grip while airbraking. LOWER than normal grip = more slide.
+@export var airbrake_grip: float = 0.35
 
-## Speed multiplier while airbraking (per frame).
-@export var airbrake_drag: float = 0.98
+## Velocity retained per SECOND at full airbrake (longitudinal only).
+## v1 used 0.98/frame = 0.298/second, which cost 73% of top speed and made the
+## airbrake a handbrake. The speed cost now comes mostly from scrub.
+@export var airbrake_drag: float = 0.90
 
-## How quickly grip recovers after releasing airbrakes.
-@export var airbrake_slip_falloff: float = 25.0
+## Lateral velocity destroyed per second while airbraking. This makes a big
+## slide expensive without punishing a clean, committed turn.
+@export var airbrake_lateral_scrub: float = 1.8
+
+## Velocity retained per SECOND when BOTH airbrakes are held (emergency stop).
+## v1 used 0.85/frame, i.e. ~0.00006/second -- an instant stop.
+@export var dual_airbrake_drag: float = 0.30
+
+## How quickly grip recovers after releasing airbrakes (per second).
+@export var airbrake_slip_falloff: float = 6.0
 
 # ============================================================================
 # HOVER PARAMETERS
@@ -109,11 +149,12 @@ class_name ShipProfile
 ## Maximum hover force to prevent physics explosions.
 @export var hover_force_max: float = 200.0
 
-## How fast the ship rotates to match track surface angle.
+## How fast the ship rotates to match track surface angle (per second).
 @export var track_align_speed: float = 8.0
 
-## How quickly track normal updates at slope transitions (0-1).
-@export var track_normal_smoothing: float = 0.15
+## How quickly the track normal is tracked at slope transitions, PER SECOND.
+## v2: time-normalised. The old 0.15 was a per-frame lerp weight.
+@export var track_normal_smoothing: float = 9.0
 
 ## Torque applied for rotational track alignment.
 @export var hover_rot_power: float = 20.0
@@ -134,6 +175,43 @@ class_name ShipProfile
 @export var max_pitch_angle: float = 10.0
 
 # ============================================================================
+# VISUAL ROTATION (Aesthetic -- does not affect physics)
+# ============================================================================
+
+@export_group("Visual Rotation")
+
+## Hard cap on visual bank angle, degrees. v1 measured 71-80 degrees in corners
+## because steering roll (45) and airbrake roll (75) stacked additively.
+## WipEout-class craft bank around 25-35.
+@export var roll_max_angle: float = 32.0
+
+## Degrees of bank per rad/s of MEASURED yaw rate. Bank now follows what the
+## ship is actually doing rather than which button is held.
+@export var roll_from_yaw_rate: float = 16.0
+
+## Degrees of bank per radian of slip angle (velocity vs facing). This is what
+## makes the bank read as the ship being pushed sideways.
+@export var roll_from_slip: float = 30.0
+
+## Degrees of immediate, input-led bank. Small: just enough that the ship
+## acknowledges the stick before the yaw rate has built.
+@export var roll_from_input: float = 7.0
+
+## Natural frequency of the roll spring, Hz. Higher = snappier bank.
+@export var roll_frequency: float = 2.2
+
+## Damping ratio of the roll spring. 1.0 = critical (no overshoot),
+## 0.5-0.7 = visible overshoot and settle, which is the "whip" in WipEout.
+@export var roll_damping_ratio: float = 0.62
+
+## Fraction of the slip angle applied as visual yaw, so the nose visibly points
+## into the slide. 0 = disabled.
+@export var visual_yaw_from_slip: float = 0.40
+
+## Cap on that visual yaw, degrees.
+@export var visual_yaw_max: float = 9.0
+
+# ============================================================================
 # COLLISION PARAMETERS
 # ============================================================================
 
@@ -142,7 +220,8 @@ class_name ShipProfile
 ## Minimum speed for wall scraping sound to trigger.
 @export var wall_scrape_min_speed: float = 20.0
 
-## Velocity retained after bouncing off walls (0-1).
+## Velocity retained after bouncing off walls (0-1). An impulse, not a rate,
+## so it is unaffected by the v2 time normalisation.
 @export var wall_bounce_retain: float = 0.9
 
 ## How much hitting a wall rotates the ship away.
