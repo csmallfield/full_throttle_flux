@@ -42,6 +42,13 @@ var cornering_confidence: float = 0.98
 ## builds real margin into every braking zone.
 var planned_brake_application: float = 0.7
 
+## Airbrake application assumed for CORNERING (not braking).
+## v9: the decider now uses the inside airbrake as a steering aid whenever
+## steering alone cannot supply the required yaw rate. This must match
+## AIControlDecider.max_corner_airbrake or the plan promises curvature the
+## controller will not deliver -- which is exactly what went wrong in v8.
+var corner_airbrake_application: float = 0.9
+
 # ============================================================================
 # PROFILE-DERIVED STATE
 # ============================================================================
@@ -54,6 +61,7 @@ var grip: float = 4.0
 var airbrake_drag: float = 0.90          ## per SECOND as of v8
 var dual_airbrake_drag: float = 0.30     ## per SECOND as of v8
 var airbrake_turn_rate: float = 1.0
+var grip_airbrake: float = 0.35
 
 ## Continuous drag rate lambda, where dv/dt = thrust - lambda * v.
 var _drag_lambda: float = 0.0
@@ -93,6 +101,7 @@ func configure(profile: ShipProfile) -> void:
 	airbrake_drag = _as_per_second(profile.airbrake_drag)
 	dual_airbrake_drag = _as_per_second(profile.dual_airbrake_drag)
 	airbrake_turn_rate = profile.airbrake_turn_rate
+	grip_airbrake = profile.airbrake_grip
 	_recompute()
 
 ## Mirrors ShipController._migrate_rate() so a legacy per-frame profile is
@@ -147,26 +156,57 @@ func top_speed(respect_profile_max: bool = true) -> float:
 		return minf(equilibrium_speed, max_speed_ref)
 	return equilibrium_speed
 
+## Yaw rate (rad/s) available from full-lock steering at speed v.
+##     _apply_steering(): steer_reduction = lerpf(1.0, 0.7, speed_ratio)
+func steer_yaw_rate(v: float) -> float:
+	var r := clampf(v / maxf(max_speed_ref, 1.0), 0.0, 1.0)
+	return steer_speed * lerpf(1.0, STEER_HIGH_SPEED_FACTOR, r)
+
+## Yaw rate (rad/s) available from one airbrake at `application` at speed v.
+##     _apply_airbrakes(): authority = lerpf(0.55, 1.0, speed_ratio)
+func airbrake_yaw_rate(v: float, application: float) -> float:
+	var r := clampf(v / maxf(max_speed_ref, 1.0), 0.0, 1.0)
+	return airbrake_turn_rate * clampf(application, 0.0, 1.0) \
+			* lerpf(AIRBRAKE_AUTHORITY_MIN, 1.0, r)
+
+## Total yaw rate available at speed v with the planned cornering airbrake.
+func max_yaw_rate(v: float, application: float = -1.0) -> float:
+	var app := corner_airbrake_application if application < 0.0 else application
+	return steer_yaw_rate(v) + airbrake_yaw_rate(v, app)
+
 ## Max sustainable speed through a corner of true geometric curvature
 ## kappa (1/radius, in 1/meters).
 ##
-## Derivation: path curvature = yaw_rate / speed. Full-lock yaw rate from
-## _apply_steering() is:
-##     omega(v) = steer_speed * (1 - (1 - 0.7) * v / max_speed_ref)
-## Solving v * kappa = omega(v) for v:
-##     v = steer_speed / (kappa + 0.3 * steer_speed / max_speed_ref)
-## Additionally the velocity vector can only rotate as fast as grip allows
-## (_apply_grip: at most `grip` rad/s), giving v <= grip * margin / kappa.
+## Path curvature = yaw_rate / speed, so the limit is where v * kappa equals
+## the yaw rate available at v. Both contributions are linear in v:
+##     steer(v)    = S - S * 0.3 * v / Vm
+##     airbrake(v) = A * app * (0.55 + 0.45 * v / Vm)
+## Solving v * kappa = steer(v) + airbrake(v) gives the closed form below.
+##
+## v9: `app` is corner_airbrake_application, matching what AIControlDecider
+## actually commands. v8 used planned_brake_application here, which described
+## braking rather than cornering and overstated achievable curvature.
 func corner_speed(kappa: float, respect_profile_max: bool = true) -> float:
 	var cap := top_speed(respect_profile_max)
 	if kappa < 0.0001:
 		return cap
-	# v8: airbrakes contribute real yaw authority (turn rate raised, and it now
-	# scales UP with speed instead of staying flat), so corner planning must
-	# account for the brake the AI is assumed to be holding.
-	var brake_yaw := airbrake_turn_rate * planned_brake_application * AIRBRAKE_AUTHORITY_MIN
-	var steer_falloff := (1.0 - STEER_HIGH_SPEED_FACTOR) * steer_speed / maxf(max_speed_ref, 1.0)
-	var v_steer := (steer_speed + brake_yaw) / (kappa + steer_falloff)
+	
+	var vm := maxf(max_speed_ref, 1.0)
+	var app := clampf(corner_airbrake_application, 0.0, 1.0)
+	var yaw_at_zero := steer_speed + airbrake_turn_rate * app * AIRBRAKE_AUTHORITY_MIN
+	var yaw_slope := (airbrake_turn_rate * app * (1.0 - AIRBRAKE_AUTHORITY_MIN)
+			- steer_speed * (1.0 - STEER_HIGH_SPEED_FACTOR)) / vm
+	
+	var denom := kappa - yaw_slope
+	var v_steer := cap
+	if denom > 0.00001:
+		v_steer = yaw_at_zero / denom
+	
+	# Loose safety bound: the velocity vector cannot rotate faster than grip
+	# allows. In sustained cornering slip stabilises and velocity rotates at
+	# the same rate as the hull, so this rarely binds -- it is a guard against
+	# the model asking for something physically absurd, not the real limit.
+	# The trainer (tools/ai_trainer) measures the real limit empirically.
 	var v_grip := (grip * GRIP_ROTATION_MARGIN) / kappa
 	var v := minf(v_steer, v_grip) * cornering_confidence
 	return clampf(v, 5.0, cap)

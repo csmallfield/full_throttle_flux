@@ -81,6 +81,12 @@ var cornering_confidence: float = 0.98
 ## planning at full application produces zones too short to execute).
 var planned_brake_application: float = 0.7
 
+## Airbrake application assumed for CORNERING when planning corner speeds.
+## MUST match AIControlDecider.max_corner_airbrake. v9: the AI now uses the
+## inside airbrake as a steering aid, which roughly doubles available yaw
+## rate, so corner speeds plan much higher than v8.
+var corner_airbrake_application: float = 0.9
+
 ## If true, straightaway speeds cap at profile.max_speed. The physics itself
 ## has no clamp (true top speed is the thrust/drag equilibrium, ~134 with
 ## default profile), so set false only if you intend AI to use that.
@@ -113,6 +119,7 @@ func bake(spline_helper: TrackSplineHelper, ship_profile: ShipProfile,
 	var perf := ShipPerformanceModel.new(ship_profile)
 	perf.cornering_confidence = cornering_confidence
 	perf.planned_brake_application = planned_brake_application
+	perf.corner_airbrake_application = corner_airbrake_application
 	perf.configure(ship_profile)  # recompute with tuned values
 	var source_hash := _compute_source_hash(spline_helper, ship_profile)
 
@@ -421,6 +428,7 @@ func _compute_source_hash(spline_helper: TrackSplineHelper, profile: ShipProfile
 	parts.append(profile.grip)
 	parts.append(profile.airbrake_drag)
 	parts.append(profile.airbrake_turn_rate)
+	parts.append(corner_airbrake_application)
 	parts.append(profile.dual_airbrake_drag)
 	parts.append(profile.lateral_scrub)
 	parts.append(profile.airbrake_lateral_scrub)

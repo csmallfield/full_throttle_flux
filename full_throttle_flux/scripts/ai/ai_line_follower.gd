@@ -540,11 +540,64 @@ func _get_baked_target(lookahead: float, ship_speed: float, _max_speed: float) -
 		"immediate_curvature": cached_immediate_curvature,
 		"is_s_curve": cached_is_s_curve,
 		"corner_phase": cached_corner_phase,
+		"line_curvature_signed": signed_line_curvature(current_spline_offset, line_factor),
 		"hint_throttle": 1.0,
 		"hint_brake": 0.0,
 		"hint_airbrake_left": 0.0,
 		"hint_airbrake_right": 0.0
 	}
+
+# ============================================================================
+# SIGNED CURVATURE OF THE BAKED LINE
+# ============================================================================
+
+## Distance (meters) between the three samples used for the finite-difference
+## curvature estimate. Too small and it picks up sampling noise, too large and
+## it smooths away the apex.
+var signed_curvature_probe: float = 8.0
+
+## Signed curvature (1/m) of the racing line at `offset`, positive = turning
+## LEFT (matching ShipController.measured_yaw_rate, which is positive to the
+## left about the ship's own up axis).
+##
+## The baked `curvatures` array is unsigned magnitude, but the controller
+## needs a direction to feed forward, so this measures it geometrically from
+## three points on the actual line. Cheap: three spline evaluations.
+func signed_line_curvature(offset: float, line_factor: float = 1.0) -> float:
+	if not has_baked_line() or not spline_helper or not spline_helper.is_valid:
+		return 0.0
+	var ds: float = signed_curvature_probe
+	var o_prev: float = spline_helper.get_lookahead_offset(offset, -ds)
+	var o_next: float = spline_helper.get_lookahead_offset(offset, ds)
+	
+	var p0: Vector3 = _line_point(o_prev, line_factor)
+	var p1: Vector3 = _line_point(offset, line_factor)
+	var p2: Vector3 = _line_point(o_next, line_factor)
+	
+	var a: Vector3 = p1 - p0
+	var b: Vector3 = p2 - p1
+	a.y = 0.0
+	b.y = 0.0
+	var la: float = a.length()
+	var lb: float = b.length()
+	if la < 0.01 or lb < 0.01:
+		return 0.0
+	a /= la
+	b /= lb
+	
+	# Turn angle between consecutive segments, divided by arc length, gives
+	# curvature. Sign from the vertical component of the cross product.
+	var dot: float = clampf(a.dot(b), -1.0, 1.0)
+	var turn: float = acos(dot)
+	var turn_sign: float = signf(a.cross(b).y)
+	var arc: float = 0.5 * (la + lb)
+	if arc < 0.01:
+		return 0.0
+	return (turn_sign * turn) / arc
+
+func _line_point(offset: float, line_factor: float) -> Vector3:
+	var lateral: float = baked_line.get_lateral_at(offset) * line_factor
+	return spline_helper.spline_offset_to_world_with_lateral(offset, lateral, true)
 
 # ============================================================================
 # TARGET SOURCE: RECORDED LAPS

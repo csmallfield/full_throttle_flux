@@ -191,7 +191,7 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
 	
 	# Create control decider
 	control_decider = AIControlDecider.new()
-	control_decider.initialize(ship, line_follower)
+	control_decider.initialize(ship, line_follower, perf_model)
 	control_decider.set_skill(skill_level)
 	
 	# Create avoidance component (NEW)
