@@ -34,11 +34,71 @@ var min_samples: int = 256
 var max_samples: int = 4096
 
 ## Elastic-band relaxation iterations (early-out on convergence).
+## Iterations run at EACH multigrid level (see _relax_racing_line).
 var relaxation_iterations: int = 800
+
+## Neighbour strides for the multigrid passes, coarse to fine. A stride of s
+## means each sample is pulled toward the midpoint of the samples s ahead and
+## s behind, so one pass shapes the line over ~s samples of track at a time.
+##
+## v10: this is the fix for "the AI doesn't plan several corners ahead".
+## The old single-stride-1 relaxation is Laplacian diffusion: after k
+## iterations at step alpha, information has travelled only ~sqrt(2*alpha*k)
+## samples. At 800 iterations and alpha 0.35 that is ~24 samples, roughly 71m
+## of a 7100m track, and convergence_epsilon stopped it even earlier. The line
+## could physically not see past the corner it was in. Measured result: the
+## baked line used a mean of 32% of the available corridor half-width and
+## pinned to an edge on only 7.6% of samples, while a recorded human lap on
+## the same track reached 24.8m of lateral against the bake's 18.5m and went
+## deeper on 54% of samples.
+var relaxation_strides: Array[int] = [128, 64, 32, 16, 8, 4, 2, 1]
+
+# ============================================================================
+# MINIMUM-CURVATURE OPTIMIZER (v10)
+# ============================================================================
+
+## Use the minimum-curvature solver instead of the elastic band.
+##
+## WHY: the elastic band pulls each sample toward the midpoint of its
+## neighbours, which is the gradient of sum |p[i+1] - p[i]|^2 -- that is
+## TENSION, so it minimizes PATH LENGTH, not curvature. Run to convergence
+## against the corridor clamp it degenerates into the shortest loop: pinned
+## inside-to-inside, paying for tight apexes with sharp transitions.
+##
+## Measured on circuit 7: converging the elastic band raised corridor
+## utilisation from 32% to 81% (it really does hug the inside, as intended)
+## and made the AI SLOWER, 66.17s -> 69.2s, with tracking error unchanged.
+## The line was worse, not the driving. v9's line was only fast by accident --
+## it was under-converged, and the leftover bias toward centre happened to sit
+## closer to a minimum-curvature line than the converged answer does.
+##
+## Corner speed scales with 1/kappa, so curvature is the thing to minimize.
+## This solver descends the bending energy sum |p[i-1] - 2p[i] + p[i+1]|^2
+## subject to the corridor, which will accept a LONGER path to reduce peak
+## curvature -- exactly the trade a real racing line makes.
+var use_min_curvature: bool = true
+
+## Gradient step for the bending descent. The 4th-order stencil has
+## eigenvalues to 16, so this must stay below ~0.12 for stability.
+var curvature_step: float = 0.05
+
+## Iterations per multigrid level for the bending descent. Bending energy
+## relaxes as n^4 without multigrid, hence the stride cascade.
+var curvature_iterations: int = 4000
+
+## Iterations of a final stride-1 pass after the multigrid cascade.
+## The coarse passes solve for the SHORTEST path (rubber band), which on a
+## wide track pins to the inside of everything and pays for it with sharp
+## transitions. This pass relaxes those transitions back toward MINIMUM
+## CURVATURE, which is what corner speed actually scales with.
+var final_smoothing_iterations: int = 0
 var relaxation_alpha: float = 0.35
-var convergence_epsilon: float = 0.002
+var convergence_epsilon: float = 0.0002
 
 ## Subtracted from measured wall distance: half ship width plus margin.
+## The ship's actual collision capsule radius is ~0.62 (x1.3 node scale, so
+## ~0.81m half-width), so 4.0 was ~3m of pure conservatism per side. Reduced,
+## though on a 28m-wide corridor this was never the binding constraint.
 var ship_clearance: float = 4.0
 
 ## Additional corridor shrink (meters, per side) so the OPTIMIZED LINE never
@@ -74,7 +134,7 @@ var surface_probe_length: float = 140.0
 var surface_max_deviation: float = 60.0
 
 ## Cornering confidence passed to the ShipPerformanceModel (see its docs).
-var cornering_confidence: float = 0.98
+var cornering_confidence: float = 1.05
 
 ## Planned airbrake application for braking zones. Lower = earlier, longer,
 ## easier-to-track braking zones (the controller has smoothing lag, so
@@ -325,7 +385,34 @@ func _relax_racing_line(centers: PackedVector3Array, rights: PackedVector3Array,
 	for i in range(n):
 		points[i] = centers[i] + rights[i] * w[i]
 
-	for _iter in range(relaxation_iterations):
+	if use_min_curvature:
+		return _minimize_curvature(centers, rights, corridor_min, corridor_max, w, points)
+	
+	# v10: multigrid. Coarse strides shape the line across hundreds of meters
+	# (so a chicane is solved as one sequence rather than corner by corner),
+	# progressively finer strides then resolve the local apex. The final
+	# stride-1 pass guarantees the line is locally smooth.
+	for stride in relaxation_strides:
+		var s: int = clampi(stride, 1, maxi(n / 3, 1))
+		for _iter in range(relaxation_iterations):
+			var max_delta := 0.0
+			for i in range(n):
+				var prev := points[(i - s + n * 2) % n]
+				var next := points[(i + s) % n]
+				var mid := (prev + next) * 0.5
+				var w_target := (mid - centers[i]).dot(rights[i])
+				var new_w: float = w[i] + relaxation_alpha * (w_target - w[i])
+				new_w = clampf(new_w, corridor_min[i], corridor_max[i])
+				max_delta = maxf(max_delta, absf(new_w - w[i]))
+				w[i] = new_w
+				points[i] = centers[i] + rights[i] * new_w
+			# Per-level convergence only. Stopping the whole solve here was the
+			# other half of the v9 bug: local updates go quiet long before the
+			# global shape is anywhere near optimal.
+			if max_delta < convergence_epsilon:
+				break
+
+	for _iter in range(final_smoothing_iterations):
 		var max_delta := 0.0
 		for i in range(n):
 			var prev := points[(i - 1 + n) % n]
@@ -340,6 +427,46 @@ func _relax_racing_line(centers: PackedVector3Array, rights: PackedVector3Array,
 		if max_delta < convergence_epsilon:
 			break
 
+	return w
+
+## Projected gradient descent on bending energy E = sum |d[i]|^2, where
+## d[i] = p[i-s] - 2*p[i] + p[i+s] at stride s.
+##
+##     dE/dp[i] = 2 * (d[i-s] - 2*d[i] + d[i+s])
+##
+## projected onto the lateral axis and clamped to the corridor each step.
+## Strides run coarse to fine so the shape of a whole corner sequence is
+## settled before the local apex is resolved -- the same reason the cascade
+## exists for the elastic band, but now descending the right objective.
+func _minimize_curvature(centers: PackedVector3Array, rights: PackedVector3Array,
+		corridor_min: PackedFloat32Array, corridor_max: PackedFloat32Array,
+		w: PackedFloat32Array, points: PackedVector3Array) -> PackedFloat32Array:
+	var n := centers.size()
+	if n < 8:
+		return w
+	
+	var d := PackedVector3Array()
+	d.resize(n)
+	
+	for stride in relaxation_strides:
+		var s: int = clampi(stride, 1, maxi(n / 4, 1))
+		for _iter in range(curvature_iterations):
+			# Second differences at this stride.
+			for i in range(n):
+				d[i] = points[(i - s + n * 2) % n] - points[i] * 2.0 + points[(i + s) % n]
+			
+			var max_delta := 0.0
+			for i in range(n):
+				var g: Vector3 = d[(i - s + n * 2) % n] - d[i] * 2.0 + d[(i + s) % n]
+				var new_w: float = w[i] - curvature_step * rights[i].dot(g)
+				new_w = clampf(new_w, corridor_min[i], corridor_max[i])
+				max_delta = maxf(max_delta, absf(new_w - w[i]))
+				w[i] = new_w
+				points[i] = centers[i] + rights[i] * new_w
+			
+			if max_delta < convergence_epsilon:
+				break
+	
 	return w
 
 # ============================================================================
@@ -434,6 +561,11 @@ func _compute_source_hash(spline_helper: TrackSplineHelper, profile: ShipProfile
 	parts.append(profile.airbrake_lateral_scrub)
 	parts.append(sample_spacing_target)
 	parts.append(ship_clearance)
+	parts.append(str(relaxation_strides))
+	parts.append(use_min_curvature)
+	parts.append(curvature_step)
+	parts.append(curvature_iterations)
+	parts.append(final_smoothing_iterations)
 	parts.append(fallback_half_width)
 	parts.append(max_usable_half_width)
 	parts.append(ray_height)

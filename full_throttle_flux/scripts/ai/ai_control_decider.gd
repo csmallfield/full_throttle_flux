@@ -47,6 +47,13 @@ class_name AIControlDecider
 ## steady-state cornering load; this only has to correct the error.
 var steering_sensitivity: float = 6.5
 
+## How much the steering error is measured from the VELOCITY vector rather
+## than the hull heading. 1.0 = fully compensate for slip, 0.0 = v9 behaviour.
+var slip_compensation: float = 1.0
+
+## Below this speed the velocity vector is too noisy to steer by.
+var slip_compensation_min_speed: float = 12.0
+
 ## Weight of the curvature feedforward term. 1.0 = command exactly the
 ## steering fraction the baked line's curvature requires at this speed.
 var steer_feedforward_gain: float = 1.0
@@ -463,8 +470,25 @@ func _calculate_steering(target_position: Vector3, delta: float,
 		return 0.0
 	ship_forward = ship_forward.normalized()
 
-	var cross: Vector3 = ship_forward.cross(to_target)
-	var dot: float = ship_forward.dot(to_target)
+	# v10: SLIP COMPENSATION.
+	# The ship travels along its VELOCITY vector, not its nose. v9 measured
+	# the error between the hull heading and the target, so every degree of
+	# slip was an uncorrected path error -- and since v9 made the AI actually
+	# slide (18-23% airbrake use), that error became structural. Measuring
+	# from the velocity vector instead makes the controller steer the PATH.
+	var reference: Vector3 = ship_forward
+	if slip_compensation > 0.0 and ship.velocity.length() > slip_compensation_min_speed:
+		var vel_dir: Vector3 = ship.velocity
+		vel_dir.y = 0.0
+		if vel_dir.length_squared() > 0.01:
+			vel_dir = vel_dir.normalized()
+			# Guard against reversing into a spin: only trust the velocity
+			# vector while it still broadly agrees with where we point.
+			if vel_dir.dot(ship_forward) > 0.3:
+				reference = ship_forward.slerp(vel_dir, slip_compensation).normalized()
+
+	var cross: Vector3 = reference.cross(to_target)
+	var dot: float = reference.dot(to_target)
 
 	var angle_sign: float = sign(cross.y)
 	var angle: float = acos(clamp(dot, -1.0, 1.0))

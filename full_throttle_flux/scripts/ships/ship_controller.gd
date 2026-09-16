@@ -222,6 +222,9 @@ func _ready() -> void:
 	last_safe_position = global_position
 	last_safe_rotation = global_transform.basis
 	_prev_forward = -global_transform.basis.z
+	# Deferred: the ship is usually positioned by the race mode AFTER _ready(),
+	# so settling here directly would settle at the wrong place.
+	call_deferred("settle_on_surface")
 
 func _find_child_nodes() -> void:
 	ship_mesh = get_node_or_null("ShipMesh")
@@ -380,6 +383,36 @@ func _set_default_values() -> void:
 	
 	current_grip = _grip
 	current_scrub = _lateral_scrub
+
+## Place the ship at its hover equilibrium and kill vertical motion.
+##
+## v10: starting grid markers sit near the track surface, not at hover height.
+## Measured on the grid: the ship spawned at a hover ray distance of 1.59
+## against a hover_height of 2.0, the spring fired to +12.7 u/s of vertical
+## velocity, and the ring took several seconds to damp -- which the chase
+## camera faithfully reported as an 18-degree pitch nod at every race start.
+## Snapping to equilibrium removes the impulse rather than hiding it.
+func settle_on_surface() -> void:
+	if not hover_ray:
+		return
+	hover_ray.force_raycast_update()
+	if not hover_ray.is_colliding():
+		return
+	
+	var surface: Vector3 = hover_ray.get_collision_point()
+	var normal: Vector3 = hover_ray.get_collision_normal().normalized()
+	if normal.length() < 0.5:
+		normal = Vector3.UP
+	
+	global_position = surface + normal * _hover_height
+	velocity.y = 0.0
+	
+	current_track_normal = normal
+	smoothed_track_normal = normal
+	is_grounded = true
+	time_since_grounded = 0.0
+	
+	hover_ray.force_raycast_update()
 
 func _setup_hover_ray() -> void:
 	if hover_ray:
@@ -551,6 +584,8 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 		_is_scraping_wall = false
 		if audio_controller:
 			audio_controller.stop_wall_scrape()
+	
+	settle_on_surface()
 	
 	# Re-snap the camera so it does not sweep across the level after a
 	# respawn (v2 camera has no large world-space lag to absorb the jump).

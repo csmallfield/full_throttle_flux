@@ -199,6 +199,34 @@ class_name AGCamera2097
 
 @export_group("Shake")
 
+# ============================================================================
+# INTRO
+# ============================================================================
+
+@export_group("Intro")
+
+## Cinematic entry on the first acquisition of the ship: the camera starts
+## high and off-axis and eases down into the normal chase pose.
+##
+## This also hides the start-of-race settle. Measured on the grid: the ship
+## spawns at a hover ray distance of 1.59 against a hover_height of 2.0, the
+## hover spring fires to +12.7 u/s of vertical velocity, and the resulting
+## ring produced an 18-degree camera pitch oscillation. ShipController now
+## settles to hover equilibrium on spawn, and this covers whatever is left.
+@export var intro_enabled := true
+
+## Seconds the entry takes. Match this to your countdown.
+@export var intro_duration := 2.6
+
+## Starting height above the ship.
+@export var intro_start_height := 26.0
+
+## Starting distance behind the ship.
+@export var intro_start_distance := 16.0
+
+## Lateral offset at the start, for a slight arc rather than a straight drop.
+@export var intro_start_lateral := 9.0
+
 ## How quickly shake decays (per second).
 @export var shake_decay := 7.0
 
@@ -220,6 +248,13 @@ var _fov_kick := 0.0
 var _shake_intensity := 0.0
 var _collision_distance := 0.0
 var _initialised := false
+var _intro_time := 0.0
+var _intro_active := false
+var _intro_consumed := false
+
+## True while the cinematic entry is playing.
+func is_intro_playing() -> bool:
+	return _intro_active
 
 func _ready() -> void:
 	# v2: runs in _process, not _physics_process. v1 stepped the camera at the
@@ -241,6 +276,10 @@ func _process(delta: float) -> void:
 		_snap_to_ship()
 		return
 	if delta <= 0.0:
+		return
+	
+	if _intro_active:
+		_process_intro(delta)
 		return
 	
 	var ship_pos: Vector3 = ship.global_position
@@ -438,13 +477,71 @@ func _shake_offset() -> Vector3:
 # INITIALISATION
 # ============================================================================
 
-func _snap_to_ship() -> void:
-	_cam_forward = -ship.global_transform.basis.z
-	_cam_up = ship.global_transform.basis.y
+# ============================================================================
+# CINEMATIC INTRO
+# ============================================================================
+
+## Chase pose the intro is easing toward, recomputed every frame so the
+## landing is exact even if the ship creeps on the grid.
+func _chase_pose() -> Array:
+	var ship_forward: Vector3 = -ship.global_transform.basis.z
+	var ship_up: Vector3 = ship.global_transform.basis.y
+	_cam_forward = ship_forward
+	_cam_up = ship_up
 	var frame := _build_basis()
-	_cam_position = ship.global_position + frame * Vector3(0.0, base_height, base_distance)
+	var pos: Vector3 = ship.global_position + frame * Vector3(0.0, base_height, base_distance)
+	var aim: Vector3 = ship.global_position + ship_forward * look_distance + ship_up * aim_height
+	return [pos, aim, frame]
+
+func _process_intro(delta: float) -> void:
+	_intro_time += delta
+	var t: float = clampf(_intro_time / maxf(intro_duration, 0.01), 0.0, 1.0)
+	
+	# Ease out cubic: fast descent, gentle arrival, so it is already settled
+	# and stable by the time the lights go out.
+	var e: float = 1.0 - pow(1.0 - t, 3.0)
+	
+	var pose: Array = _chase_pose()
+	var end_pos: Vector3 = pose[0]
+	var end_aim: Vector3 = pose[1]
+	var frame: Basis = pose[2]
+	
+	var start_pos: Vector3 = ship.global_position + frame * Vector3(
+			intro_start_lateral, intro_start_height, intro_start_distance)
+	
+	_cam_position = start_pos.lerp(end_pos, e)
+	_aim_point = ship.global_position.lerp(end_aim, e)
+	_fov_current = lerpf(base_fov + 8.0, base_fov, e)
+	fov = _fov_current
+	
+	global_position = _cam_position
+	_apply_look()
+	
+	if t >= 1.0:
+		_intro_active = false
+		_collision_distance = _cam_position.distance_to(ship.global_position)
+
+## Restart the cinematic entry (e.g. at the start of a countdown).
+func begin_intro(duration: float = -1.0) -> void:
+	if not is_instance_valid(ship):
+		return
+	if duration > 0.0:
+		intro_duration = duration
+	_intro_time = 0.0
+	_intro_active = true
+	_intro_consumed = true
+	_swing = 0.0
+	_bank = 0.0
+	_shake_intensity = 0.0
+
+func _snap_to_ship() -> void:
+	var pose: Array = _chase_pose()
+	_cam_position = pose[0]
+	# v2.1: this used to omit the `ship_up * aim_height` term that _update_aim()
+	# applies every frame, so frame one started with a 1-unit aim mismatch that
+	# the aim spring then had to chase out.
+	_aim_point = pose[1]
 	_collision_distance = _cam_position.distance_to(ship.global_position)
-	_aim_point = ship.global_position - ship.global_transform.basis.z * look_distance
 	_swing = 0.0
 	_bank = 0.0
 	_fov_current = base_fov
@@ -452,10 +549,17 @@ func _snap_to_ship() -> void:
 	global_position = _cam_position
 	_apply_look()
 	_initialised = true
+	
+	if intro_enabled and not _intro_consumed:
+		begin_intro()
 
 ## Re-snap after a respawn or teleport so the camera does not sweep across
 ## the level.
+## Re-snap after a respawn or teleport. Deliberately does NOT replay the
+## intro -- a respawn should be instant.
 func reset_to_ship() -> void:
 	_initialised = false
+	_intro_active = false
+	_intro_consumed = true
 	if is_instance_valid(ship):
 		_snap_to_ship()
