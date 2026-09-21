@@ -14,7 +14,7 @@ class_name BakedRacingLine
 ## already encodes where braking must begin, so "speed at my current offset"
 ## is a complete instruction -- no separate corner-distance logic needed.
 
-const CURRENT_BAKE_VERSION := 3
+const CURRENT_BAKE_VERSION := 4
 
 @export var bake_version: int = CURRENT_BAKE_VERSION
 
@@ -35,6 +35,59 @@ const CURRENT_BAKE_VERSION := 3
 
 ## True geometric curvature (1/m) of the optimized line per sample.
 @export var curvatures: PackedFloat32Array = PackedFloat32Array()
+
+## True when target_speeds came from AILineTrainer measuring the real ship
+## against this line, rather than from the analytic model alone.
+@export var is_trained: bool = false
+
+## Best lap time the trainer actually achieved with this profile, in seconds.
+@export var trained_lap_time: float = 0.0
+
+## Iterations the trainer ran to reach it.
+@export var trained_iterations: int = 0
+
+# ============================================================================
+# PER-SAMPLE STYLE GAINS
+# ============================================================================
+#
+# A strong driver does not use one technique for a whole lap. These arrays let
+# the controller vary its behaviour around the track: the style search times
+# several driving styles per track segment and splices the winner of each into
+# these arrays.
+#
+# Empty arrays mean "no style data", and the controller keeps its own defaults.
+# Values are ABSOLUTE parameter values, not multipliers, so a line authored by
+# one version of the tool cannot be silently rescaled by another.
+
+## AIControlDecider.max_corner_airbrake per sample.
+@export var style_airbrake: PackedFloat32Array = PackedFloat32Array()
+
+## AIControlDecider.corner_steer_reserve per sample.
+@export var style_reserve: PackedFloat32Array = PackedFloat32Array()
+
+## AILineFollower.baked_steer_lookahead_max per sample (meters).
+@export var style_lookahead: PackedFloat32Array = PackedFloat32Array()
+
+## AIControlDecider.steering_sensitivity per sample.
+@export var style_sensitivity: PackedFloat32Array = PackedFloat32Array()
+
+## Human-readable record of which style won which segment, for debugging.
+@export var style_log: PackedStringArray = PackedStringArray()
+
+func has_style_gains() -> bool:
+	return style_airbrake.size() == sample_count and sample_count > 0
+
+func get_style_airbrake_at(offset: float) -> float:
+	return _interp(style_airbrake, offset)
+
+func get_style_reserve_at(offset: float) -> float:
+	return _interp(style_reserve, offset)
+
+func get_style_lookahead_at(offset: float) -> float:
+	return _interp(style_lookahead, offset)
+
+func get_style_sensitivity_at(offset: float) -> float:
+	return _interp(style_sensitivity, offset)
 
 ## Usable corridor per sample as BOUNDS IN SPLINE-FRAME LATERAL COORDINATES
 ## (min = leftmost allowed lateral, max = rightmost), ship clearance already

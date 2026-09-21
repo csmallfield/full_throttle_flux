@@ -177,6 +177,11 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
 		perf_model = null
 		push_warning("AIShipController: no ship profile - perf model unavailable, speed targets will use legacy heuristics")
 	
+	# Prefer a trained line: AILineTrainer measured these corner speeds by
+	# actually driving them, so they beat anything the analytic model predicts.
+	if baked_line == null and ship and ship.profile:
+		baked_line = AILineTrainer.load_trained_line(_guess_track_id(), ship.profile.ship_id)
+	
 	# Self-bake if no line was provided (cache makes repeats near-free)
 	if baked_line == null and auto_bake_if_missing and ship and ship.profile:
 		var world: World3D = ship.get_world_3d()
@@ -223,11 +228,28 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
 	var avoidance_status := "enabled" if avoidance_enabled else "disabled"
 	print("AIShipController: Initialized (skill: %.2f, data: %s, avoidance: %s)" % [skill_level, data_status, avoidance_status])
 
+## Vary the controller's technique around the lap from the baked line's style
+## gains. A no-op when the line carries none, which is the case for any line
+## that has not been through tools/style_search.
+func _apply_style_gains() -> void:
+	if baked_line == null or not baked_line.has_style_gains():
+		return
+	var offset: float = line_follower.current_spline_offset
+	control_decider.max_corner_airbrake = baked_line.get_style_airbrake_at(offset)
+	control_decider.corner_steer_reserve = baked_line.get_style_reserve_at(offset)
+	control_decider.steering_sensitivity = baked_line.get_style_sensitivity_at(offset)
+	line_follower.baked_steer_lookahead_max = baked_line.get_style_lookahead_at(offset)
+	if control_decider.perf_model:
+		control_decider.perf_model.corner_airbrake_application = \
+				control_decider.max_corner_airbrake
+
 func _guess_track_id() -> String:
-	"""Best-effort track id for the bake cache when none is supplied."""
-	if track_root:
-		return String(track_root.name)
-	return ""
+	"""Stable track id for the bake cache and trained-line lookup.
+
+	Uses the scene file name, not the root node name: several tracks in this
+	project share a root node name (see AILineTrainer.track_id_for).
+	"""
+	return AILineTrainer.track_id_for(track_root)
 
 # ============================================================================
 # RACE SHIP REGISTRATION (Called by RaceMode)
@@ -264,6 +286,10 @@ func _physics_process(delta: float) -> void:
 	
 	# Update line follower with current position
 	line_follower.update_position(ship.global_position)
+	
+	# Apply per-sample style gains before deciding, so the controller uses
+	# the technique that measured fastest for THIS part of the track.
+	_apply_style_gains()
 	
 	# Get base control decisions (racing line following)
 	var controls := control_decider.decide_controls(delta)

@@ -20,6 +20,10 @@ signal race_finished(results: Dictionary)
 var track_instance: Node3D
 var ship_instance: Node3D
 var camera_instance: Node3D
+
+## Debug watch mode: F9 to spectate AI ships through the chase camera.
+## Set false for release builds.
+@export var debug_spectator_enabled: bool = true
 var hud_instance: CanvasLayer
 var starting_grid: StartingGrid
 var respawn_manager: TrackRespawnManager
@@ -231,7 +235,23 @@ func _setup_camera() -> void:
 		if ship_instance is ShipController:
 			ship_instance.camera = camera_instance
 	
+	_setup_spectator()
+	
 	print("ModeBase: Camera setup complete")
+
+## Debug watch mode. Dormant until F9, costs nothing until then, and finds
+## ships by scanning the tree so no mode has to register anything with it.
+func _setup_spectator() -> void:
+	if not debug_spectator_enabled or camera_instance == null:
+		return
+	var script := load("res://scripts/debug/ai_spectator.gd")
+	if script == null:
+		return
+	var spectator := Node.new()
+	spectator.name = "AISpectator"
+	spectator.set_script(script)
+	add_child(spectator)
+	spectator.camera = camera_instance
 
 # ============================================================================
 # HUD SETUP

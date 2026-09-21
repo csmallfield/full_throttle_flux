@@ -134,7 +134,7 @@ var surface_probe_length: float = 140.0
 var surface_max_deviation: float = 60.0
 
 ## Cornering confidence passed to the ShipPerformanceModel (see its docs).
-var cornering_confidence: float = 1.05
+var cornering_confidence: float = 1.0
 
 ## Planned airbrake application for braking zones. Lower = earlier, longer,
 ## easier-to-track braking zones (the controller has smoothing lag, so
@@ -146,6 +146,27 @@ var planned_brake_application: float = 0.7
 ## inside airbrake as a steering aid, which roughly doubles available yaw
 ## rate, so corner speeds plan much higher than v8.
 var corner_airbrake_application: float = 0.9
+
+# ============================================================================
+# GEOMETRY VARIANTS (v14)
+# ============================================================================
+#
+# Post-solve transforms on the optimized line. They exist so the style search
+# can treat LINE SHAPE as another axis to pick per track segment, rather than
+# every style sharing one geometry.
+
+## Shift the whole lateral profile along the track, in meters.
+##
+## This is early vs late apex, and it is almost free: the solved line already
+## knows where to be, this just changes WHEN it gets there. Positive values
+## delay the apex (later turn-in, earlier unwind), which trades entry speed
+## for exit speed. Negative values do the reverse.
+var apex_shift_meters: float = 0.0
+
+## Pull the solved line back toward the centreline. 0.0 keeps the full solve,
+## 1.0 collapses to the centreline. A safer, slower line with more room for
+## tracking error -- useful on segments where the controller struggles.
+var centre_bias: float = 0.0
 
 ## If true, straightaway speeds cap at profile.max_speed. The physics itself
 ## has no clamp (true top speed is the thrust/drag equilibrium, ~134 with
@@ -219,6 +240,7 @@ func bake(spline_helper: TrackSplineHelper, ship_profile: ShipProfile,
 
 	# --- 3. Elastic-band relaxation within corridor ---
 	var laterals := _relax_racing_line(centers, rights, corridor_min, corridor_max)
+	laterals = apply_geometry_variant(laterals, corridor_min, corridor_max, length)
 
 	# --- 4. Curvature of the optimized line ---
 	var points := PackedVector3Array()
@@ -518,6 +540,92 @@ func _compute_speed_profile(kappas: PackedFloat32Array, seg_lengths: PackedFloat
 	for i in range(n):
 		v[i] = perf.corner_speed(kappas[i], respect_profile_max_speed)
 
+	return apply_feasibility_passes(v, seg_lengths, perf)
+
+## Apply the geometry variant transforms, then re-clamp to the corridor so a
+## shifted line can never end up inside a wall.
+func apply_geometry_variant(laterals: PackedFloat32Array,
+		corridor_min: PackedFloat32Array, corridor_max: PackedFloat32Array,
+		track_length: float) -> PackedFloat32Array:
+	var n := laterals.size()
+	if n == 0:
+		return laterals
+	
+	var out := laterals.duplicate()
+	
+	if absf(apex_shift_meters) > 0.01 and track_length > 1.0:
+		var ds: float = track_length / float(n)
+		var shift: float = apex_shift_meters / maxf(ds, 0.01)
+		var base: int = int(floor(shift))
+		var frac: float = shift - float(base)
+		for i in range(n):
+			var a: float = laterals[wrapi(i - base, 0, n)]
+			var b: float = laterals[wrapi(i - base - 1, 0, n)]
+			out[i] = lerpf(a, b, frac)
+	
+	if centre_bias > 0.0:
+		var k: float = clampf(centre_bias, 0.0, 1.0)
+		for i in range(n):
+			out[i] = lerpf(out[i], 0.0, k)
+	
+	for i in range(n):
+		out[i] = clampf(out[i], corridor_min[i], corridor_max[i])
+	return out
+
+## Rebuild curvature and the speed profile for a line whose lateral offsets
+## have been changed externally -- the style search splices geometry from
+## several variants, and the result is a shape none of them actually solved,
+## so its curvature and therefore its speeds must be recomputed from scratch.
+func rebuild_from_laterals(spline_helper: TrackSplineHelper,
+		ship_profile: ShipProfile, laterals: PackedFloat32Array,
+		template: BakedRacingLine) -> BakedRacingLine:
+	if spline_helper == null or not spline_helper.is_valid or template == null:
+		return null
+	var n := laterals.size()
+	if n == 0 or n != template.sample_count:
+		push_error("AIRacingLineBaker.rebuild_from_laterals: sample count mismatch")
+		return null
+	
+	var perf := ShipPerformanceModel.new(ship_profile)
+	perf.cornering_confidence = cornering_confidence
+	perf.planned_brake_application = planned_brake_application
+	perf.corner_airbrake_application = corner_airbrake_application
+	perf.configure(ship_profile)
+	
+	var points := PackedVector3Array()
+	points.resize(n)
+	for i in range(n):
+		var offset := float(i) / float(n)
+		var center: Vector3 = spline_helper.spline_offset_to_world(offset)
+		var tangent: Vector3 = spline_helper.get_tangent_at_offset(offset)
+		var up: Vector3 = spline_helper.get_up_at_offset(offset, true)
+		points[i] = center + tangent.cross(up).normalized() * laterals[i]
+	
+	var seg_lengths := PackedFloat32Array()
+	seg_lengths.resize(n)
+	for i in range(n):
+		seg_lengths[i] = points[i].distance_to(points[(i + 1) % n])
+	
+	var kappas := _compute_curvatures(points, seg_lengths)
+	var speeds := _compute_speed_profile(kappas, seg_lengths, perf)
+	
+	var result: BakedRacingLine = template.duplicate(true)
+	result.lateral_offsets = laterals
+	result.curvatures = kappas
+	result.target_speeds = speeds
+	return result
+
+## Make an arbitrary speed array physically reachable: you must be able to
+## brake into every sample and you cannot exceed what full throttle delivers
+## out of the previous one. Exposed so AILineTrainer can re-apply it after
+## editing corner speeds -- a trained profile that is not feasible just makes
+## the controller brake in the wrong places.
+static func apply_feasibility_passes(v: PackedFloat32Array,
+		seg_lengths: PackedFloat32Array, perf: ShipPerformanceModel) -> PackedFloat32Array:
+	var n := v.size()
+	if n == 0:
+		return v
+	
 	# Backward pass: entering sample i, we must be able to brake down to
 	# v[i+1] over the segment. Two wraps handle the closed-loop seam.
 	for _wrap in range(2):
@@ -565,6 +673,8 @@ func _compute_source_hash(spline_helper: TrackSplineHelper, profile: ShipProfile
 	parts.append(use_min_curvature)
 	parts.append(curvature_step)
 	parts.append(curvature_iterations)
+	parts.append(apex_shift_meters)
+	parts.append(centre_bias)
 	parts.append(final_smoothing_iterations)
 	parts.append(fallback_half_width)
 	parts.append(max_usable_half_width)
