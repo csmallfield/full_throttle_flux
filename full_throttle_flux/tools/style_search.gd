@@ -593,6 +593,10 @@ func _assemble_and_measure() -> void:
 	print_rich("[b]  assembled: %.3fs[/b]  (best single style %.3fs, theoretical splice %.3fs)" % [
 		result.lap_time, best_single, _theoretical])
 	if result.lap_time > 0.0 and result.lap_time < best_single:
+		# Stamp provenance so the in-game spectator can say what this line
+		# measured. v15 omitted this, so assembled lines reported 0.000s.
+		line.is_trained = true
+		line.trained_lap_time = result.lap_time
 		var err := AILineTrainer.save_trained_line(line)
 		print("  saved assembled line%s" % ["" if err == OK else " FAILED"])
 	else:

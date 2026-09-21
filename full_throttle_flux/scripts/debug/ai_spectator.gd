@@ -38,6 +38,14 @@ var _label: Label
 var _refresh: float = 0.0
 
 const REFRESH_INTERVAL := 0.1
+const MAX_LAPS_SHOWN := 8
+
+## Fallback lap timing for ships RaceManager is not tracking (time trial, bare
+## test scenes). Timed wrap to wrap on the spline, for every ship all the time,
+## so the history already exists when you switch to a ship.
+var _timers: Dictionary = {}         ## ShipController -> Dictionary
+var _helper: TrackSplineHelper
+var _clock: float = 0.0
 
 func _ready() -> void:
 	if not enabled:
@@ -73,6 +81,8 @@ func _collect(n: Node) -> void:
 		_ships.append(n)
 	elif n is AIShipController and n.ship:
 		_ais[n.ship] = n
+		if _helper == null and n.spline_helper and n.spline_helper.is_valid:
+			_helper = n.spline_helper
 	for c in n.get_children():
 		_collect(c)
 
@@ -182,6 +192,134 @@ func _process(delta: float) -> void:
 	_refresh = REFRESH_INTERVAL
 	_label.text = _build_text()
 
+# ============================================================================
+# PROVENANCE -- "which AI am I actually looking at?"
+# ============================================================================
+
+## Everything that makes an in-race AI differ from what the training tools
+## measured. The trained lap times are for skill 1.0, avoidance off, alone on
+## track, on a flying lap -- anything shown here that differs from that is a
+## reason the watched ship will not match them.
+func _provenance_lines(ship: ShipController, ai: AIShipController) -> Array[String]:
+	var out: Array[String] = []
+	if not ship.ai_controlled or ai == null or not ai.is_initialized:
+		return out
+	
+	var line: BakedRacingLine = ai.baked_line
+	var source: String = ai.line_source if not ai.line_source.is_empty() else "unknown"
+	var ship_id: String = ship.profile.ship_id if ship.profile else "?"
+	
+	if source == "TRAINED" and line != null:
+		var style := "speeds only"
+		if line.style_log.size() > 0:
+			style = str(line.style_log.size()) + " segs" if line.style_log.size() > 1 \
+					else line.style_log[0]
+		# Lines assembled before v16 never recorded their lap time; re-running
+		# tools/style_search.tscn stamps it.
+		var measured := "%.3fs" % line.trained_lap_time if line.trained_lap_time > 0.0 \
+				else "time not recorded"
+		out.append("LINE  TRAINED for %s  %s  [%s]" % [ship_id, measured, style])
+	else:
+		out.append("LINE  %s  -- NOT the trained AI (%s)" % [source, ship_id])
+	
+	var notes: Array[String] = []
+	notes.append("skill %.2f%s" % [ai.skill_level,
+			"" if ai.skill_level >= 0.999 else " HANDICAPPED"])
+	notes.append("avoid " + ("ON" if ai.avoidance_enabled else "off"))
+	if ai.is_following_recordings():
+		notes.append("FOLLOWING RECORDINGS")
+	out.append("AI    " + "   ".join(notes))
+	return out
+
+# ============================================================================
+# LAP TIMES
+# ============================================================================
+
+func _physics_process(delta: float) -> void:
+	if not enabled:
+		return
+	_clock += delta
+	# Only needed for ships RaceManager is not tracking.
+	if _helper == null:
+		if Engine.get_physics_frames() % 30 == 0:
+			_rescan()
+		return
+	for ship in _ships:
+		if is_instance_valid(ship) and not _race_tracks(ship):
+			_tick_timer(ship)
+
+func _race_manager() -> Node:
+	return get_node_or_null("/root/RaceManager")
+
+func _race_tracks(ship: ShipController) -> bool:
+	var rm := _race_manager()
+	return rm != null and "ship_all_lap_times" in rm and rm.ship_all_lap_times.has(ship)
+
+func _tick_timer(ship: ShipController) -> void:
+	var t: Dictionary = _timers.get(ship, {})
+	if t.is_empty():
+		t = {"prev": -1.0, "start": -1.0, "laps": PackedFloat32Array()}
+		_timers[ship] = t
+	var offset: float = _helper.world_to_spline_offset(ship.global_position)
+	var prev: float = t.prev
+	if prev >= 0.0:
+		if offset < prev - 0.5:
+			if t.start >= 0.0:
+				var laps: PackedFloat32Array = t.laps
+				laps.append(_clock - t.start)
+				t.laps = laps
+			t.start = _clock
+		elif offset > prev + 0.5:
+			t.start = -1.0   # crossed the line backwards; lap is void
+	t.prev = offset
+
+## Lap 1 is flagged "s" (standing start from the grid); "best flying" excludes
+## it, because only flying laps are comparable to the trained lap times.
+func _lap_lines(ship: ShipController) -> Array[String]:
+	var out: Array[String] = []
+	var laps: Array[float] = []
+	var current := -1.0
+	var source := ""
+	
+	if _race_tracks(ship):
+		var rm := _race_manager()
+		for v in rm.ship_all_lap_times[ship]:
+			laps.append(float(v))
+		var start: float = rm.ship_lap_start_times.get(ship, 0.0)
+		if start > 0.0 and not rm.has_ship_finished(ship):
+			current = Time.get_ticks_msec() / 1000.0 - start
+		source = "race"
+	elif _timers.has(ship):
+		var t: Dictionary = _timers[ship]
+		for v in t.laps:
+			laps.append(v)
+		if t.start >= 0.0:
+			current = _clock - t.start
+		source = "spline"
+	else:
+		out.append("LAPS  waiting for the line")
+		return out
+	
+	var best_flying := INF
+	var best_i := -1
+	for i in range(1, laps.size()):
+		if laps[i] < best_flying:
+			best_flying = laps[i]
+			best_i = i
+	
+	out.append("LAPS  now %s   best flying %s   (%s timing)" % [
+		"%.2f" % current if current >= 0.0 else "--",
+		"%.3f L%d" % [best_flying, best_i + 1] if best_i >= 0 else "--",
+		source])
+	
+	if laps.size() > 0:
+		var parts: Array[String] = []
+		for i in range(maxi(0, laps.size() - MAX_LAPS_SHOWN), laps.size()):
+			parts.append("L%d%s %.2f%s" % [i + 1, "s" if i == 0 else "",
+					laps[i], "*" if i == best_i else ""])
+		out.append("      " + "  ".join(parts))
+	return out
+
 func _build_text() -> String:
 	if _index >= _ships.size():
 		return "no ship"
@@ -194,6 +332,8 @@ func _build_text() -> String:
 	var lines: Array[String] = [name]
 	lines.append("speed %6.1f  (%.0f%%)" % [
 		ship.velocity.length(), ship.get_speed_ratio() * 100.0])
+	lines.append_array(_provenance_lines(ship, _ais.get(ship)))
+	lines.append_array(_lap_lines(ship))
 
 	if _detail < 2:
 		lines.append("[ ] cycle   \\ player   F10 detail")

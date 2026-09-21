@@ -177,10 +177,21 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
 		perf_model = null
 		push_warning("AIShipController: no ship profile - perf model unavailable, speed targets will use legacy heuristics")
 	
-	# Prefer a trained line: AILineTrainer measured these corner speeds by
-	# actually driving them, so they beat anything the analytic model predicts.
-	if baked_line == null and ship and ship.profile:
-		baked_line = AILineTrainer.load_trained_line(_guess_track_id(), ship.profile.ship_id)
+	# LINE PRECEDENCE -- a trained line for THIS ship's profile always wins.
+	#
+	# v15 only looked for a trained line when the caller passed none. RaceMode
+	# always passes its own shared bake, so in an actual race the trained and
+	# assembled lines were never loaded at all: every AI drove a fresh default
+	# bake with default controller params and no style gains. The training
+	# tools were measuring an AI that never appeared in the game.
+	line_source = ""
+	if ship and ship.profile:
+		var trained := AILineTrainer.load_trained_line(_guess_track_id(), ship.profile.ship_id)
+		if trained != null:
+			baked_line = trained
+			line_source = "TRAINED"
+	if line_source.is_empty() and baked_line != null:
+		line_source = "shared bake (untrained)"
 	
 	# Self-bake if no line was provided (cache makes repeats near-free)
 	if baked_line == null and auto_bake_if_missing and ship and ship.profile:
@@ -188,11 +199,22 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
 		if world:
 			var baker := AIRacingLineBaker.new()
 			baked_line = baker.bake(spline_helper, ship.profile, world, _guess_track_id())
+			if baked_line != null:
+				line_source = "self bake (untrained)"
+	if baked_line == null:
+		line_source = "centreline fallback (no line)"
 	
 	# Create line follower
 	line_follower = AILineFollower.new()
 	line_follower.skill_level = skill_level
 	line_follower.initialize(spline_helper, track_ai_data, baked_line, perf_model)
+	
+	# A trained line is a measurement; recorded laps are the older blend. The
+	# follower defaults to preferring recordings, and AIDataManager checks
+	# user:// BEFORE the project -- so a stale local recording from months ago
+	# would silently replace the trained line. Trained wins, explicitly.
+	if line_source == "TRAINED":
+		line_follower.prefer_baked_over_recorded = true
 	
 	# Create control decider
 	control_decider = AIControlDecider.new()
@@ -242,6 +264,15 @@ func _apply_style_gains() -> void:
 	if control_decider.perf_model:
 		control_decider.perf_model.corner_airbrake_application = \
 				control_decider.max_corner_airbrake
+
+## Where this AI's racing line came from. Shown by the debug spectator so it
+## is never ambiguous which AI you are watching.
+var line_source: String = ""
+
+## True when the follower is steering by recorded laps rather than the line.
+func is_following_recordings() -> bool:
+	return line_follower != null and line_follower.has_recorded_data \
+			and not line_follower.prefer_baked_over_recorded
 
 func _guess_track_id() -> String:
 	"""Stable track id for the bake cache and trained-line lookup.
