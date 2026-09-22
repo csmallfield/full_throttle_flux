@@ -182,7 +182,7 @@ func initialize(p_track_root: Node, p_baked_line: BakedRacingLine = null) -> voi
 	# bake with default controller params and no style gains. The training
 	# tools were measuring an AI that never appeared in the game.
 	line_source = ""
-	if ship and ship.profile:
+	if prefer_trained_line and ship and ship.profile:
 		var trained := AILineTrainer.load_trained_line(_guess_track_id(), ship.profile.ship_id)
 		if trained != null:
 			baked_line = trained
@@ -196,7 +196,7 @@ func initialize(p_track_root: Node, p_baked_line: BakedRacingLine = null) -> voi
 			else:
 				line_source = "TRAINED"
 	if line_source.is_empty() and baked_line != null:
-		line_source = "shared bake (untrained)"
+		line_source = "shared bake (untrained)" if prefer_trained_line else "passed line (tools)"
 	
 	# Self-bake if no line was provided (cache makes repeats near-free)
 	if baked_line == null and auto_bake_if_missing and ship and ship.profile:
@@ -254,6 +254,13 @@ func _apply_style_gains() -> void:
 	if control_decider.perf_model:
 		control_decider.perf_model.corner_airbrake_application = \
 				control_decider.max_corner_airbrake
+
+## When true (the default, and what races want), a trained line for this
+## ship's profile replaces whatever line the caller passed. The offline tools
+## MUST set this false: they pass the exact line they are testing, and v16/v17
+## silently swapped it for the existing trained line -- whose per-sample style
+## gains then overwrote four of the style parameters under test every frame.
+@export var prefer_trained_line: bool = true
 
 ## Where this AI's racing line came from. Shown by the debug spectator so it
 ## is never ambiguous which AI you are watching.

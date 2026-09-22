@@ -111,6 +111,7 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	ai.skill_level = 1.0
 	ai.avoidance_enabled = false
 	add_child(ai)
+	ai.prefer_trained_line = false  # test the line we pass, not the saved one
 	ai.initialize(track, line)
 	
 	if not ai.is_initialized:

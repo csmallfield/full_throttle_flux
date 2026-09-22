@@ -201,3 +201,22 @@ It merges every package — plus your own local laps — into `res://recordings_
 It then prints the benchmark that matters: best human flying lap against the trained AI's measured peak, per track and ship, current handling only.
 
 Tester ids are random and per-install, deliberately not the OS user name. `user://tester.cfg` has an optional `name` field testers can fill in by hand.
+
+
+---
+
+## The analysis loop
+
+The workflow that found the flat-out technique on circuit 7:
+
+1. **Drive** — record laps in any mode (recording is automatic on `recordable` ships).
+2. **Export** from the main menu, drop the zip in `res://recordings_inbox/`.
+3. **Import** — `tools/import_recordings.tscn`. Prints human vs AI per track.
+4. **Analyse** — `tools/analyze_laps.tscn` (optionally `-- --track=<id>`). Drives the trained AI for a flying lap, records it with the same `LapRecorder`, and compares it with the best human lap across 16 equal-distance sections: time, speed, lateral position, airbrake use and throttle. It also prints a technique summary — % of the lap at full throttle, airbrake use, mean speed — which is usually where a new technique shows up first. Reports are written to `res://recordings_analysis/`.
+5. **Translate** what the human does into a style in `tools/style_search.gd`, run the search, re-analyse.
+
+Circuit 7 went from 63.93s to 62.65s this way, from six laps of human driving. The human lap held full throttle through 100% of the lap with 9% airbrake; the AI was at 91% throttle and 19% airbrake. The fix was a style, not code.
+
+### Tools must test the line they pass
+
+`AIShipController.prefer_trained_line` defaults to true, which races want: the trained line replaces whatever the caller passes. The offline tools set it to **false**. Between v16 and v18 they didn't, so the style search silently loaded the existing trained line, and its per-sample style gains overwrote four parameters of every style under test — airbrake, steering reserve, sensitivity and lookahead. Style searches run on a track that already had a trained line during that window searched a narrowed space; their saved results were still genuinely measured, just not as good as they could have been. Re-run them.

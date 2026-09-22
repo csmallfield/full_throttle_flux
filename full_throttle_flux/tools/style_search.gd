@@ -71,6 +71,18 @@ const STYLES: Array[Dictionary] = [
 	{"name": "no_ab_conserv", "airbrake": 0.0, "reserve": 1.0, "confidence": 0.88},
 	{"name": "no_ab_confident", "airbrake": 0.0, "reserve": 1.0, "confidence": 1.10},
 	{"name": "no_ab_smooth", "airbrake": 0.0, "reserve": 1.0, "sensitivity": 4.0},
+	# v18: FLAT OUT -- found in a human recording on circuit 7, not invented.
+	# The fastest human lap held throttle at 1.00 through every section and
+	# rotated with short airbrake taps (9% of the lap against the AI's 22%),
+	# carrying 110-115 through corners the AI slowed to 87-95 for.
+	# Expressed purely through the plan: an extreme cornering_confidence puts
+	# every target speed at the cap, so the AI never lifts or brakes, while
+	# the cornering airbrake still engages on yaw shortfall. Because it lives
+	# in the target speeds, it splices through assembly with no new machinery.
+	# Wrong for some corners -- the search decides which.
+	{"name": "flat_out", "confidence": 5.0},
+	{"name": "flat_out_ab", "confidence": 5.0, "airbrake": 1.0, "reserve": 0.60},
+	{"name": "flat_out_light", "confidence": 5.0, "airbrake": 0.5, "reserve": 0.90},
 ]
 
 ## LINE GEOMETRY variants. `apex` shifts the solved line along the track (late
@@ -158,6 +170,7 @@ func _run_track(track_path: String, profile_path: String) -> void:
 	_ai.skill_level = 1.0
 	_ai.avoidance_enabled = false
 	add_child(_ai)
+	_ai.prefer_trained_line = false  # test the line we pass, not the saved one
 	_ai.initialize(_track, _bake_for({}))
 	if not _ai.is_initialized:
 		push_error("AI failed to initialize")
@@ -222,6 +235,10 @@ func _apply_style(style: Dictionary) -> void:
 	# Re-bake only when the style changes the LINE, not the controller.
 	var line := _bake_for(style)
 	follower.baked_line = line
+	# Keep the controller's copy in sync too: _apply_style_gains() reads
+	# _ai.baked_line, and a stale line with style gains would override the
+	# airbrake, reserve, sensitivity and lookahead of the style under test.
+	_ai.baked_line = line
 
 	follower.baked_steer_lookahead_min = style.get("look_min", 18.0)
 	follower.baked_steer_lookahead_max = style.get("look_max", 42.0)
