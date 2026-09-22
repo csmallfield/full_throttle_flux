@@ -46,6 +46,11 @@ const CURRENT_BAKE_VERSION := 4
 ## Iterations the trainer ran to reach it.
 @export var trained_iterations: int = 0
 
+## ShipProfile.handling_hash() of the profile this line was trained against.
+## Empty on lines made before v17. AIShipController compares it at load and
+## flags the line as stale if the ship's handling has changed since.
+@export var profile_hash: String = ""
+
 # ============================================================================
 # PER-SAMPLE STYLE GAINS
 # ============================================================================

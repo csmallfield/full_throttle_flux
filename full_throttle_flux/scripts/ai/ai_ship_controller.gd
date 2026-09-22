@@ -15,7 +15,7 @@ class_name AIShipController
 ## - BakedRacingLine + ShipPerformanceModel integration: initialize() accepts
 ##   a pre-baked line (RaceMode bakes once and shares it across all AIs);
 ##   when none is provided and auto_bake_if_missing is on, this controller
-##   bakes/loads-from-cache itself (covers time trial testing, AIDebugTester)
+##   bakes/loads-from-cache itself (covers time trial testing and the offline tools)
 ## - Brake output from the decider is now real: the decider merges braking
 ##   into both airbrake channels (the only actual brake in this physics),
 ##   and _apply_controls forwards them unchanged
@@ -47,7 +47,7 @@ signal ai_disabled()
 
 ## If initialize() receives no baked racing line, bake one here (or load it
 ## from the user:// cache). RaceMode passes a shared line, so this mainly
-## serves standalone use (time trial AI testing, AIDebugTester).
+## serves standalone use (time trial AI testing, tools/).
 @export var auto_bake_if_missing: bool = true
 
 @export_group("Debug")
@@ -75,7 +75,6 @@ var spline_helper: TrackSplineHelper
 var line_follower: AILineFollower
 var control_decider: AIControlDecider
 var ship_avoidance: AIShipAvoidance  # NEW: Avoidance component
-var track_ai_data: TrackAIData
 var baked_line: BakedRacingLine  # v4: optimized line + speed profile
 var perf_model: ShipPerformanceModel  # v4: honest ship limits
 
@@ -152,8 +151,7 @@ func _search_for_path3d(node: Node) -> Node:
 			return found
 	return null
 
-func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
-		p_baked_line: BakedRacingLine = null) -> void:
+func initialize(p_track_root: Node, p_baked_line: BakedRacingLine = null) -> void:
 	"""
 	Initialize the AI controller with a track.
 	Call this after the track scene is loaded.
@@ -161,7 +159,6 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
 	auto_bake_if_missing (cached after the first bake).
 	"""
 	track_root = p_track_root
-	track_ai_data = p_track_ai_data
 	baked_line = p_baked_line
 	
 	# Create spline helper
@@ -189,7 +186,15 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
 		var trained := AILineTrainer.load_trained_line(_guess_track_id(), ship.profile.ship_id)
 		if trained != null:
 			baked_line = trained
-			line_source = "TRAINED"
+			var current_hash := ship.profile.handling_hash()
+			if trained.profile_hash.is_empty():
+				line_source = "TRAINED (unverified: predates handling hash)"
+			elif trained.profile_hash != current_hash:
+				line_source = "TRAINED (STALE: handling changed since training)"
+				push_warning("AIShipController: trained line for %s on %s was trained on handling %s, ship is now %s - retrain it" % [
+					ship.profile.ship_id, _guess_track_id(), trained.profile_hash, current_hash])
+			else:
+				line_source = "TRAINED"
 	if line_source.is_empty() and baked_line != null:
 		line_source = "shared bake (untrained)"
 	
@@ -207,14 +212,7 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
 	# Create line follower
 	line_follower = AILineFollower.new()
 	line_follower.skill_level = skill_level
-	line_follower.initialize(spline_helper, track_ai_data, baked_line, perf_model)
-	
-	# A trained line is a measurement; recorded laps are the older blend. The
-	# follower defaults to preferring recordings, and AIDataManager checks
-	# user:// BEFORE the project -- so a stale local recording from months ago
-	# would silently replace the trained line. Trained wins, explicitly.
-	if line_source == "TRAINED":
-		line_follower.prefer_baked_over_recorded = true
+	line_follower.initialize(spline_helper, baked_line, perf_model)
 	
 	# Create control decider
 	control_decider = AIControlDecider.new()
@@ -237,18 +235,10 @@ func initialize(p_track_root: Node, p_track_ai_data: TrackAIData = null,
 	is_initialized = true
 	
 	# Print initialization summary
-	var data_status := "geometric fallback"
-	if track_ai_data and track_ai_data.has_recorded_data():
-		var best_info := track_ai_data.get_best_lap_info()
-		if best_info.exists:
-			data_status = "%d recorded laps (best: %.2fs)" % [track_ai_data.recorded_laps.size(), best_info.time]
-		else:
-			data_status = "%d recorded laps" % track_ai_data.recorded_laps.size()
-	elif baked_line and baked_line.is_usable():
-		data_status = "baked line (%d samples)" % baked_line.sample_count
-	
 	var avoidance_status := "enabled" if avoidance_enabled else "disabled"
-	print("AIShipController: Initialized (skill: %.2f, data: %s, avoidance: %s)" % [skill_level, data_status, avoidance_status])
+	var ship_id: String = ship.profile.ship_id if ship and ship.profile else "?"
+	print("AIShipController: %s on %s -> line: %s (skill %.2f, avoidance %s)" % [
+		ship_id, _guess_track_id(), line_source, skill_level, avoidance_status])
 
 ## Vary the controller's technique around the lap from the baked line's style
 ## gains. A no-op when the line carries none, which is the case for any line
@@ -269,10 +259,6 @@ func _apply_style_gains() -> void:
 ## is never ambiguous which AI you are watching.
 var line_source: String = ""
 
-## True when the follower is steering by recorded laps rather than the line.
-func is_following_recordings() -> bool:
-	return line_follower != null and line_follower.has_recorded_data \
-			and not line_follower.prefer_baked_over_recorded
 
 func _guess_track_id() -> String:
 	"""Stable track id for the bake cache and trained-line lookup.
@@ -625,14 +611,7 @@ func _print_debug_info() -> void:
 	if not line_follower or not control_decider:
 		return
 	
-	var data_source := "geometric"
-	if track_ai_data and track_ai_data.has_recorded_data():
-		if skill_level >= 0.95 and track_ai_data.use_single_lap_for_expert:
-			data_source = "SINGLE BEST LAP"
-		else:
-			data_source = "blended (%d laps)" % track_ai_data.recorded_laps.size()
-	elif baked_line and baked_line.is_usable():
-		data_source = "BAKED LINE"
+	var data_source := line_source
 	
 	print("=== AI Debug (skill=%.2f, source=%s) ===" % [skill_level, data_source])
 	print("  ", line_follower.get_debug_info())

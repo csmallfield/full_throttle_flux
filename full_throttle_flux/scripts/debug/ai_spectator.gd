@@ -209,7 +209,7 @@ func _provenance_lines(ship: ShipController, ai: AIShipController) -> Array[Stri
 	var source: String = ai.line_source if not ai.line_source.is_empty() else "unknown"
 	var ship_id: String = ship.profile.ship_id if ship.profile else "?"
 	
-	if source == "TRAINED" and line != null:
+	if source.begins_with("TRAINED") and line != null:
 		var style := "speeds only"
 		if line.style_log.size() > 0:
 			style = str(line.style_log.size()) + " segs" if line.style_log.size() > 1 \
@@ -218,7 +218,7 @@ func _provenance_lines(ship: ShipController, ai: AIShipController) -> Array[Stri
 		# tools/style_search.tscn stamps it.
 		var measured := "%.3fs" % line.trained_lap_time if line.trained_lap_time > 0.0 \
 				else "time not recorded"
-		out.append("LINE  TRAINED for %s  %s  [%s]" % [ship_id, measured, style])
+		out.append("LINE  %s for %s  %s  [%s]" % [source, ship_id, measured, style])
 	else:
 		out.append("LINE  %s  -- NOT the trained AI (%s)" % [source, ship_id])
 	
@@ -226,8 +226,6 @@ func _provenance_lines(ship: ShipController, ai: AIShipController) -> Array[Stri
 	notes.append("skill %.2f%s" % [ai.skill_level,
 			"" if ai.skill_level >= 0.999 else " HANDICAPPED"])
 	notes.append("avoid " + ("ON" if ai.avoidance_enabled else "off"))
-	if ai.is_following_recordings():
-		notes.append("FOLLOWING RECORDINGS")
 	out.append("AI    " + "   ".join(notes))
 	return out
 

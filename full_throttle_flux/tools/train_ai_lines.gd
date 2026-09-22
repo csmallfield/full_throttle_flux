@@ -111,7 +111,7 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	ai.skill_level = 1.0
 	ai.avoidance_enabled = false
 	add_child(ai)
-	ai.initialize(track, null, line)
+	ai.initialize(track, line)
 	
 	if not ai.is_initialized:
 		push_error("trainer: AI failed to initialize on %s" % track_id)
@@ -133,7 +133,7 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	# --- report + save ---
 	var mean_before := _mean(analytic_speeds)
 	var mean_after := _mean(trained.target_speeds)
-	var err := AILineTrainer.save_trained_line(trained)
+	var err := AILineTrainer.save_trained_line(trained, profile)
 	if err != OK:
 		push_error("trainer: failed to save %s (error %d)" % [track_id, err])
 	

@@ -138,18 +138,6 @@ var assist_min_speed_ratio: float = 0.45
 ## airbraking costs grip, so this trades speed for rotation. 0 disables.
 var steering_assist_strength: float = 0.35
 
-# ============================================================================
-# TUNING PARAMETERS - HINT WEIGHT (SKILL DEPENDENT, recorded data only)
-# ============================================================================
-
-## Base hint weight at skill 0.0 (novice trusts calculations more)
-var hint_weight_min: float = 0.3
-
-## Max hint weight at skill 1.0 (expert trusts recordings more)
-var hint_weight_max: float = 1.0
-
-## Current computed hint weight
-var hint_weight: float = 0.65
 
 # ============================================================================
 # SKILL-DEPENDENT CONTROL FEEL
@@ -222,7 +210,6 @@ func set_skill(skill: float) -> void:
 
 func _update_skill_dependent_params() -> void:
 	"""Update parameters that vary based on skill level."""
-	hint_weight = lerpf(hint_weight_min, hint_weight_max, skill_level)
 	_smoothing_rate = lerpf(smoothing_rate_min, smoothing_rate_max, skill_level)
 	_wobble_amplitude = lerpf(steer_wobble_amplitude_max, 0.0, skill_level)
 
@@ -317,14 +304,6 @@ func decide_controls(delta: float) -> Dictionary:
 			ab_left = maxf(ab_left, assist)
 		else:
 			ab_right = maxf(ab_right, assist)
-
-	# --- Blend with recorded hints (skill dependent, recorded data only) ---
-	var from_recorded: bool = target.get("from_recorded_data", false)
-	if from_recorded and hint_weight > 0:
-		throttle = lerpf(throttle, target.hint_throttle, hint_weight)
-		brake = lerpf(brake, target.hint_brake, hint_weight)
-		ab_left = lerpf(ab_left, maxf(target.hint_airbrake_left, target.hint_brake), hint_weight)
-		ab_right = lerpf(ab_right, maxf(target.hint_airbrake_right, target.hint_brake), hint_weight)
 
 	# --- Smooth controls (rate scales with skill: novice sluggish, expert crisp) ---
 	var s: float = _smoothing_rate * delta

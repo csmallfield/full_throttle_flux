@@ -62,7 +62,6 @@ var ai_controllers: Array[AIShipController] = []
 var position_tracker: RacePositionTracker
 
 ## Track AI data for AI opponents
-var track_ai_data: TrackAIData
 
 ## Shared baked racing line (baked once, used by every AI controller)
 var baked_racing_line: BakedRacingLine
@@ -128,7 +127,6 @@ func setup_race() -> void:
 	RaceManager.reset_race()
 	
 	# Load track AI data
-	_load_track_ai_data()
 	
 	# Load track (from parent)
 	await _load_track()
@@ -167,19 +165,6 @@ func setup_race() -> void:
 	mode_ready.emit()
 	print("RaceMode: Setup complete - %d ships on grid" % all_ships.size())
 
-func _load_track_ai_data() -> void:
-	"""Load AI training data for the current track."""
-	var track_profile = GameManager.get_selected_track()
-	if not track_profile:
-		push_warning("RaceMode: No track profile, AI will use geometric fallback")
-		return
-	
-	track_ai_data = AIDataManager.load_track_ai_data(track_profile.track_id)
-	
-	if track_ai_data:
-		print("RaceMode: Loaded AI data - %d recorded laps" % track_ai_data.recorded_laps.size())
-	else:
-		print("RaceMode: No AI data found, AI will use baked racing line")
 
 func _bake_racing_line() -> void:
 	"""Bake (or cache-load) the shared racing line + speed profile for this
@@ -191,6 +176,17 @@ func _bake_racing_line() -> void:
 	if not ship_profile or not track_instance:
 		push_warning("RaceMode: cannot bake racing line (missing ship profile or track)")
 		return
+	
+	# Every AI races the player's selected ship, and each AI loads a trained
+	# line for its own profile when one exists (AIShipController.initialize).
+	# The shared bake is then only a fallback nobody uses, so skip it.
+	var trained_id := AILineTrainer.track_id_for(track_instance)
+	if AILineTrainer.load_trained_line(trained_id, ship_profile.ship_id) != null:
+		print("RaceMode: trained line available for %s on %s - AI will use it, skipping shared bake" % [
+			ship_profile.ship_id, trained_id])
+		return
+	print("RaceMode: no trained line for %s on %s - baking an untrained fallback line" % [
+		ship_profile.ship_id, trained_id])
 	
 	# CSG wall collision shapes build during the first physics frames after
 	# the track loads; the baker raycasts against them to measure track width.
@@ -318,7 +314,7 @@ func _spawn_ai_ship(grid_position: int, skill: float) -> void:
 	ai_ship.add_child(ai_controller)
 	
 	# Initialize AI with track data + shared baked racing line
-	ai_controller.initialize(track_instance, track_ai_data, baked_racing_line)
+	ai_controller.initialize(track_instance, baked_racing_line)
 	
 	all_ships.append(ai_ship)
 	ai_ships.append(ai_ship)

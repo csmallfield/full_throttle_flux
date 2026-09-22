@@ -9,8 +9,8 @@ class_name AILineFollower
 ##   steering target (optimized lateral offsets) and the speed target (two-pass
 ##   speed profile) come from it. The profile is DISTANCE-AWARE by
 ##   construction: braking points are encoded in the speeds themselves.
-##   Source priority: recorded laps > baked line > geometric fallback
-##   (set prefer_baked_over_recorded to flip the first two).
+##   Source priority: baked line > geometric fallback. Recorded laps no
+##   longer steer the AI (v17).
 ## - Geometric fallback is now distance-aware too: when a ShipPerformanceModel
 ##   is available, the target speed is max_entry_speed(corner_speed, distance)
 ##   instead of collapsing the moment a corner enters the 120m scan window.
@@ -132,8 +132,6 @@ var crosstrack_gain: float = 0.8
 ## (self-crossing track sections) cannot inject huge steering.
 var crosstrack_max_correction: float = 8.0
 
-## If true, prefer the baked line even when recorded laps exist.
-var prefer_baked_over_recorded: bool = false
 
 ## Cap geometric-fallback cruise speed at profile.max_speed (see
 ## ShipPerformanceModel.equilibrium_speed note).
@@ -144,13 +142,11 @@ var respect_profile_max_speed: bool = false
 # ============================================================================
 
 var spline_helper: TrackSplineHelper
-var track_ai_data: TrackAIData  # May be null if no recorded data
 var baked_line: BakedRacingLine  # May be null if not baked
 var perf_model: ShipPerformanceModel  # May be null (legacy heuristics used)
 
 var current_spline_offset: float = 0.0
 var current_world_position: Vector3 = Vector3.ZERO
-var has_recorded_data: bool = false
 
 # Cached analysis results (updated each frame)
 var cached_max_upcoming_curvature: float = 0.0
@@ -176,13 +172,14 @@ var cached_apex_spline_offset: float = 0.0
 # INITIALIZATION
 # ============================================================================
 
-func initialize(p_spline_helper: TrackSplineHelper, p_track_ai_data: TrackAIData = null,
+## v17: recorded laps no longer drive the AI. The follower steers by the
+## baked (ideally trained) line, or the geometric centreline if there is none.
+## Player recordings are now a data source for analysis, never control.
+func initialize(p_spline_helper: TrackSplineHelper,
 		p_baked_line: BakedRacingLine = null, p_perf_model: ShipPerformanceModel = null) -> void:
 	spline_helper = p_spline_helper
-	track_ai_data = p_track_ai_data
 	baked_line = p_baked_line
 	perf_model = p_perf_model
-	has_recorded_data = track_ai_data != null and track_ai_data.has_recorded_data()
 
 func set_skill(skill: float) -> void:
 	skill_level = clamp(skill, 0.0, 1.0)
@@ -448,7 +445,7 @@ func _update_apex_debug_position() -> void:
 func get_target_position(ship_speed: float, max_speed: float) -> Dictionary:
 	"""
 	Get the target position and (distance-aware) target speed.
-	Source priority: recorded laps > baked line > geometric fallback.
+	Source priority: baked line > geometric fallback.
 	"""
 	var speed_ratio: float = ship_speed / max_speed if max_speed > 0 else 0.0
 
@@ -458,13 +455,7 @@ func get_target_position(ship_speed: float, max_speed: float) -> Dictionary:
 	var skill_lookahead_modifier: float = lerpf(0.8, 1.1, skill_level)
 	actual_lookahead *= skill_lookahead_modifier
 
-	var use_recorded: bool = has_recorded_data
-	if prefer_baked_over_recorded and has_baked_line():
-		use_recorded = false
-
-	if use_recorded:
-		return _get_recorded_target(actual_lookahead, max_speed)
-	elif has_baked_line():
+	if has_baked_line():
 		# Tighter pursuit lookahead: the baked line is already the smooth
 		# optimal path, so we track it closely instead of cutting across it
 		var baked_lookahead: float = lerpf(baked_steer_lookahead_min, baked_steer_lookahead_max, speed_ratio)
@@ -532,7 +523,6 @@ func _get_baked_target(lookahead: float, ship_speed: float, _max_speed: float) -
 		"lateral_offset": lateral,
 		"heading": tangent,
 		"spline_offset": target_offset,
-		"from_recorded_data": false,
 		"from_baked_line": true,
 		"lookahead_used": lookahead,
 		"max_upcoming_curvature": cached_max_upcoming_curvature,
@@ -541,10 +531,6 @@ func _get_baked_target(lookahead: float, ship_speed: float, _max_speed: float) -
 		"is_s_curve": cached_is_s_curve,
 		"corner_phase": cached_corner_phase,
 		"line_curvature_signed": signed_line_curvature(current_spline_offset, line_factor),
-		"hint_throttle": 1.0,
-		"hint_brake": 0.0,
-		"hint_airbrake_left": 0.0,
-		"hint_airbrake_right": 0.0
 	}
 
 # ============================================================================
@@ -603,53 +589,6 @@ func _line_point(offset: float, line_factor: float) -> Vector3:
 # TARGET SOURCE: RECORDED LAPS
 # ============================================================================
 
-func _get_recorded_target(lookahead: float, max_speed: float) -> Dictionary:
-	"""Get target from recorded racing line data.
-
-	Two sample points: LOOKAHEAD for position/speed (where to steer),
-	CURRENT for control hints (what inputs to use now).
-	"""
-	var target_offset: float = spline_helper.get_lookahead_offset(current_spline_offset, lookahead)
-
-	var lookahead_sample: AIRacingSample = track_ai_data.get_interpolated_sample(target_offset, skill_level)
-	var current_sample: AIRacingSample = track_ai_data.get_interpolated_sample(current_spline_offset, skill_level)
-
-	if lookahead_sample == null:
-		push_warning("AILineFollower: recorded lookahead sample is NULL - falling back")
-		if has_baked_line():
-			return _get_baked_target(lookahead, max_speed * 0.5, max_speed)
-		return _get_centerline_target(lookahead, max_speed, 0.5)
-
-	var world_pos: Vector3 = spline_helper.spline_offset_to_world_with_lateral(
-		target_offset,
-		lookahead_sample.lateral_offset
-	)
-
-	var hint_throttle: float = current_sample.throttle if current_sample else lookahead_sample.throttle
-	var hint_brake: float = current_sample.brake if current_sample else lookahead_sample.brake
-	var hint_airbrake_left: float = current_sample.airbrake_left if current_sample else lookahead_sample.airbrake_left
-	var hint_airbrake_right: float = current_sample.airbrake_right if current_sample else lookahead_sample.airbrake_right
-
-	return {
-		"world_position": world_pos,
-		"suggested_speed": lookahead_sample.speed,
-		"lateral_offset": lookahead_sample.lateral_offset,
-		"heading": lookahead_sample.heading,
-		"spline_offset": target_offset,
-		"from_recorded_data": true,
-		"from_baked_line": false,
-		"lookahead_used": lookahead,
-		"max_upcoming_curvature": cached_max_upcoming_curvature,
-		"corner_distance": cached_corner_distance,
-		"immediate_curvature": cached_immediate_curvature,
-		"is_s_curve": cached_is_s_curve,
-		"corner_phase": cached_corner_phase,
-		"hint_throttle": hint_throttle,
-		"hint_brake": hint_brake,
-		"hint_airbrake_left": hint_airbrake_left,
-		"hint_airbrake_right": hint_airbrake_right
-	}
-
 # ============================================================================
 # TARGET SOURCE: GEOMETRIC FALLBACK
 # ============================================================================
@@ -678,7 +617,6 @@ func _get_centerline_target(lookahead: float, max_speed: float, _speed_ratio: fl
 		"lateral_offset": cached_target_lateral_offset,
 		"heading": tangent,
 		"spline_offset": target_offset,
-		"from_recorded_data": false,
 		"from_baked_line": false,
 		"lookahead_used": lookahead,
 		"max_upcoming_curvature": cached_max_upcoming_curvature,
@@ -686,10 +624,6 @@ func _get_centerline_target(lookahead: float, max_speed: float, _speed_ratio: fl
 		"immediate_curvature": cached_immediate_curvature,
 		"is_s_curve": cached_is_s_curve,
 		"corner_phase": cached_corner_phase,
-		"hint_throttle": 1.0,
-		"hint_brake": 0.0,
-		"hint_airbrake_left": 0.0,
-		"hint_airbrake_right": 0.0
 	}
 
 func _calculate_target_speed(max_speed: float) -> float:
@@ -793,12 +727,6 @@ func get_centerline_position_at_distance(distance: float) -> Vector3:
 # CURRENT SAMPLE (for control hints)
 # ============================================================================
 
-func get_current_sample() -> AIRacingSample:
-	"""Get the sample at the current position."""
-	if not has_recorded_data:
-		return null
-	return track_ai_data.get_interpolated_sample(current_spline_offset, skill_level)
-
 # ============================================================================
 # ANALYSIS - PUBLIC INTERFACE
 # ============================================================================
@@ -853,9 +781,7 @@ func get_distance_to_finish() -> float:
 
 func get_debug_info() -> String:
 	var source := "geometric"
-	if has_recorded_data and not prefer_baked_over_recorded:
-		source = "recorded"
-	elif has_baked_line():
+	if has_baked_line():
 		source = "baked"
 	var s_curve_str: String = "S-CURVE" if cached_is_s_curve else "single"
 	return "Line[%s]: curv=%.2f imm=%.2f lat=%.1fm phase=%.0f%% @%.0fm [%s]" % [

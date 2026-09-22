@@ -4,7 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://c8x2boost1pad" path="res://scenes/boost_pad.tscn" id="2_02she"]
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="3_nnuyv"]
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="4_02she"]
-[ext_resource type="PackedScene" path="res://scenes/ai_debug_tester.tscn" id="5_nnuyv"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_02she"]
 sky_top_color = Color(0.05, 0.05, 0.15, 1)
@@ -54,5 +53,3 @@ metadata/_custom_type_script = "uid://do1bpsq8pkyxk"
 [node name="Slot1" type="Marker3D" parent="StartingGrid"]
 transform = Transform3D(0.93969256, 0, -0.3420201, 0, 1, 0, 0.3420201, 0, 0.93969256, -3.3510475, -3, 7.9537964)
 gizmo_extents = 3.25
-
-[node name="AIDebugTester" parent="." instance=ExtResource("5_nnuyv")]

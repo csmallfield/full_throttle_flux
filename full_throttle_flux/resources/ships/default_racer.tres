@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_profile")
+recordable = true
 description = "A balanced ship suitable for all tracks. Good handling and speed."
 manufacturer = "Flux Industries"
 hover_height = 2.75

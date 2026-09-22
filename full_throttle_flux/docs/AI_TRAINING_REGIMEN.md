@@ -85,7 +85,9 @@ Retrain after **any** change to:
 - `AIControlDecider` gains or logic
 - track geometry or the spline
 
-Bake caches invalidate themselves via a source hash that covers the profile and spline, and `bake_version` guards the trained-line format. But the *trained* and *assembled* data is generated output keyed to the profile it was trained against — if you change handling values, delete `resources/ai_data/*_trained_line.tres` and re-run.
+Bake caches invalidate themselves via a source hash that covers the profile and spline, and `bake_version` guards the trained-line format.
+
+Trained lines store the ship's **handling hash** (`ShipProfile.handling_hash()`) from v17 on. If you change a handling value, the AI still loads the line but reports it as `TRAINED (STALE: handling changed since training)` in the console and the spectator overlay. Re-run the style search to clear it. Lines made before v17 have no hash and report as `unverified` until re-run.
 
 ---
 
@@ -162,3 +164,40 @@ On circuit 3 the two ships are within **0.03s of each other** (51.42s vs 51.45s)
 Circuit 5 is only marginally better: 71.48s against 71.70s, 0.3%.
 
 If a Starling is meant to feel meaningfully quicker than a Sparrow, either the class needs to differ in more than top speed and thrust, or the tracks need longer straights for that advantage to express. This is the sort of thing to settle before designing seven more ships, and it is now a measurement rather than a judgement call.
+
+
+---
+
+## Player recordings
+
+Every lap the player drives is recorded automatically — **on ships whose profile has `recordable = true`** — and the best ten per bucket are kept. Recordings are a data source only. Since v17 nothing in the AI steers by them.
+
+### Buckets
+
+```
+user://recordings/<track>/<ship>/<handling_hash>/<mode>/<flying|standing>/<ms>_<unix>.res
+```
+
+- **Handling hash** — a lap only ranks against laps driven on identical handling. Changing a profile starts a fresh bucket; old buckets stay on disk as an archive.
+- **Mode** — `time_trial`, `endless` or `race`. Race laps include traffic and avoidance, so they never rank against clean laps.
+- **Pool** — lap 1 is a standing start from the grid and ranks separately from flying laps.
+
+Laps covering less than 90% of the track are rejected as cut or broken.
+
+Turn `recordable` on only once a ship is a real candidate for the game. Laps driven on a profile you're still inventing rank against a handling model that won't survive.
+
+### Collecting from testers
+
+Testers press **EXPORT RECORDINGS** on the main menu. It writes one zip to their Desktop containing their laps and a manifest (anonymous tester id, build version, the handling hashes of every recordable ship).
+
+Drop received zips into `res://recordings_inbox/` and run:
+
+```
+godot --headless --path . res://tools/import_recordings.tscn
+```
+
+It merges every package — plus your own local laps — into `res://recordings_library/`, keeping the best ten **per tester** per bucket, so one fast, prolific tester can't crowd out a different line from someone else. Imported packages move to `recordings_inbox/processed/`.
+
+It then prints the benchmark that matters: best human flying lap against the trained AI's measured peak, per track and ship, current handling only.
+
+Tester ids are random and per-install, deliberately not the OS user name. `user://tester.cfg` has an optional `name` field testers can fill in by hand.

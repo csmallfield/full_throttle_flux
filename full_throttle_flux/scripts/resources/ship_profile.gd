@@ -43,6 +43,12 @@ class_name ShipProfile
 ## Thumbnail image for selection UI
 @export var thumbnail: Texture2D
 
+## Record the player's laps on this ship (LapRecorder).
+## Leave OFF while inventing or tuning a profile, and switch it on once the
+## ship is a real candidate for the game. Laps from a profile still in flux
+## are noise: they rank against a handling model that will not survive.
+@export var recordable: bool = false
+
 # ============================================================================
 # SHIP SCENE
 # ============================================================================
@@ -306,3 +312,46 @@ class_name ShipProfile
 
 ## Rumble frequency (Hz)
 @export var rumble_frequency: float = 20.0
+
+
+# ============================================================================
+# HANDLING HASH
+# ============================================================================
+
+## Properties that cannot change a lap time: identity, presentation, feedback.
+## Everything else that is a number or a bool is treated as handling, so a
+## NEW physics field is included automatically -- the safe default is to
+## invalidate recordings and trained lines rather than silently keep them.
+const NON_HANDLING_PROPERTIES := [
+	"ship_id", "display_name", "description", "manufacturer", "thumbnail",
+	"ship_scene", "recordable", "steer_slide",
+	# visual rotation (mesh only)
+	"roll_max_angle", "roll_from_yaw_rate", "roll_from_slip", "roll_from_input",
+	"roll_frequency", "roll_damping_ratio", "visual_yaw_from_slip", "visual_yaw_max",
+	# camera shake and hover animation (presentation only)
+	"collision_shake_enabled", "shake_intensity", "shake_speed_threshold",
+	"hover_animation_enabled", "hover_pulse_amplitude", "hover_pulse_speed",
+	"hover_pulse_min_intensity", "hover_wobble_yaw", "hover_wobble_roll",
+	"hover_wobble_speed_yaw", "hover_wobble_speed_roll", "rumble_speed_threshold",
+	"rumble_position_intensity", "rumble_rotation_intensity", "rumble_frequency",
+	# audio and feedback thresholds
+	"wall_scrape_min_speed", "ship_collision_feedback_min_speed",
+]
+
+## Short, stable fingerprint of everything about this profile that can change
+## how fast the ship goes round a track. Recordings and trained lines store it
+## so that a handling change can never silently compare new laps against old
+## ones, or leave the AI driving speeds measured for a different ship.
+func handling_hash() -> String:
+	var parts: Array[String] = []
+	for prop in get_property_list():
+		if not (prop.usage & PROPERTY_USAGE_SCRIPT_VARIABLE):
+			continue
+		var n: String = prop.name
+		if n in NON_HANDLING_PROPERTIES:
+			continue
+		var v = get(n)
+		if typeof(v) in [TYPE_FLOAT, TYPE_INT, TYPE_BOOL]:
+			parts.append("%s=%s" % [n, str(v)])
+	parts.sort()
+	return "%08x" % ("|".join(parts).hash() & 0xFFFFFFFF)

@@ -9,6 +9,7 @@ var start_button: Button
 var endless_button: Button
 var race_button: Button
 var leaderboard_button: Button
+var export_button: Button
 var quit_button: Button
 
 # Now Playing display instance
@@ -70,6 +71,7 @@ func _create_ui() -> void:
 	endless_button = _create_menu_button("ENDLESS MODE", button_container)
 	race_button = _create_menu_button("RACE MODE", button_container)
 	leaderboard_button = _create_menu_button("LEADERBOARDS", button_container)
+	export_button = _create_menu_button("EXPORT RECORDINGS", button_container)
 	quit_button = _create_menu_button("QUIT", button_container)
 
 func _create_menu_button(text: String, parent: Control) -> Button:
@@ -94,6 +96,9 @@ func _connect_signals() -> void:
 	if leaderboard_button:
 		leaderboard_button.pressed.connect(_on_leaderboard_pressed)
 		leaderboard_button.focus_entered.connect(_on_button_focus)
+	if export_button:
+		export_button.pressed.connect(_on_export_pressed)
+		export_button.focus_entered.connect(_on_button_focus)
 	if quit_button:
 		quit_button.pressed.connect(_on_quit_pressed)
 		quit_button.focus_entered.connect(_on_button_focus)
@@ -111,9 +116,12 @@ func _setup_focus() -> void:
 		race_button.focus_neighbor_bottom = leaderboard_button.get_path()
 		
 		leaderboard_button.focus_neighbor_top = race_button.get_path()
-		leaderboard_button.focus_neighbor_bottom = quit_button.get_path()
+		leaderboard_button.focus_neighbor_bottom = export_button.get_path()
 		
-		quit_button.focus_neighbor_top = leaderboard_button.get_path()
+		export_button.focus_neighbor_top = leaderboard_button.get_path()
+		export_button.focus_neighbor_bottom = quit_button.get_path()
+		
+		quit_button.focus_neighbor_top = export_button.get_path()
 		quit_button.focus_neighbor_bottom = start_button.get_path()
 		
 		# Set initial focus to start button
@@ -153,6 +161,24 @@ func _on_leaderboard_pressed() -> void:
 	AudioManager.play_select()
 	await get_tree().create_timer(0.1).timeout
 	get_tree().change_scene_to_file("res://scenes/leaderboard_screen.tscn")
+
+## Package every recorded lap into one zip on the Desktop for sending in.
+func _on_export_pressed() -> void:
+	var laps := RecordingStore.all_files(RecordingStore.LOCAL_ROOT).size()
+	var dialog := AcceptDialog.new()
+	dialog.title = "Export Recordings"
+	if laps == 0:
+		dialog.dialog_text = "No recorded laps yet.\n\nLaps are recorded automatically on ships marked recordable."
+	else:
+		var path := RecordingStore.export_package()
+		if path.is_empty():
+			dialog.dialog_text = "Export failed - see the console for details."
+		else:
+			dialog.dialog_text = "Exported %d laps to:\n\n%s\n\nPlease send this file to the developer." % [laps, path]
+	add_child(dialog)
+	dialog.popup_centered()
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.canceled.connect(dialog.queue_free)
 
 func _on_quit_pressed() -> void:
 	AudioManager.play_select()

@@ -236,8 +236,22 @@ func _setup_camera() -> void:
 			ship_instance.camera = camera_instance
 	
 	_setup_spectator()
+	_setup_recorder()
 	
 	print("ModeBase: Camera setup complete")
+
+## Records every player lap (LapRecorder). Inert unless the ship profile is
+## marked recordable.
+func _setup_recorder() -> void:
+	if not (ship_instance is ShipController) or track_instance == null:
+		return
+	var recorder := LapRecorder.new()
+	recorder.name = "LapRecorder"
+	recorder.ship = ship_instance
+	recorder.track_root = track_instance
+	var script_path: String = get_script().resource_path if get_script() else ""
+	recorder.mode_name = script_path.get_file().get_basename().trim_suffix("_mode")
+	add_child(recorder)
 
 ## Debug watch mode. Dormant until F9, costs nothing until then, and finds
 ## ships by scanning the tree so no mode has to register anything with it.

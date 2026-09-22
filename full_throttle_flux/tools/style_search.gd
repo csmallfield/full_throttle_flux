@@ -34,9 +34,11 @@ const TRACKS: Array[String] = [
 ## Every ship gets its own search: the fastest technique for one ship is not
 ## the fastest for another, and a class with more top speed shifts where the
 ## time is won.
+## Only ships that are real candidates for the game. fast_racer was removed in
+## v17: it turned out not to be a genuine class difference (within 0.03s of
+## default_racer on circuit 3). Add ships back here once they are designed.
 const SHIP_PROFILES: Array[String] = [
 	"res://resources/ships/default_racer.tres",
-	"res://resources/ships/fast_racer.tres",
 ]
 const SHIP_SCENE := "res://scenes/ships/default_racer.tscn"
 
@@ -156,7 +158,7 @@ func _run_track(track_path: String, profile_path: String) -> void:
 	_ai.skill_level = 1.0
 	_ai.avoidance_enabled = false
 	add_child(_ai)
-	_ai.initialize(_track, null, _bake_for({}))
+	_ai.initialize(_track, _bake_for({}))
 	if not _ai.is_initialized:
 		push_error("AI failed to initialize")
 		_track.queue_free()
@@ -597,7 +599,7 @@ func _assemble_and_measure() -> void:
 		# measured. v15 omitted this, so assembled lines reported 0.000s.
 		line.is_trained = true
 		line.trained_lap_time = result.lap_time
-		var err := AILineTrainer.save_trained_line(line)
+		var err := AILineTrainer.save_trained_line(line, _profile)
 		print("  saved assembled line%s" % ["" if err == OK else " FAILED"])
 	else:
 		# The splice lost. Do NOT fall back to nothing -- with no saved line
@@ -668,7 +670,7 @@ func _save_uniform_anchor(anchor: int, best_single: float) -> void:
 	line.is_trained = true
 	line.trained_lap_time = best_single
 	
-	var err := AILineTrainer.save_trained_line(line)
+	var err := AILineTrainer.save_trained_line(line, _profile)
 	print("  saved uniform '%s' strategy (%.3fs)%s" % [
 		style.name, best_single, "" if err == OK else " FAILED"])
 

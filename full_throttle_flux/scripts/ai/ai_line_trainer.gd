@@ -227,7 +227,9 @@ static func load_trained_line(track_id: String, ship_id: String) -> BakedRacingL
 		return null
 	return line
 
-static func save_trained_line(line: BakedRacingLine) -> Error:
+static func save_trained_line(line: BakedRacingLine, profile: ShipProfile = null) -> Error:
+	if profile != null:
+		line.profile_hash = profile.handling_hash()
 	if not DirAccess.dir_exists_absolute(TRAINED_DIR):
 		DirAccess.make_dir_recursive_absolute(TRAINED_DIR)
 	var path := trained_path(line.track_id, line.ship_id)
