@@ -16,6 +16,8 @@ class_name AISpectator
 ##   F9          toggle spectator on/off
 ##   [  and  ]   previous / next ship
 ##   \           jump back to the player's ship
+##   Y           cycle cinematic cameras (shift+Y goes back)
+##   H           hide every HUD and overlay for a clean view
 ##   F10         cycle overlay detail: off -> basic -> full
 ##   F11         freeze the AI's inputs readout (useful for reading a moment)
 
@@ -36,6 +38,15 @@ var _frozen: bool = false
 var _layer: CanvasLayer
 var _label: Label
 var _refresh: float = 0.0
+
+## Cinematic cameras, ported from MotorRig. Built on first use.
+var _rig: CinematicCameraRig
+## 0 = the game's chase camera, 1..n = rig cameras.
+var _cam_index: int = 0
+
+## Clean view: every CanvasLayer hidden, including this overlay.
+var _clean: bool = false
+var _hidden_layers: Array[CanvasLayer] = []
 
 const REFRESH_INTERVAL := 0.1
 const MAX_LAPS_SHOWN := 8
@@ -99,23 +110,64 @@ func _find_camera(n: Node) -> Node3D:
 # INPUT
 # ============================================================================
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not enabled or not (event is InputEventKey) or not event.pressed or event.echo:
+## Uses _input rather than _unhandled_input so a focused Control (the HUD, a
+## results screen) cannot swallow these. Only events we actually act on are
+## marked handled, so nothing else changes.
+func _input(event: InputEvent) -> void:
+	if not enabled:
 		return
-	match (event as InputEventKey).keycode:
-		KEY_F9:
+	if event is InputEventKey:
+		var key := event as InputEventKey
+		if not key.pressed or key.echo:
+			return
+		# Match BOTH codes. `keycode` follows the keyboard layout and
+		# `physical_keycode` follows US positions, and on a German QWERTZ
+		# layout they disagree for exactly the keys used here: Y/Z swap, and
+		# the brackets are not where US layouts put them at all.
+		if _is_key(key, KEY_F9):
 			_activate(not _active)
-		KEY_BRACKETLEFT:
+		elif _is_key(key, KEY_Y) or _is_key(key, KEY_Z) or _is_key(key, KEY_C):
+			_cycle_camera(-1 if key.shift_pressed else 1)
+		elif _is_key(key, KEY_BRACKETLEFT) or _is_key(key, KEY_COMMA):
 			_step(-1)
-		KEY_BRACKETRIGHT:
+		elif _is_key(key, KEY_BRACKETRIGHT) or _is_key(key, KEY_PERIOD):
 			_step(1)
-		KEY_BACKSLASH:
+		elif _is_key(key, KEY_BACKSLASH):
 			_to_player()
-		KEY_F10:
+		elif _is_key(key, KEY_H):
+			_set_clean_view(not _clean)
+		elif _is_key(key, KEY_F10):
 			_detail = (_detail + 1) % 3
 			_layer.visible = _detail > 0
-		KEY_F11:
+		elif _is_key(key, KEY_F11):
 			_frozen = not _frozen
+		else:
+			return
+		get_viewport().set_input_as_handled()
+		return
+	
+	# Gamepad, while spectating only, so gameplay controls are untouched.
+	# MotorRig cycled cameras on gamepad Y, which is the habit to match.
+	if _active and event is InputEventJoypadButton:
+		var pad := event as InputEventJoypadButton
+		if not pad.pressed:
+			return
+		match pad.button_index:
+			JOY_BUTTON_Y:
+				_cycle_camera(1)
+			JOY_BUTTON_X:
+				_cycle_camera(-1)
+			JOY_BUTTON_LEFT_SHOULDER:
+				_step(-1)
+			JOY_BUTTON_RIGHT_SHOULDER:
+				_step(1)
+			_:
+				return
+		get_viewport().set_input_as_handled()
+
+## True if either the layout-mapped or the physical code matches.
+func _is_key(key: InputEventKey, code: Key) -> bool:
+	return key.keycode == code or key.physical_keycode == code
 
 func _activate(on: bool) -> void:
 	if on and _ships.is_empty():
@@ -125,6 +177,8 @@ func _activate(on: bool) -> void:
 			return
 	_active = on
 	_layer.visible = on and _detail > 0
+	print("AISpectator: %s (%d ships). Y or gamepad Y cycles cameras." % [
+		"ON" if on else "off", _ships.size()])
 	if on:
 		# Prefer starting on an AI ship -- watching the player from here is
 		# what the normal camera already does.
@@ -135,6 +189,66 @@ func _activate(on: bool) -> void:
 		_attach(_ships[_index])
 	else:
 		_to_player()
+		_cam_index = 0
+		_apply_camera()
+
+# ============================================================================
+# CINEMATIC CAMERAS
+# ============================================================================
+
+## Cycle chase -> cockpit -> heli -> ... -> orbit -> chase.
+func _cycle_camera(step: int) -> void:
+	if not _active:
+		return
+	if _rig == null:
+		_rig = CinematicCameraRig.new()
+		_rig.name = "CinematicCameraRig"
+		add_child(_rig)
+		if _index < _ships.size():
+			_rig.follow(_ships[_index])
+	_cam_index = wrapi(_cam_index + step, 0, _rig.cameras.size() + 1)
+	_apply_camera()
+	print("AISpectator: camera -> %s" % camera_label())
+
+func _apply_camera() -> void:
+	if _cam_index == 0 or _rig == null:
+		if _rig:
+			_rig.release()
+		if camera is Camera3D:
+			(camera as Camera3D).make_current()
+	else:
+		_rig.select_index(_cam_index - 1)
+
+## Hide every CanvasLayer in the tree -- race HUD, debug HUD, now-playing
+## display and this overlay -- so the cinematic cameras give a clean frame.
+##
+## Only layers that were visible get restored, so anything already hidden (a
+## pause menu, the results screen) is not switched on by turning clean view
+## off again.
+func _set_clean_view(on: bool) -> void:
+	_clean = on
+	if on:
+		_hidden_layers.clear()
+		_collect_layers(get_tree().root)
+		for layer in _hidden_layers:
+			layer.visible = false
+	else:
+		for layer in _hidden_layers:
+			if is_instance_valid(layer):
+				layer.visible = true
+		_hidden_layers.clear()
+		_layer.visible = _active and _detail > 0
+
+func _collect_layers(n: Node) -> void:
+	if n is CanvasLayer and (n as CanvasLayer).visible:
+		_hidden_layers.append(n)
+	for c in n.get_children():
+		_collect_layers(c)
+
+func camera_label() -> String:
+	if _cam_index == 0 or _rig == null:
+		return "chase"
+	return _rig.active_name()
 
 func _step(dir: int) -> void:
 	if not _active or _ships.is_empty():
@@ -157,6 +271,11 @@ func _attach(ship: ShipController) -> void:
 	camera.ship = ship
 	if camera.has_method("reset_to_ship"):
 		camera.reset_to_ship()
+	# Point the cinematic cameras at the new ship too, and snap them, so a rig
+	# camera on screen changes subject without sweeping across the level.
+	if _rig:
+		_rig.follow(ship)
+		_apply_camera()
 
 # ============================================================================
 # OVERLAY
@@ -188,6 +307,8 @@ func _process(delta: float) -> void:
 		return
 	_refresh -= delta
 	if _refresh > 0.0:
+		return
+	if _clean:
 		return
 	_refresh = REFRESH_INTERVAL
 	_label.text = _build_text()
@@ -328,6 +449,7 @@ func _build_text() -> String:
 	name += "  [AI]" if ship.ai_controlled else "  [PLAYER]"
 
 	var lines: Array[String] = [name]
+	lines.append("CAM   %s   (Y cycles)" % camera_label())
 	lines.append("speed %6.1f  (%.0f%%)" % [
 		ship.velocity.length(), ship.get_speed_ratio() * 100.0])
 	lines.append_array(_provenance_lines(ship, _ais.get(ship)))

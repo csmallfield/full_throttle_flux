@@ -69,6 +69,18 @@ var baked_racing_line: BakedRacingLine
 ## Player's finishing position (1-indexed)
 var player_finish_position: int = -1
 
+## Keep flying after the finish instead of going dead.
+##
+## AI ships used to have ai_active cleared the instant they crossed the line,
+## so they coasted and hit the nearest wall while the results were on screen.
+## The player's ship was worse: lock_controls() zeroes every input and it just
+## sat on the track. Both now keep racing, and the player's ship is taken over
+## by an AI controller so the field stays in motion behind the results.
+@export var keep_flying_after_finish: bool = true
+
+## AI controller created for the player's ship at the finish, if any.
+var player_takeover_ai: AIShipController
+
 # ============================================================================
 # UI INSTANCES
 # ============================================================================
@@ -689,7 +701,9 @@ func _on_ship_finished(ship: Node3D, position: int, total_time: float) -> void:
 	if ship == ship_instance:
 		player_finish_position = position
 	
-	# If an AI ship finished, disable its controller
+	# A finished AI keeps driving its line unless we are told otherwise.
+	if keep_flying_after_finish:
+		return
 	if ship != ship_instance:
 		for i in range(ai_ships.size()):
 			if ai_ships[i] == ship:
@@ -700,21 +714,66 @@ func _on_race_manager_finished(total_time: float, best_lap: float) -> void:
 	"""Handle player finishing the race."""
 	print("RaceMode: Player finished in P%d! Total: %.3f, Best lap: %.3f" % [player_finish_position, total_time, best_lap])
 	
-	# Lock player ship
+	# Hand the player's ship to an AI so it flies a cool-down lap instead of
+	# stopping dead. lock_controls() is still applied: _read_input() returns
+	# early on ai_controlled before it ever reaches the lock, so the AI's
+	# inputs stand, and the lock is there if the handover fails.
 	if ship_instance and ship_instance.has_method("lock_controls"):
 		ship_instance.lock_controls()
+	if keep_flying_after_finish:
+		_hand_player_to_ai()
 	
 	# Play finish sound
 	AudioManager.play_race_finish()
+
+## Attach an AI to the player's ship once they have finished.
+func _hand_player_to_ai() -> void:
+	if player_takeover_ai != null or not (ship_instance is ShipController):
+		return
+	
+	# Stop recording first: everything from here is the AI driving, and it
+	# must never be filed as a player lap.
+	var recorder := get_node_or_null("LapRecorder")
+	if recorder and recorder.has_method("stop"):
+		recorder.stop()
+	
+	player_takeover_ai = AIShipController.new()
+	player_takeover_ai.name = "AIController_PlayerTakeover"
+	player_takeover_ai.ship = ship_instance
+	player_takeover_ai.skill_level = 1.0
+	player_takeover_ai.debug_draw_enabled = false
+	player_takeover_ai.avoidance_enabled = ai_avoidance_enabled
+	ship_instance.add_child(player_takeover_ai)
+	player_takeover_ai.initialize(track_instance, baked_racing_line)
+	
+	if not player_takeover_ai.is_initialized:
+		push_warning("RaceMode: player takeover AI failed to initialize")
+		player_takeover_ai.queue_free()
+		player_takeover_ai = null
+		return
+	
+	# Only now stop reading the pad: _read_input() returns early on this.
+	ship_instance.ai_controlled = true
+	player_takeover_ai.ai_active = true
+	
+	# Everyone avoids everyone, including the newly AI-driven player ship.
+	var field: Array[ShipController] = []
+	for s in all_ships:
+		if s is ShipController:
+			field.append(s)
+	for c in ai_controllers:
+		c.set_race_ships(field)
+	player_takeover_ai.set_race_ships(field)
+	print("RaceMode: player ship handed over to AI for the cool-down")
 
 func _on_all_ships_finished() -> void:
 	"""Handle all ships completing the race."""
 	print("RaceMode: All ships finished!")
 	is_race_active = false
 	
-	# Disable all AI
-	for controller in ai_controllers:
-		controller.ai_active = false
+	if not keep_flying_after_finish:
+		for controller in ai_controllers:
+			controller.ai_active = false
 	
 	# Fade out music
 	MusicPlaylistManager.stop_music(true)
@@ -777,6 +836,15 @@ func cleanup() -> void:
 		if is_instance_valid(controller):
 			controller.queue_free()
 	ai_controllers.clear()
+	
+	# Release the player's takeover AI and give control back, in case the
+	# ship outlives the mode (restart without respawning).
+	if is_instance_valid(player_takeover_ai):
+		player_takeover_ai.ai_active = false
+		player_takeover_ai.queue_free()
+	player_takeover_ai = null
+	if is_instance_valid(ship_instance) and ship_instance is ShipController:
+		ship_instance.ai_controlled = false
 	
 	# Cleanup AI ships
 	for ship in ai_ships:

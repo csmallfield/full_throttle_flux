@@ -125,6 +125,13 @@ func complete_lap(lap_number: int, lap_time: float) -> void:
 				lap_number, lap_time, RecordingStore.KEEP])
 	lap_saved.emit(rec, result.rank)
 
+## Stop recording for good. Called when the player's ship is handed over to
+## the AI at the finish, so the cool-down laps the AI flies are never filed as
+## the player's.
+func stop() -> void:
+	_active = false
+	_enabled = false
+
 # ============================================================================
 # SAMPLING
 # ============================================================================
