@@ -58,41 +58,48 @@ const CAMERA_NAMES: PackedStringArray = [
 @export_group("Trackside")
 ## Metres past the camera the ship must travel before it leapfrogs ahead.
 ##
-## These are distances, but what matters is how long a shot lasts, so they are
+## These are distances, but what matters is how long a shot runs, so they are
 ## set from measured speed: the ship covers ~105 units/sec on circuit 7, so
-## 600 units past the plant is about 6 seconds of hold after it goes by, on
-## top of the ~1.6s it takes to arrive. MotorRig's 40 gave a third of a second
-## and read as a jump cut.
-@export var trackside_hold_past: float = 600.0
+## the numbers below give a six second shot. Note these are STRAIGHT-LINE
+## ranges, and on a track that curves the ship's distance from the plant grows
+## noticeably slower than the distance it drives -- 470 units of range ran 8.5
+## seconds, not the 6 the arithmetic suggested, so they were measured rather
+## than calculated. Long shots also read as distant shots, because the ship
+## keeps receding until the cut.
+@export var trackside_hold_past: float = 330.0
 ## Replant once the ship is this far away in any direction.
-@export var trackside_max_range: float = 900.0
+@export var trackside_max_range: float = 470.0
 ## Height above the surface.
 @export var trackside_height: float = 5.5
 @export var trackside_clearance: float = 4.0
+## How far ahead it plants, as a multiple of current speed. ~1.5s of approach.
+@export var trackside_lead_factor: float = 1.5
+@export var trackside_lead_min: float = 60.0
+@export var trackside_lead_max: float = 170.0
 
 @export_group("Crane")
-## Seconds for the crane to complete its rise. Longer = a slower, held move.
-@export var crane_rise_seconds: float = 4.5
+## Seconds for the crane to complete its rise. Must be comfortably shorter
+## than the shot, or the move gets cut off part way through.
+@export var crane_rise_seconds: float = 3.5
 ## How far ahead it plants, as a multiple of current speed.
-@export var crane_lead_factor: float = 1.8
-@export var crane_lead_min: float = 90.0
-@export var crane_lead_max: float = 260.0
-## Long enough that the rise above actually completes before it replants.
-@export var crane_hold_past: float = 700.0
-@export var crane_max_range: float = 1000.0
+@export var crane_lead_factor: float = 1.5
+@export var crane_lead_min: float = 60.0
+@export var crane_lead_max: float = 170.0
+## Long enough that the rise above completes, short enough to stay close.
+@export var crane_hold_past: float = 330.0
+@export var crane_max_range: float = 470.0
 ## Height at the start of the move, and how much it rises by.
 @export var crane_base_height: float = 4.0
-@export var crane_rise_height: float = 22.0
+@export var crane_rise_height: float = 18.0
 @export var crane_clearance: float = 3.0
 
 @export_group("Pan")
 @export var pan_height: float = 8.0
 @export var pan_clearance: float = 6.0
 ## Replant only once the ship is this far off; a locked tripod should hold.
-## A locked tripod holds far longer than the others, but not forever: at 1400
-## the shot ran 34 seconds and ended with the ship a speck even at the
-## narrowest lens. ~8 seconds at racing speed.
-@export var pan_max_range: float = 900.0
+## The tripod never moves, so its whole shot is the ship receding. ~6 seconds
+## at racing speed; at 1400 it ran 34s and ended with the ship a speck.
+@export var pan_max_range: float = 520.0
 
 @export_group("Orbit")
 ## The orbit ramps between these rates rather than turning at a constant
@@ -261,13 +268,14 @@ func _update(dt: float, snap_now: bool) -> void:
 			or rel.dot(fwd) > trackside_hold_past * sp
 	if replant:
 		var side_sign: float = -float(ts.get("side", 1.0))
-		var ahead: float = clampf(maxf(vel.length(), 20.0) * 1.4, 60.0, 190.0)
+		var ahead: float = clampf(maxf(vel.length(), 20.0) * trackside_lead_factor,
+				trackside_lead_min, trackside_lead_max)
 		plant = _clear_ground(p + fwd * ahead + side_dir * (11.0 * k) * side_sign
 				+ Vector3.UP * (trackside_height * k), trackside_clearance)
 		_state["trackside"] = {"plant": plant, "side": side_sign}
 	var dist := plant.distance_to(p)
 	_look("trackside", plant, p + Vector3.UP * (0.5 * k), 8.0, snap_now or replant,
-			clampf(rad_to_deg(2.0 * atan(5.0 * k / maxf(dist, 1.0))), 4.0, 55.0), dt)
+			clampf(rad_to_deg(2.0 * atan(5.0 * k / maxf(dist, 1.0))), 6.0, 55.0), dt)
 	
 	# crane: plant ahead and low, rise and swing back over the ship
 	var cr: Dictionary = _state.get("crane", {})
@@ -314,7 +322,7 @@ func _update(dt: float, snap_now: bool) -> void:
 				+ Vector3.UP * (pan_height * k), pan_clearance)
 		_state["pan"] = {"plant": pplant}
 	_look("pan", pplant, p + Vector3.UP * (0.5 * k), 5.0, snap_now,
-			clampf(rad_to_deg(2.0 * atan(6.0 * k / maxf(pplant.distance_to(p), 1.0))), 4.0, 60.0), dt)
+			clampf(rad_to_deg(2.0 * atan(6.0 * k / maxf(pplant.distance_to(p), 1.0))), 6.0, 60.0), dt)
 	
 	# tail: rigid at the back, looking forward along the hull
 	_rigid("tail", f, Vector3(_body.x * 0.55, _body.y * 0.2, _body.z * 0.5),
