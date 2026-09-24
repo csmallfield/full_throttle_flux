@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cdpw804je2xae"]
+
+[ext_resource type="PackedScene" uid="uid://cgy1js1dj3k5d" path="res://assets/red_yellowmodel.glb" id="1_nevqj"]
+
+[node name="red_yellowmodel" unique_id=191710823 instance=ExtResource("1_nevqj")]
+
+[node name="tripo_node_fddf1e52-8e13-4f53-be39-d63f869fd161" parent="." index="0" unique_id=1846092516]
+transform = Transform3D(-4.1597366, 0, -3.6365574e-07, -6.409911e-08, 4.094608, 0.7332083, 3.57962e-07, 0.7332083, -4.094608, 0, 0, 0)
