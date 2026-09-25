@@ -44,6 +44,10 @@ signal camera_changed(camera_name: String)
 const CAMERA_NAMES: PackedStringArray = [
 	"cockpit", "heli", "front", "side", "flank", "bumper", "trackside",
 	"crane", "drone", "lowchase", "pan", "tail", "orbit",
+	# Wilder set: near-misses, overshoot, lens violence, losing the subject.
+	"handheld", "overtake", "kamikaze", "vertigo", "roadkill",
+	"helilost", "whip", "crashzoom", "skim", "crossing", "fisheye",
+	"fisheye_rear",
 ]
 
 ## Track surface (layer 1) and walls (layer 3), matching AGCamera2097.
@@ -101,6 +105,33 @@ const CAMERA_NAMES: PackedStringArray = [
 ## at racing speed; at 1400 it ran 34s and ended with the ship a speck.
 @export var pan_max_range: float = 520.0
 
+@export_group("Wild cameras")
+## Handheld shake amplitude, in metres at reference hull size.
+@export var handheld_shake: float = 0.11
+## Seconds for one overtake pass: behind, alongside, ahead, and back.
+@export var overtake_period: float = 7.0
+## Length of one kamikaze take, seconds. Contact lands in the middle.
+@export var kamikaze_take_seconds: float = 4.6
+## Camera speed as a fraction of the ship's, flying the other way.
+@export var kamikaze_speed_fraction: float = 0.55
+## Seconds for one full vertigo push-in and pull-out, per approach angle.
+@export var vertigo_period: float = 8.0
+## Seconds between crash zoom punches.
+@export var crashzoom_period: float = 5.0
+## Seconds between the heli losing the ship and reacquiring it.
+@export var helilost_period: float = 9.0
+## How long the cable cam takes to cross, as a fraction of the crossing per
+## second. 0.14 is about seven seconds; 0.33 was about three and read as a
+## flyby rather than a crossing.
+@export var crossing_rate: float = 0.14
+## Height above the surface, and the minimum it keeps. Raised because at 6.5
+## it was catching the track on climbs and banked sections.
+@export var crossing_height: float = 12.0
+@export var crossing_clearance: float = 9.0
+## Multiplier on how far the fisheye mounts stand off the hull. 1.0 is the
+## v25 framing; higher gives the ship more room in frame.
+@export var fisheye_standoff: float = 1.2
+
 @export_group("Orbit")
 ## The orbit ramps between these rates rather than turning at a constant
 ## speed, so it eases into a fast sweep and back out again.
@@ -116,6 +147,13 @@ var _target: ShipController
 var _cams: Dictionary = {}
 var _state: Dictionary = {}
 var _space: PhysicsDirectSpaceState3D
+## Optional. Several cameras need to know where the track is rather than just
+## where the ship is: clamping a plant so it cannot wander off into scenery,
+## putting a camera ON the racing surface, and flying the kamikaze camera
+## along the track rather than straight through the walls beside a corner.
+## AISpectator supplies this from the AI's own spline helper.
+var spline: TrackSplineHelper
+
 var _body := Vector3(1.6, 1.2, 5.0)
 var _vel := Vector3.ZERO
 
@@ -312,7 +350,7 @@ func _update(dt: float, snap_now: bool) -> void:
 	# lowchase: low, close, long lens
 	var lf := _smooth_dir("low_dir", fwd, 2.0, dt, snap_now)
 	_place("lowchase", _clear_ground(p - lf * (8.5 * k) + Vector3.UP * (0.6 * k), 0.5),
-			p + Vector3.UP * (0.6 * k), 8.0, 7.0, 34.0, dt, snap_now)
+			p + Vector3.UP * (0.6 * k), 8.0, 7.0, 34.0, dt, snap_now, true, 0.5)
 	
 	# pan: locked-off tripod. Only pans and tilts until the ship is too far.
 	var pn: Dictionary = _state.get("pan", {})
@@ -336,9 +374,298 @@ func _update(dt: float, snap_now: bool) -> void:
 	var ang: float = float(_state.get("orbit_ang", 0.0)) \
 			+ lerpf(orbit_speed_min, orbit_speed_max, ramp) * dt
 	_state["orbit_ang"] = ang
+	
+	_update_wild(dt, snap_now, k, sp, p, fwd, side_dir, vel)
 	_place("orbit", _clear_ground(p + Vector3(cos(ang), 0.0, sin(ang)) * (11.0 * k)
 			+ Vector3.UP * (3.0 * k), 1.0),
 			p + Vector3.UP * (0.5 * k), 8.0, 12.0, 50.0, dt, snap_now)
+
+# ============================================================================
+# WILD CAMERAS
+# ============================================================================
+
+## Everything above is broadcast coverage: safe framing, subject always held.
+## These deliberately break that -- near-misses, overshoot, lens moves that
+## draw attention to themselves, and a camera that loses the ship entirely.
+func _update_wild(dt: float, snap_now: bool, k: float, sp: float, p: Vector3,
+		fwd: Vector3, side_dir: Vector3, vel: Vector3) -> void:
+	var speed: float = maxf(vel.length(), 20.0)
+	var clock: float = float(_state.get("clock", 0.0)) + dt
+	_state["clock"] = clock
+	var up_pt := p + Vector3.UP * (0.5 * k)
+
+	# handheld: operator at the edge of the track, wide lens, never steady,
+	# and always a beat behind. Clamped to the track corridor -- left free it
+	# wandered into scenery on open sections and lost the shot entirely.
+	var hh: Dictionary = _state.get("handheld", {})
+	var hplant: Vector3 = hh.get("plant", Vector3.INF)
+	var hrel := p - hplant
+	if snap_now or hplant == Vector3.INF or hrel.dot(fwd) > 220.0 * sp or hrel.length() > 380.0 * sp:
+		var hside: float = -float(hh.get("side", 1.0))
+		hplant = p + fwd * clampf(speed * 1.2, 60.0, 150.0) + side_dir * (5.0 * k) * hside
+		# Measured at 9.0 the plants still read out to ~20 units off centre,
+		# because height on a banked section adds to the measured lateral.
+		hplant = _clamp_to_track(hplant, 6.0 * k)
+		hplant = _clear_ground(hplant + Vector3.UP * (1.7 * k), 1.5)
+		_state["handheld"] = {"plant": hplant, "side": hside}
+	var shake := Vector3(sin(clock * 3.1) + 0.4 * sin(clock * 7.9),
+			sin(clock * 2.3 + 1.1) + 0.3 * sin(clock * 6.1),
+			sin(clock * 1.7 + 2.2)) * (handheld_shake * k)
+	_look("handheld", hplant + shake, _spring("hh_aim", up_pt, 1.6, 0.45, dt, snap_now),
+			9.0, snap_now, 82.0, dt)
+
+	# overtake: comes up from behind, draws level, pulls ahead, drops back.
+	var oph: float = fposmod(clock / maxf(overtake_period, 0.5), 1.0)
+	var tri: float = 1.0 - absf(oph * 2.0 - 1.0)
+	var ease_t := tri * tri * (3.0 - 2.0 * tri)
+	_place("overtake", _clear_ground(p + fwd * lerpf(-34.0 * k, 46.0 * k, ease_t)
+			+ side_dir * (7.5 * k) + Vector3.UP * (1.3 * k), 0.8),
+			up_pt, 7.0, 8.0, lerpf(34.0, 62.0, tri), dt, snap_now)
+
+	# kamikaze: flown along the SPLINE against the race direction, so it
+	# follows the track through corners instead of flying into the wall on
+	# the outside. Planted far enough ahead that contact lands in the middle
+	# of the take, and it keeps going afterwards so the ship recedes behind
+	# it rather than the shot cutting on the pass.
+	_kamikaze(dt, snap_now, k, p, fwd, side_dir, speed, up_pt)
+
+	# vertigo: dolly and zoom opposed, so the ship holds its size while the
+	# track behind stretches and compresses. Each take approaches from a
+	# different angle -- back, front, side, three-quarter, overhead.
+	var vtake: int = int(clock / maxf(vertigo_period, 1.0))
+	var vph: float = fposmod(clock / maxf(vertigo_period, 1.0), 1.0)
+	var vramp := 0.5 - 0.5 * cos(vph * TAU)
+	var vdist := lerpf(10.0 * k, 38.0 * k, vramp)
+	var vdir := _angle_for(vtake, fwd, side_dir)
+	var vfov := clampf(rad_to_deg(2.0 * atan(4.6 * k / maxf(vdist, 1.0))), 11.0, 96.0)
+	_place("vertigo", _clear_ground(p + vdir * vdist + Vector3.UP * (1.9 * k), 0.8),
+			up_pt, 9.0, 9.0, vfov, dt, snap_now)
+
+	# roadkill: ON the surface and near the racing line, not beside it. The
+	# lateral offset is taken from the spline rather than from the ship, so
+	# it sits on the track even when the ship is running wide.
+	var rk: Dictionary = _state.get("roadkill", {})
+	var rplant: Vector3 = rk.get("plant", Vector3.INF)
+	var rrel := p - rplant
+	if snap_now or rplant == Vector3.INF or rrel.dot(fwd) > 110.0 * sp or rrel.length() > 260.0 * sp:
+		var rside: float = -float(rk.get("side", 1.0))
+		rplant = _on_track(p + fwd * clampf(speed * 1.1, 60.0, 140.0), 2.2 * k * rside)
+		rplant = _clear_ground(rplant + Vector3.UP * (0.28 * k), 0.30)
+		_state["roadkill"] = {"plant": rplant, "side": rside}
+	var rnear: float = clampf(1.0 - rplant.distance_to(p) / (55.0 * k), 0.0, 1.0)
+	_look("roadkill", rplant, p + Vector3.UP * (0.35 * k),
+			lerpf(2.5, 16.0, rnear * rnear), snap_now, 96.0, dt)
+
+	# helilost: drifts ahead, gets left behind, hauls back on. Both the lead
+	# and the follow rate move on smooth curves now -- stepping them made the
+	# recovery snap rather than drift.
+	var lph: float = fposmod(clock / maxf(helilost_period, 1.0), 1.0)
+	var lcurve := 0.5 - 0.5 * cos(lph * TAU)
+	_place("helilost", _clear_ground(p + fwd * lerpf(26.0 * k, -30.0 * k, lcurve)
+			+ side_dir * (9.0 * k) + Vector3.UP * (24.0 * k), 8.0),
+			p, lerpf(0.22, 1.9, lcurve * lcurve), lerpf(0.5, 1.4, lcurve), 42.0, dt, snap_now)
+
+	# whip: dead still on a wide lens, then snaps through the pass.
+	var wh: Dictionary = _state.get("whip", {})
+	var wplant: Vector3 = wh.get("plant", Vector3.INF)
+	var wrel := p - wplant
+	if snap_now or wplant == Vector3.INF or wrel.dot(fwd) > 130.0 * sp or wrel.length() > 280.0 * sp:
+		var wside: float = -float(wh.get("side", 1.0))
+		wplant = _clamp_to_track(p + fwd * clampf(speed * 1.3, 70.0, 170.0)
+				+ side_dir * (4.2 * k) * wside, 8.0 * k)
+		wplant = _clear_ground(wplant + Vector3.UP * (1.1 * k), 1.0)
+		_state["whip"] = {"plant": wplant, "side": wside}
+	var wnear: float = clampf(1.0 - wplant.distance_to(p) / (70.0 * k), 0.0, 1.0)
+	_look("whip", wplant, up_pt, lerpf(1.4, 26.0, pow(wnear, 3.0)), snap_now, 74.0, dt)
+
+	# crashzoom: punch in, HOLD, punch out, hold wide. The holds are the
+	# point -- without them it read as a continuous pulse. Frontal and
+	# three-quarter angles, which is where a zoom punch has something to
+	# push into.
+	var czph: float = fposmod(clock / maxf(crashzoom_period, 1.0), 1.0)
+	var czfov: float
+	if czph < 0.07:
+		czfov = lerpf(72.0, 24.0, ease(czph / 0.07, 0.35))
+	elif czph < 0.45:
+		czfov = 24.0
+	elif czph < 0.56:
+		czfov = lerpf(24.0, 72.0, ease((czph - 0.45) / 0.11, 0.35))
+	else:
+		czfov = 72.0
+	var czdir := _angle_for(int(clock / maxf(crashzoom_period, 1.0)), fwd, side_dir, true)
+	_place("crashzoom", _clear_ground(p + czdir * (12.0 * k) + Vector3.UP * (2.0 * k), 1.0),
+			up_pt, 6.0, 7.0, czfov, dt, snap_now)
+
+	# skim: now AHEAD of the ship looking back, a hand's width off the
+	# surface, sliding between four positions rather than cutting.
+	var soff := _blend_offsets(clock, 4.5, [
+			fwd * (7.0 * k) + Vector3.UP * (0.45 * k),
+			fwd * (9.0 * k) + side_dir * (3.2 * k) + Vector3.UP * (1.2 * k),
+			fwd * (9.0 * k) - side_dir * (3.2 * k) + Vector3.UP * (1.2 * k),
+			fwd * (6.0 * k) + Vector3.UP * (3.2 * k)])
+	_place("skim", _clear_ground(p + soff, 0.30), up_pt, 10.0, 11.0, 90.0, dt,
+			snap_now, true, 0.30)
+
+	# crossing: cable cam at its own constant speed. Sometimes it meets the
+	# ship, sometimes it misses.
+	var cs: Dictionary = _state.get("crossing", {})
+	var ccentre: Vector3 = cs.get("centre", Vector3.INF)
+	var caxis: Vector3 = cs.get("axis", side_dir)
+	var ct2: float = float(cs.get("t", 0.0)) + dt * crossing_rate
+	if snap_now or ccentre == Vector3.INF or ct2 >= 1.0 or (p - ccentre).dot(fwd) > 90.0 * sp:
+		ccentre = p + fwd * clampf(speed * 1.6, 90.0, 240.0)
+		caxis = side_dir
+		ct2 = 0.0
+	_state["crossing"] = {"centre": ccentre, "axis": caxis, "t": ct2}
+	_look("crossing", _clear_ground(ccentre + caxis * lerpf(58.0 * k, -58.0 * k, ct2)
+			+ Vector3.UP * (crossing_height * k), crossing_clearance),
+			up_pt, 6.0, snap_now, 46.0, dt)
+
+	# fisheye: hard-mounted on the nose looking BACK down the hull, on the
+	# widest lens in the rig. Slides between four mounts -- on the deck
+	# looking up, both three-quarters, and above looking down -- so the hull
+	# swings through frame instead of cutting.
+	var f := _target.global_transform
+	var g := fisheye_standoff
+	var mount := _blend_offsets(clock, 6.5, [
+			Vector3(0.0, -_body.y * 0.45, -_body.z * 0.50 - 1.5 * g),
+			Vector3(-_body.x * 1.60 * g, -_body.y * 0.15, -_body.z * 0.42 - 0.9 * g),
+			Vector3(_body.x * 1.60 * g, -_body.y * 0.15, -_body.z * 0.42 - 0.9 * g),
+			Vector3(0.0, _body.y * 1.50 * g, -_body.z * 0.40 - 0.9 * g)])
+	var aim := _blend_offsets(clock, 6.5, [
+			Vector3(0.0, _body.y * 1.10, _body.z * 0.60),
+			Vector3(_body.x * 0.20, _body.y * 0.35, _body.z * 0.60),
+			Vector3(-_body.x * 0.20, _body.y * 0.35, _body.z * 0.60),
+			Vector3(0.0, -_body.y * 0.30, _body.z * 0.60)])
+	_rigid("fisheye", f, mount, aim, 118.0)
+
+	# fisheye_rear: the same idea mounted behind the tail, looking forward up
+	# the hull. Offset by half a cycle so the two are never on the same mount
+	# at the same time.
+	var rmount := _blend_offsets(clock + 1.75, 6.5, [
+			Vector3(0.0, -_body.y * 0.45, _body.z * 0.50 + 1.5 * g),
+			Vector3(_body.x * 1.60 * g, -_body.y * 0.15, _body.z * 0.42 + 0.9 * g),
+			Vector3(-_body.x * 1.60 * g, -_body.y * 0.15, _body.z * 0.42 + 0.9 * g),
+			Vector3(0.0, _body.y * 1.50 * g, _body.z * 0.40 + 0.9 * g)])
+	var raim := _blend_offsets(clock + 1.75, 6.5, [
+			Vector3(0.0, _body.y * 1.10, -_body.z * 0.60),
+			Vector3(-_body.x * 0.20, _body.y * 0.35, -_body.z * 0.60),
+			Vector3(_body.x * 0.20, _body.y * 0.35, -_body.z * 0.60),
+			Vector3(0.0, -_body.y * 0.30, -_body.z * 0.60)])
+	_rigid("fisheye_rear", f, rmount, raim, 118.0)
+
+## Cycles an approach direction per take: back, front, side, three-quarter,
+## overhead. `frontal` drops the rear angles, for moves that need something
+## to push into.
+func _angle_for(take: int, fwd: Vector3, side_dir: Vector3, frontal: bool = false) -> Vector3:
+	var options: Array[Vector3] = [fwd, (fwd + side_dir).normalized(),
+			(fwd - side_dir).normalized(), side_dir]
+	if not frontal:
+		options = [-fwd, fwd, side_dir, (-fwd + side_dir).normalized(),
+				(fwd - side_dir).normalized(), Vector3.UP * 0.9 + fwd * 0.3]
+	return (options[posmod(take, options.size())] as Vector3).normalized()
+
+## Hold each offset for `hold` seconds, then slide to the next over the last
+## quarter of it. Transitions, never cuts.
+func _blend_offsets(clock: float, hold: float, offsets: Array) -> Vector3:
+	var n := offsets.size()
+	var idx := int(clock / hold)
+	var ph: float = fposmod(clock / hold, 1.0)
+	var a: Vector3 = offsets[posmod(idx, n)]
+	if ph < 0.75:
+		return a
+	var b: Vector3 = offsets[posmod(idx + 1, n)]
+	var t: float = (ph - 0.75) / 0.25
+	return a.lerp(b, t * t * (3.0 - 2.0 * t))
+
+## Fly the kamikaze camera backwards along the spline into the oncoming ship.
+func _kamikaze(dt: float, snap_now: bool, k: float, p: Vector3, fwd: Vector3,
+		side_dir: Vector3, speed: float, up_pt: Vector3) -> void:
+	var st: Dictionary = _state.get("kamikaze", {})
+	var t: float = float(st.get("t", 999.0)) + dt
+	var have_spline: bool = spline != null and spline.is_valid
+	
+	if snap_now or st.is_empty() or t > kamikaze_take_seconds:
+		# Contact should land mid-take, so plant at the closing distance
+		# covered in half of it.
+		var closing: float = speed * (1.0 + kamikaze_speed_fraction)
+		var ahead: float = clampf(closing * kamikaze_take_seconds * 0.5, 160.0, 700.0)
+		var lat: float = 2.4 * k * (-float(st.get("side", 1.0)))
+		var fallback := p + fwd * ahead + side_dir * lat + Vector3.UP * (2.6 * k)
+		if have_spline:
+			var here: float = spline.world_to_spline_offset(p)
+			st = {"t": 0.0, "on_spline": true, "lat": lat, "side": signf(lat),
+					"off": spline.get_lookahead_offset(here, ahead), "pos": fallback}
+		else:
+			st = {"t": 0.0, "on_spline": false, "lat": lat, "side": signf(lat),
+					"off": 0.0, "pos": fallback}
+		t = 0.0
+	
+	var pos: Vector3
+	if have_spline and bool(st.get("on_spline", false)):
+		# Negative lookahead walks back down the track, so the camera follows
+		# the racing surface through corners instead of flying off the
+		# outside of them. Wrapped, because walking backwards past the start
+		# of the spline returns a negative offset -- which read as "no spline
+		# position" and produced an infinite camera distance.
+		var off: float = fposmod(spline.get_lookahead_offset(float(st["off"]),
+				-speed * kamikaze_speed_fraction * dt), 1.0)
+		st["off"] = off
+		pos = spline.spline_offset_to_world_with_lateral(off, float(st["lat"]), true)
+		# The spline is a centreline, not a surface: on elevation changes and
+		# banked sections its point can sit well under the track, which put
+		# this camera below the geometry looking at nothing. Every other
+		# camera clears the ground; this one was not.
+		pos = _clear_ground(pos + Vector3.UP * (2.4 * k), 2.4 * k)
+	else:
+		pos = st.get("pos", p)
+		var to_ship: Vector3 = p - pos
+		if to_ship.length() > 0.01:
+			pos += to_ship.normalized() * (speed * kamikaze_speed_fraction) * dt
+		pos = _clear_ground(pos, 2.4 * k)
+		st["pos"] = pos
+	st["t"] = t
+	_state["kamikaze"] = st
+	_look("kamikaze", pos, up_pt, 10.0, snap_now or t < dt * 1.5, 66.0, dt)
+
+## Pull a point back toward the track centreline if it has strayed too far.
+func _clamp_to_track(pos: Vector3, max_lateral: float) -> Vector3:
+	if spline == null or not spline.is_valid:
+		return pos
+	var off: float = spline.world_to_spline_offset(pos)
+	var lat: float = spline.calculate_lateral_offset(pos, off, true)
+	if absf(lat) <= max_lateral:
+		return pos
+	var fixed := spline.spline_offset_to_world_with_lateral(off,
+			clampf(lat, -max_lateral, max_lateral), true)
+	fixed.y = maxf(fixed.y, pos.y)
+	return fixed
+
+## Put a point ON the track at a chosen distance from the centreline, taking
+## the position from the spline rather than from wherever the ship happens to
+## be running.
+func _on_track(near: Vector3, lateral: float) -> Vector3:
+	if spline == null or not spline.is_valid:
+		return near
+	var off: float = spline.world_to_spline_offset(near)
+	return spline.spline_offset_to_world_with_lateral(off, lateral, true)
+
+## Underdamped spring toward a moving point: overshoots, then settles. Used
+## where a camera should feel operated rather than driven by maths.
+func _spring(key: String, target: Vector3, freq: float, damping: float,
+		dt: float, snap_now: bool) -> Vector3:
+	var pos: Vector3 = _state.get(key + "_p", target)
+	var vel: Vector3 = _state.get(key + "_v", Vector3.ZERO)
+	if snap_now:
+		pos = target
+		vel = Vector3.ZERO
+	else:
+		var omega := TAU * freq
+		vel += ((target - pos) * omega * omega - vel * (2.0 * damping * omega)) * dt
+		pos += vel * dt
+	_state[key + "_p"] = pos
+	_state[key + "_v"] = vel
+	return pos
 
 # ============================================================================
 # PLACEMENT HELPERS
@@ -355,14 +682,24 @@ func _update(dt: float, snap_now: bool) -> void:
 ##
 ## Planted cameras (crane) pass false: their target does not move with the
 ## ship, so feedforward would only push them off their own plant.
+## `clear_after` re-applies ground clearance to the SMOOTHED position.
+##
+## Clearing only the target is not enough for a low camera: the smoothing
+## lerps toward that target from wherever the camera was, and the interpolated
+## point can sit under the surface even though both ends are above it.
+## Measured on skim, which spent 55 frames of a lap up to 3 metres below the
+## track. Cameras placed through _look() are immune, since they are written
+## directly rather than interpolated.
 func _place(n: String, target: Vector3, look_at_pt: Vector3, pos_sharp: float,
 		rot_sharp: float, fov: float, dt: float, snap_now: bool,
-		follows_ship: bool = true) -> void:
+		follows_ship: bool = true, clear_after: float = -1.0) -> void:
 	var cam: Camera3D = _cams[n]
 	var pos := target
 	if not snap_now:
 		var from := cam.global_position + (_vel * dt if follows_ship else Vector3.ZERO)
 		pos = from.lerp(target, 1.0 - exp(-pos_sharp * dt))
+	if clear_after >= 0.0:
+		pos = _clear_ground(pos, clear_after)
 	_look(n, pos, look_at_pt, rot_sharp, snap_now, fov, dt)
 
 func _look(n: String, pos: Vector3, look_at_pt: Vector3, rot_sharp: float,

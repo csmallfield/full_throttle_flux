@@ -204,6 +204,10 @@ func _cycle_camera(step: int) -> void:
 		_rig = CinematicCameraRig.new()
 		_rig.name = "CinematicCameraRig"
 		add_child(_rig)
+		# Several cameras need the track, not just the ship: clamping plants to
+		# the corridor, sitting on the racing surface, flying the kamikaze camera
+		# along the spline through corners.
+		_rig.spline = _helper
 		if _index < _ships.size():
 			_rig.follow(_ships[_index])
 	_cam_index = wrapi(_cam_index + step, 0, _rig.cameras.size() + 1)
