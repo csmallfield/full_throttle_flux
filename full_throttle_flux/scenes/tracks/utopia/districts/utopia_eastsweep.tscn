@@ -1,0 +1,453 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="1_dbews"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="2_07vln"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_eastsweep_range.res" id="2_veu0o"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="3_iqs0r"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_eastsweep_glazing.res" id="4_mt8vw"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_dark.tres" id="4_qt7y5"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="5_provb"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_eastsweep_cornice.res" id="6_0sp2m"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="6_p2trx"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_glow.tres" id="7_8cp7n"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_eastsweep_attic.res" id="8_e10ng"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_taper.tres" id="8_provb"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cone.tres" id="9_p2trx"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_floor.tres" id="10_p2trx"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_eastsweep_mole.res" id="11_8cp7n"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_eastsweep_entablature.res" id="12_bh4vy"]
+
+[sub_resource type="TorusMesh" id="TorusMesh_veu0o"]
+inner_radius = 196.0
+outer_radius = 214.0
+rings = 128
+ring_segments = 20
+
+[node name="Utopia_Eastsweep" type="Node3D" unique_id=1142632108]
+
+[node name="Crescent" type="Node3D" parent="." unique_id=99035024]
+
+[node name="Range" type="MeshInstance3D" parent="Crescent" unique_id=1186401062]
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_veu0o")
+
+[node name="Glazing" type="MeshInstance3D" parent="Crescent" unique_id=1558325385]
+material_override = ExtResource("4_qt7y5")
+mesh = ExtResource("4_mt8vw")
+
+[node name="Cornice" type="MeshInstance3D" parent="Crescent" unique_id=2128454997]
+material_override = ExtResource("3_iqs0r")
+mesh = ExtResource("6_0sp2m")
+
+[node name="Attic" type="MeshInstance3D" parent="Crescent" unique_id=1034717180]
+material_override = ExtResource("6_p2trx")
+mesh = ExtResource("8_e10ng")
+
+[node name="Fin00" type="MeshInstance3D" parent="Crescent" unique_id=705371874]
+transform = Transform3D(-1.2608541, 0, -1.8657162, 0, 50, 0, 3.2650034, 0, -0.7204881, 135.8479, 29, -284.121)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin01" type="MeshInstance3D" parent="Crescent" unique_id=1922621489]
+transform = Transform3D(-1.2920023, 0, -1.8587449, 0, 50, 0, 3.2528036, 0, -0.73828703, 148.3586, 29, -279.22757)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin02" type="MeshInstance3D" parent="Crescent" unique_id=723395061]
+transform = Transform3D(-1.3360097, 0, -1.8485585, 0, 50, 0, 3.2349775, 0, -0.7634341, 160.594, 29, -274.2785)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin03" type="MeshInstance3D" parent="Crescent" unique_id=1677911644]
+transform = Transform3D(-1.3937942, 0, -1.8345739, 0, 50, 0, 3.2105043, 0, -0.79645383, 172.51355, 29, -269.23828)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin04" type="MeshInstance3D" parent="Crescent" unique_id=160421400]
+transform = Transform3D(-1.4668956, 0, -1.8158681, 0, 50, 0, 3.1777692, 0, -0.8382261, 184.06122, 29, -264.07657)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin05" type="MeshInstance3D" parent="Crescent" unique_id=1979387880]
+transform = Transform3D(-1.5575594, 0, -1.7910444, 0, 50.000008, 0, 3.1343277, 0, -0.8900339, 195.16106, 29, -258.76932)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin06" type="MeshInstance3D" parent="Crescent" unique_id=817585944]
+transform = Transform3D(-1.6689047, 0, -1.7579912, 0, 50, 0, 3.0764847, 0, -0.95365983, 205.71223, 29, -253.30228)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin07" type="MeshInstance3D" parent="Crescent" unique_id=696253947]
+transform = Transform3D(-1.804955, 0, -1.7135369, 0, 50, 0, 2.9986894, 0, -1.0314028, 215.57788, 29, -247.67943)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin08" type="MeshInstance3D" parent="Crescent" unique_id=1531648016]
+transform = Transform3D(-1.978726, 0, -1.649702, 0, 50.000008, 0, 2.8869784, 0, -1.1307006, 224.4445, 29, -242.02737)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin09" type="MeshInstance3D" parent="Crescent" unique_id=785027488]
+transform = Transform3D(-2.2013497, 0, -1.55488, 0, 50, 0, 2.72104, 0, -1.2579142, 231.90488, 29, -236.45215)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin10" type="MeshInstance3D" parent="Crescent" unique_id=248457178]
+transform = Transform3D(-2.3624258, 0, -1.4756744, 0, 50.000008, 0, 2.5824301, 0, -1.3499576, 239.7809, 29, -229.63753)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin11" type="MeshInstance3D" parent="Crescent" unique_id=1644829184]
+transform = Transform3D(-2.4813495, 0, -1.4105036, 0, 50.000008, 0, 2.4683814, 0, -1.4179139, 247.86609, 29, -221.86087)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin12" type="MeshInstance3D" parent="Crescent" unique_id=1411751012]
+transform = Transform3D(-2.5752683, 0, -1.3544174, 0, 50, 0, 2.3702304, 0, -1.4715819, 255.95302, 29, -213.3945)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin13" type="MeshInstance3D" parent="Crescent" unique_id=108220037]
+transform = Transform3D(-2.653235, 0, -1.304353, 0, 50, 0, 2.2826178, 0, -1.5161343, 263.9391, 29, -204.41023)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin14" type="MeshInstance3D" parent="Crescent" unique_id=170527833]
+transform = Transform3D(-2.7205536, 0, -1.2582579, 0, 50, 0, 2.2019513, 0, -1.554602, 271.7697, 29, -195.02008)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin15" type="MeshInstance3D" parent="Crescent" unique_id=436979528]
+transform = Transform3D(-2.780576, 0, -1.2146584, 0, 50, 0, 2.125652, 0, -1.5889006, 279.4103, 29, -185.30292)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin16" type="MeshInstance3D" parent="Crescent" unique_id=1319837171]
+transform = Transform3D(-2.835535, 0, -1.1724373, 0, 50, 0, 2.0517652, 0, -1.6203058, 286.8371, 29, -175.31555)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin17" type="MeshInstance3D" parent="Crescent" unique_id=1490690765]
+transform = Transform3D(-2.8870387, 0, -1.1306502, 0, 50, 0, 1.9786378, 0, -1.6497364, 294.0285, 29, -165.10352)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin18" type="MeshInstance3D" parent="Crescent" unique_id=1038677458]
+transform = Transform3D(-2.936263, 0, -1.0884719, 0, 50.000008, 0, 1.9048258, 0, -1.6778646, 300.96567, 29, -154.70135)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin19" type="MeshInstance3D" parent="Crescent" unique_id=2019460300]
+transform = Transform3D(-2.9841492, 0, -1.0450823, 0, 50, 0, 1.8288941, 0, -1.7052281, 307.62668, 29, -144.14081)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin20" type="MeshInstance3D" parent="Crescent" unique_id=1680797201]
+transform = Transform3D(-3.0314577, 0, -0.9996349, 0, 50, 0, 1.7493612, 0, -1.7322615, 313.98694, 29, -133.45154)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin21" type="MeshInstance3D" parent="Crescent" unique_id=1329805338]
+transform = Transform3D(-3.0788627, 0, -0.9511507, 0, 50.000008, 0, 1.6645137, 0, -1.7593501, 320.01755, 29, -122.66292)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin22" type="MeshInstance3D" parent="Crescent" unique_id=676851633]
+transform = Transform3D(-3.1269372, 0, -0.898482, 0, 50, 0, 1.5723436, 0, -1.7868212, 325.68372, 29, -111.8074)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin23" type="MeshInstance3D" parent="Crescent" unique_id=1129187912]
+transform = Transform3D(-3.1761844, 0, -0.8401851, 0, 50, 0, 1.4703239, 0, -1.8149625, 330.94315, 29, -100.92348)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin24" type="MeshInstance3D" parent="Crescent" unique_id=142874998]
+transform = Transform3D(-3.2270155, 0, -0.7743589, 0, 50, 0, 1.3551282, 0, -1.8440088, 335.74393, 29, -90.06013)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin25" type="MeshInstance3D" parent="Crescent" unique_id=1082542940]
+transform = Transform3D(-3.2796583, 0, -0.6984164, 0, 50.000008, 0, 1.2222288, 0, -1.8740904, 340.01965, 29, -79.29007)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin26" type="MeshInstance3D" parent="Crescent" unique_id=303289866]
+transform = Transform3D(-3.3339336, 0, -0.6087494, 0, 50.000008, 0, 1.0653114, 0, -1.9051049, 343.69147, 29, -68.711845)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin27" type="MeshInstance3D" parent="Crescent" unique_id=507195805]
+transform = Transform3D(-3.3888233, 0, -0.5000827, 0, 50, 0, 0.87514466, 0, -1.9364704, 346.6637, 29, -58.475964)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin28" type="MeshInstance3D" parent="Crescent" unique_id=1793343156]
+transform = Transform3D(-3.4413524, 0, -0.36459392, 0, 50, 0, 0.63803935, 0, -1.966487, 348.82922, 29, -48.813576)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin29" type="MeshInstance3D" parent="Crescent" unique_id=1037266776]
+transform = Transform3D(-3.4840872, 0, -0.19049792, 0, 50, 0, 0.33337137, 0, -1.990907, 350.0876, 29, -40.09687)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="CrescentTower" type="Node3D" parent="Crescent" unique_id=890818049]
+
+[node name="Shaft" type="MeshInstance3D" parent="Crescent/CrescentTower" unique_id=527512596]
+transform = Transform3D(-31.962378, 0, -10.822537, 0, 150, 0, 24.050083, 0, -14.38307, 251.99014, 125, -160.22803)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Fin" type="MeshInstance3D" parent="Crescent/CrescentTower" unique_id=784592573]
+transform = Transform3D(-3.1962378, 0, -12.025042, 0, 164, 0, 2.4050083, 0, -15.981189, 234.41083, 132, -147.00049)
+material_override = ExtResource("3_iqs0r")
+mesh = ExtResource("2_07vln")
+
+[node name="Glaze" type="MeshInstance3D" parent="Crescent/CrescentTower" unique_id=219805534]
+transform = Transform3D(-26.20915, 0, -0.9018781, 0, 142, 0, 19.721067, 0, -1.1985892, 246.45862, 121, -167.57938)
+material_override = ExtResource("4_qt7y5")
+mesh = ExtResource("2_07vln")
+
+[node name="SeaColonnade" type="Node3D" parent="." unique_id=2126808841]
+
+[node name="Mole" type="MeshInstance3D" parent="SeaColonnade" unique_id=865256120]
+material_override = ExtResource("10_p2trx")
+mesh = ExtResource("11_8cp7n")
+
+[node name="Entablature" type="MeshInstance3D" parent="SeaColonnade" unique_id=1943893968]
+material_override = ExtResource("3_iqs0r")
+mesh = ExtResource("12_bh4vy")
+
+[node name="Col00" type="MeshInstance3D" parent="SeaColonnade" unique_id=13768176]
+transform = Transform3D(-0.85311407, 0, -2.2432559, 0, 37, 0, 2.2432559, 0, -0.85311407, 161.89133, 14.540102, -385.51096)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col01" type="MeshInstance3D" parent="SeaColonnade" unique_id=356861617]
+transform = Transform3D(-0.86980873, 0, -2.2368355, 0, 37, 0, 2.2368355, 0, -0.86980873, 177.14056, 14.436195, -379.65576)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col02" type="MeshInstance3D" parent="SeaColonnade" unique_id=1181629363]
+transform = Transform3D(-0.89777, 0, -2.2257605, 0, 37, 0, 2.2257605, 0, -0.89777, 192.53989, 14.329617, -373.56577)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col03" type="MeshInstance3D" parent="SeaColonnade" unique_id=1485312330]
+transform = Transform3D(-0.9375543, 0, -2.209297, 0, 37.000004, 0, 2.209297, 0, -0.9375543, 208.07462, 14.218924, -367.1477)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col04" type="MeshInstance3D" parent="SeaColonnade" unique_id=2012401490]
+transform = Transform3D(-0.9903922, 0, -2.1861207, 0, 37, 0, 2.1861207, 0, -0.9903922, 223.72108, 14.1026745, -360.29706)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col05" type="MeshInstance3D" parent="SeaColonnade" unique_id=1381044763]
+transform = Transform3D(-1.0583513, 0, -2.154041, 0, 37, 0, 2.154041, 0, -1.0583513, 239.46819, 13.979166, -352.8789)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col06" type="MeshInstance3D" parent="SeaColonnade" unique_id=938610562]
+transform = Transform3D(-1.1443919, 0, -2.1095896, 0, 37, 0, 2.1095896, 0, -1.1443919, 255.30255, 13.846401, -344.71783)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col07" type="MeshInstance3D" parent="SeaColonnade" unique_id=914224920]
+transform = Transform3D(-1.2525868, 0, -2.0471997, 0, 37, 0, 2.0471997, 0, -1.2525868, 271.20032, 13.701977, -335.5769)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col08" type="MeshInstance3D" parent="SeaColonnade" unique_id=992241862]
+transform = Transform3D(-1.4014876, 0, -1.9482898, 0, 37, 0, 1.9482898, 0, -1.4014876, 287.35507, 13.542693, -324.9311)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col09" type="MeshInstance3D" parent="SeaColonnade" unique_id=79477420]
+transform = Transform3D(-1.5615205, 0, -1.8225406, 0, 37, 0, 1.8225406, 0, -1.5615205, 302.899, 13.3629055, -312.65036)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col10" type="MeshInstance3D" parent="SeaColonnade" unique_id=645797140]
+transform = Transform3D(-1.6691657, 0, -1.7244958, 0, 37, 0, 1.7244958, 0, -1.6691657, 316.7229, 13.167351, -300.01892)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col11" type="MeshInstance3D" parent="SeaColonnade" unique_id=88642558]
+transform = Transform3D(-1.7488236, 0, -1.6436595, 0, 37, 0, 1.6436595, 0, -1.7488236, 329.43182, 12.960699, -287.0977)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col12" type="MeshInstance3D" parent="SeaColonnade" unique_id=1096886182]
+transform = Transform3D(-1.8122296, 0, -1.5734752, 0, 37, 0, 1.5734752, 0, -1.8122296, 341.33685, 12.745502, -273.90454)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col13" type="MeshInstance3D" parent="SeaColonnade" unique_id=624976431]
+transform = Transform3D(-1.8655225, 0, -1.5099095, 0, 37, 0, 1.5099095, 0, -1.8655225, 352.609, 12.523313, -260.4495)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col14" type="MeshInstance3D" parent="SeaColonnade" unique_id=1796731826]
+transform = Transform3D(-1.9122492, 0, -1.4502771, 0, 37, 0, 1.4502771, 0, -1.9122492, 363.34903, 12.295117, -246.73677)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col15" type="MeshInstance3D" parent="SeaColonnade" unique_id=37340051]
+transform = Transform3D(-1.9546642, 0, -1.3925833, 0, 37, 0, 1.3925833, 0, -1.9546642, 373.61865, 12.061562, -232.76453)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col16" type="MeshInstance3D" parent="SeaColonnade" unique_id=2106230563]
+transform = Transform3D(-1.9942944, 0, -1.3352118, 0, 37, 0, 1.3352118, 0, -1.9942944, 383.4535, 11.823067, -218.52571)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col17" type="MeshInstance3D" parent="SeaColonnade" unique_id=569694969]
+transform = Transform3D(-2.0322804, 0, -1.2766509, 0, 37, 0, 1.2766509, 0, -2.0322804, 392.87247, 11.57989, -204.00623)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col18" type="MeshInstance3D" parent="SeaColonnade" unique_id=11619240]
+transform = Transform3D(-2.0694551, 0, -1.2154654, 0, 37, 0, 1.2154654, 0, -2.0694551, 401.87845, 11.332176, -189.18712)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col19" type="MeshInstance3D" parent="SeaColonnade" unique_id=1920656598]
+transform = Transform3D(-2.1065571, 0, -1.1499642, 0, 37, 0, 1.1499642, 0, -2.1065571, 410.4617, 11.079998, -174.04071)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col20" type="MeshInstance3D" parent="SeaColonnade" unique_id=1017564357]
+transform = Transform3D(-2.1441855, 0, -1.0781785, 0, 37, 0, 1.0781785, 0, -2.1441855, 418.59845, 10.823328, -158.52847)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col21" type="MeshInstance3D" parent="SeaColonnade" unique_id=2004337762]
+transform = Transform3D(-2.1828609, 0, -0.9975565, 0, 37, 0, 0.9975565, 0, -2.1828609, 426.2492, 10.562047, -142.59612)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col22" type="MeshInstance3D" parent="SeaColonnade" unique_id=227577547]
+transform = Transform3D(-2.2230017, 0, -0.90457946, 0, 37.000004, 0, 0.90457946, 0, -2.2230017, 433.3521, 10.295996, -126.16887)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col23" type="MeshInstance3D" parent="SeaColonnade" unique_id=158192830]
+transform = Transform3D(-2.2647443, 0, -0.7943137, 0, 37.000004, 0, 0.7943137, 0, -2.2647443, 439.8112, 10.025037, -109.146515)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col24" type="MeshInstance3D" parent="SeaColonnade" unique_id=1871555568]
+transform = Transform3D(-2.3076687, 0, -0.65929234, 0, 37, 0, 0.65929234, 0, -2.3076687, 445.48108, 9.748968, -91.37798)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col25" type="MeshInstance3D" parent="SeaColonnade" unique_id=1833569006]
+transform = Transform3D(-2.3498712, 0, -0.48796138, 0, 37, 0, 0.48796138, 0, -2.3498712, 450.1269, 9.467712, -72.6424)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col26" type="MeshInstance3D" parent="SeaColonnade" unique_id=111904003]
+transform = Transform3D(-2.3856568, 0, -0.26199555, 0, 37, 0, 0.26199555, 0, -2.3856568, 453.34436, 9.181673, -52.618355)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="Col27" type="MeshInstance3D" parent="SeaColonnade" unique_id=943767330]
+transform = Transform3D(-2.3995347, 0, 0.047263682, 0, 37, 0, -0.047263682, 0, -2.3995347, 454.39224, 8.892365, -30.852226)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="SeaTowers" type="Node3D" parent="." unique_id=1242894752]
+
+[node name="FarA" type="Node3D" parent="SeaTowers" unique_id=1439699980]
+
+[node name="Shaft" type="MeshInstance3D" parent="SeaTowers/FarA" unique_id=126944225]
+transform = Transform3D(46, 0, 0, 0, 246, 0, 0, 0, 46, 680.27124, 83, -336.9732)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("8_provb")
+
+[node name="Pod" type="MeshInstance3D" parent="SeaTowers/FarA" unique_id=1991626595]
+transform = Transform3D(101.2, 0, 0, 0, 10, 0, 0, 0, 101.2, 680.27124, 187, -336.9732)
+material_override = ExtResource("3_iqs0r")
+mesh = ExtResource("5_provb")
+
+[node name="Spike" type="MeshInstance3D" parent="SeaTowers/FarA" unique_id=2102456522]
+transform = Transform3D(11.04, 0, 0, 0, 54, 0, 0, 0, 11.04, 680.27124, 233, -336.9732)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("9_p2trx")
+
+[node name="FarB" type="Node3D" parent="SeaTowers" unique_id=928368518]
+
+[node name="Shaft" type="MeshInstance3D" parent="SeaTowers/FarB" unique_id=1891338706]
+transform = Transform3D(50, 0, 0, 0, 230, 0, 0, 0, 50, 828.5134, 75, -2.8898258)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("5_provb")
+
+[node name="Band1" type="MeshInstance3D" parent="SeaTowers/FarB" unique_id=156272381]
+transform = Transform3D(56, 0, 0, 0, 5, 0, 0, 0, 56, 828.5134, 105.100006, -2.8898258)
+material_override = ExtResource("3_iqs0r")
+mesh = ExtResource("5_provb")
+
+[node name="Top" type="MeshInstance3D" parent="SeaTowers/FarB" unique_id=1614825012]
+transform = Transform3D(32, 0, 0, 0, 22, 0, 0, 0, 32, 828.5134, 201, -2.8898258)
+material_override = ExtResource("6_p2trx")
+mesh = ExtResource("5_provb")
+
+[node name="FarC" type="Node3D" parent="SeaTowers" unique_id=1246308482]
+
+[node name="T1" type="MeshInstance3D" parent="SeaTowers/FarC" unique_id=1447203187]
+transform = Transform3D(-41.13868, 0, -43.67618, 0, 95, 0, 43.67618, 0, -41.13868, 597.9314, 7.5, -605.2982)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="T2" type="MeshInstance3D" parent="SeaTowers/FarC" unique_id=735731289]
+transform = Transform3D(-29.61985, 0, -31.446852, 0, 57, 0, 31.446852, 0, -29.61985, 597.9314, 83.5, -605.2982)
+material_override = ExtResource("6_p2trx")
+mesh = ExtResource("2_07vln")
+
+[node name="T3" type="MeshInstance3D" parent="SeaTowers/FarC" unique_id=589295486]
+transform = Transform3D(-18.923794, 0, -20.091045, 0, 38, 0, 20.091045, 0, -18.923794, 597.9314, 131, -605.2982)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("2_07vln")
+
+[node name="SeaRing" type="Node3D" parent="." unique_id=613690618]
+
+[node name="Ring" type="MeshInstance3D" parent="SeaRing" unique_id=884438914]
+transform = Transform3D(0.5062006, 0.8624158, -3.769739e-08, 0, -4.371139e-08, -1, -0.8624158, 0.5062006, -2.212673e-08, 720, 165, -30)
+material_override = ExtResource("3_iqs0r")
+mesh = SubResource("TorusMesh_veu0o")
+
+[node name="Plinth" type="MeshInstance3D" parent="SeaRing" unique_id=1956757814]
+transform = Transform3D(35.434044, 0, 29.322136, 0, 12, 0, -60.369106, 0, 17.210821, 720, -34, -30)
+material_override = ExtResource("6_p2trx")
+mesh = ExtResource("2_07vln")
+
+[node name="Lighthouse" type="Node3D" parent="." unique_id=971074212]
+
+[node name="Shaft" type="MeshInstance3D" parent="Lighthouse" unique_id=1526922]
+transform = Transform3D(22, 0, 0, 0, 190, 0, 0, 0, 22, 315, 55, -78)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("5_provb")
+
+[node name="Lamp" type="MeshInstance3D" parent="Lighthouse" unique_id=1866236254]
+transform = Transform3D(32, 0, 0, 0, 14, 0, 0, 0, 32, 315, 157, -78)
+material_override = ExtResource("7_8cp7n")
+mesh = ExtResource("5_provb")
+
+[node name="Cap" type="MeshInstance3D" parent="Lighthouse" unique_id=1572157297]
+transform = Transform3D(40, 0, 0, 0, 4, 0, 0, 0, 40, 315, 166, -78)
+material_override = ExtResource("3_iqs0r")
+mesh = ExtResource("5_provb")
+
+[node name="Gallery" type="MeshInstance3D" parent="Lighthouse" unique_id=494379]
+transform = Transform3D(40, 0, 0, 0, 4, 0, 0, 0, 40, 315, 148, -78)
+material_override = ExtResource("3_iqs0r")
+mesh = ExtResource("5_provb")
+
+[node name="Neck" type="MeshInstance3D" parent="Lighthouse" unique_id=1820992836]
+transform = Transform3D(16, 0, 0, 0, 36, 0, 0, 0, 16, 315, 128, -78)
+material_override = ExtResource("1_dbews")
+mesh = ExtResource("5_provb")

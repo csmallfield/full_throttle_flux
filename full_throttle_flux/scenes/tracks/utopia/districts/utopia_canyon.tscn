@@ -1,0 +1,369 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="1_akof2"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="2_s81pg"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="3_xybnf"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="4_a8y1y"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_canyon_wall_l.res" id="5_1i0e3"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_canyon_wall_r.res" id="6_mumwm"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_canyon_ceiling.res" id="7_fbpfu"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_glow.tres" id="8_ldhuv"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="9_nrlg4"]
+
+[node name="Utopia_Canyon" type="Node3D" unique_id=629563635]
+
+[node name="Walls" type="Node3D" parent="." unique_id=856058492]
+
+[node name="L00" type="MeshInstance3D" parent="Walls" unique_id=300182140]
+transform = Transform3D(37.304035, 0, -18.045475, 0, 190, 0, 14.436379, 0, 46.630043, -1142.8342, 55, -37.67714)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="R00" type="MeshInstance3D" parent="Walls" unique_id=132705871]
+transform = Transform3D(40.06164, 0, -20.676346, 0, 220, 0, 18.195185, 0, 45.524593, -1016.77563, 70, -12.394396)
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("2_s81pg")
+
+[node name="L01" type="MeshInstance3D" parent="Walls" unique_id=1642947307]
+transform = Transform3D(35.74696, 0, -22.435843, 0, 250, 0, 17.948673, 0, 44.6837, -1116.7491, 85, -95.15529)
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("2_s81pg")
+
+[node name="R01" type="MeshInstance3D" parent="Walls" unique_id=1806184931]
+transform = Transform3D(39.109768, 0, -22.909103, 0, 280, 0, 20.160011, 0, 44.44292, -992.72876, 100, -60.96604)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="L02" type="MeshInstance3D" parent="Walls" unique_id=840158192]
+transform = Transform3D(35.74832, 0, -22.432453, 0, 160.00002, 0, 17.945963, 0, 44.685402, -1090.5217, 40, -146.45326)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="R02" type="MeshInstance3D" parent="Walls" unique_id=1935809152]
+transform = Transform3D(39.880695, 0, -21.123224, 0, 180, 0, 18.588438, 0, 45.318974, -965.7524, 50, -114.93627)
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("2_s81pg")
+
+[node name="L03" type="MeshInstance3D" parent="Walls" unique_id=2134392239]
+transform = Transform3D(38.31579, 0, -14.355993, 0, 220.00003, 0, 11.484795, 0, 47.894733, -1071.505, 70, -189.52188)
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("2_s81pg")
+
+[node name="R03" type="MeshInstance3D" parent="Walls" unique_id=908755240]
+transform = Transform3D(43.660534, 0, -6.198952, 0, 230, 0, 5.455078, 0, 49.614243, -943.18225, 75, -189.14539)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="L04" type="MeshInstance3D" parent="Walls" unique_id=1339715321]
+transform = Transform3D(39.817547, 0, 4.7702055, 0, 280, 0, -3.8161645, 0, 49.77193, -1068.0288, 100, -223.02774)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="R04" type="MeshInstance3D" parent="Walls" unique_id=232156688]
+transform = Transform3D(43.11557, 0, 9.974646, 0, 190, 0, -8.777688, 0, 48.994965, -947.70917, 55, -267.30594)
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("2_s81pg")
+
+[node name="SkyBridges" type="Node3D" parent="." unique_id=263791725]
+
+[node name="Bridge0" type="MeshInstance3D" parent="SkyBridges" unique_id=2127799539]
+transform = Transform3D(109.91576, 0, -5.537317, 0, 5, 0, 73.09258, 0, 8.326951, -1069.1963, 57.5, -51.369503)
+material_override = ExtResource("4_a8y1y")
+mesh = ExtResource("2_s81pg")
+
+[node name="Bridge1" type="MeshInstance3D" parent="SkyBridges" unique_id=1950047811]
+transform = Transform3D(117.45576, 0, -7.301102, 0, 5, 0, 60.234093, 0, 14.2370615, -1042.3333, 93.5, -104.43023)
+material_override = ExtResource("4_a8y1y")
+mesh = ExtResource("2_s81pg")
+
+[node name="Bridge2" type="MeshInstance3D" parent="SkyBridges" unique_id=1307081735]
+transform = Transform3D(127.1228, 0, -2.6931715, 0, 5.0000005, 0, 35.549866, 0, 9.630516, -1020.4441, 41.5, -149.24869)
+material_override = ExtResource("4_a8y1y")
+mesh = ExtResource("2_s81pg")
+
+[node name="Bridge3" type="MeshInstance3D" parent="SkyBridges" unique_id=70677077]
+transform = Transform3D(129.54669, 0, -3.070414, 0, 5.0000005, 0, 25.330915, 0, 15.702629, -1005.8005, 125.5, -207.0194)
+material_override = ExtResource("4_a8y1y")
+mesh = ExtResource("2_s81pg")
+
+[node name="Bridge4" type="MeshInstance3D" parent="SkyBridges" unique_id=1451352445]
+transform = Transform3D(130.70804, 0, 1.3956909, 0, 5.0000005, 0, -18.42312, 0, 9.902123, -1007.2607, 67.5, -236.86545)
+material_override = ExtResource("4_a8y1y")
+mesh = ExtResource("2_s81pg")
+
+[node name="Atrium" type="Node3D" parent="." unique_id=1480810775]
+
+[node name="Tunnel" type="Node3D" parent="Atrium" unique_id=128604775]
+
+[node name="WallL" type="MeshInstance3D" parent="Atrium/Tunnel" unique_id=528063483]
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("5_1i0e3")
+
+[node name="WallR" type="MeshInstance3D" parent="Atrium/Tunnel" unique_id=166723610]
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("6_mumwm")
+
+[node name="Ceiling" type="MeshInstance3D" parent="Atrium/Tunnel" unique_id=1135690547]
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("7_fbpfu")
+
+[node name="Ribs" type="Node3D" parent="Atrium/Tunnel" unique_id=952503232]
+
+[node name="Rib00" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=2042204050]
+transform = Transform3D(74.56231, 0, -0.3871756, 0, 2.4, 0, 14.712672, 0, 1.962166, -1015.0315, 20.741747, -308.8702)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol00L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1593767821]
+transform = Transform3D(1.962166, 0, -0.3871756, 0, 28, 0, 0.3871756, 0, 1.962166, -1053.2937, 5.7417474, -316.42014)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol00R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=746643615]
+transform = Transform3D(1.962166, 0, -0.3871756, 0, 28, 0, 0.3871756, 0, 1.962166, -976.7693, 5.7417474, -301.32028)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip00" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1653268783]
+transform = Transform3D(55.92173, 0, -0.15487024, 0, 0.5, 0, 11.034504, 0, 0.7848664, -1015.0315, 19.341747, -308.8702)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Rib01" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=570064818]
+transform = Transform3D(69.64268, 0, -0.8007517, 0, 2.4, 0, 30.428564, 0, 1.832702, -1010.2134, 20.892162, -324.0928)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol01L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1304235701]
+transform = Transform3D(1.832702, 0, -0.8007517, 0, 28, 0, 0.8007517, 0, 1.832702, -1045.951, 5.892162, -339.70746)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol01R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=957531000]
+transform = Transform3D(1.832702, 0, -0.8007517, 0, 28, 0, 0.8007517, 0, 1.832702, -974.4757, 5.892162, -308.47815)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip01" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1947451261]
+transform = Transform3D(52.23201, 0, -0.32030067, 0, 0.5, 0, 22.821423, 0, 0.7330808, -1010.2134, 19.492163, -324.0928)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Rib02" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1305862441]
+transform = Transform3D(63.443966, 0, -1.1011399, 0, 2.4, 0, 41.843315, 0, 1.6695781, -1002.50885, 21.383547, -338.0849)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol02L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=464707656]
+transform = Transform3D(1.6695781, 0, -1.1011399, 0, 28, 0, 1.1011399, 0, 1.6695781, -1035.0657, 6.3835473, -359.55713)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol02R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=936065615]
+transform = Transform3D(1.6695781, 0, -1.1011399, 0, 28, 0, 1.1011399, 0, 1.6695781, -969.9521, 6.3835473, -316.61267)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip02" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1628706264]
+transform = Transform3D(47.582973, 0, -0.44045597, 0, 0.5, 0, 31.382486, 0, 0.66783124, -1002.50885, 19.983547, -338.0849)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Rib03" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1742477272]
+transform = Transform3D(62.13841, 0, -1.151543, 0, 2.4, 0, 43.758636, 0, 1.6352212, -993.0835, 22.098827, -350.98993)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol03L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=917621336]
+transform = Transform3D(1.6352212, 0, -1.151543, 0, 28, 0, 1.151543, 0, 1.6352212, -1024.9703, 7.0988274, -373.445)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol03R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=26584313]
+transform = Transform3D(1.6352212, 0, -1.151543, 0, 28, 0, 1.151543, 0, 1.6352212, -961.19666, 7.0988274, -328.53485)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip03" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1139676699]
+transform = Transform3D(46.603806, 0, -0.4606172, 0, 0.5, 0, 32.818977, 0, 0.6540885, -993.0835, 20.698828, -350.98993)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Rib04" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=802817825]
+transform = Transform3D(68.380486, 0, -0.8728392, 0, 2.4, 0, 33.16789, 0, 1.7994865, -984.90063, 22.997335, -364.6891)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol04L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=2000788196]
+transform = Transform3D(1.7994865, 0, -0.8728392, 0, 28, 0, 0.8728392, 0, 1.7994865, -1019.9906, 7.997336, -381.70944)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol04R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1413461483]
+transform = Transform3D(1.7994865, 0, -0.8728392, 0, 28, 0, 0.8728392, 0, 1.7994865, -949.81067, 7.997336, -347.66873)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip04" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1097332433]
+transform = Transform3D(51.285366, 0, -0.3491357, 0, 0.5, 0, 24.875917, 0, 0.71979463, -984.90063, 21.597336, -364.6891)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Rib05" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=490142417]
+transform = Transform3D(73.92564, 0, -0.46408442, 0, 2.4, 0, 17.635208, 0, 1.9454114, -979.4634, 24.118927, -379.6614)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol05L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=643724286]
+transform = Transform3D(1.9454114, 0, -0.46408442, 0, 28, 0, 0.46408442, 0, 1.9454114, -1017.3989, 9.118928, -388.71106)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol05R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=162064748]
+transform = Transform3D(1.9454114, 0, -0.46408442, 0, 28, 0, 0.46408442, 0, 1.9454114, -941.52783, 9.118928, -370.61176)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip05" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=425003150]
+transform = Transform3D(55.444225, 0, -0.18563376, 0, 0.5, 0, 13.226406, 0, 0.77816457, -979.4634, 22.718927, -379.6614)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Rib06" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=11656407]
+transform = Transform3D(75.99751, 0, 0.016181922, 0, 2.4, 0, -0.61491305, 0, 1.9999346, -977.68494, 25.471087, -395.46396)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol06L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=7684658]
+transform = Transform3D(1.9999346, 0, 0.016181922, 0, 28, 0, -0.016181922, 0, 1.9999346, -1016.68365, 10.4710865, -395.1484)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol06R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=2106036953]
+transform = Transform3D(1.9999346, 0, 0.016181922, 0, 28, 0, -0.016181922, 0, 1.9999346, -938.6862, 10.4710865, -395.7795)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip06" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=2049949713]
+transform = Transform3D(56.998135, 0, 0.0064727687, 0, 0.5, 0, -0.46118477, 0, 0.79997385, -977.68494, 24.071087, -395.46396)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Rib07" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=863729983]
+transform = Transform3D(74.49694, 0, 0.39579278, 0, 2.4, 0, -15.040126, 0, 1.9604459, -979.48157, 26.99377, -411.26413)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol07L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=360467050]
+transform = Transform3D(1.9604459, 0, 0.39579278, 0, 28, 0, -0.39579278, 0, 1.9604459, -1017.71027, 11.99377, -403.54617)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol07R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=288540333]
+transform = Transform3D(1.9604459, 0, 0.39579278, 0, 28, 0, -0.39579278, 0, 1.9604459, -941.25287, 11.99377, -418.9821)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip07" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=971006689]
+transform = Transform3D(55.872707, 0, 0.15831712, 0, 0.5, 0, -11.280094, 0, 0.7841784, -979.48157, 25.59377, -411.26413)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Rib08" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1822538969]
+transform = Transform3D(73.070465, 0, 0.54993576, 0, 2.4, 0, -20.897558, 0, 1.9229069, -983.4596, 28.617476, -426.67188)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol08L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1508981468]
+transform = Transform3D(1.9229069, 0, 0.54993576, 0, 28, 0, -0.54993576, 0, 1.9229069, -1020.9563, 13.6174755, -415.94812)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol08R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=136416848]
+transform = Transform3D(1.9229069, 0, 0.54993576, 0, 28, 0, -0.54993576, 0, 1.9229069, -945.9629, 13.6174755, -437.39563)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip08" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1885504205]
+transform = Transform3D(54.802845, 0, 0.21997431, 0, 0.5, 0, -15.673169, 0, 0.7691628, -983.4596, 27.217476, -426.67188)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Rib09" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=315075693]
+transform = Transform3D(74.24836, 0, 0.42691717, 0, 2.4, 0, -16.222853, 0, 1.9539043, -987.60596, 30.31707, -442.0284)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol09L" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=1051319870]
+transform = Transform3D(1.9539043, 0, 0.42691717, 0, 28, 0, -0.42691717, 0, 1.9539043, -1025.707, 15.31707, -433.70352)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="RibCol09R" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=61369714]
+transform = Transform3D(1.9539043, 0, 0.42691717, 0, 28, 0, -0.42691717, 0, 1.9539043, -949.5048, 15.31707, -450.3533)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Strip09" type="MeshInstance3D" parent="Atrium/Tunnel/Ribs" unique_id=913792928]
+transform = Transform3D(55.68627, 0, 0.17076688, 0, 0.5, 0, -12.167139, 0, 0.78156173, -987.60596, 28.91707, -442.0284)
+material_override = ExtResource("8_ldhuv")
+mesh = ExtResource("2_s81pg")
+
+[node name="Mass" type="MeshInstance3D" parent="Atrium" unique_id=1310497555]
+transform = Transform3D(147.78877, 0, -28.42471, 0, 60, 0, 25.660826, 0, 163.70686, -1002.7753, 74.627655, -377.8786)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="MassCrown" type="MeshInstance3D" parent="Atrium" unique_id=941078962]
+transform = Transform3D(88.67326, 0, -19.871101, 0, 24.000004, 0, 15.396495, 0, 114.44393, -1002.7753, 116.62765, -377.8786)
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("2_s81pg")
+
+[node name="FlankL" type="MeshInstance3D" parent="Atrium" unique_id=420032002]
+transform = Transform3D(41.38086, 0, -26.71399, 0, 144.62766, 0, 7.185031, 0, 153.85428, -1081.596, 32.313828, -391.56436)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="Portal1625" type="MeshInstance3D" parent="Atrium" unique_id=872884205]
+transform = Transform3D(119.5805, 0, -0.66835266, 0, 82.8019, 0, 10.02529, 0, 7.972033, -1016.1323, 69.2267, -300.95148)
+material_override = ExtResource("4_a8y1y")
+mesh = ExtResource("2_s81pg")
+
+[node name="Portal1790" type="MeshInstance3D" parent="Atrium" unique_id=1293542907]
+transform = Transform3D(119.90602, 0, 0.31655318, 0, 71.89074, 0, -4.7482977, 0, 7.993735, -989.41833, 74.68228, -454.80576)
+material_override = ExtResource("4_a8y1y")
+mesh = ExtResource("2_s81pg")
+
+[node name="ExitTowerL" type="Node3D" parent="." unique_id=1934162737]
+
+[node name="T1" type="MeshInstance3D" parent="ExitTowerL" unique_id=428907738]
+transform = Transform3D(37.17061, 0, -14.776526, 0, 105, 0, 14.776526, 0, 37.17061, -1033.1992, 12.5, -545.17224)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="T2" type="MeshInstance3D" parent="ExitTowerL" unique_id=172546691]
+transform = Transform3D(26.762838, 0, -10.639099, 0, 63, 0, 10.639099, 0, 26.762838, -1033.1992, 96.5, -545.17224)
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("2_s81pg")
+
+[node name="T3" type="MeshInstance3D" parent="ExitTowerL" unique_id=1308648946]
+transform = Transform3D(17.09848, 0, -6.797202, 0, 42, 0, 6.797202, 0, 17.09848, -1033.1992, 149, -545.17224)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("2_s81pg")
+
+[node name="ExitTowerR" type="Node3D" parent="." unique_id=272357054]
+
+[node name="Shaft" type="MeshInstance3D" parent="ExitTowerR" unique_id=1095026365]
+transform = Transform3D(30, 0, 0, 0, 270, 0, 0, 0, 30, -878.7129, 95, -529.1647)
+material_override = ExtResource("1_akof2")
+mesh = ExtResource("9_nrlg4")
+
+[node name="Band1" type="MeshInstance3D" parent="ExitTowerR" unique_id=1377846894]
+transform = Transform3D(36, 0, 0, 0, 5, 0, 0, 0, 36, -878.7129, 129.9, -529.1647)
+material_override = ExtResource("4_a8y1y")
+mesh = ExtResource("9_nrlg4")
+
+[node name="Top" type="MeshInstance3D" parent="ExitTowerR" unique_id=1190828814]
+transform = Transform3D(19.2, 0, 0, 0, 22, 0, 0, 0, 19.2, -878.7129, 241, -529.1647)
+material_override = ExtResource("3_xybnf")
+mesh = ExtResource("9_nrlg4")

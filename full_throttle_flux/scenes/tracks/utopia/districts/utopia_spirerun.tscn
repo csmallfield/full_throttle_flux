@@ -1,0 +1,145 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="1_nlcvw"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="2_hh5ig"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_glow.tres" id="3_0alk0"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="4_8ngm6"]
+
+[node name="Utopia_Spirerun" type="Node3D" unique_id=122893988]
+
+[node name="Portals" type="Node3D" parent="." unique_id=1725323332]
+
+[node name="Portal0" type="Node3D" parent="Portals" unique_id=925823407]
+
+[node name="PierL" type="MeshInstance3D" parent="Portals/Portal0" unique_id=345076499]
+transform = Transform3D(-6.230499, 0, 5.018056, 0, 95.52165, 0, -5.018056, 0, -6.230499, -111.44562, 7.760826, -594.4897)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="PierR" type="MeshInstance3D" parent="Portals/Portal0" unique_id=1888062685]
+transform = Transform3D(-6.230499, 0, 5.018056, 0, 95.52165, 0, -5.018056, 0, -6.230499, -179.98111, 7.760826, -649.6883)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="Lintel" type="MeshInstance3D" parent="Portals/Portal0" unique_id=350255973]
+transform = Transform3D(-74.76598, 0, 5.018056, 0, 9.999999, 0, -60.21667, 0, -6.230499, -145.71336, 50.521652, -622.089)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="LintelGlow" type="MeshInstance3D" parent="Portals/Portal0" unique_id=387042705]
+transform = Transform3D(-62.30499, 0, 0.627257, 0, 0.6000014, 0, -50.180557, 0, -0.77881235, -145.71336, 45.22165, -622.089)
+material_override = ExtResource("3_0alk0")
+mesh = ExtResource("2_hh5ig")
+
+[node name="Portal1" type="Node3D" parent="Portals" unique_id=559356327]
+
+[node name="PierL" type="MeshInstance3D" parent="Portals/Portal1" unique_id=656507363]
+transform = Transform3D(-6.2319903, 0, 5.0162034, 0, 97.80321, 0, -5.0162034, 0, -6.2319903, -149.45822, 8.901604, -548.09064)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="PierR" type="MeshInstance3D" parent="Portals/Portal1" unique_id=1915242797]
+transform = Transform3D(-6.2319903, 0, 5.0162034, 0, 97.80321, 0, -5.0162034, 0, -6.2319903, -218.0101, 8.901604, -603.26886)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="Lintel" type="MeshInstance3D" parent="Portals/Portal1" unique_id=1517581573]
+transform = Transform3D(-74.78388, 0, 5.0162034, 0, 9.999998, 0, -60.194443, 0, -6.2319903, -183.73416, 52.80321, -575.67975)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="LintelGlow" type="MeshInstance3D" parent="Portals/Portal1" unique_id=740161314]
+transform = Transform3D(-62.319904, 0, 0.6270254, 0, 0.6000007, 0, -50.162033, 0, -0.7789988, -183.73416, 47.50321, -575.67975)
+material_override = ExtResource("3_0alk0")
+mesh = ExtResource("2_hh5ig")
+
+[node name="Portal2" type="Node3D" parent="Portals" unique_id=559485498]
+
+[node name="PierL" type="MeshInstance3D" parent="Portals/Portal2" unique_id=1327654994]
+transform = Transform3D(-6.734152, 0, 4.3187037, 0, 100.01304, 0, -4.3187037, 0, -6.734152, -182.28745, 10.006519, -503.66772)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="PierR" type="MeshInstance3D" parent="Portals/Portal2" unique_id=802900401]
+transform = Transform3D(-6.734152, 0, 4.3187037, 0, 100.01304, 0, -4.3187037, 0, -6.734152, -256.36313, 10.006519, -551.17346)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="Lintel" type="MeshInstance3D" parent="Portals/Portal2" unique_id=36884133]
+transform = Transform3D(-80.80982, 0, 4.3187037, 0, 9.999999, 0, -51.824444, 0, -6.734152, -219.32529, 55.013042, -527.4206)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="LintelGlow" type="MeshInstance3D" parent="Portals/Portal2" unique_id=1594332851]
+transform = Transform3D(-67.34152, 0, 0.53983796, 0, 0.60000104, 0, -43.187035, 0, -0.841769, -219.32529, 49.71304, -527.4206)
+material_override = ExtResource("3_0alk0")
+mesh = ExtResource("2_hh5ig")
+
+[node name="Portal3" type="Node3D" parent="Portals" unique_id=1854503142]
+
+[node name="PierL" type="MeshInstance3D" parent="Portals/Portal3" unique_id=778583867]
+transform = Transform3D(-7.862309, 0, 1.4778686, 0, 101.996414, 0, -1.4778686, 0, -7.862309, -200.47, 10.998207, -464.86725)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="PierR" type="MeshInstance3D" parent="Portals/Portal3" unique_id=1957208621]
+transform = Transform3D(-7.862309, 0, 1.4778686, 0, 101.996414, 0, -1.4778686, 0, -7.862309, -286.9554, 10.998207, -481.12378)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="Lintel" type="MeshInstance3D" parent="Portals/Portal3" unique_id=1163946741]
+transform = Transform3D(-94.34771, 0, 1.4778686, 0, 9.999998, 0, -17.734423, 0, -7.862309, -243.7127, 56.996414, -472.9955)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="LintelGlow" type="MeshInstance3D" parent="Portals/Portal3" unique_id=2086201150]
+transform = Transform3D(-78.62309, 0, 0.18473357, 0, 0.60000074, 0, -14.778686, 0, -0.9827886, -243.7127, 51.69641, -472.9955)
+material_override = ExtResource("3_0alk0")
+mesh = ExtResource("2_hh5ig")
+
+[node name="Flanks" type="Node3D" parent="." unique_id=516316715]
+
+[node name="L00" type="MeshInstance3D" parent="Flanks" unique_id=1135750805]
+transform = Transform3D(-36.922394, 0, 19.232817, 0, 66.138115, 0, -15.386253, 0, -46.152992, -42.171852, -6.9309425, -653.0872)
+material_override = ExtResource("4_8ngm6")
+mesh = ExtResource("2_hh5ig")
+
+[node name="L01" type="MeshInstance3D" parent="Flanks" unique_id=2020520578]
+transform = Transform3D(-31.571924, 0, 30.700508, 0, 75.28734, 0, -24.560406, 0, -39.464905, -81.76259, -2.3563309, -590.07623)
+material_override = ExtResource("4_8ngm6")
+mesh = ExtResource("2_hh5ig")
+
+[node name="R01" type="MeshInstance3D" parent="Flanks" unique_id=1636883260]
+transform = Transform3D(-31.571924, 0, 30.700508, 0, 59.28734, 0, -24.560406, 0, -39.464905, -192.26433, -10.356331, -676.03766)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="L02" type="MeshInstance3D" parent="Flanks" unique_id=5447322]
+transform = Transform3D(-30.90026, 0, 31.750341, 0, 64.50056, 0, -25.400274, 0, -38.625328, -118.28949, -7.7497215, -545.18207)
+material_override = ExtResource("4_8ngm6")
+mesh = ExtResource("2_hh5ig")
+
+[node name="R02" type="MeshInstance3D" parent="Flanks" unique_id=821159161]
+transform = Transform3D(-30.90026, 0, 31.750341, 0, 58.500557, 0, -25.400274, 0, -38.625328, -226.4404, -10.749722, -634.08307)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="L03" type="MeshInstance3D" parent="Flanks" unique_id=1915763380]
+transform = Transform3D(-32.418983, 0, 29.28869, 0, 73.70219, 0, -23.430954, 0, -40.523727, -150.16678, -3.1489067, -504.5646)
+material_override = ExtResource("4_8ngm6")
+mesh = ExtResource("2_hh5ig")
+
+[node name="R03" type="MeshInstance3D" parent="Flanks" unique_id=1347728935]
+transform = Transform3D(-32.418983, 0, 29.28869, 0, 57.702187, 0, -23.430954, 0, -40.523727, -263.6332, -11.148907, -586.57294)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")
+
+[node name="L04" type="MeshInstance3D" parent="Flanks" unique_id=229144164]
+transform = Transform3D(-36.5853, 0, 20.214312, 0, 62.83423, 0, -16.17145, 0, -45.731625, -171.67334, -8.582886, -469.36404)
+material_override = ExtResource("4_8ngm6")
+mesh = ExtResource("2_hh5ig")
+
+[node name="R04" type="MeshInstance3D" parent="Flanks" unique_id=331279405]
+transform = Transform3D(-36.5853, 0, 20.214312, 0, 56.83423, 0, -16.17145, 0, -45.731625, -299.7219, -11.582886, -525.9641)
+material_override = ExtResource("1_nlcvw")
+mesh = ExtResource("2_hh5ig")

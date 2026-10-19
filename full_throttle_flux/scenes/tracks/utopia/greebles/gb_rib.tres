@@ -1,0 +1,23 @@
+[gd_resource type="ArrayMesh" format=4]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="1_5eg0q"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="2_qlykl"]
+
+[resource]
+_surfaces = [{
+"aabb": AABB(0, -3, -0.4, 0.14, 4.5, 0.8),
+"format": 34359738375,
+"material": ExtResource("1_5eg0q"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("AAAAAAAAQMDNzMy+KVwPPgAAwD/NzMy+AAAAAAAAwD/NzMy+AAAAAAAAQMDNzMy+KVwPPgAAQMDNzMy+KVwPPgAAwD/NzMy+AAAAAAAAQMDNzMw+KVwPPgAAwD/NzMw+KVwPPgAAQMDNzMw+AAAAAAAAQMDNzMw+AAAAAAAAwD/NzMw+KVwPPgAAwD/NzMw+AAAAAAAAQMDNzMy+AAAAAAAAwD/NzMw+AAAAAAAAQMDNzMw+AAAAAAAAQMDNzMy+AAAAAAAAwD/NzMy+AAAAAAAAwD/NzMw+KVwPPgAAQMDNzMy+KVwPPgAAwD/NzMw+KVwPPgAAwD/NzMy+KVwPPgAAQMDNzMy+KVwPPgAAQMDNzMw+KVwPPgAAwD/NzMw+AAAAAAAAwD/NzMy+KVwPPgAAwD/NzMw+AAAAAAAAwD/NzMw+AAAAAAAAwD/NzMy+KVwPPgAAwD/NzMy+KVwPPgAAwD/NzMw+AAAAAAAAQMDNzMy+KVwPPgAAQMDNzMw+KVwPPgAAQMDNzMy+AAAAAAAAQMDNzMy+AAAAAAAAQMDNzMw+KVwPPgAAQMDNzMw+//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+/")
+}, {
+"aabb": AABB(0, 1.2, -0.55, 0.16, 0.29999995, 1.1),
+"format": 34359738375,
+"material": ExtResource("2_qlykl"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("AAAAAJqZmT/NzAy/CtcjPgAAwD/NzAy/AAAAAAAAwD/NzAy/AAAAAJqZmT/NzAy/CtcjPpqZmT/NzAy/CtcjPgAAwD/NzAy/AAAAAJqZmT/NzAw/CtcjPgAAwD/NzAw/CtcjPpqZmT/NzAw/AAAAAJqZmT/NzAw/AAAAAAAAwD/NzAw/CtcjPgAAwD/NzAw/AAAAAJqZmT/NzAy/AAAAAAAAwD/NzAw/AAAAAJqZmT/NzAw/AAAAAJqZmT/NzAy/AAAAAAAAwD/NzAy/AAAAAAAAwD/NzAw/CtcjPpqZmT/NzAy/CtcjPgAAwD/NzAw/CtcjPgAAwD/NzAy/CtcjPpqZmT/NzAy/CtcjPpqZmT/NzAw/CtcjPgAAwD/NzAw/AAAAAAAAwD/NzAy/CtcjPgAAwD/NzAw/AAAAAAAAwD/NzAw/AAAAAAAAwD/NzAy/CtcjPgAAwD/NzAy/CtcjPgAAwD/NzAw/AAAAAJqZmT/NzAy/CtcjPpqZmT/NzAw/CtcjPpqZmT/NzAy/AAAAAJqZmT/NzAy/AAAAAJqZmT/NzAw/CtcjPpqZmT/NzAw///////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+/")
+}]

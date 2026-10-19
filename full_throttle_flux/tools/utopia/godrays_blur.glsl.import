@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cbwlv6rss70ri"
+path="res://.godot/imported/godrays_blur.glsl-b48abc377c1021e8dbd6eef65ae44886.res"
+
+[deps]
+
+source_file="res://tools/utopia/godrays_blur.glsl"
+dest_files=["res://.godot/imported/godrays_blur.glsl-b48abc377c1021e8dbd6eef65ae44886.res"]
+
+[params]
+

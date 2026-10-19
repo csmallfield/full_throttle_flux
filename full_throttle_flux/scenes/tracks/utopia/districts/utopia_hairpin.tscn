@@ -1,0 +1,88 @@
+[gd_scene format=3]
+
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="2_ssa21"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="3_cdx7d"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="3_dumuy"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_taper.tres" id="4_dumuy"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="5_q8v3h"]
+
+[node name="Utopia_Hairpin" type="Node3D" unique_id=1117909291]
+
+[node name="Pivot" type="Node3D" parent="." unique_id=1953521396]
+
+[node name="Stem" type="MeshInstance3D" parent="Pivot" unique_id=1398222833]
+transform = Transform3D(40, 0, 0, 0, 114.87926, 0, 0, 0, 40, -423, 17.439629, -688)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("2_ssa21")
+
+[node name="Collar" type="MeshInstance3D" parent="Pivot" unique_id=2076457794]
+transform = Transform3D(52, 0, 0, 0, 10, 0, 0, 0, 52, -423, 69.87926, -688)
+material_override = ExtResource("3_cdx7d")
+mesh = ExtResource("2_ssa21")
+
+[node name="Canopy" type="MeshInstance3D" parent="Pivot" unique_id=1153587009]
+transform = Transform3D(184, 0, 0, 0, 5, 0, 0, 0, 184, -423, 77.37926, -688)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("2_ssa21")
+
+[node name="CanopyEdge" type="MeshInstance3D" parent="Pivot" unique_id=1327481134]
+transform = Transform3D(188, 0, 0, 0, 3, 0, 0, 0, 188, -423, 81.37926, -688)
+material_override = ExtResource("3_cdx7d")
+mesh = ExtResource("2_ssa21")
+
+[node name="Upper" type="MeshInstance3D" parent="Pivot" unique_id=44844490]
+transform = Transform3D(32, 0, 0, 0, 150, 0, 0, 0, 32, -423, 157.87926, -688)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("4_dumuy")
+
+[node name="Disc" type="MeshInstance3D" parent="Pivot" unique_id=2007828855]
+transform = Transform3D(60, 0, 0, 0, 6, 0, 0, 0, 60, -423, 197.87926, -688)
+material_override = ExtResource("3_cdx7d")
+mesh = ExtResource("2_ssa21")
+
+[node name="Circus" type="Node3D" parent="." unique_id=2103110794]
+
+[node name="Bay00" type="MeshInstance3D" parent="Circus" unique_id=1439327882]
+transform = Transform3D(-25.980762, 0, 13, 0, 60, 0, -15, 0, -22.51666, -503, -10, -549.4359)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("5_q8v3h")
+
+[node name="Bay01" type="MeshInstance3D" parent="Circus" unique_id=588750014]
+transform = Transform3D(-21.213205, 0, 18.384777, 0, 78.00001, 0, -21.213205, 0, -18.384777, -536.1371, -1, -574.8629)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("5_q8v3h")
+
+[node name="Bay02" type="MeshInstance3D" parent="Circus" unique_id=632914282]
+transform = Transform3D(-15, 0, 22.51666, 0, 60, 0, -25.980762, 0, -13, -561.5641, -10, -608)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("5_q8v3h")
+
+[node name="Bay03" type="MeshInstance3D" parent="Circus" unique_id=1204135616]
+transform = Transform3D(-7.764572, 0, 25.114073, 0, 78.00001, 0, -28.977776, 0, -6.7292957, -577.5481, -1, -646.5889)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("5_q8v3h")
+
+[node name="Bay04" type="MeshInstance3D" parent="Circus" unique_id=1626097378]
+transform = Transform3D(-3.6739406e-15, 0, 26, 0, 60, 0, -30, 0, -3.1840818e-15, -583, -10, -688)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("5_q8v3h")
+
+[node name="Bay05" type="MeshInstance3D" parent="Circus" unique_id=1673734420]
+transform = Transform3D(7.764572, 0, 25.114073, 0, 78.00001, 0, -28.977776, 0, 6.7292957, -577.5481, -1, -729.4111)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("5_q8v3h")
+
+[node name="Bay06" type="MeshInstance3D" parent="Circus" unique_id=1305095562]
+transform = Transform3D(15, 0, 22.51666, 0, 60, 0, -25.980762, 0, 13, -561.5641, -10, -768)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("5_q8v3h")
+
+[node name="Bay12" type="MeshInstance3D" parent="Circus" unique_id=1677395386]
+transform = Transform3D(25.980762, 0, -13, 0, 60, 0, 15, 0, 22.51666, -343, -10, -826.5641)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("5_q8v3h")
+
+[node name="Bay13" type="MeshInstance3D" parent="Circus" unique_id=1408731460]
+transform = Transform3D(21.213205, 0, -18.384777, 0, 78.00001, 0, 21.213205, 0, 18.384777, -309.8629, -1, -801.1371)
+material_override = ExtResource("3_dumuy")
+mesh = ExtResource("5_q8v3h")

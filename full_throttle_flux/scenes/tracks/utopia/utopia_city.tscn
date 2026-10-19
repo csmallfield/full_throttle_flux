@@ -1,0 +1,49 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_base.tscn" id="1_yc7fr"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_concourse.tscn" id="2_e5oyc"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_terraces.tscn" id="3_l5dmb"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_skyway.tscn" id="4_vnqvj"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_canyon.tscn" id="5_gkfrn"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_corner.tscn" id="6_756bp"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_arcade.tscn" id="7_0j3nt"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_hairpin.tscn" id="8_6n4go"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_northloop.tscn" id="9_65aam"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_spirerun.tscn" id="10_k4r4w"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_viaduct.tscn" id="11_ucohd"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_spiral.tscn" id="12_p0f2t"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_eastsweep.tscn" id="13_6nev1"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_mega.tscn" id="14_gkfrn"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/utopia/utopia_track_dressing.tscn" id="15_756bp"]
+
+[node name="UtopiaCity" type="Node3D" unique_id=1406570577]
+
+[node name="Utopia_Base" type="Node3D" parent="." unique_id=1399247945 instance=ExtResource("1_yc7fr")]
+
+[node name="Utopia_Concourse" type="Node3D" parent="." unique_id=791049366 instance=ExtResource("2_e5oyc")]
+
+[node name="Utopia_Terraces" type="Node3D" parent="." unique_id=694348205 instance=ExtResource("3_l5dmb")]
+
+[node name="Utopia_Skyway" type="Node3D" parent="." unique_id=1099250363 instance=ExtResource("4_vnqvj")]
+
+[node name="Utopia_Canyon" type="Node3D" parent="." unique_id=629563635 instance=ExtResource("5_gkfrn")]
+
+[node name="Utopia_Corner" type="Node3D" parent="." unique_id=501103160 instance=ExtResource("6_756bp")]
+
+[node name="Utopia_Arcade" type="Node3D" parent="." unique_id=2073559483 instance=ExtResource("7_0j3nt")]
+
+[node name="Utopia_Hairpin" type="Node3D" parent="." unique_id=1117909291 instance=ExtResource("8_6n4go")]
+
+[node name="Utopia_Northloop" type="Node3D" parent="." unique_id=153374543 instance=ExtResource("9_65aam")]
+
+[node name="Utopia_Spirerun" type="Node3D" parent="." unique_id=122893988 instance=ExtResource("10_k4r4w")]
+
+[node name="Utopia_Viaduct" type="Node3D" parent="." unique_id=1900409995 instance=ExtResource("11_ucohd")]
+
+[node name="Utopia_Spiral" type="Node3D" parent="." unique_id=1636185854 instance=ExtResource("12_p0f2t")]
+
+[node name="Utopia_Eastsweep" type="Node3D" parent="." unique_id=1142632108 instance=ExtResource("13_6nev1")]
+
+[node name="Utopia_Mega" type="Node3D" parent="." unique_id=965207104 instance=ExtResource("14_gkfrn")]
+
+[node name="UtopiaTrackDressing" type="Node3D" parent="." unique_id=2086885738 instance=ExtResource("15_756bp")]

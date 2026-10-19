@@ -1,0 +1,191 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="1_kt5mc"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="2_lcbf5"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="3_r1v81"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="4_tsjfh"]
+[ext_resource type="SphereMesh" path="res://scenes/tracks/utopia/meshes/unit_dome.tres" id="5_wumo1"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="6_ncllc"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_corner_entablature.res" id="7_stji4"]
+
+[node name="Utopia_Corner" type="Node3D" unique_id=501103160]
+
+[node name="Dome" type="Node3D" parent="." unique_id=187497056]
+
+[node name="Plinth" type="MeshInstance3D" parent="Dome" unique_id=1620192014]
+transform = Transform3D(220, 0, 0, 0, 34, 0, 0, 0, 220, -826, -23, -700)
+material_override = ExtResource("1_kt5mc")
+mesh = ExtResource("2_lcbf5")
+
+[node name="Drum" type="MeshInstance3D" parent="Dome" unique_id=1461302696]
+transform = Transform3D(164, 0, 0, 0, 48, 0, 0, 0, 164, -826, 18, -700)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("2_lcbf5")
+
+[node name="Gallery" type="MeshInstance3D" parent="Dome" unique_id=738774478]
+transform = Transform3D(172, 0, 0, 0, 4, 0, 0, 0, 172, -826, 44, -700)
+material_override = ExtResource("4_tsjfh")
+mesh = ExtResource("2_lcbf5")
+
+[node name="Shell" type="MeshInstance3D" parent="Dome" unique_id=105668101]
+transform = Transform3D(160, 0, 0, 0, 68, 0, 0, 0, 160, -826, 46, -700)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("5_wumo1")
+
+[node name="Lantern" type="MeshInstance3D" parent="Dome" unique_id=1514595071]
+transform = Transform3D(24, 0, 0, 0, 26, 0, 0, 0, 24, -826, 123, -700)
+material_override = ExtResource("4_tsjfh")
+mesh = ExtResource("2_lcbf5")
+
+[node name="Stoa" type="Node3D" parent="." unique_id=521110450]
+
+[node name="Col00" type="MeshInstance3D" parent="Stoa" unique_id=1942010071]
+transform = Transform3D(3.4359171, 0, 2.0480416, 0, 127.42886, 0, -2.0480416, 0, 3.4359171, -1028.9716, 23.714432, -614.1118)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col01" type="MeshInstance3D" parent="Stoa" unique_id=1353206439]
+transform = Transform3D(3.3900254, 0, 2.123141, 0, 127.42886, 0, -2.123141, 0, 3.3900254, -1035.7515, 23.714432, -625.1876)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col02" type="MeshInstance3D" parent="Stoa" unique_id=453911728]
+transform = Transform3D(3.3559937, 0, 2.1765356, 0, 127.42888, 0, -2.1765356, 0, 3.3559937, -1042.8911, 23.714432, -636.3712)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col03" type="MeshInstance3D" parent="Stoa" unique_id=1615791617]
+transform = Transform3D(3.335524, 0, 2.207777, 0, 127.42886, 0, -2.207777, 0, 3.335524, -1050.3331, 23.714432, -647.7091)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col04" type="MeshInstance3D" parent="Stoa" unique_id=1855926389]
+transform = Transform3D(3.3324113, 0, 2.212473, 0, 127.42888, 0, -2.212473, 0, 3.3324113, -1058.0337, 23.714432, -659.2988)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col05" type="MeshInstance3D" parent="Stoa" unique_id=1470815144]
+transform = Transform3D(3.3411195, 0, 2.1993003, 0, 127.42886, 0, -2.1993003, 0, 3.3411195, -1065.8188, 23.714432, -671.0973)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col06" type="MeshInstance3D" parent="Stoa" unique_id=753997136]
+transform = Transform3D(3.3408375, 0, 2.1997285, 0, 127.42886, 0, -2.1997285, 0, 3.3408375, -1073.4807, 23.714432, -682.7047)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col07" type="MeshInstance3D" parent="Stoa" unique_id=268366393]
+transform = Transform3D(3.3656645, 0, 2.1615512, 0, 127.42888, 0, -2.1615512, 0, 3.3656645, -1081.3466, 23.714432, -694.76685)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col08" type="MeshInstance3D" parent="Stoa" unique_id=1957142873]
+transform = Transform3D(3.413551, 0, 2.0851066, 0, 127.42886, 0, -2.0851066, 0, 3.413551, -1089.2595, 23.714432, -707.36615)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col09" type="MeshInstance3D" parent="Stoa" unique_id=1145203315]
+transform = Transform3D(3.4827297, 0, 1.9673828, 0, 127.42886, 0, -1.9673828, 0, 3.4827297, -1097.0668, 23.714432, -720.61426)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col10" type="MeshInstance3D" parent="Stoa" unique_id=1605395093]
+transform = Transform3D(3.5718327, 0, 1.8005593, 0, 127.42888, 0, -1.8005593, 0, 3.5718327, -1104.6034, 23.714432, -734.6771)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col11" type="MeshInstance3D" parent="Stoa" unique_id=1009605603]
+transform = Transform3D(3.6783762, 0, 1.5714802, 0, 127.42888, 0, -1.5714802, 0, 3.6783762, -1111.6545, 23.714432, -749.7721)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col12" type="MeshInstance3D" parent="Stoa" unique_id=145283951]
+transform = Transform3D(3.7962053, 0, 1.260487, 0, 127.42888, 0, -1.260487, 0, 3.7962053, -1117.9103, 23.714432, -766.1847)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col13" type="MeshInstance3D" parent="Stoa" unique_id=1584327361]
+transform = Transform3D(3.9101205, 0, 0.84318346, 0, 127.42886, 0, -0.84318346, 0, 3.9101205, -1122.8788, 23.714432, -784.221)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col14" type="MeshInstance3D" parent="Stoa" unique_id=488306203]
+transform = Transform3D(3.9889493, 0, 0.29712573, 0, 127.42886, 0, -0.29712573, 0, 3.9889493, -1125.7975, 23.714432, -804.0943)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col15" type="MeshInstance3D" parent="Stoa" unique_id=656678523]
+transform = Transform3D(3.9823284, 0, -0.37558162, 0, 127.42886, 0, 0.37558162, 0, 3.9823284, -1125.6298, 23.714432, -825.60016)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col16" type="MeshInstance3D" parent="Stoa" unique_id=84021639]
+transform = Transform3D(3.8402874, 0, -1.1190145, 0, 127.42886, 0, 1.1190145, 0, 3.8402874, -1121.4216, 23.714432, -847.7297)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col17" type="MeshInstance3D" parent="Stoa" unique_id=325481743]
+transform = Transform3D(3.558156, 0, -1.8274369, 0, 127.42886, 0, 1.8274369, 0, 3.558156, -1113.0258, 23.714432, -868.7679)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col18" type="MeshInstance3D" parent="Stoa" unique_id=1017276091]
+transform = Transform3D(3.192581, 0, -2.4098608, 0, 127.42888, 0, 2.4098608, 0, 3.192581, -1101.3754, 23.714432, -887.2506)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col19" type="MeshInstance3D" parent="Stoa" unique_id=1104293194]
+transform = Transform3D(2.8143573, 0, -2.8424275, 0, 127.42888, 0, 2.8424275, 0, 2.8143573, -1087.7931, 23.714432, -902.7165)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col20" type="MeshInstance3D" parent="Stoa" unique_id=2016455094]
+transform = Transform3D(2.22179, 0, -3.3262064, 0, 127.42886, 0, 3.3262064, 0, 2.22179, -1070.2593, 23.714432, -917.24585)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col21" type="MeshInstance3D" parent="Stoa" unique_id=514706340]
+transform = Transform3D(1.4065877, 0, -3.744531, 0, 127.42888, 0, 3.744531, 0, 1.4065877, -1048.4575, 23.714432, -928.4141)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col22" type="MeshInstance3D" parent="Stoa" unique_id=950400563]
+transform = Transform3D(0.6401809, 0, -3.948439, 0, 127.42888, 0, 3.948439, 0, 0.6401809, -1026.1522, 23.714432, -934.27124)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Col23" type="MeshInstance3D" parent="Stoa" unique_id=1265415547]
+transform = Transform3D(0.053119812, 0, -3.9996474, 0, 127.42886, 0, 3.9996474, 0, 0.053119812, -1005.52454, 23.714432, -935.9881)
+material_override = ExtResource("3_r1v81")
+mesh = ExtResource("6_ncllc")
+
+[node name="Entablature" type="MeshInstance3D" parent="Stoa" unique_id=1796090693]
+material_override = ExtResource("4_tsjfh")
+mesh = ExtResource("7_stji4")
+
+[node name="Backdrop" type="Node3D" parent="." unique_id=1700037251]
+
+[node name="B00" type="MeshInstance3D" parent="Backdrop" unique_id=76003266]
+transform = Transform3D(42.52441, 0, 31.55965, 0, 157.42886, 0, -26.29971, 0, 51.02929, -1079.7009, 38.71443, -593.60925)
+material_override = ExtResource("1_kt5mc")
+mesh = ExtResource("6_ncllc")
+
+[node name="B01" type="MeshInstance3D" parent="Backdrop" unique_id=298408166]
+transform = Transform3D(41.727272, 0, 33.05635, 0, 187.42888, 0, -27.54696, 0, 50.072727, -1130.8279, 53.71443, -635.25793)
+material_override = ExtResource("1_kt5mc")
+mesh = ExtResource("6_ncllc")
+
+[node name="B02" type="MeshInstance3D" parent="Backdrop" unique_id=305968569]
+transform = Transform3D(44.82604, 0, 26.580101, 0, 217.42886, 0, -22.150084, 0, 53.79125, -1154.0583, 68.71443, -712.84235)
+material_override = ExtResource("1_kt5mc")
+mesh = ExtResource("6_ncllc")
+
+[node name="B03" type="MeshInstance3D" parent="Backdrop" unique_id=1761618438]
+transform = Transform3D(49.883373, 0, -4.0957017, 0, 157.42888, 0, 3.413085, 0, 59.86005, -1199.7113, 38.71443, -827.50616)
+material_override = ExtResource("1_kt5mc")
+mesh = ExtResource("6_ncllc")
+
+[node name="B04" type="MeshInstance3D" parent="Backdrop" unique_id=1826282052]
+transform = Transform3D(31.599865, 0, -46.498238, 0, 187.42886, 0, 38.74853, 0, 37.919838, -1112.7239, 53.71443, -952.91724)
+material_override = ExtResource("1_kt5mc")
+mesh = ExtResource("6_ncllc")

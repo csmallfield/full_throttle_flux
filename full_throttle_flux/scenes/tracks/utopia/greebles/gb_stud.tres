@@ -1,0 +1,23 @@
+[gd_resource type="ArrayMesh" format=4]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_dark.tres" id="1_jfdgh"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_glow_cool.tres" id="2_u22cc"]
+
+[resource]
+_surfaces = [{
+"aabb": AABB(-0.22, 0, -0.45, 0.44, 0.04, 0.9),
+"format": 34359738375,
+"material": ExtResource("1_jfdgh"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("rkdhvgAAAABmZua+rkdhPgrXIz1mZua+rkdhvgrXIz1mZua+rkdhvgAAAABmZua+rkdhPgAAAABmZua+rkdhPgrXIz1mZua+rkdhvgAAAABmZuY+rkdhPgrXIz1mZuY+rkdhPgAAAABmZuY+rkdhvgAAAABmZuY+rkdhvgrXIz1mZuY+rkdhPgrXIz1mZuY+rkdhvgAAAABmZua+rkdhvgrXIz1mZuY+rkdhvgAAAABmZuY+rkdhvgAAAABmZua+rkdhvgrXIz1mZua+rkdhvgrXIz1mZuY+rkdhPgAAAABmZua+rkdhPgrXIz1mZuY+rkdhPgrXIz1mZua+rkdhPgAAAABmZua+rkdhPgAAAABmZuY+rkdhPgrXIz1mZuY+rkdhvgrXIz1mZua+rkdhPgrXIz1mZuY+rkdhvgrXIz1mZuY+rkdhvgrXIz1mZua+rkdhPgrXIz1mZua+rkdhPgrXIz1mZuY+rkdhvgAAAABmZua+rkdhPgAAAABmZuY+rkdhPgAAAABmZua+rkdhvgAAAABmZua+rkdhvgAAAABmZuY+rkdhPgAAAABmZuY+//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+/")
+}, {
+"aabb": AABB(-0.12, 0.04, -0.35, 0.24, 0.030000001, 0.7),
+"format": 34359738375,
+"material": ExtResource("2_u22cc"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("j8L1vQrXIz0zM7O+j8L1PSlcjz0zM7O+j8L1vSlcjz0zM7O+j8L1vQrXIz0zM7O+j8L1PQrXIz0zM7O+j8L1PSlcjz0zM7O+j8L1vQrXIz0zM7M+j8L1PSlcjz0zM7M+j8L1PQrXIz0zM7M+j8L1vQrXIz0zM7M+j8L1vSlcjz0zM7M+j8L1PSlcjz0zM7M+j8L1vQrXIz0zM7O+j8L1vSlcjz0zM7M+j8L1vQrXIz0zM7M+j8L1vQrXIz0zM7O+j8L1vSlcjz0zM7O+j8L1vSlcjz0zM7M+j8L1PQrXIz0zM7O+j8L1PSlcjz0zM7M+j8L1PSlcjz0zM7O+j8L1PQrXIz0zM7O+j8L1PQrXIz0zM7M+j8L1PSlcjz0zM7M+j8L1vSlcjz0zM7O+j8L1PSlcjz0zM7M+j8L1vSlcjz0zM7M+j8L1vSlcjz0zM7O+j8L1PSlcjz0zM7O+j8L1PSlcjz0zM7M+j8L1vQrXIz0zM7O+j8L1PQrXIz0zM7M+j8L1PQrXIz0zM7O+j8L1vQrXIz0zM7O+j8L1vQrXIz0zM7M+j8L1PQrXIz0zM7M+//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+/")
+}]

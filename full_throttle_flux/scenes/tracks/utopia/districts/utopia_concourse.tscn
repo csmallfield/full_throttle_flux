@@ -1,0 +1,490 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="1_6gbpf"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_floor.tres" id="2_7ybxq"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="3_rb2en"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="4_v6fj5"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="5_md13w"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_dark.tres" id="6_c01ep"]
+
+[sub_resource type="TorusMesh" id="TorusMesh_6gbpf"]
+inner_radius = 5.312
+outer_radius = 8.859
+rings = 48
+ring_segments = 20
+
+[node name="Utopia_Concourse" type="Node3D" unique_id=791049366]
+
+[node name="Rings" type="Node3D" parent="." unique_id=559737685]
+
+[node name="Ring1" type="MeshInstance3D" parent="Rings" unique_id=1756317358]
+transform = Transform3D(0, -8, 0, 8, 0, 0, 0, 0, 8, 75.66658, 10.877743, -3.7573605)
+material_override = ExtResource("1_6gbpf")
+mesh = SubResource("TorusMesh_6gbpf")
+
+[node name="Ring2" type="MeshInstance3D" parent="Rings" unique_id=1814162701]
+transform = Transform3D(0, -8, 0, 8, 0, 0, 0, 0, 8, 121.32084, 10.877743, -3.7573605)
+material_override = ExtResource("1_6gbpf")
+mesh = SubResource("TorusMesh_6gbpf")
+
+[node name="Ring3" type="MeshInstance3D" parent="Rings" unique_id=127783137]
+transform = Transform3D(0, -8, 0, 8, 0, 0, 0, 0, 8, 171.89388, 10.877743, -3.7573605)
+material_override = ExtResource("1_6gbpf")
+mesh = SubResource("TorusMesh_6gbpf")
+
+[node name="Ring4" type="MeshInstance3D" parent="Rings" unique_id=74670677]
+transform = Transform3D(0, -8, 0, 8, 0, 0, 0, 0, 8, 213.60025, 10.877743, -3.7573605)
+material_override = ExtResource("1_6gbpf")
+mesh = SubResource("TorusMesh_6gbpf")
+
+[node name="Promenade" type="Node3D" parent="." unique_id=1137640401]
+
+[node name="DeckN" type="MeshInstance3D" parent="Promenade" unique_id=264272483]
+transform = Transform3D(520, 0, 0, 0, 33, 0, 0, 0, 84, -10, -23.5, -84)
+material_override = ExtResource("2_7ybxq")
+mesh = ExtResource("3_rb2en")
+
+[node name="DeckS" type="MeshInstance3D" parent="Promenade" unique_id=1747073309]
+transform = Transform3D(560, 0, 0, 0, 31, 0, 0, 0, 30, -20, -24.5, 56)
+material_override = ExtResource("2_7ybxq")
+mesh = ExtResource("3_rb2en")
+
+[node name="NorthFacades" type="Node3D" parent="." unique_id=1267230829]
+
+[node name="Block00" type="Node3D" parent="NorthFacades" unique_id=852538818]
+
+[node name="Podium" type="MeshInstance3D" parent="NorthFacades/Block00" unique_id=1080709281]
+transform = Transform3D(66, 0, 0, 0, 33, 0, 0, 0, 52, 300, -23.5, -112)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col3" type="MeshInstance3D" parent="NorthFacades/Block00" unique_id=362860276]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 273, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col21" type="MeshInstance3D" parent="NorthFacades/Block00" unique_id=1036150903]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 291, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col39" type="MeshInstance3D" parent="NorthFacades/Block00" unique_id=1505315423]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 309, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col57" type="MeshInstance3D" parent="NorthFacades/Block00" unique_id=527055357]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 327, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Lobby" type="MeshInstance3D" parent="NorthFacades/Block00" unique_id=1297673851]
+transform = Transform3D(58, 0, 0, 0, 31, 0, 0, 0, 30, 300, 8.5, -120)
+material_override = ExtResource("6_c01ep")
+mesh = ExtResource("3_rb2en")
+
+[node name="Slab" type="MeshInstance3D" parent="NorthFacades/Block00" unique_id=1808844276]
+transform = Transform3D(66, 0, 0, 0, 71, 0, 0, 0, 46, 300, 59.5, -112)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Cornice" type="MeshInstance3D" parent="NorthFacades/Block00" unique_id=1598532893]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 50, 300, 96.5, -112)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Crown" type="MeshInstance3D" parent="NorthFacades/Block00" unique_id=1182468887]
+transform = Transform3D(30, 0, 0, 0, 23, 0, 0, 0, 22, 290, 109.5, -122)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Block01" type="Node3D" parent="NorthFacades" unique_id=873104769]
+
+[node name="Podium" type="MeshInstance3D" parent="NorthFacades/Block01" unique_id=1301263870]
+transform = Transform3D(66, 0, 0, 0, 33, 0, 0, 0, 52, 225, -23.5, -112)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col3" type="MeshInstance3D" parent="NorthFacades/Block01" unique_id=218711359]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 198, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col21" type="MeshInstance3D" parent="NorthFacades/Block01" unique_id=1423598360]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 216, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col39" type="MeshInstance3D" parent="NorthFacades/Block01" unique_id=471508239]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 234, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col57" type="MeshInstance3D" parent="NorthFacades/Block01" unique_id=878333196]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 252, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Lobby" type="MeshInstance3D" parent="NorthFacades/Block01" unique_id=76382715]
+transform = Transform3D(58, 0, 0, 0, 31, 0, 0, 0, 30, 225, 8.5, -120)
+material_override = ExtResource("6_c01ep")
+mesh = ExtResource("3_rb2en")
+
+[node name="Slab" type="MeshInstance3D" parent="NorthFacades/Block01" unique_id=624123791]
+transform = Transform3D(66, 0, 0, 0, 116, 0, 0, 0, 46, 225, 82, -112)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Cornice" type="MeshInstance3D" parent="NorthFacades/Block01" unique_id=902457282]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 50, 225, 141.5, -112)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Crown" type="MeshInstance3D" parent="NorthFacades/Block01" unique_id=2106948390]
+transform = Transform3D(30, 0, 0, 0, 35, 0, 0, 0, 22, 235, 160.5, -122)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Block02" type="Node3D" parent="NorthFacades" unique_id=313329384]
+
+[node name="Podium" type="MeshInstance3D" parent="NorthFacades/Block02" unique_id=599579624]
+transform = Transform3D(66, 0, 0, 0, 33, 0, 0, 0, 52, 150, -23.5, -112)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col3" type="MeshInstance3D" parent="NorthFacades/Block02" unique_id=1128317555]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 123, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col21" type="MeshInstance3D" parent="NorthFacades/Block02" unique_id=1657138092]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 141, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col39" type="MeshInstance3D" parent="NorthFacades/Block02" unique_id=1816090890]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 159, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col57" type="MeshInstance3D" parent="NorthFacades/Block02" unique_id=494058999]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 177, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Lobby" type="MeshInstance3D" parent="NorthFacades/Block02" unique_id=386913124]
+transform = Transform3D(58, 0, 0, 0, 31, 0, 0, 0, 30, 150, 8.5, -120)
+material_override = ExtResource("6_c01ep")
+mesh = ExtResource("3_rb2en")
+
+[node name="Slab" type="MeshInstance3D" parent="NorthFacades/Block02" unique_id=1823225656]
+transform = Transform3D(66, 0, 0, 0, 94, 0, 0, 0, 46, 150, 71, -112)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Cornice" type="MeshInstance3D" parent="NorthFacades/Block02" unique_id=1920361377]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 50, 150, 119.5, -112)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Crown" type="MeshInstance3D" parent="NorthFacades/Block02" unique_id=1807269702]
+transform = Transform3D(30, 0, 0, 0, 47, 0, 0, 0, 22, 140, 144.5, -122)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Block03" type="Node3D" parent="NorthFacades" unique_id=1966120720]
+
+[node name="Podium" type="MeshInstance3D" parent="NorthFacades/Block03" unique_id=215097248]
+transform = Transform3D(66, 0, 0, 0, 33, 0, 0, 0, 52, 30, -23.5, -112)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col3" type="MeshInstance3D" parent="NorthFacades/Block03" unique_id=958290963]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 3, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col21" type="MeshInstance3D" parent="NorthFacades/Block03" unique_id=2003970894]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 21, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col39" type="MeshInstance3D" parent="NorthFacades/Block03" unique_id=860138796]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 39, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col57" type="MeshInstance3D" parent="NorthFacades/Block03" unique_id=1755910369]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, 57, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Lobby" type="MeshInstance3D" parent="NorthFacades/Block03" unique_id=1430686673]
+transform = Transform3D(58, 0, 0, 0, 31, 0, 0, 0, 30, 30, 8.5, -120)
+material_override = ExtResource("6_c01ep")
+mesh = ExtResource("3_rb2en")
+
+[node name="Slab" type="MeshInstance3D" parent="NorthFacades/Block03" unique_id=81822721]
+transform = Transform3D(66, 0, 0, 0, 141, 0, 0, 0, 46, 30, 94.5, -112)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Cornice" type="MeshInstance3D" parent="NorthFacades/Block03" unique_id=1373533607]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 50, 30, 166.5, -112)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Crown" type="MeshInstance3D" parent="NorthFacades/Block03" unique_id=1082311212]
+transform = Transform3D(30, 0, 0, 0, 23, 0, 0, 0, 22, 40, 179.5, -122)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Block04" type="Node3D" parent="NorthFacades" unique_id=751204575]
+
+[node name="Podium" type="MeshInstance3D" parent="NorthFacades/Block04" unique_id=1675767490]
+transform = Transform3D(66, 0, 0, 0, 33, 0, 0, 0, 52, -45, -23.5, -112)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col3" type="MeshInstance3D" parent="NorthFacades/Block04" unique_id=1031655337]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -72, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col21" type="MeshInstance3D" parent="NorthFacades/Block04" unique_id=551322259]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -54, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col39" type="MeshInstance3D" parent="NorthFacades/Block04" unique_id=1998714804]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -36, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col57" type="MeshInstance3D" parent="NorthFacades/Block04" unique_id=664237438]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -18, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Lobby" type="MeshInstance3D" parent="NorthFacades/Block04" unique_id=269849984]
+transform = Transform3D(58, 0, 0, 0, 31, 0, 0, 0, 30, -45, 8.5, -120)
+material_override = ExtResource("6_c01ep")
+mesh = ExtResource("3_rb2en")
+
+[node name="Slab" type="MeshInstance3D" parent="NorthFacades/Block04" unique_id=1017222037]
+transform = Transform3D(66, 0, 0, 0, 104, 0, 0, 0, 46, -45, 76, -112)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Cornice" type="MeshInstance3D" parent="NorthFacades/Block04" unique_id=899877358]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 50, -45, 129.5, -112)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Crown" type="MeshInstance3D" parent="NorthFacades/Block04" unique_id=1802483643]
+transform = Transform3D(30, 0, 0, 0, 35, 0, 0, 0, 22, -55, 148.5, -122)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Block05" type="Node3D" parent="NorthFacades" unique_id=1872543621]
+
+[node name="Podium" type="MeshInstance3D" parent="NorthFacades/Block05" unique_id=303272192]
+transform = Transform3D(66, 0, 0, 0, 33, 0, 0, 0, 52, -230, -23.5, -112)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col3" type="MeshInstance3D" parent="NorthFacades/Block05" unique_id=202513445]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -257, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col21" type="MeshInstance3D" parent="NorthFacades/Block05" unique_id=1253903008]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -239, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col39" type="MeshInstance3D" parent="NorthFacades/Block05" unique_id=980458007]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -221, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col57" type="MeshInstance3D" parent="NorthFacades/Block05" unique_id=1153929008]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -203, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Lobby" type="MeshInstance3D" parent="NorthFacades/Block05" unique_id=1683928607]
+transform = Transform3D(58, 0, 0, 0, 31, 0, 0, 0, 30, -230, 8.5, -120)
+material_override = ExtResource("6_c01ep")
+mesh = ExtResource("3_rb2en")
+
+[node name="Slab" type="MeshInstance3D" parent="NorthFacades/Block05" unique_id=716074537]
+transform = Transform3D(66, 0, 0, 0, 126, 0, 0, 0, 46, -230, 87, -112)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Cornice" type="MeshInstance3D" parent="NorthFacades/Block05" unique_id=1863589169]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 50, -230, 151.5, -112)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Crown" type="MeshInstance3D" parent="NorthFacades/Block05" unique_id=711952205]
+transform = Transform3D(30, 0, 0, 0, 47, 0, 0, 0, 22, -220, 176.5, -122)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Block06" type="Node3D" parent="NorthFacades" unique_id=867031505]
+
+[node name="Podium" type="MeshInstance3D" parent="NorthFacades/Block06" unique_id=809408625]
+transform = Transform3D(66, 0, 0, 0, 33, 0, 0, 0, 52, -305, -23.5, -112)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col3" type="MeshInstance3D" parent="NorthFacades/Block06" unique_id=1028327642]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -332, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col21" type="MeshInstance3D" parent="NorthFacades/Block06" unique_id=836121905]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -314, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col39" type="MeshInstance3D" parent="NorthFacades/Block06" unique_id=1888147700]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -296, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Col57" type="MeshInstance3D" parent="NorthFacades/Block06" unique_id=918035116]
+transform = Transform3D(2.5, 0, 0, 0, 31, 0, 0, 0, 2.5, -278, 8.5, -92)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Lobby" type="MeshInstance3D" parent="NorthFacades/Block06" unique_id=879357669]
+transform = Transform3D(58, 0, 0, 0, 31, 0, 0, 0, 30, -305, 8.5, -120)
+material_override = ExtResource("6_c01ep")
+mesh = ExtResource("3_rb2en")
+
+[node name="Slab" type="MeshInstance3D" parent="NorthFacades/Block06" unique_id=2123837361]
+transform = Transform3D(66, 0, 0, 0, 86, 0, 0, 0, 46, -305, 67, -112)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Cornice" type="MeshInstance3D" parent="NorthFacades/Block06" unique_id=403431341]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 50, -305, 111.5, -112)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Crown" type="MeshInstance3D" parent="NorthFacades/Block06" unique_id=728980475]
+transform = Transform3D(30, 0, 0, 0, 23, 0, 0, 0, 22, -315, 124.5, -122)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="SkyBridgeA" type="MeshInstance3D" parent="NorthFacades" unique_id=1129197789]
+transform = Transform3D(60, 0, 0, 0, 8, 0, 0, 0, 12, 90, 100, -104)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="SkyBridgeB" type="MeshInstance3D" parent="NorthFacades" unique_id=557318937]
+transform = Transform3D(120, 0, 0, 0, 8, 0, 0, 0, 12, -137, 74, -104)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="BayFront" type="Node3D" parent="." unique_id=1124510937]
+
+[node name="Pavilion0" type="MeshInstance3D" parent="BayFront" unique_id=1070122672]
+transform = Transform3D(54, 0, 0, 0, 31, 0, 0, 0, 26, 320, -24.5, 84)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Mast0" type="MeshInstance3D" parent="BayFront" unique_id=294184942]
+transform = Transform3D(2, 0, 0, 0, 36, 0, 0, 0, 2, 350, 12, 98)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Pavilion1" type="MeshInstance3D" parent="BayFront" unique_id=358034262]
+transform = Transform3D(54, 0, 0, 0, 31, 0, 0, 0, 26, 180, -24.5, 84)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Canopy1" type="MeshInstance3D" parent="BayFront" unique_id=185292570]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 40, 180, -7.5, 84)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Mast1" type="MeshInstance3D" parent="BayFront" unique_id=682283710]
+transform = Transform3D(2, 0, 0, 0, 36, 0, 0, 0, 2, 210, 12, 98)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Pavilion2" type="MeshInstance3D" parent="BayFront" unique_id=2024230084]
+transform = Transform3D(54, 0, 0, 0, 31, 0, 0, 0, 26, 40, -24.5, 84)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Canopy2" type="MeshInstance3D" parent="BayFront" unique_id=505508110]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 40, 40, -7.5, 84)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Mast2" type="MeshInstance3D" parent="BayFront" unique_id=19812656]
+transform = Transform3D(2, 0, 0, 0, 36, 0, 0, 0, 2, 70, 12, 98)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Pavilion4" type="MeshInstance3D" parent="BayFront" unique_id=2063280502]
+transform = Transform3D(54, 0, 0, 0, 31, 0, 0, 0, 26, -240, -24.5, 84)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Canopy4" type="MeshInstance3D" parent="BayFront" unique_id=2020932775]
+transform = Transform3D(70, 0, 0, 0, 3, 0, 0, 0, 40, -240, -7.5, 84)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Mast4" type="MeshInstance3D" parent="BayFront" unique_id=1690496310]
+transform = Transform3D(2, 0, 0, 0, 36, 0, 0, 0, 2, -210, 12, 98)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="Gate" type="Node3D" parent="." unique_id=144743185]
+
+[node name="TowerN" type="MeshInstance3D" parent="Gate" unique_id=620081474]
+transform = Transform3D(58, 0, 0, 0, 276, 0, 0, 0, 58, -120, 98, -82)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="TowerNCrown" type="MeshInstance3D" parent="Gate" unique_id=310537878]
+transform = Transform3D(40, 0, 0, 0, 26, 0, 0, 0, 40, -120, 249, -82)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="TowerS" type="MeshInstance3D" parent="Gate" unique_id=899797738]
+transform = Transform3D(58, 0, 0, 0, 236, 0, 0, 0, 58, -120, 78, 80)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="TowerSCrown" type="MeshInstance3D" parent="Gate" unique_id=349371442]
+transform = Transform3D(40, 0, 0, 0, 18, 0, 0, 0, 40, -120, 205, 80)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")
+
+[node name="Hall" type="MeshInstance3D" parent="Gate" unique_id=134929984]
+transform = Transform3D(46, 0, 0, 0, 34, 0, 0, 0, 112, -120, 47.709415, 0)
+material_override = ExtResource("5_md13w")
+mesh = ExtResource("3_rb2en")
+
+[node name="HallGlaze" type="MeshInstance3D" parent="Gate" unique_id=1748728197]
+transform = Transform3D(48, 0, 0, 0, 22, 0, 0, 0, 104, -120, 47.709415, 0)
+material_override = ExtResource("6_c01ep")
+mesh = ExtResource("3_rb2en")
+
+[node name="HallSoffit" type="MeshInstance3D" parent="Gate" unique_id=378028369]
+transform = Transform3D(40, 0, 0, 0, 3.0000007, 0, 0, 0, 108, -120, 29.209415, 0)
+material_override = ExtResource("4_v6fj5")
+mesh = ExtResource("3_rb2en")
+
+[node name="SkyBridge" type="MeshInstance3D" parent="Gate" unique_id=336341527]
+transform = Transform3D(18, 0, 0, 0, 7, 0, 0, 0, 112, -120, 153.5, 0)
+material_override = ExtResource("1_6gbpf")
+mesh = ExtResource("3_rb2en")

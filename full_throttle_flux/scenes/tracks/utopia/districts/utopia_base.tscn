@@ -1,0 +1,3045 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_water.tres" id="1_hqce3"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="2_4wvb0"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="3_4c0n2"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="4_1j8oi"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="5_7l37o"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_taper.tres" id="6_huhhn"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="7_d6mrk"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_dark.tres" id="8_8sdk8"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cone.tres" id="9_5xwvd"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_floor.tres" id="10_4wvb0"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl16.tres" id="10_ts3pq"]
+
+[node name="Utopia_Base" type="Node3D" unique_id=1399247945]
+
+[node name="Water" type="MeshInstance3D" parent="." unique_id=4006356]
+transform = Transform3D(9000, 0, 0, 0, 2, 0, 0, 0, 9000, -350, -41, -350)
+material_override = ExtResource("1_hqce3")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Spire" type="Node3D" parent="." unique_id=1286820008]
+
+[node name="Podium1" type="MeshInstance3D" parent="Spire" unique_id=68804047]
+transform = Transform3D(240, 0, 0, 0, 30, 0, 0, 0, 240, -720, -25, -70)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("4_1j8oi")
+
+[node name="Podium2" type="MeshInstance3D" parent="Spire" unique_id=151424892]
+transform = Transform3D(184, 0, 0, 0, 22, 0, 0, 0, 184, -720, 1, -70)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("4_1j8oi")
+
+[node name="Podium3" type="MeshInstance3D" parent="Spire" unique_id=393643426]
+transform = Transform3D(140, 0, 0, 0, 14, 0, 0, 0, 140, -720, 19, -70)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("4_1j8oi")
+
+[node name="Fin0" type="MeshInstance3D" parent="Spire" unique_id=2070095863]
+transform = Transform3D(7.071068, 0, 49.497475, 0, 190, 0, -7.071068, 0, 49.497475, -683.23047, 107, -33.23045)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Fin1" type="MeshInstance3D" parent="Spire" unique_id=1235857609]
+transform = Transform3D(-7.071068, 0, 49.497475, 0, 190, 0, -7.071068, 0, -49.497475, -683.23047, 107, -106.76955)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Fin2" type="MeshInstance3D" parent="Spire" unique_id=1862882675]
+transform = Transform3D(-7.0710683, 0, -49.49747, 0, 190, 0, 7.071067, 0, -49.49748, -756.76953, 107, -106.769554)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Fin3" type="MeshInstance3D" parent="Spire" unique_id=1140676815]
+transform = Transform3D(7.0710664, 0, -49.497482, 0, 190, 0, 7.071069, 0, 49.497467, -756.76953, 107, -33.230453)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Shaft" type="MeshInstance3D" parent="Spire" unique_id=1635597484]
+transform = Transform3D(68, 0, 0, 0, 300, 0, 0, 0, 68, -720, 176, -70)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("6_huhhn")
+
+[node name="Collar1" type="MeshInstance3D" parent="Spire" unique_id=1217137441]
+transform = Transform3D(92, 0, 0, 0, 8, 0, 0, 0, 92, -720, 134, -70)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="Crown" type="MeshInstance3D" parent="Spire" unique_id=623226446]
+transform = Transform3D(116, 0, 0, 0, 14, 0, 0, 0, 116, -720, 297, -70)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="CrownGlass" type="MeshInstance3D" parent="Spire" unique_id=1960325056]
+transform = Transform3D(96, 0, 0, 0, 18, 0, 0, 0, 96, -720, 313, -70)
+material_override = ExtResource("8_8sdk8")
+mesh = ExtResource("4_1j8oi")
+
+[node name="CrownTop" type="MeshInstance3D" parent="Spire" unique_id=1368578724]
+transform = Transform3D(108, 0, 0, 0, 6, 0, 0, 0, 108, -720, 325, -70)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="Upper" type="MeshInstance3D" parent="Spire" unique_id=1811952652]
+transform = Transform3D(32, 0, 0, 0, 120, 0, 0, 0, 32, -720, 388, -70)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("6_huhhn")
+
+[node name="Needle" type="MeshInstance3D" parent="Spire" unique_id=409257833]
+transform = Transform3D(8, 0, 0, 0, 140, 0, 0, 0, 8, -720, 518, -70)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("9_5xwvd")
+
+[node name="Fabric" type="Node3D" parent="." unique_id=241599804]
+
+[node name="Band_tower_175" type="Node3D" parent="Fabric" unique_id=1718838327]
+
+[node name="T000" type="Node3D" parent="Fabric/Band_tower_175" unique_id=483112441]
+
+[node name="T001" type="Node3D" parent="Fabric/Band_tower_175" unique_id=1537208876]
+
+[node name="T002" type="Node3D" parent="Fabric/Band_tower_175" unique_id=1626490952]
+
+[node name="T003" type="Node3D" parent="Fabric/Band_tower_175" unique_id=198163339]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_175/T003" unique_id=1534384490]
+transform = Transform3D(28.389456, 0, -68.53821, 0, 27.255928, 0, 68.53821, 0, 28.389456, -934.802, -26.372038, 18.973898)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Lower" type="MeshInstance3D" parent="Fabric/Band_tower_175/T003" unique_id=1781249078]
+transform = Transform3D(18.93879, 0, -36.577827, 0, 66.00001, 0, 45.722282, 0, 15.151032, -934.802, 20.255924, 18.973898)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Upper" type="MeshInstance3D" parent="Fabric/Band_tower_175/T003" unique_id=1829141663]
+transform = Transform3D(12.120826, 0, -29.262262, 0, 54.000008, 0, 29.262262, 0, 12.120826, -934.802, 80.25592, 18.973898)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Slot" type="MeshInstance3D" parent="Fabric/Band_tower_175/T003" unique_id=1830898498]
+transform = Transform3D(19.696342, 0, -3.6955183, 0, 46.000004, 0, 47.551178, 0, 1.5307338, -934.802, 20.255924, 18.973898)
+material_override = ExtResource("8_8sdk8")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T004" type="Node3D" parent="Fabric/Band_tower_175" unique_id=633171363]
+
+[node name="T005" type="Node3D" parent="Fabric/Band_tower_175" unique_id=198375379]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_175/T005" unique_id=839659663]
+transform = Transform3D(-68.53821, 0, -28.389446, 0, 23.868837, 0, 28.389446, 0, -68.53821, -808.9739, -28.065582, -284.802)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Lower" type="MeshInstance3D" parent="Fabric/Band_tower_175/T005" unique_id=1762256343]
+transform = Transform3D(-42.795223, 0, -14.181085, 0, 152.4557, 0, 17.726357, 0, -34.236176, -808.9739, 60.096687, -284.802)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Upper" type="MeshInstance3D" parent="Fabric/Band_tower_175/T005" unique_id=924975812]
+transform = Transform3D(-27.388943, 0, -11.344868, 0, 124.73648, 0, 11.344868, 0, -27.388943, -808.9739, 198.69278, -284.802)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Slot" type="MeshInstance3D" parent="Fabric/Band_tower_175/T005" unique_id=1911635419]
+transform = Transform3D(-44.50703, 0, -1.5307333, 0, 132.4557, 0, 18.43541, 0, -3.6955183, -808.9739, 60.096687, -284.802)
+material_override = ExtResource("8_8sdk8")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T006" type="Node3D" parent="Fabric/Band_tower_175" unique_id=831175303]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_175/T006" unique_id=568575567]
+transform = Transform3D(-68.53821, 0, 28.389446, 0, 24.049335, 0, -28.389446, 0, -68.53821, -631.0261, -27.975332, -284.802)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Shaft" type="MeshInstance3D" parent="Fabric/Band_tower_175/T006" unique_id=2085542974]
+transform = Transform3D(-31.595036, 0, 13.087089, 0, 338.9239, 0, -13.087089, 0, -31.595036, -631.0261, 153.51128, -284.802)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Crown" type="MeshInstance3D" parent="Fabric/Band_tower_175/T006" unique_id=1855480135]
+transform = Transform3D(-22.116526, 0, 9.160963, 0, 23.999989, 0, -9.160963, 0, -22.116526, -631.0261, 334.97324, -284.802)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Glaze" type="MeshInstance3D" parent="Fabric/Band_tower_175/T006" unique_id=2034659940]
+transform = Transform3D(-32.518917, 0, 7.8522534, 0, 35.99999, 0, -13.469772, 0, -18.957022, -631.0261, 294.97324, -284.802)
+material_override = ExtResource("8_8sdk8")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T007" type="Node3D" parent="Fabric/Band_tower_175" unique_id=1186848942]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_175/T007" unique_id=1641137901]
+transform = Transform3D(-28.389452, 0, 68.53821, 0, 22.748396, 0, -68.53821, 0, -28.389452, -505.198, -28.625801, -158.97389)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Lower" type="MeshInstance3D" parent="Fabric/Band_tower_175/T007" unique_id=1867167456]
+transform = Transform3D(-18.792835, 0, 36.29594, 0, 165.45905, 0, -45.369926, 0, -15.034269, -505.198, 65.47792, -158.97389)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Upper" type="MeshInstance3D" parent="Fabric/Band_tower_175/T007" unique_id=222850039]
+transform = Transform3D(-12.027415, 0, 29.036753, 0, 135.3756, 0, -29.036753, 0, -12.027415, -505.198, 215.89523, -158.97389)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Slot" type="MeshInstance3D" parent="Fabric/Band_tower_175/T007" unique_id=2125260269]
+transform = Transform3D(-19.54455, 0, 3.6955183, 0, 145.45905, 0, -47.184723, 0, -1.5307336, -505.198, 65.47792, -158.97389)
+material_override = ExtResource("8_8sdk8")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Band_tower_310" type="Node3D" parent="Fabric" unique_id=1223106092]
+
+[node name="T008" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1888416283]
+
+[node name="T009" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1352944305]
+
+[node name="T010" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1121989813]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_310/T010" unique_id=469680854]
+transform = Transform3D(60.94777, 0, 38.00279, 0, 29.45666, 0, -38.00279, 0, 60.94777, -526.8778, -25.271671, 239.72379)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Shaft" type="MeshInstance3D" parent="Fabric/Band_tower_310/T010" unique_id=1398412434]
+transform = Transform3D(34.455036, 0, 0, 0, 120, 0, 0, 0, 34.455036, -526.8778, 49.456657, 239.72379)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("6_huhhn")
+
+[node name="Disc" type="MeshInstance3D" parent="Fabric/Band_tower_310/T010" unique_id=615465294]
+transform = Transform3D(42.724247, 0, 0, 0, 6, 0, 0, 0, 42.724247, -526.8778, 78.85666, 239.72379)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="T011" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1560949038]
+
+[node name="T012" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1374525141]
+
+[node name="T013" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1146383654]
+
+[node name="T014" type="Node3D" parent="Fabric/Band_tower_310" unique_id=536075754]
+
+[node name="T015" type="Node3D" parent="Fabric/Band_tower_310" unique_id=42591801]
+
+[node name="T016" type="Node3D" parent="Fabric/Band_tower_310" unique_id=168026788]
+
+[node name="T017" type="Node3D" parent="Fabric/Band_tower_310" unique_id=524649821]
+
+[node name="T018" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1747037751]
+
+[node name="T019" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1079476216]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_310/T019" unique_id=765060639]
+transform = Transform3D(-69.96861, 0, -16.224552, 0, 34.581913, 0, 16.224552, 0, -69.96861, -802.44977, -22.709045, -425.5658)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Shaft" type="MeshInstance3D" parent="Fabric/Band_tower_310/T019" unique_id=1659315700]
+transform = Transform3D(-34.878654, 0, -8.087777, 0, 120.000015, 0, 8.087777, 0, -34.878654, -802.44977, 54.58191, -425.5658)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Crown" type="MeshInstance3D" parent="Fabric/Band_tower_310/T019" unique_id=49002993]
+transform = Transform3D(-24.415056, 0, -5.6614437, 0, 24.000004, 0, 5.6614437, 0, -24.415056, -802.44977, 126.58191, -425.5658)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Glaze" type="MeshInstance3D" parent="Fabric/Band_tower_310/T019" unique_id=767632825]
+transform = Transform3D(-35.852806, 0, -4.8526664, 0, 36.000004, 0, 8.313667, 0, -20.927193, -802.44977, 86.58191, -425.5658)
+material_override = ExtResource("8_8sdk8")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T020" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1965806792]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_310/T020" unique_id=1652489133]
+transform = Transform3D(-69.96861, 0, 16.224552, 0, 37.87946, 0, -16.224552, 0, -69.96861, -637.55023, -21.060272, -425.5658)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Shaft" type="MeshInstance3D" parent="Fabric/Band_tower_310/T020" unique_id=348692638]
+transform = Transform3D(-29.853281, 0, 6.9224772, 0, 151.80627, 0, -6.9224772, 0, -29.853281, -637.55023, 73.782585, -425.5658)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Crown" type="MeshInstance3D" parent="Fabric/Band_tower_310/T020" unique_id=1483731997]
+transform = Transform3D(-20.897295, 0, 4.8457336, 0, 24.000004, 0, -4.8457336, 0, -20.897295, -637.55023, 161.68571, -425.5658)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Glaze" type="MeshInstance3D" parent="Fabric/Band_tower_310/T020" unique_id=1669377168]
+transform = Transform3D(-30.827435, 0, 4.1534863, 0, 36.000004, 0, -7.148367, 0, -17.911968, -637.55023, 121.685715, -425.5658)
+material_override = ExtResource("8_8sdk8")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T021" type="Node3D" parent="Fabric/Band_tower_310" unique_id=406378373]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_310/T021" unique_id=1656670342]
+transform = Transform3D(-60.94777, 0, 38.00279, 0, 26.84924, 0, -38.00279, 0, -60.94777, -526.8778, -26.57538, -379.7238)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Shaft" type="MeshInstance3D" parent="Fabric/Band_tower_310/T021" unique_id=1109836956]
+transform = Transform3D(34.13956, 0, 0, 0, 169.78604, 0, 0, 0, 34.13956, -526.8778, 71.74226, -379.7238)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("6_huhhn")
+
+[node name="Disc" type="MeshInstance3D" parent="Fabric/Band_tower_310/T021" unique_id=138828848]
+transform = Transform3D(42.333054, 0, 0, 0, 6, 0, 0, 0, 42.333054, -526.8778, 112.09519, -379.7238)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="T022" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1706553549]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_310/T022" unique_id=1141638835]
+transform = Transform3D(-38.002785, 0, 60.947773, 0, 29.050558, 0, -60.947773, 0, -38.002785, -410.2762, -25.47472, -263.12216)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Lower" type="MeshInstance3D" parent="Fabric/Band_tower_310/T022" unique_id=869572378]
+transform = Transform3D(-21.920109, 0, 28.123875, 0, 118.256226, 0, -35.154842, 0, -17.536087, -410.2762, 48.178673, -263.12216)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Upper" type="MeshInstance3D" parent="Fabric/Band_tower_310/T022" unique_id=1730313438]
+transform = Transform3D(-14.02887, 0, 22.4991, 0, 96.7551, 0, -22.4991, 0, -14.02887, -410.2762, 155.68433, -263.12216)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Slot" type="MeshInstance3D" parent="Fabric/Band_tower_310/T022" unique_id=2065216526]
+transform = Transform3D(-22.796913, 0, 3.3942335, 0, 98.256226, 0, -36.561035, 0, -2.1164074, -410.2762, 48.178673, -263.12216)
+material_override = ExtResource("8_8sdk8")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T023" type="Node3D" parent="Fabric/Band_tower_310" unique_id=1530204091]
+
+[node name="Podium" type="MeshInstance3D" parent="Fabric/Band_tower_310/T023" unique_id=1971954679]
+transform = Transform3D(-16.224558, 0, 69.968605, 0, 26.940838, 0, -69.968605, 0, -16.224558, -364.4342, -26.529581, -152.4498)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Shaft" type="MeshInstance3D" parent="Fabric/Band_tower_310/T023" unique_id=1725472615]
+transform = Transform3D(32.15054, 0, 0, 0, 120, 0, 0, 0, 32.15054, -364.4342, 46.940838, -152.4498)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("6_huhhn")
+
+[node name="Disc" type="MeshInstance3D" parent="Fabric/Band_tower_310/T023" unique_id=1173089932]
+transform = Transform3D(39.86667, 0, 0, 0, 6, 0, 0, 0, 39.86667, -364.4342, 76.340836, -152.4498)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="Band_court_455" type="Node3D" parent="Fabric" unique_id=218487849]
+
+[node name="C024" type="Node3D" parent="Fabric/Band_court_455" unique_id=693045624]
+
+[node name="C025" type="Node3D" parent="Fabric/Band_court_455" unique_id=1078633172]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C025" unique_id=122170798]
+transform = Transform3D(-16.62983, 0, 32.7063, 0, 25.452099, 0, -6.888307, 0, -78.95992, -293.14175, -27.273952, 106.81047)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C025" unique_id=1598936882]
+transform = Transform3D(-16.629831, 0, 48.706974, 0, 67.8057, 0, -6.888302, 0, -117.58904, -84.31239, -6.0971527, 193.31042)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C025" unique_id=1007773496]
+transform = Transform3D(-5.6665044, 0, -198.37363, 0, 25.69803, 0, 17.08481, 0, -65.79441, -171.86235, -27.150986, 111.800354)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C025" unique_id=532491162]
+transform = Transform3D(-8.073961, 0, -186.79503, 0, 63.80569, 0, 16.087608, 0, -93.74767, -203.85588, -8.097155, 189.03958)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_455/C025" unique_id=1004757507]
+transform = Transform3D(9.775208, 0, 28.362745, 0, 123.69491, 0, -28.362745, 0, 9.775208, -79.00197, 21.847454, 150.91972)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C026" type="Node3D" parent="Fabric/Band_court_455" unique_id=2121582083]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C026" unique_id=1265248953]
+transform = Transform3D(-14.599731, 0, 55.135136, 0, 74.13618, 0, -10.528431, 0, -76.45566, -345.59793, -2.9319115, 199.99585)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C026" unique_id=373548676]
+transform = Transform3D(-15.116249, 0, 38.155457, 0, 74.13618, 0, -9.772362, 0, -59.020264, -140.45485, -2.9319115, 304.66467)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C026" unique_id=1855475274]
+transform = Transform3D(-14.045429, 0, 43.953125, 0, 74.13618, 0, -11.25726, 0, -54.839325, -181.50914, -2.9319115, 361.59448)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C026" unique_id=1199151735]
+transform = Transform3D(-9.2976675, 0, -178.95937, 0, 70.136185, 0, 15.412768, 0, -107.956245, -225.50708, -4.9319115, 228.30017)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C026" unique_id=612774681]
+transform = Transform3D(-11.688494, 0, -158.94043, 0, 70.13618, 0, 13.688649, 0, -135.7164, -280.82248, -4.9319115, 305.0058)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C027" type="Node3D" parent="Fabric/Band_court_455" unique_id=219204083]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C027" unique_id=802473894]
+transform = Transform3D(-10.528435, 0, 76.455635, 0, 68.2028, 0, -14.59973, 0, -55.13514, -450.00415, -5.8986053, 304.40207)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C027" unique_id=1711267302]
+transform = Transform3D(-11.25726, 0, 54.839325, 0, 68.20279, 0, -14.045429, 0, -43.953125, -288.40552, -5.8986053, 468.49088)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C027" unique_id=201693934]
+transform = Transform3D(-9.772356, 0, 59.020264, 0, 68.20279, 0, -15.116252, 0, -38.155426, -345.33533, -5.8986053, 509.54517)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C027" unique_id=1754158029]
+transform = Transform3D(-13.688649, 0, -135.7164, 0, 64.20279, 0, 11.688494, 0, -158.94043, -344.9942, -7.8986053, 369.17752)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C027" unique_id=1838609467]
+transform = Transform3D(-15.412768, 0, -107.956245, 0, 64.2028, 0, 9.2976675, 0, -178.95937, -421.69983, -7.8986053, 424.49292)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C028" type="Node3D" parent="Fabric/Band_court_455" unique_id=582092417]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C028" unique_id=295137322]
+transform = Transform3D(-6.8883066, 0, 78.95993, 0, 68.98583, 0, -16.62983, 0, -32.7063, -543.1895, -5.507084, 356.85825)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C028" unique_id=925682695]
+transform = Transform3D(-6.8883023, 0, 117.58902, 0, 68.98583, 0, -16.629831, 0, -48.70697, -456.68958, -5.507084, 565.6876)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C028" unique_id=1433133375]
+transform = Transform3D(-16.087608, 0, -93.74765, 0, 64.98583, 0, 8.07396, 0, -186.79501, -460.9604, -7.507084, 446.1441)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C028" unique_id=1451184300]
+transform = Transform3D(-17.08481, 0, -65.79443, 0, 64.98584, 0, 5.6665063, 0, -198.37364, -538.19965, -7.507084, 478.13763)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C029" type="Node3D" parent="Fabric/Band_court_455" unique_id=412195708]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C029" unique_id=1545305518]
+transform = Transform3D(-2.878845, 0, 93.04877, 0, 66.51602, 0, -17.768293, 0, -15.075897, -646.1737, -6.741989, 385.65814)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C029" unique_id=1720415997]
+transform = Transform3D(-3.7787018, 0, 68.71362, 0, 66.51603, 0, -17.598904, 0, -14.753662, -575.1276, -6.741989, 604.7282)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C029" unique_id=1735457340]
+transform = Transform3D(-1.9715462, 0, 69.85682, 0, 66.51603, 0, -17.891703, 0, -7.697755, -644.41284, -6.741989, 615.9539)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C029" unique_id=250561214]
+transform = Transform3D(-17.472916, 0, -50.20679, 0, 62.516026, 0, 4.3240294, 0, -202.87999, -581.27075, -8.741991, 490.58936)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C029" unique_id=1011111834]
+transform = Transform3D(-17.944351, 0, -16.421877, 0, 62.516026, 0, 1.4143243, 0, -208.35387, -674.6237, -8.741991, 505.71454)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C030" type="Node3D" parent="Fabric/Band_court_455" unique_id=1548980910]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C030" unique_id=898946604]
+transform = Transform3D(2.878845, 0, 93.04877, 0, 68.2575, 0, -17.768293, 0, 15.075897, -793.8263, -5.87125, 385.65814)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C030" unique_id=1707195581]
+transform = Transform3D(1.9715462, 0, 69.85682, 0, 68.25751, 0, -17.891703, 0, 7.697755, -795.58716, -5.87125, 615.9539)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C030" unique_id=200468831]
+transform = Transform3D(3.7787018, 0, 68.71362, 0, 68.25751, 0, -17.598904, 0, 14.753662, -864.8724, -5.87125, 604.7282)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C030" unique_id=948051990]
+transform = Transform3D(-17.944351, 0, 16.421877, 0, 64.25751, 0, -1.4143243, 0, -208.35387, -765.3763, -7.87125, 505.71454)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C030" unique_id=806536418]
+transform = Transform3D(-17.472916, 0, 50.20679, 0, 64.25751, 0, -4.3240294, 0, -202.87999, -858.72925, -7.87125, 490.58936)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C031" type="Node3D" parent="Fabric/Band_court_455" unique_id=1787038381]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C031" unique_id=1789437394]
+transform = Transform3D(6.888304, 0, 78.95996, 0, 66.52642, 0, -16.629831, 0, 32.706303, -896.8105, -6.7367935, 356.85825)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C031" unique_id=1215287957]
+transform = Transform3D(6.8883004, 0, 117.58905, 0, 66.52641, 0, -16.629831, 0, 48.70697, -983.3104, -6.7367935, 565.6876)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C031" unique_id=1596505695]
+transform = Transform3D(-17.08481, 0, 65.79443, 0, 62.52642, 0, -5.6665063, 0, -198.37364, -901.80035, -8.7367935, 478.13763)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C031" unique_id=1148197132]
+transform = Transform3D(-16.087608, 0, 93.74768, 0, 62.526413, 0, -8.073962, 0, -186.79501, -979.0396, -8.7367935, 446.1441)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C032" type="Node3D" parent="Fabric/Band_court_455" unique_id=136043357]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C032" unique_id=724326531]
+transform = Transform3D(10.528435, 0, 76.455635, 0, 67.854546, 0, -14.59973, 0, 55.13514, -989.99585, -6.072731, 304.40207)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C032" unique_id=1073826588]
+transform = Transform3D(9.772356, 0, 59.020264, 0, 67.85454, 0, -15.116252, 0, 38.155426, -1094.6647, -6.072731, 509.54517)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C032" unique_id=1651136325]
+transform = Transform3D(11.257256, 0, 54.839355, 0, 67.85454, 0, -14.045433, 0, 43.953125, -1151.5945, -6.072731, 468.49088)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C032" unique_id=241179508]
+transform = Transform3D(-15.4127655, 0, 107.956314, 0, 63.854546, 0, -9.297671, 0, -178.95937, -1018.3002, -8.072731, 424.49292)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C032" unique_id=675349469]
+transform = Transform3D(-13.688648, 0, 135.71643, 0, 63.854538, 0, -11.688495, 0, -158.94043, -1095.0059, -8.072731, 369.17752)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_455/C032" unique_id=1045748041]
+transform = Transform3D(25.505701, 0, -15.794277, 0, 189.29507, 0, 15.794277, 0, 25.505701, -1076.9507, 54.647537, 506.42886)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C033" type="Node3D" parent="Fabric/Band_court_455" unique_id=1407814141]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C033" unique_id=1840423397]
+transform = Transform3D(14.599731, 0, 55.135136, 0, 66.284164, 0, -10.528431, 0, 76.45566, -1094.4021, -6.857918, 199.99585)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C033" unique_id=1564436106]
+transform = Transform3D(14.045429, 0, 43.953125, 0, 66.284164, 0, -11.25726, 0, 54.839325, -1258.4908, -6.857918, 361.59448)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C033" unique_id=1105332372]
+transform = Transform3D(15.116241, 0, 38.15552, 0, 66.28417, 0, -9.772373, 0, 59.020267, -1299.5452, -6.857918, 304.66467)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C033" unique_id=152061072]
+transform = Transform3D(-11.688494, 0, 158.94043, 0, 62.28417, 0, -13.688649, 0, -135.7164, -1159.1775, -8.857916, 305.0058)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C033" unique_id=165659794]
+transform = Transform3D(-9.2976675, 0, 178.95937, 0, 62.284176, 0, -15.412768, 0, -107.956245, -1214.4929, -8.857916, 228.30017)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_455/C033" unique_id=1151329522]
+transform = Transform3D(32, 0, 0, 0, 188.87503, 0, 0, 0, 32, -1240.6991, 54.437515, 364.23087)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="C034" type="Node3D" parent="Fabric/Band_court_455" unique_id=303463754]
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C034" unique_id=135862793]
+transform = Transform3D(16.62983, 0, 48.707035, 0, 75.271416, 0, -6.888309, 0, 117.58904, -1355.6876, -2.3642921, 193.31042)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C034" unique_id=835698319]
+transform = Transform3D(-8.07396, 0, 186.79504, 0, 71.16937, 0, -16.087608, 0, -93.747665, -1236.144, -4.4153137, 189.03958)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C034" unique_id=822512020]
+transform = Transform3D(-5.6665034, 0, 198.37366, 0, 65.80574, 0, -17.08481, 0, -65.79441, -1268.1377, -7.09713, 111.800354)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_455/C034" unique_id=759736375]
+transform = Transform3D(32, 0, 0, 0, 141.16672, 0, 0, 0, 32, -1329.4679, 30.583359, 227.04022)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="C035" type="Node3D" parent="Fabric/Band_court_455" unique_id=667123695]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C035" unique_id=652702776]
+transform = Transform3D(17.768297, 0, 15.075807, 0, 60.554283, 0, -2.878829, 0, 93.048744, -1175.6582, -9.722862, 3.8263416)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C035" unique_id=854867524]
+transform = Transform3D(17.598904, 0, 14.753662, 0, 66.11234, 0, -3.7787025, 0, 68.71361, -1394.7283, -6.9438324, 74.87238)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C035" unique_id=1501523757]
+transform = Transform3D(17.891706, 0, 7.6976323, 0, 66.11234, 0, -1.9715148, 0, 69.856834, -1405.9539, -6.9438324, 5.587164)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C035" unique_id=510208034]
+transform = Transform3D(-4.324027, 0, 202.88, 0, 61.339157, 0, -17.472918, 0, -50.206764, -1280.5894, -9.330425, 68.72923)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C035" unique_id=786522348]
+transform = Transform3D(-1.4143248, 0, 208.3539, 0, 62.11234, 0, -17.944351, 0, -16.421886, -1295.7146, -8.943834, -24.623745)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C036" type="Node3D" parent="Fabric/Band_court_455" unique_id=1024350149]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C036" unique_id=1763640839]
+transform = Transform3D(17.768297, 0, -15.075807, 0, 67.58469, 0, 2.878829, 0, 93.048744, -1175.6582, -6.2076607, -143.82634)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C036" unique_id=1212541523]
+transform = Transform3D(17.891706, 0, -7.6976323, 0, 67.58469, 0, 1.9715148, 0, 69.856834, -1405.9539, -6.2076607, -145.58716)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C036" unique_id=187258832]
+transform = Transform3D(17.598904, 0, -14.753662, 0, 67.58469, 0, 3.7787025, 0, 68.71361, -1394.7283, -6.2076607, -214.87238)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C036" unique_id=400241247]
+transform = Transform3D(1.4143246, 0, 208.3539, 0, 63.584686, 0, -17.944351, 0, 16.421885, -1295.7146, -8.207661, -115.37625)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C036" unique_id=348207715]
+transform = Transform3D(4.3240275, 0, 202.88, 0, 63.584686, 0, -17.472918, 0, 50.20677, -1280.5894, -8.207661, -208.72922)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C037" type="Node3D" parent="Fabric/Band_court_455" unique_id=192602258]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C037" unique_id=1147236480]
+transform = Transform3D(16.62983, 0, -32.7063, 0, 72.88388, 0, 6.8883066, 0, 78.95993, -1146.8583, -3.5580597, -246.81047)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C037" unique_id=1979936552]
+transform = Transform3D(16.62983, 0, -48.70703, 0, 72.88388, 0, 6.888308, 0, 117.58905, -1355.6876, -3.5580597, -333.31042)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C037" unique_id=365196993]
+transform = Transform3D(5.666506, 0, 198.37366, 0, 68.88388, 0, -17.08481, 0, 65.79443, -1268.1377, -5.5580597, -251.80035)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C037" unique_id=461634670]
+transform = Transform3D(8.073959, 0, 186.79504, 0, 68.88389, 0, -16.08761, 0, 93.74765, -1236.144, -5.5580597, -329.0396)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C038" type="Node3D" parent="Fabric/Band_court_455" unique_id=1637857571]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C038" unique_id=1978150675]
+transform = Transform3D(14.59973, 0, -55.13514, 0, 20.345196, 0, 10.528435, 0, 76.455635, -1094.4021, -29.827404, -339.99585)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C038" unique_id=592981161]
+transform = Transform3D(15.116241, 0, -38.15552, 0, 64.95906, 0, 9.772373, 0, 59.020267, -1299.5452, -7.5204735, -444.66467)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C038" unique_id=306675167]
+transform = Transform3D(14.045433, 0, -43.953125, 0, 64.95905, 0, 11.257256, 0, 54.839355, -1258.4908, -7.5204735, -501.59448)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C038" unique_id=1064975730]
+transform = Transform3D(9.2976675, 0, 178.95937, 0, 60.95906, 0, -15.412768, 0, 107.956245, -1214.4929, -9.5204735, -368.30017)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C038" unique_id=803660843]
+transform = Transform3D(11.688494, 0, 158.94043, 0, 20.503635, 0, -13.688649, 0, 135.7164, -1159.1775, -29.748182, -445.0058)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_455/C038" unique_id=411567370]
+transform = Transform3D(-15.794279, 0, -25.505703, 0, 136.13123, 0, 25.505703, 0, -15.794279, -1296.4288, 28.065605, -426.95065)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C039" type="Node3D" parent="Fabric/Band_court_455" unique_id=676364080]
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C039" unique_id=623675292]
+transform = Transform3D(11.257256, 0, -54.839355, 0, 75.81697, 0, 14.045433, 0, 43.953125, -1151.5945, -2.0915146, -608.49084)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C039" unique_id=218730045]
+transform = Transform3D(9.772362, 0, -59.020264, 0, 39.98126, 0, 15.116249, 0, 38.155457, -1094.6647, -20.00937, -649.54517)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C040" type="Node3D" parent="Fabric/Band_court_455" unique_id=1206732715]
+
+[node name="C041" type="Node3D" parent="Fabric/Band_court_455" unique_id=866250263]
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_455/C041" unique_id=1617315643]
+transform = Transform3D(32, 0, 0, 0, 180.7917, 0, 0, 0, 32, -875.1945, 50.39585, -729.99896)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="C042" type="Node3D" parent="Fabric/Band_court_455" unique_id=907471095]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C042" unique_id=360854775]
+transform = Transform3D(-2.8788393, 0, -93.04877, 0, 73.55445, 0, 17.768295, 0, -15.075868, -646.1737, -3.2227745, -525.6581)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C042" unique_id=746528063]
+transform = Transform3D(-1.9715462, 0, -69.85682, 0, 73.55446, 0, 17.891703, 0, -7.697755, -644.41284, -3.2227745, -755.9539)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C042" unique_id=248702776]
+transform = Transform3D(-3.7787018, 0, -68.71362, 0, 31.419466, 0, 17.598904, 0, -14.753662, -575.1276, -24.290268, -744.7282)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C043" type="Node3D" parent="Fabric/Band_court_455" unique_id=834525030]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C043" unique_id=691072834]
+transform = Transform3D(-6.888301, 0, -78.95993, 0, 68.41841, 0, 16.629833, 0, -32.70627, -543.1895, -5.790798, -496.85822)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C044" type="Node3D" parent="Fabric/Band_court_455" unique_id=605310363]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C044" unique_id=1100584933]
+transform = Transform3D(-10.528435, 0, -76.455635, 0, 66.180046, 0, 14.59973, 0, -55.13514, -450.00415, -6.909981, -444.40207)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C045" type="Node3D" parent="Fabric/Band_court_455" unique_id=1372996629]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C045" unique_id=831541154]
+transform = Transform3D(-14.59973, 0, -55.13514, 0, 69.660706, 0, 10.528435, 0, -76.455635, -345.59793, -5.169651, -339.99585)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C045" unique_id=1947304323]
+transform = Transform3D(-15.116249, 0, -38.155457, 0, 45.38597, 0, 9.772362, 0, -59.020264, -140.45485, -17.307014, -444.66467)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C046" type="Node3D" parent="Fabric/Band_court_455" unique_id=1445155304]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C046" unique_id=1525601230]
+transform = Transform3D(-16.62983, 0, -32.7063, 0, 67.1671, 0, 6.8883066, 0, -78.95993, -293.14175, -6.4164505, -246.81047)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C047" type="Node3D" parent="Fabric/Band_court_455" unique_id=655457521]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C047" unique_id=1492735124]
+transform = Transform3D(-17.768293, 0, -15.075896, 0, 74.18377, 0, 2.8788457, 0, -93.04874, -264.34186, -2.9081154, -143.82634)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_455/C047" unique_id=1209291826]
+transform = Transform3D(-17.598904, 0, -14.753652, 0, 55.2958, 0, 3.7786999, 0, -68.71361, -45.271767, -12.3521, -214.87238)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_455/C047" unique_id=200991574]
+transform = Transform3D(-17.891705, 0, -7.697716, 0, 74.18378, 0, 1.9715362, 0, -69.85683, -34.046085, -2.9081154, -145.58716)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_455/C047" unique_id=42659977]
+transform = Transform3D(4.324028, 0, -202.87999, 0, 55.214176, 0, 17.472916, 0, 50.20677, -159.41063, -12.392912, -208.72922)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_455/C047" unique_id=91332541]
+transform = Transform3D(1.4143248, 0, -208.35387, 0, 70.18378, 0, 17.944351, 0, 16.421883, -144.28545, -4.9081154, -115.37625)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Band_court_735" type="Node3D" parent="Fabric" unique_id=1350791020]
+
+[node name="C048" type="Node3D" parent="Fabric/Band_court_735" unique_id=1899105934]
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C048" unique_id=512953814]
+transform = Transform3D(-17.76322, 0, 12.918383, 0, 25.786598, 0, -2.909987, 0, -78.85673, 242.35391, -27.1067, 87.653564)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C048" unique_id=327332566]
+transform = Transform3D(-3.4185727, 0, -210.10509, 0, 25.81799, 0, 17.67239, 0, -40.643036, 124.34751, -27.091005, 93.33181)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C049" type="Node3D" parent="Fabric/Band_court_735" unique_id=922304931]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C049" unique_id=555459138]
+transform = Transform3D(-17.172441, 0, 33.64087, 0, 48.47676, 0, -5.3951116, 0, -107.077644, -12.227796, -15.76162, 152.36272)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C049" unique_id=822929276]
+transform = Transform3D(-17.363827, 0, 19.41292, 0, 48.47677, 0, -4.7431593, 0, -71.0671, 220.83441, -15.76162, 187.00143)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C049" unique_id=2009258754]
+transform = Transform3D(-16.95659, 0, 24.71811, 0, 48.47677, 0, -6.039377, 0, -69.400345, 198.7689, -15.76162, 257.23517)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C049" unique_id=2101513166]
+transform = Transform3D(-4.298796, 0, -207.80756, 0, 44.47676, 0, 17.479141, 0, -51.10791, 115.11449, -17.76162, 135.38693)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C049" unique_id=1676483563]
+transform = Transform3D(-6.4698496, 0, -199.69832, 0, 44.47676, 0, 16.797054, 0, -76.91933, 82.52596, -17.76162, 239.11502)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C050" type="Node3D" parent="Fabric/Band_court_735" unique_id=158128470]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C050" unique_id=299112643]
+transform = Transform3D(-15.957672, 0, 51.927635, 0, 48.858696, 0, -8.327828, 0, -99.50303, -62.295296, -15.570652, 273.23633)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C050" unique_id=1723591800]
+transform = Transform3D(-16.260603, 0, 31.595108, 0, 48.858696, 0, -7.719635, 0, -66.55179, 161.05792, -15.570652, 348.27753)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C050" unique_id=1616555818]
+transform = Transform3D(-15.632, 0, 36.525017, 0, 48.858704, 0, -8.924158, 0, -63.979034, 126.99786, -15.570652, 413.5429)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C050" unique_id=321461897]
+transform = Transform3D(-7.302437, 0, -195.5982, 0, 44.858696, 0, 16.452187, 0, -86.817856, 66.04886, -17.570652, 278.89423)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C050" unique_id=320275585]
+transform = Transform3D(-9.31991, 0, -183.08087, 0, 44.858696, 0, 15.399327, 0, -110.80337, 15.745609, -17.570652, 375.2846)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_735/C050" unique_id=567970192]
+transform = Transform3D(12.446779, 0, 27.29611, 0, 161.49731, 0, -27.296112, 0, 12.446778, 156.20517, 40.748665, 329.54163)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C051" type="Node3D" parent="Fabric/Band_court_735" unique_id=951786480]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C051" unique_id=420682663]
+transform = Transform3D(-14.175962, 0, 75.012375, 0, 57.45377, 0, -11.092435, 0, -95.86466, -136.02408, -11.273119, 386.95062)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C051" unique_id=871984430]
+transform = Transform3D(-14.618165, 0, 46.62545, 0, 57.453762, 0, -10.502821, 0, -64.894806, 71.964874, -11.273119, 499.0091)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C051" unique_id=182407039]
+transform = Transform3D(-13.709991, 0, 51.777855, 0, 57.453762, 0, -11.663454, 0, -60.8631, 22.763222, -11.273119, 561.88806)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C051" unique_id=1748168833]
+transform = Transform3D(-10.07897, 0, -177.3057, 0, 53.453762, 0, 14.913563, 0, -119.82776, -7.4631157, -13.273119, 411.5508)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C051" unique_id=1184326483]
+transform = Transform3D(-12.052111, 0, -158.9499, 0, 53.45377, 0, 13.369617, 0, -143.28621, -81.22938, -13.273119, 505.82297)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C052" type="Node3D" parent="Fabric/Band_court_735" unique_id=256124745]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C052" unique_id=100626793]
+transform = Transform3D(-11.092435, 0, 95.86466, 0, 50.073395, 0, -14.175962, 0, -75.01237, -263.04938, -14.963306, 513.97595)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C052" unique_id=1552364827]
+transform = Transform3D(-11.663455, 0, 60.863136, 0, 50.073395, 0, -13.709991, 0, -51.777893, -88.11197, -14.963306, 672.7632)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C052" unique_id=1498310218]
+transform = Transform3D(-10.50282, 0, 64.89478, 0, 50.073387, 0, -14.618166, 0, -46.62543, -150.99094, -14.963306, 721.96484)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C052" unique_id=865211975]
+transform = Transform3D(-13.369616, 0, -143.2862, 0, 46.073387, 0, 12.052111, 0, -158.94986, -144.17703, -16.963306, 568.7706)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C052" unique_id=1977407652]
+transform = Transform3D(-14.913562, 0, -119.827774, 0, 46.073387, 0, 10.078972, 0, -177.30566, -238.44919, -16.963306, 642.53687)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_735/C052" unique_id=1815546018]
+transform = Transform3D(32, 0, 0, 0, 128.00931, 0, 0, 0, 32, -82.462105, 24.004654, 651.744)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="C053" type="Node3D" parent="Fabric/Band_court_735" unique_id=808155538]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C053" unique_id=1247192811]
+transform = Transform3D(-8.3278265, 0, 99.50302, 0, 58.183647, 0, -15.957673, 0, -51.927612, -376.76367, -10.908176, 587.7047)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C053" unique_id=2124183647]
+transform = Transform3D(-8.924158, 0, 63.979057, 0, 58.183655, 0, -15.632, 0, -36.52503, -236.45706, -10.908176, 776.99786)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C053" unique_id=687288505]
+transform = Transform3D(-7.7196326, 0, 66.551796, 0, 58.183655, 0, -16.260605, 0, -31.595097, -301.72247, -10.908176, 811.0579)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C053" unique_id=922141473]
+transform = Transform3D(-15.399328, 0, -110.80339, 0, 54.183647, 0, 9.319909, 0, -183.08093, -274.71536, -12.908176, 665.7456)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C053" unique_id=1047437213]
+transform = Transform3D(-16.452185, 0, -86.81787, 0, 54.183647, 0, 7.302438, 0, -195.5982, -371.10577, -12.908176, 716.0488)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C054" type="Node3D" parent="Fabric/Band_court_735" unique_id=1446502451]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C054" unique_id=604850274]
+transform = Transform3D(-5.395114, 0, 107.07761, 0, 50.983395, 0, -17.172441, 0, -33.64087, -497.63727, -14.5083065, 637.7722)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C054" unique_id=717934720]
+transform = Transform3D(-6.0393715, 0, 69.40033, 0, 50.983387, 0, -16.956593, 0, -24.718079, -392.76483, -14.5083065, 848.7689)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C054" unique_id=866764377]
+transform = Transform3D(-4.7431684, 0, 71.06711, 0, 50.983395, 0, -17.363825, 0, -19.412964, -462.99854, -14.5083065, 870.8344)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C054" unique_id=1858598652]
+transform = Transform3D(-16.797054, 0, -76.91934, 0, 46.983387, 0, 6.4698515, 0, -199.6983, -410.885, -16.508307, 732.526)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C054" unique_id=1304623969]
+transform = Transform3D(-17.479141, 0, -51.10794, 0, 46.98339, 0, 4.2987986, 0, -207.80756, -514.6131, -16.508307, 765.1145)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_735/C054" unique_id=606022465]
+transform = Transform3D(32, 0, 0, 0, 155.10957, 0, 0, 0, 32, -382.94797, 37.554787, 832.0892)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="C055" type="Node3D" parent="Fabric/Band_court_735" unique_id=1307721635]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C055" unique_id=1243183673]
+transform = Transform3D(-2.1803863, 0, 120.82825, 0, 49.67701, 0, -17.867455, 0, -14.744812, -630.17957, -15.161499, 666.04626)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C055" unique_id=1130074786]
+transform = Transform3D(-2.9099915, 0, 78.85669, 0, 49.677002, 0, -17.763218, 0, -12.918396, -562.34644, -15.161499, 892.3539)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C055" unique_id=949794557]
+transform = Transform3D(-1.4471236, 0, 79.64923, 0, 49.67701, 0, -17.941734, 0, -6.4242554, -641.59937, -15.161499, 902.02527)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C055" unique_id=2113662222]
+transform = Transform3D(-17.67239, 0, -40.643005, 0, 45.677002, 0, 3.4185712, 0, -210.10504, -556.6682, -17.161499, 774.34753)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C055" unique_id=1277222750]
+transform = Transform3D(-17.975876, 0, -11.075928, 0, 45.677002, 0, 0.93162006, 0, -213.7132, -675.48926, -17.161499, 788.8474)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C056" type="Node3D" parent="Fabric/Band_court_735" unique_id=1008300092]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C056" unique_id=517572300]
+transform = Transform3D(2.1803863, 0, 120.82825, 0, 54.062386, 0, -17.867455, 0, 14.744812, -809.82043, -12.968811, 666.04626)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C056" unique_id=1211096861]
+transform = Transform3D(1.4471236, 0, 79.64923, 0, 54.062386, 0, -17.941734, 0, 6.4242554, -798.40063, -12.968811, 902.02527)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C056" unique_id=8753268]
+transform = Transform3D(2.9099915, 0, 78.85669, 0, 54.062378, 0, -17.763218, 0, 12.918396, -877.65356, -12.968811, 892.3539)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C056" unique_id=747985243]
+transform = Transform3D(-17.975876, 0, 11.075928, 0, 50.062378, 0, -0.93162006, 0, -213.7132, -764.51074, -14.968811, 788.8474)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C056" unique_id=390336887]
+transform = Transform3D(-17.67239, 0, 40.643005, 0, 50.062378, 0, -3.4185712, 0, -210.10504, -883.3318, -14.968811, 774.34753)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_735/C056" unique_id=424348241]
+transform = Transform3D(32, 0, 0, 0, 180.44684, 0, 0, 0, 32, -779.5427, 50.22342, 891.1575)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="C057" type="Node3D" parent="Fabric/Band_court_735" unique_id=840515417]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C057" unique_id=712338809]
+transform = Transform3D(5.3951125, 0, 107.07764, 0, 50.443356, 0, -17.172443, 0, 33.64087, -942.36273, -14.778326, 637.7722)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C057" unique_id=1178399660]
+transform = Transform3D(4.7431707, 0, 71.06708, 0, 50.443348, 0, -17.363823, 0, 19.412964, -977.00146, -14.778326, 870.8344)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C057" unique_id=1386120162]
+transform = Transform3D(6.0393715, 0, 69.40033, 0, 50.443348, 0, -16.956593, 0, 24.718079, -1047.2351, -14.778326, 848.7689)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C057" unique_id=602112196]
+transform = Transform3D(-17.479141, 0, 51.10791, 0, 46.443348, 0, -4.298796, 0, -207.80756, -925.3869, -16.778326, 765.1145)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C057" unique_id=1410695051]
+transform = Transform3D(-16.797054, 0, 76.91938, 0, 46.44335, 0, -6.469854, 0, -199.69832, -1029.115, -16.778326, 732.526)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C058" type="Node3D" parent="Fabric/Band_court_735" unique_id=1738883466]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C058" unique_id=35554101]
+transform = Transform3D(8.327832, 0, 99.50293, 0, 57.524055, 0, -15.957669, 0, 51.927612, -1063.2363, -11.237972, 587.7047)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C058" unique_id=483084130]
+transform = Transform3D(7.719624, 0, 66.55188, 0, 57.524063, 0, -16.26061, 0, 31.595095, -1138.2776, -11.237972, 811.0579)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C058" unique_id=1301213186]
+transform = Transform3D(8.924163, 0, 63.979008, 0, 57.524055, 0, -15.631997, 0, 36.525024, -1203.543, -11.237972, 776.99786)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C058" unique_id=724807677]
+transform = Transform3D(-16.452185, 0, 86.81787, 0, 53.524055, 0, -7.302438, 0, -195.5982, -1068.8943, -13.237972, 716.0488)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C058" unique_id=987655215]
+transform = Transform3D(-15.39933, 0, 110.803345, 0, 53.524063, 0, -9.319907, 0, -183.08093, -1165.2847, -13.237972, 665.7456)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C059" type="Node3D" parent="Fabric/Band_court_735" unique_id=1610178529]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C059" unique_id=1199400561]
+transform = Transform3D(11.092436, 0, 95.864624, 0, 52.1313, 0, -14.175961, 0, 75.01236, -1176.9507, -13.934349, 513.97595)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C059" unique_id=1251236424]
+transform = Transform3D(10.502821, 0, 64.894775, 0, 52.1313, 0, -14.618166, 0, 46.62543, -1289.009, -13.934349, 721.96484)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C059" unique_id=56891707]
+transform = Transform3D(11.663452, 0, 60.86316, 0, 52.1313, 0, -13.709992, 0, 51.777893, -1351.888, -13.934349, 672.7632)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C059" unique_id=1017323323]
+transform = Transform3D(-14.913563, 0, 119.827774, 0, 48.13131, 0, -10.078972, 0, -177.30568, -1201.5508, -15.934349, 642.53687)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C059" unique_id=1215587724]
+transform = Transform3D(-13.369617, 0, 143.28613, 0, 48.1313, 0, -12.052108, 0, -158.94986, -1295.823, -15.934349, 568.7706)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_735/C059" unique_id=836391050]
+transform = Transform3D(24.685177, 0, -17.048223, 0, 119.489456, 0, 17.048225, 0, 24.685177, -1267.248, 19.744732, 722.3942)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C060" type="Node3D" parent="Fabric/Band_court_735" unique_id=1152756209]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C060" unique_id=992816074]
+transform = Transform3D(14.175965, 0, 75.01234, 0, 58.19217, 0, -11.092432, 0, 95.86466, -1303.9758, -10.903919, 386.95062)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C060" unique_id=1210502072]
+transform = Transform3D(13.709994, 0, 51.777836, 0, 58.19217, 0, -11.66345, 0, 60.863106, -1462.7632, -10.903919, 561.88806)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C060" unique_id=834886501]
+transform = Transform3D(14.618161, 0, 46.625492, 0, 58.19217, 0, -10.502828, 0, 64.894806, -1511.9648, -10.903919, 499.0091)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C060" unique_id=1142111617]
+transform = Transform3D(-12.052107, 0, 158.94997, 0, 54.19216, 0, -13.369619, 0, -143.28621, -1358.7706, -12.903919, 505.82297)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C060" unique_id=2117357575]
+transform = Transform3D(-10.078972, 0, 177.30568, 0, 54.19217, 0, -14.913563, 0, -119.827774, -1432.5369, -12.903919, 411.5508)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C061" type="Node3D" parent="Fabric/Band_court_735" unique_id=1036903892]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C061" unique_id=1595666995]
+transform = Transform3D(15.957665, 0, 51.92774, 0, 55.84604, 0, -8.327842, 0, 99.50303, -1377.7047, -12.076984, 273.23633)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C061" unique_id=1487569365]
+transform = Transform3D(15.631999, 0, 36.52503, 0, 55.84603, 0, -8.92416, 0, 63.97904, -1566.9978, -12.076984, 413.5429)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C061" unique_id=29625706]
+transform = Transform3D(16.260605, 0, 31.595097, 0, 55.84604, 0, -7.7196326, 0, 66.551796, -1601.0579, -12.076984, 348.27753)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C061" unique_id=1638035898]
+transform = Transform3D(-9.319914, 0, 183.08081, 0, 51.84604, 0, -15.399326, 0, -110.803375, -1455.7456, -14.076984, 375.2846)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C061" unique_id=1515437]
+transform = Transform3D(-7.302435, 0, 195.59828, 0, 51.84603, 0, -16.452187, 0, -86.81786, -1506.0488, -14.076984, 278.89423)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_735/C061" unique_id=573790070]
+transform = Transform3D(32, 0, 0, 0, 153.78476, 0, 0, 0, 32, -1548.853, 36.89238, 420.2771)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="C062" type="Node3D" parent="Fabric/Band_court_735" unique_id=2071387623]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C062" unique_id=1621544001]
+transform = Transform3D(17.172441, 0, 33.64087, 0, 59.701878, 0, -5.3951116, 0, 107.077644, -1427.7722, -10.149061, 152.36272)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C062" unique_id=1409812954]
+transform = Transform3D(16.956587, 0, 24.718142, 0, 59.701878, 0, -6.0393834, 0, 69.400345, -1638.7688, -10.149061, 257.23517)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C062" unique_id=1369959922]
+transform = Transform3D(17.363823, 0, 19.412964, 0, 59.701878, 0, -4.74317, 0, 71.06709, -1660.8345, -10.149061, 187.00143)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C062" unique_id=466196928]
+transform = Transform3D(-6.4698486, 0, 199.69836, 0, 55.701878, 0, -16.797054, 0, -76.91933, -1522.5259, -12.149061, 239.11502)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C062" unique_id=318961720]
+transform = Transform3D(-4.2987947, 0, 207.80762, 0, 55.701878, 0, -17.479141, 0, -51.10791, -1555.1145, -12.149061, 135.38693)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_735/C062" unique_id=1574580713]
+transform = Transform3D(32, 0, 0, 0, 143.87012, 0, 0, 0, 32, -1622.0892, 31.935059, 267.05203)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("4_1j8oi")
+
+[node name="C063" type="Node3D" parent="Fabric/Band_court_735" unique_id=59171615]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C063" unique_id=626228546]
+transform = Transform3D(17.867455, 0, 14.744751, 0, 52.964226, 0, -2.1803765, 0, 120.82829, -1456.0461, -13.517887, 19.82044)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C063" unique_id=1328597630]
+transform = Transform3D(17.763222, 0, 12.918335, 0, 52.964233, 0, -2.909977, 0, 78.85673, -1682.354, -13.517887, 87.653564)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C063" unique_id=398089420]
+transform = Transform3D(17.941736, 0, 6.424195, 0, 52.964233, 0, -1.4471104, 0, 79.649216, -1692.0251, -13.517887, 8.4006)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C063" unique_id=69279036]
+transform = Transform3D(-3.4185727, 0, 210.1051, 0, 48.964233, 0, -17.67239, 0, -40.643036, -1564.3474, -15.517887, 93.33181)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C063" unique_id=1354292451]
+transform = Transform3D(-0.9316193, 0, 213.71326, 0, 48.964226, 0, -17.975876, 0, -11.075922, -1578.8474, -15.517887, -25.489285)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C064" type="Node3D" parent="Fabric/Band_court_735" unique_id=246942217]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C064" unique_id=835798036]
+transform = Transform3D(17.867455, 0, -14.744751, 0, 48.456264, 0, 2.1803765, 0, 120.8283, -1456.0461, -15.771868, -159.82043)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C064" unique_id=411243845]
+transform = Transform3D(17.941736, 0, -6.424195, 0, 48.456272, 0, 1.4471104, 0, 79.649216, -1692.0251, -15.771868, -148.4006)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C064" unique_id=1553103396]
+transform = Transform3D(17.763222, 0, -12.918336, 0, 48.456272, 0, 2.9099765, 0, 78.85674, -1682.354, -15.771868, -227.65356)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C064" unique_id=637485074]
+transform = Transform3D(0.9316191, 0, 213.71326, 0, 44.456264, 0, -17.975876, 0, 11.07592, -1578.8474, -17.771868, -114.51071)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C064" unique_id=1830532788]
+transform = Transform3D(3.4185717, 0, 210.1051, 0, 44.45627, 0, -17.67239, 0, 40.64302, -1564.3474, -17.771868, -233.33182)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C065" type="Node3D" parent="Fabric/Band_court_735" unique_id=546519315]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C065" unique_id=756768783]
+transform = Transform3D(17.172441, 0, -33.640873, 0, 48.088753, 0, 5.395113, 0, 107.07762, -1427.7722, -15.955624, -292.3627)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C065" unique_id=1610633620]
+transform = Transform3D(17.363825, 0, -19.412964, 0, 48.08876, 0, 4.7431684, 0, 71.06711, -1660.8345, -15.955624, -327.00146)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C065" unique_id=820856636]
+transform = Transform3D(16.956587, 0, -24.718142, 0, 48.08876, 0, 6.0393853, 0, 69.40033, -1638.7688, -15.955624, -397.23517)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C065" unique_id=202036732]
+transform = Transform3D(4.2987947, 0, 207.80762, 0, 44.088753, 0, -17.479141, 0, 51.10791, -1555.1145, -17.955624, -275.38693)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C065" unique_id=1656201327]
+transform = Transform3D(6.4698496, 0, 199.69838, 0, 44.088753, 0, -16.797054, 0, 76.91935, -1522.5259, -17.955624, -379.115)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C066" type="Node3D" parent="Fabric/Band_court_735" unique_id=2146662485]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C066" unique_id=1392638932]
+transform = Transform3D(15.957665, 0, -51.92774, 0, 55.149918, 0, 8.327842, 0, 99.50303, -1377.7047, -12.425045, -413.23633)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C066" unique_id=1747301894]
+transform = Transform3D(16.260605, 0, -31.595097, 0, 55.149918, 0, 7.7196326, 0, 66.551796, -1601.0579, -12.425045, -488.27753)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C066" unique_id=550528402]
+transform = Transform3D(15.632001, 0, -36.525024, 0, 55.149918, 0, 8.924157, 0, 63.97907, -1566.9978, -12.425045, -553.54297)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C066" unique_id=1972984423]
+transform = Transform3D(7.302436, 0, 195.59827, 0, 51.14991, 0, -16.452187, 0, 86.81787, -1506.0488, -14.425045, -418.89423)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C066" unique_id=497535861]
+transform = Transform3D(9.319916, 0, 183.08081, 0, 51.149918, 0, -15.399324, 0, 110.80341, -1455.7456, -14.425045, -515.28467)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C067" type="Node3D" parent="Fabric/Band_court_735" unique_id=853014410]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C067" unique_id=42891058]
+transform = Transform3D(14.175966, 0, -75.01233, 0, 50.191006, 0, 11.092429, 0, 95.864685, -1303.9758, -14.904497, -526.9507)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C067" unique_id=378191462]
+transform = Transform3D(14.618164, 0, -46.62549, 0, 50.191006, 0, 10.502824, 0, 64.89484, -1511.9648, -14.904497, -639.00903)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C067" unique_id=75074912]
+transform = Transform3D(13.709994, 0, -51.777836, 0, 50.191013, 0, 11.66345, 0, 60.863106, -1462.7632, -14.904497, -701.88806)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C067" unique_id=2017521308]
+transform = Transform3D(10.078975, 0, 177.30568, 0, 46.19101, 0, -14.913562, 0, 119.827805, -1432.5369, -16.904497, -551.55084)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C067" unique_id=1116355420]
+transform = Transform3D(12.052107, 0, 158.94997, 0, 46.191006, 0, -13.369619, 0, 143.28621, -1358.7706, -16.904497, -645.823)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C068" type="Node3D" parent="Fabric/Band_court_735" unique_id=6528364]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C068" unique_id=366079961]
+transform = Transform3D(11.09244, 0, -95.864624, 0, 43.2558, 0, 14.175959, 0, 75.01239, -1176.9507, -18.3721, -653.97595)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C068" unique_id=1566564962]
+transform = Transform3D(11.663452, 0, -60.86316, 0, 56.64611, 0, 13.709992, 0, 51.777893, -1351.888, -11.676945, -812.7632)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C068" unique_id=453935730]
+transform = Transform3D(10.502821, 0, -64.894775, 0, 56.64611, 0, 14.618166, 0, 46.62543, -1289.009, -11.676945, -861.96484)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C068" unique_id=964602594]
+transform = Transform3D(13.36962, 0, 143.28615, 0, 52.64612, 0, -12.052107, 0, 158.9499, -1295.823, -13.676945, -708.7706)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C068" unique_id=1957562430]
+transform = Transform3D(14.913563, 0, 119.827774, 0, 45.815655, 0, -10.078972, 0, 177.30568, -1201.5508, -17.092175, -782.53687)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Accent" type="MeshInstance3D" parent="Fabric/Band_court_735/C068" unique_id=240658819]
+transform = Transform3D(-22.48424, 0, -19.860992, 0, 166.84705, 0, 19.860992, 0, -22.48424, -1357.5378, 43.423523, -791.744)
+material_override = ExtResource("7_d6mrk")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C069" type="Node3D" parent="Fabric/Band_court_735" unique_id=628948890]
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C069" unique_id=1177662630]
+transform = Transform3D(8.924163, 0, -63.979008, 0, 52.320667, 0, 15.631997, 0, 36.525024, -1203.543, -13.839666, -916.99786)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C069" unique_id=904746824]
+transform = Transform3D(7.719624, 0, -66.55188, 0, 52.320675, 0, 16.26061, 0, 31.595095, -1138.2776, -13.839666, -951.0579)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad0" type="MeshInstance3D" parent="Fabric/Band_court_735/C069" unique_id=463959969]
+transform = Transform3D(15.39933, 0, 110.803345, 0, 45.815655, 0, -9.319907, 0, 183.08093, -1165.2847, -17.092175, -805.7456)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C070" type="Node3D" parent="Fabric/Band_court_735" unique_id=552836038]
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C070" unique_id=1974362686]
+transform = Transform3D(6.0393715, 0, -69.40033, 0, 59.328957, 0, 16.956593, 0, 24.718079, -1047.2351, -10.335522, -988.7689)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C070" unique_id=176301781]
+transform = Transform3D(4.7431707, 0, -71.06708, 0, 59.328957, 0, 17.363823, 0, 19.412964, -977.00146, -10.335522, -1010.8344)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C071" type="Node3D" parent="Fabric/Band_court_735" unique_id=945686630]
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C071" unique_id=1141974334]
+transform = Transform3D(2.9099782, 0, -78.85669, 0, 50.35269, 0, 17.763222, 0, 12.918336, -877.65356, -14.823654, -1032.354)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C071" unique_id=681898488]
+transform = Transform3D(1.4471099, 0, -79.64924, 0, 50.3527, 0, 17.941736, 0, 6.424195, -798.40063, -14.823654, -1042.0251)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C072" type="Node3D" parent="Fabric/Band_court_735" unique_id=1865210225]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C072" unique_id=1706427011]
+transform = Transform3D(-2.1803863, 0, -120.82825, 0, 33.070274, 0, 17.867455, 0, -14.744812, -630.17957, -23.464865, -806.04626)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C072" unique_id=880688213]
+transform = Transform3D(-1.4471099, 0, -79.64924, 0, 52.758366, 0, 17.941736, 0, -6.424195, -641.59937, -13.620821, -1042.0251)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C072" unique_id=80954173]
+transform = Transform3D(-2.9099782, 0, -78.85669, 0, 52.758358, 0, 17.763222, 0, -12.918336, -562.34644, -13.620821, -1032.354)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C073" type="Node3D" parent="Fabric/Band_court_735" unique_id=1396972248]
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C073" unique_id=1138374231]
+transform = Transform3D(-4.7431684, 0, -71.06711, 0, 42.622524, 0, 17.363825, 0, -19.412964, -462.99854, -18.68874, -1010.8344)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C074" type="Node3D" parent="Fabric/Band_court_735" unique_id=1081477821]
+
+[node name="C075" type="Node3D" parent="Fabric/Band_court_735" unique_id=383057735]
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C075" unique_id=1813304454]
+transform = Transform3D(-11.663455, 0, -60.863136, 0, 40.592743, 0, 13.709991, 0, -51.777893, -88.11197, -19.70363, -812.7632)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C076" type="Node3D" parent="Fabric/Band_court_735" unique_id=291626293]
+
+[node name="Arc1_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C076" unique_id=1080284984]
+transform = Transform3D(-13.709991, 0, -51.777855, 0, 48.49384, 0, 11.663454, 0, -60.8631, 22.763222, -15.75308, -701.88806)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Arc1_1" type="MeshInstance3D" parent="Fabric/Band_court_735/C076" unique_id=1911542540]
+transform = Transform3D(-14.618168, 0, -46.625454, 0, 41.212467, 0, 10.502819, 0, -64.89484, 71.964874, -19.393768, -639.00903)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C077" type="Node3D" parent="Fabric/Band_court_735" unique_id=959483430]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C077" unique_id=1277773290]
+transform = Transform3D(-15.957672, 0, -51.927635, 0, 51.272648, 0, 8.327828, 0, -99.50303, -62.295296, -14.363676, -413.23633)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="C078" type="Node3D" parent="Fabric/Band_court_735" unique_id=748323562]
+
+[node name="C079" type="Node3D" parent="Fabric/Band_court_735" unique_id=114478876]
+
+[node name="Arc0_0" type="MeshInstance3D" parent="Fabric/Band_court_735/C079" unique_id=2026424912]
+transform = Transform3D(-17.867455, 0, -14.744795, 0, 55.89209, 0, 2.1803827, 0, -120.82831, 16.04624, -12.053955, -159.82043)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Rad1" type="MeshInstance3D" parent="Fabric/Band_court_735/C079" unique_id=2134055330]
+transform = Transform3D(0.9316194, 0, -213.71318, 0, 53.809464, 0, 17.975876, 0, 11.07592, 138.84737, -13.095268, -114.51071)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Band_terrace_1020" type="Node3D" parent="Fabric" unique_id=89465088]
+
+[node name="R080" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1534549609]
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R080" unique_id=1681231827]
+transform = Transform3D(-93.81309, 0, 5.4317017, 0, 18, 0, -5.9250174, 0, -86.00223, 543.74927, -31, 9.814737)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R080" unique_id=532694533]
+transform = Transform3D(-93.19336, 0, 11.265015, 0, 18, 0, -12.288121, 0, -85.4341, 535.4009, -31, 95.532906)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R081" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=595243394]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R081" unique_id=1555673634]
+transform = Transform3D(-91.82413, 0, 14.451569, 0, 36, 0, -20.107958, 0, -65.993904, 321.7791, -22, 158.1322)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R081" unique_id=1872686802]
+transform = Transform3D(-90.36757, 0, 18.59894, 0, 36, 0, -25.87862, 0, -64.94708, 305.25385, -22, 223.60269)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R081" unique_id=1620402270]
+transform = Transform3D(-91.824135, 0, 15.80597, 0, 27.000004, 0, -20.107948, 0, -72.1789, 419.41537, -26.5, 179.51291)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R081" unique_id=1871390354]
+transform = Transform3D(-90.36757, 0, 20.342041, 0, 27, 0, -25.878616, 0, -71.033966, 401.34137, -26.5, 251.11934)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R081" unique_id=1028295561]
+transform = Transform3D(-91.824135, 0, 17.160372, 0, 18, 0, -20.107931, 0, -78.363914, 517.05164, -31, 200.89362)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R081" unique_id=106082454]
+transform = Transform3D(-90.36757, 0, 22.08514, 0, 18, 0, -25.87862, 0, -77.12083, 497.4289, -31, 278.636)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R082" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1679299218]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R082" unique_id=857462228]
+transform = Transform3D(-87.93994, 0, 23.864353, 0, 36.000004, 0, -33.20494, 0, -63.202335, 277.7116, -22, 306.72205)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R082" unique_id=1289358928]
+transform = Transform3D(-85.66236, 0, 27.816164, 0, 36.000004, 0, -38.70349, 0, -61.565464, 251.87137, -22, 369.10596)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R082" unique_id=2142355144]
+transform = Transform3D(-87.93996, 0, 26.100891, 0, 27, 0, -33.204887, 0, -69.1257, 371.21786, -26.5, 342.0287)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R082" unique_id=1577536226]
+transform = Transform3D(-85.66235, 0, 30.423126, 0, 27.000004, 0, -38.703503, 0, -67.33542, 342.95587, -26.5, 410.25928)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R082" unique_id=743863415]
+transform = Transform3D(-87.93994, 0, 28.337494, 0, 18, 0, -33.20491, 0, -75.04907, 464.72412, -31, 377.33536)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R082" unique_id=766564635]
+transform = Transform3D(-85.66235, 0, 33.030094, 0, 18.000002, 0, -38.703518, 0, -73.105385, 434.0403, -31, 451.4126)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R083" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=236267317]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R083" unique_id=1719493296]
+transform = Transform3D(-82.19846, 0, 32.773087, 0, 36, 0, -45.60057, 0, -59.07596, 212.57239, -22, 447.35547)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R083" unique_id=1693432194]
+transform = Transform3D(-79.14795, 0, 36.445942, 0, 36, 0, -50.71097, 0, -56.88358, 177.96289, -22, 505.33527)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R083" unique_id=364366499]
+transform = Transform3D(-82.19847, 0, 35.844604, 0, 27, 0, -45.600567, 0, -64.61261, 299.97375, -26.5, 495.84244)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R083" unique_id=1036145581]
+transform = Transform3D(-79.14792, 0, 39.861683, 0, 27, 0, -50.71102, 0, -62.214664, 262.1206, -26.5, 559.2561)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R083" unique_id=1481507204]
+transform = Transform3D(-82.19848, 0, 38.916107, 0, 18, 0, -45.600548, 0, -70.14926, 387.37512, -31, 544.32935)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R083" unique_id=1068659178]
+transform = Transform3D(-79.14792, 0, 43.277435, 0, 18.000002, 0, -50.71103, 0, -67.54584, 346.27832, -31, 613.1769)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R084" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1842218169]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R084" unique_id=941968826]
+transform = Transform3D(-74.58668, 0, 44.166756, 0, 36, 0, -57.208626, 0, -57.58313, 126.14862, -22, 579.003)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R084" unique_id=1132329268]
+transform = Transform3D(-70.52545, 0, 47.97879, 0, 36, 0, -62.14629, 0, -54.447754, 80.07584, -22, 635.01843)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R084" unique_id=740230137]
+transform = Transform3D(-74.58671, 0, 48.30609, 0, 27, 0, -57.20859, 0, -62.97992, 205.45027, -26.5, 639.828)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R084" unique_id=1335696331]
+transform = Transform3D(-70.52543, 0, 52.475403, 0, 27, 0, -62.146317, 0, -59.550594, 155.05952, -26.5, 701.09326)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R084" unique_id=1176113120]
+transform = Transform3D(-74.5867, 0, 52.445435, 0, 18, 0, -57.2086, 0, -68.37665, 284.75192, -31, 700.6531)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R084" unique_id=2009535925]
+transform = Transform3D(-70.52544, 0, 56.97202, 0, 18, 0, -62.146305, 0, -64.6535, 230.0432, -31, 767.1681)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R085" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=126034406]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R085" unique_id=2011496279]
+transform = Transform3D(-62.14631, 0, 54.447758, 0, 36, 0, -70.52543, 0, -47.978825, -14.981548, -22, 730.0758)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R085" unique_id=313895714]
+transform = Transform3D(-57.208603, 0, 57.583157, 0, 36.000004, 0, -74.5867, 0, -44.166748, -70.997, -22, 776.1486)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R085" unique_id=1282452489]
+transform = Transform3D(-62.146294, 0, 59.550636, 0, 27, 0, -70.52545, 0, -52.475407, 51.09328, -26.5, 805.0596)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R085" unique_id=776010285]
+transform = Transform3D(-57.20861, 0, 62.97989, 0, 27, 0, -74.5867, 0, -48.30609, -10.171982, -26.5, 855.4503)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R085" unique_id=827818442]
+transform = Transform3D(-62.14628, 0, 64.65352, 0, 18, 0, -70.52546, 0, -56.97199, 117.16811, -31, 880.0432)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R085" unique_id=1870287831]
+transform = Transform3D(-57.208614, 0, 68.376625, 0, 18.000002, 0, -74.5867, 0, -52.44544, 50.65304, -31, 934.7519)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R086" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=371542504]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R086" unique_id=1192779972]
+transform = Transform3D(-50.710983, 0, 56.883526, 0, 36, 0, -79.14794, 0, -36.445923, -144.66476, -22, 827.9629)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R086" unique_id=311781314]
+transform = Transform3D(-45.600555, 0, 59.07596, 0, 36, 0, -82.19848, 0, -32.77307, -202.6445, -22, 862.5724)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R086" unique_id=474326361]
+transform = Transform3D(-50.711018, 0, 62.214703, 0, 27.000004, 0, -79.14792, 0, -39.861702, -90.74393, -26.5, 912.1206)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R086" unique_id=739240322]
+transform = Transform3D(-45.60057, 0, 64.6126, 0, 27, 0, -82.19847, 0, -35.844604, -154.15758, -26.5, 949.97375)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R086" unique_id=926743136]
+transform = Transform3D(-50.710983, 0, 67.54587, 0, 18, 0, -79.14794, 0, -43.277405, -36.823105, -31, 996.2783)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R086" unique_id=1926706246]
+transform = Transform3D(-45.600536, 0, 70.14923, 0, 18.000002, 0, -82.19849, 0, -38.916077, -105.670654, -31, 1037.3751)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R087" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1152628905]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R087" unique_id=503465973]
+transform = Transform3D(-38.703568, 0, 61.565445, 0, 36.000004, 0, -85.66233, 0, -27.816223, -280.89407, -22, 901.87134)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R087" unique_id=106656473]
+transform = Transform3D(-33.2049, 0, 63.202335, 0, 36, 0, -87.93995, 0, -23.86432, -343.27795, -22, 927.7117)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R087" unique_id=1320218380]
+transform = Transform3D(-38.703545, 0, 67.3354, 0, 27, 0, -85.66234, 0, -30.423157, -239.74075, -26.5, 992.9558)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R087" unique_id=658009227]
+transform = Transform3D(-33.204887, 0, 69.1257, 0, 27, 0, -87.93996, 0, -26.100891, -307.9713, -26.5, 1021.2179)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R087" unique_id=166103346]
+transform = Transform3D(-38.70359, 0, 73.10535, 0, 18.000002, 0, -85.662315, 0, -33.03015, -198.58742, -31, 1084.0403)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R087" unique_id=1325569932]
+transform = Transform3D(-33.20481, 0, 75.04909, 0, 18.000002, 0, -87.93999, 0, -28.337402, -272.66464, -31, 1114.7241)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R088" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=468387415]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R088" unique_id=2093748189]
+transform = Transform3D(-25.87862, 0, 64.94708, 0, 36, 0, -90.36757, 0, -18.59894, -426.3973, -22, 955.2539)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R088" unique_id=73768161]
+transform = Transform3D(-20.107922, 0, 65.993904, 0, 36.000004, 0, -91.824135, 0, -14.45154, -491.8678, -22, 971.7791)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R088" unique_id=1317838112]
+transform = Transform3D(-25.87876, 0, 71.033966, 0, 27, 0, -90.36752, 0, -20.342163, -398.88068, -26.5, 1051.3413)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R088" unique_id=164388149]
+transform = Transform3D(-20.107874, 0, 72.178894, 0, 27, 0, -91.82414, 0, -15.805908, -470.4871, -26.5, 1069.4154)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R088" unique_id=1802664181]
+transform = Transform3D(-25.87855, 0, 77.12085, 0, 18.000002, 0, -90.36759, 0, -22.085083, -371.364, -31, 1147.429)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R088" unique_id=1860637254]
+transform = Transform3D(-20.10797, 0, 78.36389, 0, 18.000002, 0, -91.82413, 0, -17.1604, -449.10638, -31, 1167.0516)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R089" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=601503805]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R089" unique_id=1606422107]
+transform = Transform3D(-12.288225, 0, 71.94807, 0, 36, 0, -93.19335, 0, -9.486879, -580.59705, -22, 987.2318)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R089" unique_id=749953510]
+transform = Transform3D(-5.924929, 0, 72.42645, 0, 36, 0, -93.81309, 0, -4.5742188, -652.7843, -22, 994.2624)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R089" unique_id=1330094581]
+transform = Transform3D(-12.28821, 0, 78.69104, 0, 27.000004, 0, -93.19335, 0, -10.375977, -567.53204, -26.5, 1086.3164)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R089" unique_id=1515301761]
+transform = Transform3D(-5.9249353, 0, 79.214424, 0, 27, 0, -93.81309, 0, -5.00293, -646.48474, -26.5, 1094.0059)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R089" unique_id=2010880215]
+transform = Transform3D(-12.288251, 0, 85.43411, 0, 18, 0, -93.193344, 0, -11.265137, -554.4671, -31, 1185.4009)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R089" unique_id=514888024]
+transform = Transform3D(-5.924949, 0, 86.002266, 0, 18.000002, 0, -93.81309, 0, -5.4316416, -640.1853, -31, 1193.7493)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R090" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1020244050]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R090" unique_id=290415241]
+transform = Transform3D(5.924929, 0, 72.42645, 0, 36, 0, -93.81309, 0, 4.5742188, -787.2157, -22, 994.2624)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R090" unique_id=212263210]
+transform = Transform3D(12.288225, 0, 71.94807, 0, 36, 0, -93.19335, 0, 9.486879, -859.40295, -22, 987.2318)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R090" unique_id=569960821]
+transform = Transform3D(5.9249353, 0, 79.214424, 0, 27, 0, -93.81309, 0, 5.00293, -793.51526, -26.5, 1094.0059)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R090" unique_id=1516915035]
+transform = Transform3D(12.28821, 0, 78.69104, 0, 27.000004, 0, -93.19335, 0, 10.375977, -872.46796, -26.5, 1086.3164)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R090" unique_id=1630283882]
+transform = Transform3D(5.924949, 0, 86.002266, 0, 18.000002, 0, -93.81309, 0, 5.4316416, -799.8147, -31, 1193.7493)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R090" unique_id=835799014]
+transform = Transform3D(12.288255, 0, 85.43408, 0, 18, 0, -93.193344, 0, 11.265137, -885.5329, -31, 1185.4009)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R091" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=547404396]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R091" unique_id=1704963969]
+transform = Transform3D(20.107922, 0, 65.993904, 0, 36.000004, 0, -91.824135, 0, 14.45154, -948.1322, -22, 971.7791)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R091" unique_id=1949155164]
+transform = Transform3D(25.878643, 0, 64.94702, 0, 36.000004, 0, -90.36756, 0, 18.598938, -1013.60266, -22, 955.2539)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R091" unique_id=924882012]
+transform = Transform3D(20.107874, 0, 72.178894, 0, 27, 0, -91.82414, 0, 15.805908, -969.51294, -26.5, 1069.4154)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R091" unique_id=1519831219]
+transform = Transform3D(25.878752, 0, 71.034004, 0, 27, 0, -90.36753, 0, 20.342165, -1041.1194, -26.5, 1051.3413)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R091" unique_id=1571438394]
+transform = Transform3D(20.10797, 0, 78.36389, 0, 18.000002, 0, -91.82413, 0, 17.1604, -990.8936, -31, 1167.0516)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R091" unique_id=447367227]
+transform = Transform3D(25.87855, 0, 77.12085, 0, 18.000002, 0, -90.36759, 0, 22.085083, -1068.636, -31, 1147.429)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R092" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=596905118]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R092" unique_id=1092374659]
+transform = Transform3D(33.20487, 0, 63.202393, 0, 36, 0, -87.939964, 0, 23.864319, -1096.722, -22, 927.7117)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R092" unique_id=1417034703]
+transform = Transform3D(38.70358, 0, 61.56543, 0, 36, 0, -85.66232, 0, 27.816223, -1159.106, -22, 901.87134)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R092" unique_id=588334296]
+transform = Transform3D(33.204876, 0, 69.12573, 0, 27.000004, 0, -87.939964, 0, 26.100891, -1132.0287, -26.5, 1021.2179)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R092" unique_id=25586029]
+transform = Transform3D(38.703526, 0, 67.33545, 0, 27.000004, 0, -85.66235, 0, 30.423157, -1200.2593, -26.5, 992.9558)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R092" unique_id=1368533608]
+transform = Transform3D(33.204815, 0, 75.04907, 0, 18.000002, 0, -87.93998, 0, 28.3374, -1167.3353, -31, 1114.7241)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R092" unique_id=711866026]
+transform = Transform3D(38.70359, 0, 73.10535, 0, 18.000002, 0, -85.662315, 0, 33.03015, -1241.4126, -31, 1084.0403)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R093" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1907979066]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R093" unique_id=1589444022]
+transform = Transform3D(45.600574, 0, 59.07593, 0, 36, 0, -82.19846, 0, 32.773075, -1237.3555, -22, 862.5724)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R093" unique_id=1141969025]
+transform = Transform3D(50.71097, 0, 56.883545, 0, 36, 0, -79.14794, 0, 36.445923, -1295.3352, -22, 827.9629)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R093" unique_id=1448907430]
+transform = Transform3D(45.600597, 0, 64.61255, 0, 27, 0, -82.198456, 0, 35.844604, -1285.8424, -26.5, 949.97375)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R093" unique_id=1864316437]
+transform = Transform3D(50.711, 0, 62.21472, 0, 27.000004, 0, -79.147934, 0, 39.861694, -1349.2561, -26.5, 912.1206)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R093" unique_id=1571751543]
+transform = Transform3D(45.600567, 0, 70.14917, 0, 18, 0, -82.19847, 0, 38.91608, -1334.3293, -31, 1037.3751)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R093" unique_id=2026193985]
+transform = Transform3D(50.710964, 0, 67.5459, 0, 18, 0, -79.14795, 0, 43.277405, -1403.1769, -31, 996.2783)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R094" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1524308432]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R094" unique_id=1051120555]
+transform = Transform3D(57.208622, 0, 57.583138, 0, 36.000004, 0, -74.58669, 0, 44.16675, -1369.0029, -22, 776.1486)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R094" unique_id=1049537636]
+transform = Transform3D(62.14631, 0, 54.447758, 0, 36, 0, -70.52543, 0, 47.978825, -1425.0184, -22, 730.0758)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R094" unique_id=605935000]
+transform = Transform3D(57.208557, 0, 62.979984, 0, 27, 0, -74.58674, 0, 48.306095, -1429.828, -26.5, 855.4503)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R094" unique_id=778278280]
+transform = Transform3D(62.14628, 0, 59.550663, 0, 27, 0, -70.52546, 0, 52.475407, -1491.0933, -26.5, 805.0596)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R094" unique_id=964889824]
+transform = Transform3D(57.208633, 0, 68.37659, 0, 18, 0, -74.58668, 0, 52.44544, -1490.6531, -31, 934.7519)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R094" unique_id=1052182886]
+transform = Transform3D(62.146248, 0, 64.653564, 0, 18, 0, -70.52548, 0, 56.971985, -1557.1681, -31, 880.0432)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R095" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1746148654]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R095" unique_id=141373041]
+transform = Transform3D(70.52547, 0, 47.978764, 0, 36, 0, -62.146267, 0, 54.447758, -1520.0758, -22, 635.01843)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R095" unique_id=1227437464]
+transform = Transform3D(74.58662, 0, 44.16687, 0, 36.000004, 0, -57.20872, 0, 57.58313, -1566.1487, -22, 579.003)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R095" unique_id=778837162]
+transform = Transform3D(70.52539, 0, 52.475468, 0, 27, 0, -62.146355, 0, 59.550602, -1595.0596, -26.5, 701.09326)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R095" unique_id=1729297439]
+transform = Transform3D(74.58675, 0, 48.30603, 0, 27.000004, 0, -57.20855, 0, 62.97992, -1645.4502, -26.5, 639.828)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R095" unique_id=650922408]
+transform = Transform3D(70.52549, 0, 56.971928, 0, 18.000002, 0, -62.146248, 0, 64.65351, -1670.0432, -31, 767.1681)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R095" unique_id=1956174847]
+transform = Transform3D(74.5867, 0, 52.445435, 0, 18, 0, -57.2086, 0, 68.37665, -1724.752, -31, 700.6531)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R096" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1287533972]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R096" unique_id=1050757584]
+transform = Transform3D(79.14788, 0, 36.446045, 0, 36, 0, -50.71107, 0, 56.88358, -1617.9629, -22, 505.33527)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R096" unique_id=894289717]
+transform = Transform3D(82.19848, 0, 32.77307, 0, 36, 0, -45.600555, 0, 59.07596, -1652.5725, -22, 447.35547)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R096" unique_id=263831530]
+transform = Transform3D(79.14798, 0, 39.861572, 0, 27, 0, -50.710922, 0, 62.21466, -1702.1206, -26.5, 559.2561)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R096" unique_id=20135443]
+transform = Transform3D(82.19847, 0, 35.844604, 0, 27, 0, -45.600567, 0, 64.61261, -1739.9736, -26.5, 495.84244)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R096" unique_id=1905134031]
+transform = Transform3D(79.147964, 0, 43.277344, 0, 18, 0, -50.71095, 0, 67.54584, -1786.2783, -31, 613.1769)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R096" unique_id=282669413]
+transform = Transform3D(82.19846, 0, 38.916138, 0, 18, 0, -45.60058, 0, 70.14926, -1827.375, -31, 544.32935)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R097" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=331545245]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R097" unique_id=69373326]
+transform = Transform3D(85.66236, 0, 27.816164, 0, 36.000004, 0, -38.70349, 0, 61.565464, -1691.8713, -22, 369.10596)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R097" unique_id=1971182437]
+transform = Transform3D(87.939926, 0, 23.86438, 0, 36.000004, 0, -33.20497, 0, 63.20233, -1717.7117, -22, 306.72205)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R097" unique_id=1127972640]
+transform = Transform3D(85.66237, 0, 30.4231, 0, 27, 0, -38.703472, 0, 67.33542, -1782.9558, -26.5, 410.25928)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R097" unique_id=802775568]
+transform = Transform3D(87.93993, 0, 26.100954, 0, 27.000004, 0, -33.204956, 0, 69.12571, -1811.2178, -26.5, 342.0287)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R097" unique_id=119178143]
+transform = Transform3D(85.66232, 0, 33.03015, 0, 18, 0, -38.703575, 0, 73.10538, -1874.0403, -31, 451.4126)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R097" unique_id=146648264]
+transform = Transform3D(87.93998, 0, 28.3374, 0, 18.000002, 0, -33.204815, 0, 75.04907, -1904.7241, -31, 377.33536)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R098" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=626206176]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R098" unique_id=2132716534]
+transform = Transform3D(90.367546, 0, 18.598999, 0, 36, 0, -25.878698, 0, 64.94708, -1745.2539, -22, 223.60269)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R098" unique_id=1574865394]
+transform = Transform3D(91.824135, 0, 14.451541, 0, 36.000004, 0, -20.10792, 0, 65.99391, -1761.779, -22, 158.1322)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R098" unique_id=1965719959]
+transform = Transform3D(90.36752, 0, 20.342163, 0, 27, 0, -25.87876, 0, 71.033966, -1841.3413, -26.5, 251.11934)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R098" unique_id=1443576704]
+transform = Transform3D(91.82414, 0, 15.805908, 0, 27, 0, -20.107874, 0, 72.178894, -1859.4154, -26.5, 179.51291)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R098" unique_id=1710930934]
+transform = Transform3D(90.36759, 0, 22.085083, 0, 18.000002, 0, -25.878555, 0, 77.120834, -1937.429, -31, 278.636)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R098" unique_id=1099718966]
+transform = Transform3D(91.82413, 0, 17.1604, 0, 18, 0, -20.107965, 0, 78.36391, -1957.0516, -31, 200.89362)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R099" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=902602183]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R099" unique_id=1396192159]
+transform = Transform3D(93.19336, 0, 9.486817, 0, 36.000004, 0, -12.288147, 0, 71.94807, -1777.2318, -22, 69.40301)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R099" unique_id=637684836]
+transform = Transform3D(93.81308, 0, 4.5743413, 0, 36, 0, -5.925082, 0, 72.426506, -1784.2625, -22, -2.784275)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R099" unique_id=243030133]
+transform = Transform3D(93.19335, 0, 10.375977, 0, 27.000004, 0, -12.288206, 0, 78.69107, -1876.3164, -26.5, 82.46796)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R099" unique_id=1310660213]
+transform = Transform3D(93.81309, 0, 5.00293, 0, 27, 0, -5.9249387, 0, 79.21438, -1884.0059, -26.5, 3.515232)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R099" unique_id=936685967]
+transform = Transform3D(93.193344, 0, 11.265136, 0, 18, 0, -12.288252, 0, 85.4341, -1975.4009, -31, 95.532906)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R099" unique_id=772778522]
+transform = Transform3D(93.81309, 0, 5.4316416, 0, 18.000002, 0, -5.9249516, 0, 86.002235, -1983.7493, -31, 9.814737)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R100" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1045487943]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R100" unique_id=729119410]
+transform = Transform3D(93.81308, 0, -4.574341, 0, 36, 0, 5.9250817, 0, 72.42651, -1784.2625, -22, -137.21573)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R100" unique_id=1997229859]
+transform = Transform3D(93.19336, 0, -9.486816, 0, 36.000004, 0, 12.28815, 0, 71.948044, -1777.2318, -22, -209.40302)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R100" unique_id=1171394665]
+transform = Transform3D(93.81309, 0, -5.00293, 0, 27, 0, 5.9249387, 0, 79.21438, -1884.0059, -26.5, -143.51523)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R100" unique_id=1606211174]
+transform = Transform3D(93.19335, 0, -10.3759775, 0, 27, 0, 12.288203, 0, 78.69109, -1876.3164, -26.5, -222.46796)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R100" unique_id=1141166971]
+transform = Transform3D(93.81309, 0, -5.4316406, 0, 18.000002, 0, 5.9249506, 0, 86.002235, -1983.7493, -31, -149.81474)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R100" unique_id=815929791]
+transform = Transform3D(93.193344, 0, -11.265137, 0, 18, 0, 12.288251, 0, 85.43411, -1975.4009, -31, -235.53291)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R101" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=192127372]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R101" unique_id=1699691875]
+transform = Transform3D(91.824135, 0, -14.45154, 0, 36.000004, 0, 20.107922, 0, 65.993904, -1761.779, -22, -298.1322)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R101" unique_id=1867201663]
+transform = Transform3D(90.367546, 0, -18.598999, 0, 36, 0, 25.878698, 0, 64.94708, -1745.2539, -22, -363.6027)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R101" unique_id=1218012196]
+transform = Transform3D(91.82414, 0, -15.805908, 0, 27, 0, 20.107874, 0, 72.178894, -1859.4154, -26.5, -319.5129)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R101" unique_id=1015671167]
+transform = Transform3D(90.36752, 0, -20.342163, 0, 27, 0, 25.87876, 0, 71.033966, -1841.3413, -26.5, -391.11932)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R101" unique_id=201564562]
+transform = Transform3D(91.82413, 0, -17.1604, 0, 18.000002, 0, 20.10797, 0, 78.36389, -1957.0516, -31, -340.89362)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R101" unique_id=1507486522]
+transform = Transform3D(90.36759, 0, -22.085083, 0, 18.000002, 0, 25.87855, 0, 77.12085, -1937.429, -31, -418.636)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R102" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=171055354]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R102" unique_id=1214551562]
+transform = Transform3D(87.939926, 0, -23.86438, 0, 36.000004, 0, 33.20497, 0, 63.20233, -1717.7117, -22, -446.72205)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R102" unique_id=872780282]
+transform = Transform3D(85.66236, 0, -27.816164, 0, 36.000004, 0, 38.70349, 0, 61.565464, -1691.8713, -22, -509.10596)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R102" unique_id=1768036958]
+transform = Transform3D(87.93993, 0, -26.100954, 0, 27.000004, 0, 33.204956, 0, 69.12571, -1811.2178, -26.5, -482.0287)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R102" unique_id=1627148071]
+transform = Transform3D(85.66236, 0, -30.423096, 0, 27, 0, 38.703484, 0, 67.33539, -1782.9558, -26.5, -550.2593)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R102" unique_id=989900874]
+transform = Transform3D(87.93999, 0, -28.337402, 0, 18.000002, 0, 33.204803, 0, 75.0491, -1904.7241, -31, -517.3354)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R102" unique_id=1892556442]
+transform = Transform3D(85.662315, 0, -33.03015, 0, 18.000002, 0, 38.70359, 0, 73.10535, -1874.0403, -31, -591.4126)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R103" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=907210811]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R103" unique_id=707644175]
+transform = Transform3D(82.19849, 0, -32.77307, 0, 36.000004, 0, 45.600536, 0, 59.075993, -1652.5725, -22, -587.35547)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R103" unique_id=496441600]
+transform = Transform3D(79.14787, 0, -36.44605, 0, 36.000004, 0, 50.711094, 0, 56.88355, -1617.9629, -22, -645.33527)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R103" unique_id=783670810]
+transform = Transform3D(82.19847, 0, -35.844604, 0, 27, 0, 45.600567, 0, 64.61261, -1739.9736, -26.5, -635.8424)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R103" unique_id=480066241]
+transform = Transform3D(79.14798, 0, -39.861572, 0, 27, 0, 50.710922, 0, 62.21466, -1702.1206, -26.5, -699.2561)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R103" unique_id=1642227121]
+transform = Transform3D(82.19848, 0, -38.91614, 0, 18.000002, 0, 45.600563, 0, 70.1493, -1827.375, -31, -684.32935)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R103" unique_id=1641659964]
+transform = Transform3D(79.147964, 0, -43.277344, 0, 18, 0, 50.71095, 0, 67.54584, -1786.2783, -31, -753.1769)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R104" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=402695297]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R104" unique_id=1387069235]
+transform = Transform3D(74.58662, 0, -44.16687, 0, 36.000004, 0, 57.20872, 0, 57.58313, -1566.1487, -22, -719.003)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R104" unique_id=1600021324]
+transform = Transform3D(70.52547, 0, -47.978764, 0, 36, 0, 62.146267, 0, 54.447758, -1520.0758, -22, -775.01843)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R104" unique_id=561799279]
+transform = Transform3D(74.58675, 0, -48.30603, 0, 27.000004, 0, 57.20855, 0, 62.97992, -1645.4502, -26.5, -779.828)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R104" unique_id=543512048]
+transform = Transform3D(70.52539, 0, -52.475468, 0, 27, 0, 62.146355, 0, 59.550602, -1595.0596, -26.5, -841.09326)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R104" unique_id=2023165995]
+transform = Transform3D(74.5867, 0, -52.445435, 0, 18, 0, 57.2086, 0, 68.37665, -1724.752, -31, -840.6531)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R104" unique_id=2134650802]
+transform = Transform3D(70.52549, 0, -56.971928, 0, 18.000002, 0, 62.146248, 0, 64.65351, -1670.0432, -31, -907.1681)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R105" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=685087033]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R105" unique_id=641370566]
+transform = Transform3D(62.14631, 0, -54.447758, 0, 36, 0, 70.52543, 0, 47.978825, -1425.0184, -22, -870.0758)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R105" unique_id=596881749]
+transform = Transform3D(57.208622, 0, -57.583138, 0, 36.000004, 0, 74.58669, 0, 44.16675, -1369.0029, -22, -916.1486)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R105" unique_id=931251499]
+transform = Transform3D(62.14628, 0, -59.550663, 0, 27, 0, 70.52546, 0, 52.475407, -1491.0933, -26.5, -945.0596)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R105" unique_id=535563647]
+transform = Transform3D(57.208557, 0, -62.979984, 0, 27, 0, 74.58674, 0, 48.306095, -1429.828, -26.5, -995.4503)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R105" unique_id=1313036814]
+transform = Transform3D(62.146248, 0, -64.653564, 0, 18, 0, 70.52548, 0, 56.971985, -1557.1681, -31, -1020.0432)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R105" unique_id=1895997517]
+transform = Transform3D(57.208633, 0, -68.37659, 0, 18, 0, 74.58668, 0, 52.44544, -1490.6531, -31, -1074.752)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R106" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1834076240]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R106" unique_id=1130355625]
+transform = Transform3D(50.71097, 0, -56.883545, 0, 36, 0, 79.14794, 0, 36.445923, -1295.3352, -22, -967.9629)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R106" unique_id=1216439813]
+transform = Transform3D(45.600574, 0, -59.07593, 0, 36, 0, 82.19846, 0, 32.773075, -1237.3555, -22, -1002.5724)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R106" unique_id=1952812121]
+transform = Transform3D(50.71089, 0, -62.214725, 0, 27, 0, 79.148, 0, 39.86158, -1349.2561, -26.5, -1052.1206)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R106" unique_id=501322382]
+transform = Transform3D(45.600597, 0, -64.61255, 0, 27, 0, 82.198456, 0, 35.844604, -1285.8424, -26.5, -1089.9736)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R106" unique_id=1691028855]
+transform = Transform3D(50.710915, 0, -67.5459, 0, 18, 0, 79.14798, 0, 43.277344, -1403.1769, -31, -1136.2783)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R106" unique_id=984958429]
+transform = Transform3D(45.60062, 0, -70.14917, 0, 18, 0, 82.19844, 0, 38.916138, -1334.3293, -31, -1177.375)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R107" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=2108952116]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R107" unique_id=1547306248]
+transform = Transform3D(38.703506, 0, -61.565434, 0, 36.000004, 0, 85.66235, 0, 27.816164, -1159.106, -22, -1041.8713)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R107" unique_id=1957763396]
+transform = Transform3D(33.204945, 0, -63.202393, 0, 36, 0, 87.93993, 0, 23.86438, -1096.722, -22, -1067.7117)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R107" unique_id=60550695]
+transform = Transform3D(38.703457, 0, -67.33545, 0, 27.000004, 0, 85.66238, 0, 30.423096, -1200.2593, -26.5, -1132.9558)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R107" unique_id=231466614]
+transform = Transform3D(33.204945, 0, -69.12573, 0, 27.000004, 0, 87.93994, 0, 26.100952, -1132.0287, -26.5, -1161.2178)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R107" unique_id=1016081327]
+transform = Transform3D(38.70359, 0, -73.10535, 0, 18.000002, 0, 85.662315, 0, 33.03015, -1241.4126, -31, -1224.0403)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R107" unique_id=2098608233]
+transform = Transform3D(33.204815, 0, -75.04907, 0, 18.000002, 0, 87.93998, 0, 28.3374, -1167.3353, -31, -1254.7241)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R108" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1488243395]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R108" unique_id=1618624670]
+transform = Transform3D(25.878721, 0, -64.94703, 0, 36, 0, 90.36754, 0, 18.599, -1013.60266, -22, -1095.2539)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R108" unique_id=1419624711]
+transform = Transform3D(20.107922, 0, -65.993904, 0, 36.000004, 0, 91.824135, 0, 14.45154, -948.1322, -22, -1111.779)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R108" unique_id=590805034]
+transform = Transform3D(25.878752, 0, -71.034004, 0, 27, 0, 90.36753, 0, 20.342165, -1041.1194, -26.5, -1191.3413)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R108" unique_id=1658274909]
+transform = Transform3D(20.107874, 0, -72.178894, 0, 27, 0, 91.82414, 0, 15.805908, -969.51294, -26.5, -1209.4154)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R108" unique_id=1641567307]
+transform = Transform3D(25.87855, 0, -77.12085, 0, 18.000002, 0, 90.36759, 0, 22.085083, -1068.636, -31, -1287.429)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R108" unique_id=404201707]
+transform = Transform3D(20.10797, 0, -78.36389, 0, 18.000002, 0, 91.82413, 0, 17.1604, -990.8936, -31, -1307.0516)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R109" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1977013169]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R109" unique_id=435252639]
+transform = Transform3D(12.288147, 0, -71.94807, 0, 36.000004, 0, 93.19336, 0, 9.486817, -859.40295, -22, -1127.2318)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R109" unique_id=1946420941]
+transform = Transform3D(5.9250865, 0, -72.42645, 0, 36, 0, 93.81308, 0, 4.574341, -787.2157, -22, -1134.2625)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R109" unique_id=1990319682]
+transform = Transform3D(12.28821, 0, -78.69104, 0, 27.000004, 0, 93.19335, 0, 10.375977, -872.46796, -26.5, -1226.3164)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R109" unique_id=690623752]
+transform = Transform3D(5.9249353, 0, -79.214424, 0, 27, 0, 93.81309, 0, 5.00293, -793.51526, -26.5, -1234.0059)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R109" unique_id=1809222019]
+transform = Transform3D(12.288255, 0, -85.43408, 0, 18, 0, 93.193344, 0, 11.265137, -885.5329, -31, -1325.4009)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R109" unique_id=247133481]
+transform = Transform3D(5.924949, 0, -86.002266, 0, 18.000002, 0, 93.81309, 0, 5.4316416, -799.8147, -31, -1333.7493)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R110" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=899879756]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R110" unique_id=1169273466]
+transform = Transform3D(-5.9250865, 0, -72.42645, 0, 36, 0, 93.81308, 0, -4.574341, -652.7843, -22, -1134.2625)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R110" unique_id=110087164]
+transform = Transform3D(-12.288147, 0, -71.94807, 0, 36.000004, 0, 93.19336, 0, -9.486817, -580.59705, -22, -1127.2318)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R110" unique_id=463745810]
+transform = Transform3D(-5.9249353, 0, -79.214424, 0, 27, 0, 93.81309, 0, -5.00293, -646.48474, -26.5, -1234.0059)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R110" unique_id=205333673]
+transform = Transform3D(-12.28821, 0, -78.69104, 0, 27.000004, 0, 93.19335, 0, -10.375977, -567.53204, -26.5, -1226.3164)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R110" unique_id=1876242580]
+transform = Transform3D(-5.924949, 0, -86.002266, 0, 18.000002, 0, 93.81309, 0, -5.4316416, -640.1853, -31, -1333.7493)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R110" unique_id=553541190]
+transform = Transform3D(-12.288251, 0, -85.43411, 0, 18, 0, 93.193344, 0, -11.265137, -554.4671, -31, -1325.4009)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R111" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=888547119]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R111" unique_id=1564803217]
+transform = Transform3D(-20.107922, 0, -65.993904, 0, 36.000004, 0, 91.824135, 0, -14.45154, -491.8678, -22, -1111.779)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R111" unique_id=1755052021]
+transform = Transform3D(-25.878698, 0, -64.94708, 0, 36, 0, 90.367546, 0, -18.598999, -426.3973, -22, -1095.2539)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R111" unique_id=1168307270]
+transform = Transform3D(-20.107874, 0, -72.178894, 0, 27, 0, 91.82414, 0, -15.805908, -470.4871, -26.5, -1209.4154)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R111" unique_id=854972587]
+transform = Transform3D(-25.87876, 0, -71.033966, 0, 27, 0, 90.36752, 0, -20.342163, -398.88068, -26.5, -1191.3413)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R111" unique_id=1794332182]
+transform = Transform3D(-20.10797, 0, -78.36389, 0, 18.000002, 0, 91.82413, 0, -17.1604, -449.10638, -31, -1307.0516)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R111" unique_id=56557612]
+transform = Transform3D(-25.87855, 0, -77.12085, 0, 18.000002, 0, 90.36759, 0, -22.085083, -371.364, -31, -1287.429)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R112" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1384503426]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R112" unique_id=728772817]
+transform = Transform3D(-33.20497, 0, -63.20233, 0, 36.000004, 0, 87.939926, 0, -23.86438, -343.27795, -22, -1067.7117)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R112" unique_id=1121187899]
+transform = Transform3D(-33.204956, 0, -69.12571, 0, 27.000004, 0, 87.93993, 0, -26.100954, -307.9713, -26.5, -1161.2178)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R112" unique_id=394314281]
+transform = Transform3D(-38.70348, 0, -67.33541, 0, 27.000004, 0, 85.66237, 0, -30.423098, -239.74075, -26.5, -1132.9558)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R112" unique_id=853789319]
+transform = Transform3D(-33.20481, 0, -75.04909, 0, 18.000002, 0, 87.93999, 0, -28.337402, -272.66464, -31, -1254.7241)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R112" unique_id=569773151]
+transform = Transform3D(-38.70359, 0, -73.10535, 0, 18.000002, 0, 85.662315, 0, -33.03015, -198.58742, -31, -1224.0403)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R113" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=619324913]
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R113" unique_id=671496862]
+transform = Transform3D(-45.60057, 0, -64.6126, 0, 27, 0, 82.19847, 0, -35.844604, -154.15758, -26.5, -1089.9736)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R113" unique_id=401259949]
+transform = Transform3D(-50.710903, 0, -62.214703, 0, 27.000004, 0, 79.147995, 0, -39.861576, -90.74393, -26.5, -1052.1206)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R113" unique_id=648399664]
+transform = Transform3D(-45.60059, 0, -70.14923, 0, 18, 0, 82.198456, 0, -38.916138, -105.670654, -31, -1177.375)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R113" unique_id=27992965]
+transform = Transform3D(-50.710938, 0, -67.545876, 0, 18.000002, 0, 79.14797, 0, -43.27735, -36.823105, -31, -1136.2783)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R114" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1058375425]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R114" unique_id=2060134490]
+transform = Transform3D(-57.208603, 0, -57.583157, 0, 36.000004, 0, 74.5867, 0, -44.166748, -70.997, -22, -916.1486)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R114" unique_id=232086092]
+transform = Transform3D(-62.14631, 0, -54.447758, 0, 36, 0, 70.52543, 0, -47.978825, -14.981548, -22, -870.0758)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R114" unique_id=1721172679]
+transform = Transform3D(-57.20861, 0, -62.97989, 0, 27, 0, 74.5867, 0, -48.30609, -10.171982, -26.5, -995.4503)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R114" unique_id=2131048721]
+transform = Transform3D(-62.146294, 0, -59.550636, 0, 27, 0, 70.52545, 0, -52.475407, 51.09328, -26.5, -945.0596)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R114" unique_id=1083459400]
+transform = Transform3D(-57.208614, 0, -68.376625, 0, 18.000002, 0, 74.5867, 0, -52.44544, 50.65304, -31, -1074.752)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R114" unique_id=887093682]
+transform = Transform3D(-62.14628, 0, -64.65352, 0, 18, 0, 70.52546, 0, -56.97199, 117.16811, -31, -1020.0432)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R115" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1311424675]
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R115" unique_id=646679418]
+transform = Transform3D(-70.52544, 0, -56.97202, 0, 18, 0, 62.146305, 0, -64.6535, 230.0432, -31, -907.1681)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R115" unique_id=1014746375]
+transform = Transform3D(-74.5867, 0, -52.445435, 0, 18, 0, 57.2086, 0, -68.37665, 284.75192, -31, -840.6531)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R116" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=336802379]
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R116" unique_id=1138530762]
+transform = Transform3D(-82.19848, 0, -32.77309, 0, 36, 0, 45.600555, 0, -59.075993, 212.57239, -22, -587.35547)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R116" unique_id=857322490]
+transform = Transform3D(-82.19847, 0, -35.844604, 0, 27, 0, 45.600567, 0, -64.61261, 299.97375, -26.5, -635.8424)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R116" unique_id=647337413]
+transform = Transform3D(-79.14792, 0, -43.277435, 0, 18.000002, 0, 50.71103, 0, -67.54584, 346.27832, -31, -753.1769)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R116" unique_id=1726633862]
+transform = Transform3D(-82.19849, 0, -38.916107, 0, 18, 0, 45.600533, 0, -70.14929, 387.37512, -31, -684.32935)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R117" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=554772474]
+
+[node name="Step0_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R117" unique_id=1588360922]
+transform = Transform3D(-85.66236, 0, -27.816164, 0, 36.000004, 0, 38.70349, 0, -61.565464, 251.87137, -22, -509.10596)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step0_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R117" unique_id=1655070503]
+transform = Transform3D(-87.93994, 0, -23.864353, 0, 36.000004, 0, 33.20494, 0, -63.202335, 277.7116, -22, -446.72205)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R117" unique_id=1341714911]
+transform = Transform3D(-85.66235, 0, -30.423128, 0, 27.000004, 0, 38.703518, 0, -67.335396, 342.95587, -26.5, -550.2593)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R117" unique_id=346793854]
+transform = Transform3D(-87.93996, 0, -26.100891, 0, 27, 0, 33.204887, 0, -69.1257, 371.21786, -26.5, -482.0287)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R117" unique_id=2082696186]
+transform = Transform3D(-85.662346, 0, -33.03009, 0, 18, 0, 38.70353, 0, -73.10535, 434.0403, -31, -591.4126)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R117" unique_id=2138147763]
+transform = Transform3D(-87.93996, 0, -28.337494, 0, 18.000002, 0, 33.2049, 0, -75.0491, 464.72412, -31, -517.3354)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R118" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1223991795]
+
+[node name="Step1_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R118" unique_id=1817386840]
+transform = Transform3D(-90.36757, 0, -20.342041, 0, 27, 0, 25.878616, 0, -71.033966, 401.34137, -26.5, -391.11932)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step1_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R118" unique_id=6034522]
+transform = Transform3D(-91.824135, 0, -15.80597, 0, 27.000004, 0, 20.107948, 0, -72.1789, 419.41537, -26.5, -319.5129)
+material_override = ExtResource("5_7l37o")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R118" unique_id=884566618]
+transform = Transform3D(-90.36758, 0, -22.085144, 0, 18.000002, 0, 25.878616, 0, -77.12085, 497.4289, -31, -418.636)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R118" unique_id=1000761162]
+transform = Transform3D(-91.824135, 0, -17.160372, 0, 18, 0, 20.107937, 0, -78.3639, 517.05164, -31, -340.89362)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="R119" type="Node3D" parent="Fabric/Band_terrace_1020" unique_id=1164927441]
+
+[node name="Step2_0" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R119" unique_id=1973200790]
+transform = Transform3D(-93.19336, 0, -11.265015, 0, 18, 0, 12.288118, 0, -85.43411, 535.4009, -31, -235.53291)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Step2_1" type="MeshInstance3D" parent="Fabric/Band_terrace_1020/R119" unique_id=475427067]
+transform = Transform3D(-93.81309, 0, -5.4317017, 0, 18, 0, 5.9250164, 0, -86.002235, 543.74927, -31, -149.81474)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("2_4wvb0")
+
+[node name="FarSkyline" type="Node3D" parent="." unique_id=802296711]
+
+[node name="Island0" type="Node3D" parent="FarSkyline" unique_id=701319173]
+
+[node name="Base" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=1384331764]
+transform = Transform3D(520, 0, 0, 0, 12, 0, 0, 0, 520, -2511.293, -34, -1136.6464)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T00" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=1839022315]
+transform = Transform3D(-36.51196, 0, -13.685372, 0, 87.911285, 0, 13.289268, 0, -37.60025, -2376.1238, 15.955643, -984.4722)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T01" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=2007180768]
+transform = Transform3D(48.504215, 0, 0, 0, 84.29571, 0, 0, 0, 48.504215, -2487.29, 14.147854, -1169.3733)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T02" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=899652685]
+transform = Transform3D(-58.456715, 0, -12.6369915, 0, 113.787346, 0, 21.276505, 0, -34.71985, -2339.486, 28.893673, -1084.6383)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T03" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=1844222511]
+transform = Transform3D(-59.878975, 0, -21.0771, 0, 114.68222, 0, 21.794165, 0, -57.90886, -2600.2397, 29.34111, -1143.4595)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T04" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=43862462]
+transform = Transform3D(-59.283203, 0, -19.97841, 0, 175.28053, 0, 21.577322, 0, -54.890232, -2397.2908, 59.640266, -1222.4896)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T05" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=2065285736]
+transform = Transform3D(51.081223, 0, 0, 0, 240.57007, 0, 0, 0, 51.081223, -2549.228, 92.285034, -1093.678)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T06" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=416549532]
+transform = Transform3D(33.712982, 0, 0, 0, 133.01619, 0, 0, 0, 33.712982, -2405.6829, 38.508095, -1183.6503)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T07" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=1537828931]
+transform = Transform3D(-40.158405, 0, -14.978917, 0, 107.939964, 0, 14.616465, 0, -41.154236, -2686.3552, 25.969982, -1120.9249)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T08" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=1916379895]
+transform = Transform3D(49.639355, 0, 0, 0, 180.59247, 0, 0, 0, 49.639355, -2451.2483, 62.296234, -1123.3256)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T09" type="MeshInstance3D" parent="FarSkyline/Island0" unique_id=2129120463]
+transform = Transform3D(-44.40273, 0, -18.467539, 0, 140.3201, 0, 16.161272, 0, -50.739143, -2432.2866, 42.16005, -1144.4325)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Island1" type="Node3D" parent="FarSkyline" unique_id=1935383783]
+
+[node name="Base" type="MeshInstance3D" parent="FarSkyline/Island1" unique_id=1023634588]
+transform = Transform3D(520, 0, 0, 0, 12, 0, 0, 0, 520, -1034.0403, -34, -2229.3853)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T00" type="MeshInstance3D" parent="FarSkyline/Island1" unique_id=1906397391]
+transform = Transform3D(-21.379913, 0, -65.684, 0, 32.739674, 0, 58.740845, 0, -23.907013, -846.7991, -11.630163, -2114.168)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T01" type="MeshInstance3D" parent="FarSkyline/Island1" unique_id=1450374514]
+transform = Transform3D(44.099567, 0, 0, 0, 60.609695, 0, 0, 0, 44.099567, -1084.8302, 2.3048477, -2057.879)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T02" type="MeshInstance3D" parent="FarSkyline/Island1" unique_id=933697070]
+transform = Transform3D(-18.666853, 0, -58.03963, 0, 101.9239, 0, 51.286774, 0, -21.124691, -1212.4078, 22.961948, -2194.9834)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T03" type="MeshInstance3D" parent="FarSkyline/Island1" unique_id=881476590]
+transform = Transform3D(36.714577, 0, 0, 0, 225.1744, 0, 0, 0, 36.714577, -1025.167, 84.5872, -2199.2273)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T04" type="MeshInstance3D" parent="FarSkyline/Island1" unique_id=1939857786]
+transform = Transform3D(47.11581, 0, 0, 0, 100.97335, 0, 0, 0, 47.11581, -894.39874, 22.486675, -2346.4917)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T05" type="MeshInstance3D" parent="FarSkyline/Island1" unique_id=1468836988]
+transform = Transform3D(36.323406, 0, 0, 0, 105.580154, 0, 0, 0, 36.323406, -1196.1046, 24.790077, -2382.404)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T06" type="MeshInstance3D" parent="FarSkyline/Island1" unique_id=505410355]
+transform = Transform3D(-14.42823, 0, -40.75324, 0, 89.27806, 0, 39.641247, 0, -14.832961, -1073.2823, 16.63903, -2040.4878)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Island2" type="Node3D" parent="FarSkyline" unique_id=193294811]
+
+[node name="Base" type="MeshInstance3D" parent="FarSkyline/Island2" unique_id=59427804]
+transform = Transform3D(520, 0, 0, 0, 12, 0, 0, 0, 520, 950, -34, -2601.666)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T00" type="MeshInstance3D" parent="FarSkyline/Island2" unique_id=1685983508]
+transform = Transform3D(52.071777, 0, 0, 0, 76.4406, 0, 0, 0, 52.071777, 1018.1296, 10.220299, -2692.7107)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T01" type="MeshInstance3D" parent="FarSkyline/Island2" unique_id=1381417612]
+transform = Transform3D(32.460377, 0, 0, 0, 211.40056, 0, 0, 0, 32.460377, 973.45447, 77.70028, -2716.198)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T02" type="MeshInstance3D" parent="FarSkyline/Island2" unique_id=880841924]
+transform = Transform3D(33.319305, 0, -35.292145, 0, 55.17433, 0, 57.710747, 0, 20.375925, 858.9522, -0.41283417, -2620.0066)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T03" type="MeshInstance3D" parent="FarSkyline/Island2" unique_id=2074723800]
+transform = Transform3D(43.854237, 0, 0, 0, 91.20037, 0, 0, 0, 43.854237, 1019.0187, 17.600185, -2473.3718)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T04" type="MeshInstance3D" parent="FarSkyline/Island2" unique_id=795928701]
+transform = Transform3D(26.497982, 0, -41.221577, 0, 131.14987, 0, 45.89586, 0, 23.799284, 983.3295, 37.574936, -2593.598)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T05" type="MeshInstance3D" parent="FarSkyline/Island2" unique_id=2036212112]
+transform = Transform3D(18.988422, 0, -56.26064, 0, 168.96924, 0, 32.88892, 0, 32.482086, 1069.3156, 56.48462, -2627.204)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T06" type="MeshInstance3D" parent="FarSkyline/Island2" unique_id=2032134061]
+transform = Transform3D(29.968958, 0, -34.459793, 0, 101.34159, 0, 51.907772, 0, 19.895367, 764.0531, 22.670795, -2657.9612)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Island3" type="Node3D" parent="FarSkyline" unique_id=2107806721]
+
+[node name="Base" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=1529421406]
+transform = Transform3D(520, 0, 0, 0, 12, 0, 0, 0, 520, 1717.3237, -34, 402.4443)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T00" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=1297193295]
+transform = Transform3D(59.523754, 0, 15.091796, 0, 70.55779, 0, -21.664873, 0, 41.46437, 1619.3114, 7.2788963, 550.057)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T01" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=789090360]
+transform = Transform3D(37.655735, 0, 0, 0, 141.87798, 0, 0, 0, 37.655735, 1716.6317, 42.938988, 286.45947)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T02" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=1448194929]
+transform = Transform3D(46.87621, 0, 0, 0, 50.694828, 0, 0, 0, 46.87621, 1833.4407, -2.652586, 272.03098)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T03" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=454317851]
+transform = Transform3D(34.91647, 0, 12.365826, 0, 154.10526, 0, -12.708554, 0, 33.97483, 1747.9196, 49.052628, 490.36703)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T04" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=799727480]
+transform = Transform3D(35.657852, 0, 14.018646, 0, 75.667175, 0, -12.978395, 0, 38.515915, 1546.1724, 9.833588, 286.52182)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T05" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=1102242009]
+transform = Transform3D(39.750904, 0, 0, 0, 138.0745, 0, 0, 0, 39.750904, 1895.8324, 41.037247, 309.5952)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T06" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=323856378]
+transform = Transform3D(61.739803, 0, 15.884955, 0, 44.937645, 0, -22.471449, 0, 43.64356, 1752.0673, -5.5311775, 222.89432)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T07" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=1671523779]
+transform = Transform3D(44.830727, 0, 16.91187, 0, 141.24953, 0, -16.317049, 0, 46.464985, 1529.8986, 42.624763, 478.96536)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T08" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=1085359644]
+transform = Transform3D(34.531322, 0, 14.632128, 0, 122.35282, 0, -12.568374, 0, 40.201443, 1599.6685, 33.17641, 240.51926)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T09" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=576590684]
+transform = Transform3D(51.45565, 0, 0, 0, 84.2578, 0, 0, 0, 51.45565, 1898.5966, 14.128899, 252.84872)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T10" type="MeshInstance3D" parent="FarSkyline/Island3" unique_id=391284334]
+transform = Transform3D(46.981396, 0, 19.061693, 0, 80.22254, 0, -17.099829, 0, 52.371574, 1726.7638, 12.111271, 590.7367)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Island4" type="Node3D" parent="FarSkyline" unique_id=1044052107]
+
+[node name="Base" type="MeshInstance3D" parent="FarSkyline/Island4" unique_id=101103269]
+transform = Transform3D(520, 0, 0, 0, 12, 0, 0, 0, 520, -784.1204, -34, 2112.0193)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T00" type="MeshInstance3D" parent="FarSkyline/Island4" unique_id=613978105]
+transform = Transform3D(-6.730381, 0, 62.468594, 0, 81.531555, 0, -38.169884, 0, -11.0149, -809.6819, 12.765778, 2012.7915)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T01" type="MeshInstance3D" parent="FarSkyline/Island4" unique_id=194550611]
+transform = Transform3D(-6.872925, 0, 59.06855, 0, 81.02798, 0, -38.97829, 0, -10.4153805, -611.88763, 12.5139885, 2253.4458)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T02" type="MeshInstance3D" parent="FarSkyline/Island4" unique_id=211772321]
+transform = Transform3D(-10.650864, 0, 60.700626, 0, 70.06959, 0, -60.40404, 0, -10.703159, -699.9523, 7.034794, 2244.1304)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T03" type="MeshInstance3D" parent="FarSkyline/Island4" unique_id=1076820957]
+transform = Transform3D(-8.833594, 0, 65.949875, 0, 62.722004, 0, -50.097797, 0, -11.628744, -826.66565, 3.361002, 2259.7913)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T04" type="MeshInstance3D" parent="FarSkyline/Island4" unique_id=1342135338]
+transform = Transform3D(-11.316815, 0, 59.683674, 0, 124.71197, 0, -64.18084, 0, -10.523844, -921.7644, 34.355984, 2227.823)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T05" type="MeshInstance3D" parent="FarSkyline/Island4" unique_id=2124939138]
+transform = Transform3D(-11.016627, 0, 60.963238, 0, 63.51072, 0, -62.47839, 0, -10.749465, -669.00745, 3.7553596, 2060.366)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T06" type="MeshInstance3D" parent="FarSkyline/Island4" unique_id=228420885]
+transform = Transform3D(-11.771404, 0, 54.07934, 0, 112.93398, 0, -66.75894, 0, -9.535648, -962.16437, 28.466991, 2257.3643)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Island5" type="Node3D" parent="FarSkyline" unique_id=1145484823]
+
+[node name="Base" type="MeshInstance3D" parent="FarSkyline/Island5" unique_id=1580416468]
+transform = Transform3D(520, 0, 0, 0, 12, 0, 0, 0, 520, -1995.4482, -34, 600)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T00" type="MeshInstance3D" parent="FarSkyline/Island5" unique_id=1853173233]
+transform = Transform3D(38.813118, 0, 0, 0, 65.11679, 0, 0, 0, 38.813118, -1919.0115, 4.5583954, 775.1918)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T01" type="MeshInstance3D" parent="FarSkyline/Island5" unique_id=872428949]
+transform = Transform3D(-52.47963, 0, 29.611895, 0, 46.059177, 0, -30.299133, 0, -51.2893, -2145.4556, -4.9704113, 438.01532)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T02" type="MeshInstance3D" parent="FarSkyline/Island5" unique_id=1286203446]
+transform = Transform3D(40.9099, 0, 0, 0, 53.495594, 0, 0, 0, 40.9099, -1962.0865, -1.252203, 481.55334)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T03" type="MeshInstance3D" parent="FarSkyline/Island5" unique_id=2070564099]
+transform = Transform3D(-33.420784, 0, 26.948097, 0, 183.01083, 0, -19.295502, 0, -46.675465, -1915.8628, 63.505417, 522.90326)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T04" type="MeshInstance3D" parent="FarSkyline/Island5" unique_id=225483795]
+transform = Transform3D(-55.988457, 0, 25.513176, 0, 170.64302, 0, -32.324955, 0, -44.19011, -1852.3694, 57.32151, 531.48145)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T05" type="MeshInstance3D" parent="FarSkyline/Island5" unique_id=1467009055]
+transform = Transform3D(-46.139317, 0, 22.701342, 0, 85.845665, 0, -26.638552, 0, -39.319874, -2043.5907, 14.9228325, 462.3319)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T06" type="MeshInstance3D" parent="FarSkyline/Island5" unique_id=779632433]
+transform = Transform3D(32.765724, 0, 0, 0, 100.39702, 0, 0, 0, 32.765724, -2064.205, 22.19851, 475.11743)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T07" type="MeshInstance3D" parent="FarSkyline/Island5" unique_id=447683650]
+transform = Transform3D(-39.978962, 0, 28.212948, 0, 148.34578, 0, -23.081867, 0, -48.866253, -1916.1078, 46.17289, 684.46436)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="Island6" type="Node3D" parent="FarSkyline" unique_id=874873241]
+
+[node name="Base" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=1137112180]
+transform = Transform3D(520, 0, 0, 0, 12, 0, 0, 0, 520, 1623.3545, -34, -1068.2423)
+material_override = ExtResource("10_4wvb0")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T00" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=61053704]
+transform = Transform3D(53.935112, 0, -13.670011, 0, 141.61589, 0, 19.63079, 0, 37.558018, 1776.0936, 42.807945, -1148.9658)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T01" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=1598212611]
+transform = Transform3D(58.803288, 0, 0, 0, 80.842026, 0, 0, 0, 58.803288, 1750.8618, 12.421013, -1076.9397)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T02" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=97707842]
+transform = Transform3D(48.946712, 0, 0, 0, 187.59442, 0, 0, 0, 48.946712, 1750.0198, 65.79721, -1096.9581)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T03" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=954472000]
+transform = Transform3D(40.826035, 0, 0, 0, 193.9515, 0, 0, 0, 40.826035, 1658.8885, 68.97575, -1007.03015)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T04" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=23720194]
+transform = Transform3D(59.87953, 0, 0, 0, 117.931885, 0, 0, 0, 59.87953, 1802.3577, 30.965942, -993.42114)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T05" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=1509396696]
+transform = Transform3D(49.359554, 0, 0, 0, 123.68723, 0, 0, 0, 49.359554, 1731.1218, 33.843616, -1220.203)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T06" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=1281194803]
+transform = Transform3D(34.506783, 0, -18.3273, 0, 156.45906, 0, 12.55945, 0, 50.353806, 1489.4347, 50.22953, -962.51685)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T07" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=1541250125]
+transform = Transform3D(42.609478, 0, -22.117958, 0, 128.9835, 0, 15.508593, 0, 60.768547, 1545.0085, 36.491753, -908.1516)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")
+
+[node name="T08" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=1039742097]
+transform = Transform3D(38.02186, 0, 0, 0, 59.473442, 0, 0, 0, 38.02186, 1547.8193, 1.736721, -1182.7756)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("10_ts3pq")
+
+[node name="T09" type="MeshInstance3D" parent="FarSkyline/Island6" unique_id=1234588722]
+transform = Transform3D(37.297203, 0, -18.758509, 0, 71.00553, 0, 13.575081, 0, 51.538544, 1732.2815, 7.5027657, -994.28015)
+material_override = ExtResource("3_4c0n2")
+mesh = ExtResource("2_4wvb0")

@@ -1,0 +1,232 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="1_13jrq"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="2_lfhww"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="3_frb6g"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_dark.tres" id="4_wbbn1"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="5_yeo0x"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="6_6kryc"]
+
+[sub_resource type="TorusMesh" id="TorusMesh_13jrq"]
+inner_radius = 150.0
+outer_radius = 158.0
+rings = 128
+ring_segments = 12
+
+[node name="Utopia_Northloop" type="Node3D" unique_id=153374543]
+
+[node name="Core" type="Node3D" parent="." unique_id=189331335]
+
+[node name="CoreSlab" type="Node3D" parent="Core" unique_id=878575895]
+
+[node name="Shaft" type="MeshInstance3D" parent="Core/CoreSlab" unique_id=2080240987]
+transform = Transform3D(50.863678, 0, 4.865134, 0, 340, 0, -10.811408, 0, 22.888655, -300, 130, -840)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="Fin" type="MeshInstance3D" parent="Core/CoreSlab" unique_id=734472092]
+transform = Transform3D(3.9125905, 0, 5.405704, 0, 354, 0, -0.8316468, 0, 25.431839, -272.61188, 137, -845.82153)
+material_override = ExtResource("3_frb6g")
+mesh = ExtResource("2_lfhww")
+
+[node name="Glaze" type="MeshInstance3D" parent="Core/CoreSlab" unique_id=1705340020]
+transform = Transform3D(41.708214, 0, 0.31186754, 0, 332, 0, -8.865355, 0, 1.4672215, -297.51337, 126, -828.30133)
+material_override = ExtResource("4_wbbn1")
+mesh = ExtResource("2_lfhww")
+
+[node name="CoreRound" type="Node3D" parent="Core" unique_id=159527882]
+
+[node name="Shaft" type="MeshInstance3D" parent="Core/CoreRound" unique_id=1868315061]
+transform = Transform3D(40, 0, 0, 0, 260, 0, 0, 0, 40, -250, 90, -760)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("5_yeo0x")
+
+[node name="Band1" type="MeshInstance3D" parent="Core/CoreRound" unique_id=1762109273]
+transform = Transform3D(46, 0, 0, 0, 5, 0, 0, 0, 46, -250, 123.7, -760)
+material_override = ExtResource("3_frb6g")
+mesh = ExtResource("5_yeo0x")
+
+[node name="Top" type="MeshInstance3D" parent="Core/CoreRound" unique_id=444347218]
+transform = Transform3D(25.6, 0, 0, 0, 22, 0, 0, 0, 25.6, -250, 231, -760)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("5_yeo0x")
+
+[node name="CoreStep" type="Node3D" parent="Core" unique_id=2116639145]
+
+[node name="T1" type="MeshInstance3D" parent="Core/CoreStep" unique_id=752350153]
+transform = Transform3D(51.49394, 0, -7.2370014, 0, 95, 0, 7.2370014, 0, 51.49394, -286, 7.5, -700)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T2" type="MeshInstance3D" parent="Core/CoreStep" unique_id=278457063]
+transform = Transform3D(37.075634, 0, -5.210641, 0, 57, 0, 5.210641, 0, 37.075634, -286, 83.5, -700)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("2_lfhww")
+
+[node name="T3" type="MeshInstance3D" parent="Core/CoreStep" unique_id=753260125]
+transform = Transform3D(23.687212, 0, -3.3290207, 0, 38, 0, 3.3290207, 0, 23.687212, -286, 131, -700)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="CorePodium" type="MeshInstance3D" parent="Core" unique_id=346122672]
+transform = Transform3D(100, 0, 0, 0, 28, 0, 0, 0, 200, -282, -26, -780)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("2_lfhww")
+
+[node name="OuterTower" type="Node3D" parent="Core" unique_id=1162905313]
+
+[node name="Shaft" type="MeshInstance3D" parent="Core/OuterTower" unique_id=454411328]
+transform = Transform3D(36, 0, 0, 0, 171.49632, 0, 0, 0, 36, -280.84186, 45.74816, -1057.3325)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("5_yeo0x")
+
+[node name="Band1" type="MeshInstance3D" parent="Core/OuterTower" unique_id=817593311]
+transform = Transform3D(42, 0, 0, 0, 5, 0, 0, 0, 42, -280.84186, 68.82772, -1057.3325)
+material_override = ExtResource("3_frb6g")
+mesh = ExtResource("5_yeo0x")
+
+[node name="Top" type="MeshInstance3D" parent="Core/OuterTower" unique_id=1066447484]
+transform = Transform3D(23.04, 0, 0, 0, 22, 0, 0, 0, 23.04, -280.84186, 142.49632, -1057.3325)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("5_yeo0x")
+
+[node name="LoopBridge" type="MeshInstance3D" parent="Core" unique_id=93997449]
+transform = Transform3D(13.945921, 0, -19.158142, 0, 7.9999986, 0, 1.2293509, 0, 217.33252, -290.42093, 75.49633, -948.66626)
+material_override = ExtResource("3_frb6g")
+mesh = ExtResource("2_lfhww")
+
+[node name="Halo" type="Node3D" parent="." unique_id=905508483]
+
+[node name="Ring" type="MeshInstance3D" parent="Halo" unique_id=1329456027]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -282, 111.496284, -842)
+material_override = ExtResource("3_frb6g")
+mesh = SubResource("TorusMesh_13jrq")
+
+[node name="Stay0" type="MeshInstance3D" parent="Halo" unique_id=1676232586]
+transform = Transform3D(0.47572908, 0.7133867, 162.71268, 0, 1.4148234, -90, -1.5276393, 0.22215901, 50.67109, -218.64368, 156.49628, -814.6644)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="Stay1" type="MeshInstance3D" parent="Halo" unique_id=1566949277]
+transform = Transform3D(1.5547751, -0.19736223, -34.671112, 0, 1.3642172, -89.99999, 0.37772253, 0.812379, 142.71265, -317.33557, 156.49628, -768.6437)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="Stay2" type="MeshInstance3D" parent="Halo" unique_id=298777541]
+transform = Transform3D(-0.63385046, -0.80250275, -126.712685, 0, 1.3401877, -89.99999, 1.4690927, -0.3462455, -54.67108, -363.35632, 156.49628, -867.3356)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="Stay3" type="MeshInstance3D" parent="Halo" unique_id=480920309]
+transform = Transform3D(-1.441481, 0.33586782, 70.6711, 0, 1.4003652, -89.99999, -0.6943576, -0.697259, -146.71265, -264.66446, 156.49628, -913.3563)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="OuterTerraces" type="Node3D" parent="." unique_id=1066091138]
+
+[node name="T00_0" type="MeshInstance3D" parent="OuterTerraces" unique_id=429655376]
+transform = Transform3D(21.604774, 0, -8.30271, 0, 45.757545, 0, 4.151355, 0, 43.20955, -451.25244, -17.121227, -889.2129)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T00_1" type="MeshInstance3D" parent="OuterTerraces" unique_id=1889249879]
+transform = Transform3D(21.604774, 0, -8.30271, 0, 57.757545, 0, 4.151355, 0, 43.20955, -474.8213, -11.121227, -893.74164)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("2_lfhww")
+
+[node name="T00_2" type="MeshInstance3D" parent="OuterTerraces" unique_id=2143147947]
+transform = Transform3D(21.604774, 0, -8.30271, 0, 69.757545, 0, 4.151355, 0, 43.20955, -498.39014, -5.1212273, -898.2704)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T01_0" type="MeshInstance3D" parent="OuterTerraces" unique_id=1730642251]
+transform = Transform3D(16.266191, 0, -29.62506, 0, 46.496017, 0, 14.81253, 0, 32.532383, -419.13123, -16.751991, -954.20087)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T01_1" type="MeshInstance3D" parent="OuterTerraces" unique_id=1403257922]
+transform = Transform3D(16.266191, 0, -29.62506, 0, 58.496017, 0, 14.81253, 0, 32.532383, -436.87616, -10.751991, -970.36)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("2_lfhww")
+
+[node name="T01_2" type="MeshInstance3D" parent="OuterTerraces" unique_id=1574165652]
+transform = Transform3D(16.266191, 0, -29.62506, 0, 70.49602, 0, 14.81253, 0, 32.532383, -454.6211, -4.7519913, -986.5191)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T02_0" type="MeshInstance3D" parent="OuterTerraces" unique_id=1573534572]
+transform = Transform3D(6.7313724, 0, -41.88979, 0, 46.94419, 0, 20.944895, 0, 13.462745, -359.28473, -16.527905, -992.87366)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T02_1" type="MeshInstance3D" parent="OuterTerraces" unique_id=903251205]
+transform = Transform3D(6.7313724, 0, -41.88979, 0, 58.94419, 0, 20.944895, 0, 13.462745, -366.62802, -10.5279045, -1015.7226)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("2_lfhww")
+
+[node name="T02_2" type="MeshInstance3D" parent="OuterTerraces" unique_id=883813181]
+transform = Transform3D(6.7313724, 0, -41.88979, 0, 70.94419, 0, 20.944895, 0, 13.462745, -373.97134, -4.5279045, -1038.5715)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T03_0" type="MeshInstance3D" parent="OuterTerraces" unique_id=1973795120]
+transform = Transform3D(-2.8043935, 0, -43.641056, 0, 47.006756, 0, 21.820528, 0, -5.608787, -292.11493, -16.496624, -998.3165)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T03_1" type="MeshInstance3D" parent="OuterTerraces" unique_id=528300487]
+transform = Transform3D(-2.8043935, 0, -43.641056, 0, 59.00676, 0, 21.820528, 0, -5.608787, -289.0556, -10.496624, -1022.1207)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("2_lfhww")
+
+[node name="T03_2" type="MeshInstance3D" parent="OuterTerraces" unique_id=1055184280]
+transform = Transform3D(-2.8043935, 0, -43.641056, 0, 71.00676, 0, 21.820528, 0, -5.608787, -285.99625, -4.496624, -1045.9249)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T04_0" type="MeshInstance3D" parent="OuterTerraces" unique_id=1018305209]
+transform = Transform3D(-9.013466, 0, -40.137634, 0, 46.775105, 0, 20.068817, 0, -18.026932, -233.9894, -16.612448, -981.5504)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T04_1" type="MeshInstance3D" parent="OuterTerraces" unique_id=2052327848]
+transform = Transform3D(-9.013466, 0, -40.137634, 0, 58.775105, 0, 20.068817, 0, -18.026932, -224.15652, -10.612448, -1003.44366)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("2_lfhww")
+
+[node name="T04_2" type="MeshInstance3D" parent="OuterTerraces" unique_id=1244884627]
+transform = Transform3D(-9.013466, 0, -40.137634, 0, 70.7751, 0, 20.068817, 0, -18.026932, -214.32365, -4.6124496, -1025.3369)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T05_0" type="MeshInstance3D" parent="OuterTerraces" unique_id=884122362]
+transform = Transform3D(-14.3389435, 0, -33.37033, 0, 46.335873, 0, 16.685165, 0, -28.677887, -182.97256, -16.832066, -949.6179)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T05_1" type="MeshInstance3D" parent="OuterTerraces" unique_id=655007262]
+transform = Transform3D(-14.3389435, 0, -33.37033, 0, 58.335876, 0, 16.685165, 0, -28.677887, -167.3301, -10.832066, -967.8199)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("2_lfhww")
+
+[node name="T05_2" type="MeshInstance3D" parent="OuterTerraces" unique_id=1703362477]
+transform = Transform3D(-14.3389435, 0, -33.37033, 0, 70.33588, 0, 16.685165, 0, -28.677887, -151.6876, -4.8320656, -986.0219)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T06_0" type="MeshInstance3D" parent="OuterTerraces" unique_id=294068707]
+transform = Transform3D(-21.259369, 0, -11.320643, 0, 45.658504, 0, 5.6603217, 0, -42.518738, -141.72743, -17.170748, -887.17596)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="T06_1" type="MeshInstance3D" parent="OuterTerraces" unique_id=1763495859]
+transform = Transform3D(-21.259369, 0, -11.320643, 0, 57.658504, 0, 5.6603217, 0, -42.518738, -118.535385, -11.170748, -893.3508)
+material_override = ExtResource("6_6kryc")
+mesh = ExtResource("2_lfhww")
+
+[node name="T06_2" type="MeshInstance3D" parent="OuterTerraces" unique_id=1007458716]
+transform = Transform3D(-21.259369, 0, -11.320643, 0, 69.6585, 0, 5.6603217, 0, -42.518738, -95.34335, -5.1707497, -899.52576)
+material_override = ExtResource("1_13jrq")
+mesh = ExtResource("2_lfhww")
+
+[node name="WestSlabs" type="Node3D" parent="." unique_id=1621330988]

@@ -1,0 +1,122 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="1_i5htn"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="2_foiam"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="3_hbks2"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="4_ncuif"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_dark.tres" id="5_n7jmr"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cone.tres" id="6_gj7vy"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_taper.tres" id="7_foiam"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="7_lewig"]
+
+[node name="Utopia_Spiral" type="Node3D" unique_id=1636185854]
+
+[node name="Drum" type="Node3D" parent="." unique_id=685331453]
+
+[node name="Core" type="MeshInstance3D" parent="Drum" unique_id=1703717136]
+transform = Transform3D(60, 0, 0, 0, 20, 0, 0, 0, 60, 80, -30, -452)
+material_override = ExtResource("1_i5htn")
+mesh = ExtResource("2_foiam")
+
+[node name="Shaft" type="MeshInstance3D" parent="Drum" unique_id=530442039]
+transform = Transform3D(52, 0, 0, 0, 122.46845, 0, 0, 0, 52, 80, 41.234226, -452)
+material_override = ExtResource("3_hbks2")
+mesh = ExtResource("2_foiam")
+
+[node name="Ring0" type="MeshInstance3D" parent="Drum" unique_id=1421351024]
+transform = Transform3D(56, 0, 0, 0, 3, 0, 0, 0, 56, 80, -8.5, -452)
+material_override = ExtResource("4_ncuif")
+mesh = ExtResource("2_foiam")
+
+[node name="Ring1" type="MeshInstance3D" parent="Drum" unique_id=1412732042]
+transform = Transform3D(56, 0, 0, 0, 3, 0, 0, 0, 56, 80, 7.5, -452)
+material_override = ExtResource("4_ncuif")
+mesh = ExtResource("2_foiam")
+
+[node name="Ring2" type="MeshInstance3D" parent="Drum" unique_id=564574629]
+transform = Transform3D(56, 0, 0, 0, 3, 0, 0, 0, 56, 80, 23.5, -452)
+material_override = ExtResource("4_ncuif")
+mesh = ExtResource("2_foiam")
+
+[node name="Ring3" type="MeshInstance3D" parent="Drum" unique_id=2129464531]
+transform = Transform3D(56, 0, 0, 0, 3, 0, 0, 0, 56, 80, 39.5, -452)
+material_override = ExtResource("4_ncuif")
+mesh = ExtResource("2_foiam")
+
+[node name="Crown" type="MeshInstance3D" parent="Drum" unique_id=1321854950]
+transform = Transform3D(140, 0, 0, 0, 22, 0, 0, 0, 140, 80, 113.46845, -452)
+material_override = ExtResource("3_hbks2")
+mesh = ExtResource("2_foiam")
+
+[node name="CrownGlaze" type="MeshInstance3D" parent="Drum" unique_id=314026011]
+transform = Transform3D(124, 0, 0, 0, 14, 0, 0, 0, 124, 80, 131.46844, -452)
+material_override = ExtResource("5_n7jmr")
+mesh = ExtResource("2_foiam")
+
+[node name="CrownRoof" type="MeshInstance3D" parent="Drum" unique_id=321372864]
+transform = Transform3D(144, 0, 0, 0, 4, 0, 0, 0, 144, 80, 140.46846, -452)
+material_override = ExtResource("4_ncuif")
+mesh = ExtResource("2_foiam")
+
+[node name="Mast" type="MeshInstance3D" parent="Drum" unique_id=231291792]
+transform = Transform3D(8, 0, 0, 0, 90, 0, 0, 0, 8, 80, 187.46846, -452)
+material_override = ExtResource("3_hbks2")
+mesh = ExtResource("6_gj7vy")
+
+[node name="CrestBeacons" type="Node3D" parent="." unique_id=87379447]
+
+[node name="BeaconA" type="Node3D" parent="CrestBeacons" unique_id=972943939]
+
+[node name="Shaft" type="MeshInstance3D" parent="CrestBeacons/BeaconA" unique_id=2005693736]
+transform = Transform3D(30, 0, 0, 0, 295.2, 0, 0, 0, 30, 112, 107.600006, -770)
+material_override = ExtResource("3_hbks2")
+mesh = ExtResource("7_foiam")
+
+[node name="Pod" type="MeshInstance3D" parent="CrestBeacons/BeaconA" unique_id=1423375348]
+transform = Transform3D(66, 0, 0, 0, 10, 0, 0, 0, 66, 112, 231.4, -770)
+material_override = ExtResource("4_ncuif")
+mesh = ExtResource("2_foiam")
+
+[node name="Spike" type="MeshInstance3D" parent="CrestBeacons/BeaconA" unique_id=2131036259]
+transform = Transform3D(7.2, 0, 0, 0, 64.8, 0, 0, 0, 7.2, 112, 287.6, -770)
+material_override = ExtResource("3_hbks2")
+mesh = ExtResource("6_gj7vy")
+
+[node name="BeaconB" type="Node3D" parent="CrestBeacons" unique_id=255941643]
+
+[node name="Shaft" type="MeshInstance3D" parent="CrestBeacons/BeaconB" unique_id=496759669]
+transform = Transform3D(37.587704, 0, 6.156362, 0, 290, 0, -13.680805, 0, 16.914467, 196, 105, -735)
+material_override = ExtResource("3_hbks2")
+mesh = ExtResource("7_lewig")
+
+[node name="Fin" type="MeshInstance3D" parent="CrestBeacons/BeaconB" unique_id=337967636]
+transform = Transform3D(3.7587705, 0, 6.8404026, 0, 304, 0, -1.3680805, 0, 18.793852, 216.67323, 112, -742.5244)
+material_override = ExtResource("4_ncuif")
+mesh = ExtResource("7_lewig")
+
+[node name="Glaze" type="MeshInstance3D" parent="CrestBeacons/BeaconB" unique_id=178785531]
+transform = Transform3D(30.821917, 0, 0.5130302, 0, 282, 0, -11.21826, 0, 1.409539, 199.14659, 101, -726.35486)
+material_override = ExtResource("5_n7jmr")
+mesh = ExtResource("7_lewig")
+
+[node name="BeaconLink" type="MeshInstance3D" parent="CrestBeacons" unique_id=125084751]
+transform = Transform3D(-3.0769231, 0, -84.92308, 0, 8, 0, 7.3846154, 0, -35.384617, 154, 154, -752)
+material_override = ExtResource("4_ncuif")
+mesh = ExtResource("7_lewig")
+
+[node name="PlungePortal" type="Node3D" parent="." unique_id=1143964633]
+
+[node name="PierL" type="MeshInstance3D" parent="PlungePortal" unique_id=807138811]
+transform = Transform3D(-2.8744075, 0, 11.650656, 0, 149.33704, 0, -11.650656, 0, -2.8744075, 74.01773, 34.66851, -479.8132)
+material_override = ExtResource("3_hbks2")
+mesh = ExtResource("7_lewig")
+
+[node name="PierR" type="MeshInstance3D" parent="PlungePortal" unique_id=1886519047]
+transform = Transform3D(-2.8744075, 0, 11.650656, 0, 149.33704, 0, -11.650656, 0, -2.8744075, 51.98061, 34.66851, -569.1349)
+material_override = ExtResource("3_hbks2")
+mesh = ExtResource("7_lewig")
+
+[node name="Head" type="MeshInstance3D" parent="PlungePortal" unique_id=1411624056]
+transform = Transform3D(-24.911531, 0, 11.650656, 0, 12.000003, 0, -100.97235, 0, -2.8744075, 62.999172, 55.337025, -524.47406)
+material_override = ExtResource("4_ncuif")
+mesh = ExtResource("7_lewig")

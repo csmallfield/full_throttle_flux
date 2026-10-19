@@ -1,0 +1,92 @@
+[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3]
+
+[ext_resource type="Script" path="res://tools/utopia/greeble_rule.gd" id="1_bv76s"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_seam.tres" id="2_vkwpq"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_stud.tres" id="3_o65a0"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_deck_plate.tres" id="4_leuci"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_rib.tres" id="5_83qjl"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_ad_panel.tres" id="6_jddyv"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_wall_dash.tres" id="7_wg68p"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_railing.tres" id="8_3xadk"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_lamp_pole.tres" id="9_o5srf"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_fin.tres" id="10_tw3ps"]
+[ext_resource type="Script" path="res://tools/utopia/greeble_style.gd" id="11_ahbdo"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_portal.tres" id="12_82xel"]
+
+[sub_resource type="Resource" id="Resource_bv76s"]
+script = ExtResource("1_bv76s")
+mesh = ExtResource("2_vkwpq")
+side = "center"
+
+[sub_resource type="Resource" id="Resource_vkwpq"]
+script = ExtResource("1_bv76s")
+mesh = ExtResource("3_o65a0")
+slots_per_bay = 3
+slot_phase = 0.5
+lateral = 8.5
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_o65a0"]
+script = ExtResource("1_bv76s")
+mesh = ExtResource("4_leuci")
+slots_per_bay = 2
+pattern = "-x"
+probability = 0.6
+lateral = 13.0
+
+[sub_resource type="Resource" id="Resource_leuci"]
+script = ExtResource("1_bv76s")
+layer = "wall_face"
+mesh = ExtResource("5_83qjl")
+
+[sub_resource type="Resource" id="Resource_83qjl"]
+script = ExtResource("1_bv76s")
+layer = "wall_face"
+mesh = ExtResource("6_jddyv")
+slots_per_bay = 2
+pattern = "-x--"
+offset = Vector3(0, -0.6, 0)
+
+[sub_resource type="Resource" id="Resource_jddyv"]
+script = ExtResource("1_bv76s")
+layer = "wall_face"
+mesh = ExtResource("7_wg68p")
+slots_per_bay = 4
+pattern = "x---"
+slot_phase = 0.5
+offset = Vector3(0, 1.1, 0)
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_wg68p"]
+script = ExtResource("1_bv76s")
+layer = "wall_top"
+mesh = ExtResource("8_3xadk")
+slots_per_bay = 4
+slot_phase = 0.5
+mesh_length = 6.0
+
+[sub_resource type="Resource" id="Resource_3xadk"]
+script = ExtResource("1_bv76s")
+layer = "wall_top"
+mesh = ExtResource("9_o5srf")
+pattern = "x-"
+side = "left"
+
+[sub_resource type="Resource" id="Resource_o5srf"]
+script = ExtResource("1_bv76s")
+layer = "wall_top"
+mesh = ExtResource("9_o5srf")
+pattern = "-x"
+side = "right"
+
+[sub_resource type="Resource" id="Resource_tw3ps"]
+script = ExtResource("1_bv76s")
+layer = "outside"
+mesh = ExtResource("10_tw3ps")
+offset = Vector3(-1.1, -7, 0)
+
+[resource]
+script = ExtResource("11_ahbdo")
+style_name = "civic"
+rules = Array[ExtResource("1_bv76s")]([SubResource("Resource_bv76s"), SubResource("Resource_vkwpq"), SubResource("Resource_o65a0"), SubResource("Resource_leuci"), SubResource("Resource_83qjl"), SubResource("Resource_jddyv"), SubResource("Resource_wg68p"), SubResource("Resource_3xadk"), SubResource("Resource_o5srf"), SubResource("Resource_tw3ps")])
+threshold_mesh = ExtResource("12_82xel")

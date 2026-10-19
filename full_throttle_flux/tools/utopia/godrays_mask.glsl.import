@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://ca0262psariks"
+path="res://.godot/imported/godrays_mask.glsl-812b07e27a7a32cbeda5f905dc34f8f3.res"
+
+[deps]
+
+source_file="res://tools/utopia/godrays_mask.glsl"
+dest_files=["res://.godot/imported/godrays_mask.glsl-812b07e27a7a32cbeda5f905dc34f8f3.res"]
+
+[params]
+

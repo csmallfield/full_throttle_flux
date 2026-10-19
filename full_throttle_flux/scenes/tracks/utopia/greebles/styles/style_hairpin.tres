@@ -1,0 +1,74 @@
+[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3]
+
+[ext_resource type="Script" path="res://tools/utopia/greeble_rule.gd" id="1_jf0hu"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_hazard_edge.tres" id="2_r2uwm"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_stud.tres" id="3_b4wba"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_chevron_sign.tres" id="4_whryu"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_rib.tres" id="5_dkdri"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_chevron_sign_r.tres" id="5_r2uwm"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_wall_dash.tres" id="6_4igmn"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_sensor_pod.tres" id="7_7c2at"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_bollard.tres" id="8_x5ep4"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_fin.tres" id="9_6k6ss"]
+[ext_resource type="Script" path="res://tools/utopia/greeble_style.gd" id="10_rn2xc"]
+
+[sub_resource type="Resource" id="Resource_b4wba"]
+script = ExtResource("1_jf0hu")
+mesh = ExtResource("2_r2uwm")
+lateral = 15.5
+
+[sub_resource type="Resource" id="Resource_whryu"]
+script = ExtResource("1_jf0hu")
+mesh = ExtResource("3_b4wba")
+slots_per_bay = 2
+slot_phase = 0.5
+lateral = 8.5
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_dkdri"]
+script = ExtResource("1_jf0hu")
+layer = "wall_face"
+mesh = ExtResource("4_whryu")
+mesh_right = ExtResource("5_r2uwm")
+side = "right"
+offset = Vector3(0, -0.2, 0)
+
+[sub_resource type="Resource" id="Resource_4igmn"]
+script = ExtResource("1_jf0hu")
+layer = "wall_face"
+mesh = ExtResource("5_dkdri")
+side = "left"
+
+[sub_resource type="Resource" id="Resource_7c2at"]
+script = ExtResource("1_jf0hu")
+layer = "wall_face"
+mesh = ExtResource("6_4igmn")
+slot_phase = 0.5
+side = "left"
+offset = Vector3(0, 1.1, 0)
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_x5ep4"]
+script = ExtResource("1_jf0hu")
+layer = "wall_top"
+mesh = ExtResource("7_7c2at")
+pattern = "x--"
+slot_phase = 0.5
+
+[sub_resource type="Resource" id="Resource_6k6ss"]
+script = ExtResource("1_jf0hu")
+layer = "wall_top"
+mesh = ExtResource("8_x5ep4")
+
+[sub_resource type="Resource" id="Resource_rn2xc"]
+script = ExtResource("1_jf0hu")
+layer = "outside"
+mesh = ExtResource("9_6k6ss")
+pattern = "x-"
+offset = Vector3(-1.1, -7, 0)
+
+[resource]
+script = ExtResource("10_rn2xc")
+style_name = "hairpin"
+bay_length = 12.0
+rules = Array[ExtResource("1_jf0hu")]([SubResource("Resource_b4wba"), SubResource("Resource_whryu"), SubResource("Resource_dkdri"), SubResource("Resource_4igmn"), SubResource("Resource_7c2at"), SubResource("Resource_x5ep4"), SubResource("Resource_6k6ss"), SubResource("Resource_rn2xc")])

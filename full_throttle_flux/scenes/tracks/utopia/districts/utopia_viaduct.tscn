@@ -1,0 +1,309 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="1_qr7c8"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="2_h81ss"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_viaduct_wall_l.res" id="3_nrv2h"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_viaduct_wall_r.res" id="4_hpbic"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_viaduct_ceiling.res" id="5_n5ik2"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="6_8o77j"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_glow.tres" id="7_elwx8"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_dark.tres" id="8_hq76d"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="9_p2vfj"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="10_ada0p"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_taper.tres" id="11_g6no3"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cone.tres" id="12_58q8h"]
+
+[node name="Utopia_Viaduct" type="Node3D" unique_id=1900409995]
+
+[node name="Pylons" type="Node3D" parent="." unique_id=11315707]
+
+[node name="Pylon00" type="MeshInstance3D" parent="Pylons" unique_id=655669526]
+transform = Transform3D(-13.793702, 0, -4.5666304, 0, 92.78488, 0, 11.8732395, 0, -5.30527, -215.66994, -43.60756, -390.70306)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Cap00" type="MeshInstance3D" parent="Pylons" unique_id=749745599]
+transform = Transform3D(-33.185745, 0.35762993, -5.4521194, 9.442025, 3.4974082, -0.84559965, 27.304848, -0.774749, -6.3339844, -216.10649, 7.3556542, -389.75552)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Pylon01" type="MeshInstance3D" parent="Pylons" unique_id=1942155013]
+transform = Transform3D(-9.725921, 0, -5.916661, 0, 99.137794, 0, 15.383319, 0, -3.7407386, -170.20914, -40.431103, -352.4786)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Cap01" type="MeshInstance3D" parent="Pylons" unique_id=1083849297]
+transform = Transform3D(-23.855127, 0.13842288, -7.0509076, 10.995713, 3.4600658, -0.98602647, 35.29911, -0.9842683, -4.457853, -170.37799, 14.222506, -351.2754)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Pylon02" type="MeshInstance3D" parent="Pylons" unique_id=1851560365]
+transform = Transform3D(-6.529563, 0, -6.53399, 0, 105.44535, 0, 16.988375, 0, -2.5113702, -116.860565, -37.277325, -326.01334)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Cap02" type="MeshInstance3D" parent="Pylons" unique_id=14902864]
+transform = Transform3D(-16.224129, 0.05641155, -7.806997, 12.074908, 3.445649, -0.77901196, 39.076515, -1.0413074, -3.0006568, -116.92927, 20.710363, -324.74054)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Pylon03" type="MeshInstance3D" parent="Pylons" unique_id=1525602581]
+transform = Transform3D(-3.6021838, 0, -6.861524, 0, 109.414055, 0, 17.839964, 0, -1.3854553, -59.44774, -35.29298, -309.336)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Cap03" type="MeshInstance3D" parent="Pylons" unique_id=1336595454]
+transform = Transform3D(-8.754284, 0.093115, -8.229195, 12.739683, 3.4436822, -0.2817931, 41.195423, -1.0451711, -1.6616105, -59.561237, 24.702896, -308.0585)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Pylon04" type="MeshInstance3D" parent="Pylons" unique_id=1728768198]
+transform = Transform3D(3.1313155, 0, -6.895617, 0, 110.419556, 0, 17.928606, 0, 1.2043521, 0.058048427, -34.790222, -306.50354)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Cap04" type="MeshInstance3D" parent="Pylons" unique_id=1137858203]
+transform = Transform3D(6.6946955, -0.3229895, -8.267922, 13.17924, 3.4316056, -0.34092972, 41.442596, -1.0391154, 1.4440316, 0.45358112, 25.85286, -305.23364)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Pylon07" type="MeshInstance3D" parent="Pylons" unique_id=2128269602]
+transform = Transform3D(15.478518, 0, -3.6821883, 0, 123.977844, 0, 9.57369, 0, 5.9532757, 142.19016, -28.011086, -408.25323)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Cap07" type="MeshInstance3D" parent="Pylons" unique_id=580532746]
+transform = Transform3D(33.975548, -1.2941082, -4.401225, 16.29356, 3.328806, -0.7447339, 22.719645, -0.4520346, 7.115798, 143.77156, 40.478203, -407.7003)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Pylon08" type="MeshInstance3D" parent="Pylons" unique_id=1791525271]
+transform = Transform3D(18.044455, 0, 0.91322976, 0, 127.53657, 0, -2.3743975, 0, 6.940174, 158.89388, -26.231726, -464.52713)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Cap08" type="MeshInstance3D" parent="Pylons" unique_id=1754608306]
+transform = Transform3D(39.76688, -1.4673637, 1.0958719, 18.102728, 3.2811825, -0.021878168, -5.185209, 0.2017042, 8.32818, 160.68219, 44.46523, -464.81207)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="ThroughBuilding" type="Node3D" parent="." unique_id=203675290]
+
+[node name="Bore" type="Node3D" parent="ThroughBuilding" unique_id=1075617670]
+
+[node name="WallL" type="MeshInstance3D" parent="ThroughBuilding/Bore" unique_id=1690971119]
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("3_nrv2h")
+
+[node name="WallR" type="MeshInstance3D" parent="ThroughBuilding/Bore" unique_id=1399235017]
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("4_hpbic")
+
+[node name="Ceiling" type="MeshInstance3D" parent="ThroughBuilding/Bore" unique_id=1160456987]
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("5_n5ik2")
+
+[node name="Ribs" type="Node3D" parent="ThroughBuilding/Bore" unique_id=794942002]
+
+[node name="Rib00" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=1536387964]
+transform = Transform3D(-23.517736, 0, -1.91598, 0, 2.4, 0, 78.555176, 0, -0.57360333, -91.40158, 62.148567, -317.33292)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol00L" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=2005887065]
+transform = Transform3D(-0.57360333, 0, -1.91598, 0, 36, 0, 1.91598, 0, -0.57360333, -79.35591, 43.148567, -357.56848)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol00R" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=557830472]
+transform = Transform3D(-0.57360333, 0, -1.91598, 0, 36, 0, 1.91598, 0, -0.57360333, -103.44725, 43.148567, -277.09735)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="Strip00" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=1711595556]
+transform = Transform3D(-17.638302, 0, -0.766392, 0, 0.5, 0, 58.916386, 0, -0.22944133, -91.40158, 60.748566, -317.33292)
+material_override = ExtResource("7_elwx8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Rib01" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=797544850]
+transform = Transform3D(-20.463917, 0, -1.9367187, 0, 2.4, 0, 79.405464, 0, -0.4991199, -77.94301, 63.04556, -313.58575)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol01L" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=1075618900]
+transform = Transform3D(-0.4991199, 0, -1.9367187, 0, 36, 0, 1.9367187, 0, -0.4991199, -67.46149, 44.04556, -354.25684)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol01R" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=941563027]
+transform = Transform3D(-0.4991199, 0, -1.9367187, 0, 36, 0, 1.9367187, 0, -0.4991199, -88.42453, 44.04556, -272.91467)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="Strip01" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=948977481]
+transform = Transform3D(-15.347938, 0, -0.77468747, 0, 0.5, 0, 59.5541, 0, -0.19964796, -77.94301, 61.645557, -313.58575)
+material_override = ExtResource("7_elwx8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Rib02" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=163546664]
+transform = Transform3D(-17.359446, 0, -1.9546691, 0, 2.4, 0, 80.14143, 0, -0.42340112, -64.338356, 63.727127, -310.35965)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol02L" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=1866947494]
+transform = Transform3D(-0.42340112, 0, -1.9546691, 0, 36, 0, 1.9546691, 0, -0.42340112, -55.446934, 44.727127, -351.4077)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol02R" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=718249358]
+transform = Transform3D(-0.42340112, 0, -1.9546691, 0, 36, 0, 1.9546691, 0, -0.42340112, -73.22978, 44.727127, -269.31158)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="Strip02" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=682519605]
+transform = Transform3D(-13.019585, 0, -0.7818677, 0, 0.5, 0, 60.106075, 0, -0.16936044, -64.338356, 62.327126, -310.35965)
+material_override = ExtResource("7_elwx8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Rib03" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=2059011635]
+transform = Transform3D(-14.15754, 0, -1.9699655, 0, 2.4, 0, 80.768585, 0, -0.34530586, -50.607296, 64.15821, -307.66812)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol03L" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=578245427]
+transform = Transform3D(-0.34530586, 0, -1.9699655, 0, 36, 0, 1.9699655, 0, -0.34530586, -43.355873, 45.15821, -349.03738)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol03R" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=1567613787]
+transform = Transform3D(-0.34530586, 0, -1.9699655, 0, 36, 0, 1.9699655, 0, -0.34530586, -57.85872, 45.15821, -266.29886)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="Strip03" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=14180017]
+transform = Transform3D(-10.6181555, 0, -0.7879862, 0, 0.5, 0, 60.57644, 0, -0.13812235, -50.607296, 62.75821, -307.66812)
+material_override = ExtResource("7_elwx8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Rib04" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=571795705]
+transform = Transform3D(-10.151148, 0, -1.9846158, 0, 2.4000003, 0, 81.36925, 0, -0.24758896, -36.772614, 64.29776, -305.53406)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol04L" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=42305879]
+transform = Transform3D(-0.24758896, 0, -1.9846158, 0, 36.000004, 0, 1.9846158, 0, -0.24758896, -31.573246, 45.29776, -347.211)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol04R" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=118628941]
+transform = Transform3D(-0.24758896, 0, -1.9846158, 0, 36.000004, 0, 1.9846158, 0, -0.24758896, -41.97198, 45.29776, -263.85712)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="Strip04" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=502230956]
+transform = Transform3D(-7.6133604, 0, -0.7938463, 0, 0.50000006, 0, 61.026936, 0, -0.09903558, -36.772614, 62.897762, -305.53406)
+material_override = ExtResource("7_elwx8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Rib05" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=831243163]
+transform = Transform3D(-0.708932, 0, -1.9999253, 0, 2.4, 0, 81.99693, 0, -0.017291024, -22.817915, 64.387985, -304.54517)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol05L" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=1987417638]
+transform = Transform3D(-0.017291024, 0, -1.9999253, 0, 36, 0, 1.9999253, 0, -0.017291024, -22.454803, 45.387985, -346.5436)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="RibCol05R" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=861469449]
+transform = Transform3D(-0.017291024, 0, -1.9999253, 0, 36, 0, 1.9999253, 0, -0.017291024, -23.181026, 45.387985, -262.54672)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="Strip05" type="MeshInstance3D" parent="ThroughBuilding/Bore/Ribs" unique_id=847336623]
+transform = Transform3D(-0.531699, 0, -0.7999701, 0, 0.5, 0, 61.4977, 0, -0.00691641, -22.817915, 62.987984, -304.54517)
+material_override = ExtResource("7_elwx8")
+mesh = ExtResource("2_h81ss")
+
+[node name="Upper" type="MeshInstance3D" parent="ThroughBuilding" unique_id=2094865195]
+transform = Transform3D(-24.223333, 0, -84.14667, 0, 112.55997, 0, 127.72326, 0, -15.958821, -58.943985, 133.72002, -311.97946)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="UpperGlaze" type="MeshInstance3D" parent="ThroughBuilding" unique_id=1204981142]
+transform = Transform3D(-20.496666, 0, -1.4737298, 0, 72.55997, 0, 108.073524, 0, -0.2795, -101.50856, 133.72002, -320.05203)
+material_override = ExtResource("8_hq76d")
+mesh = ExtResource("2_h81ss")
+
+[node name="UpperGlazeB" type="MeshInstance3D" parent="ThroughBuilding" unique_id=546164004]
+transform = Transform3D(-20.496666, 0, -1.4737298, 0, 72.55997, 0, 108.073524, 0, -0.2795, -16.37941, 133.72002, -303.9069)
+material_override = ExtResource("8_hq76d")
+mesh = ExtResource("2_h81ss")
+
+[node name="Crown" type="MeshInstance3D" parent="ThroughBuilding" unique_id=891559597]
+transform = Transform3D(-14.906666, 0, -64.49693, 0, 16, 0, 78.59893, 0, -12.232155, -58.943985, 198, -311.97946)
+material_override = ExtResource("9_p2vfj")
+mesh = ExtResource("2_h81ss")
+
+[node name="Lower" type="MeshInstance3D" parent="ThroughBuilding" unique_id=952254938]
+transform = Transform3D(-24.223333, 0, -84.14667, 0, 54.941933, 0, 127.72326, 0, -15.958821, -58.943985, -12.529034, -311.97946)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("2_h81ss")
+
+[node name="WingR" type="MeshInstance3D" parent="ThroughBuilding" unique_id=1292896422]
+transform = Transform3D(-7.453333, 0, -84.14667, 0, 127.44003, 0, 39.299465, 0, -15.958821, -70.869316, 23.720016, -249.10031)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="Companions" type="Node3D" parent="." unique_id=533182373]
+
+[node name="C1" type="Node3D" parent="Companions" unique_id=1132523354]
+
+[node name="Shaft" type="MeshInstance3D" parent="Companions/C1" unique_id=1333323499]
+transform = Transform3D(36, 0, 0, 0, 200, 0, 0, 0, 36, -143.2242, 60, -431.45663)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("10_ada0p")
+
+[node name="Band1" type="MeshInstance3D" parent="Companions/C1" unique_id=1718879987]
+transform = Transform3D(42, 0, 0, 0, 5, 0, 0, 0, 42, -143.2242, 86.5, -431.45663)
+material_override = ExtResource("9_p2vfj")
+mesh = ExtResource("10_ada0p")
+
+[node name="Top" type="MeshInstance3D" parent="Companions/C1" unique_id=254456307]
+transform = Transform3D(23.04, 0, 0, 0, 22, 0, 0, 0, 23.04, -143.2242, 171, -431.45663)
+material_override = ExtResource("1_qr7c8")
+mesh = ExtResource("10_ada0p")
+
+[node name="C2" type="Node3D" parent="Companions" unique_id=71464869]
+
+[node name="Shaft" type="MeshInstance3D" parent="Companions/C2" unique_id=77789602]
+transform = Transform3D(24.673866, 0, -16.393843, 0, 260, 0, 36.430763, 0, 11.103239, 119.99351, 90, -268.15356)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("2_h81ss")
+
+[node name="Fin" type="MeshInstance3D" parent="Companions/C2" unique_id=227788562]
+transform = Transform3D(2.2430787, 0, -18.215382, 0, 274, 0, 3.3118875, 0, 12.336933, 133.45198, 97, -248.28224)
+material_override = ExtResource("9_p2vfj")
+mesh = ExtResource("2_h81ss")
+
+[node name="Glaze" type="MeshInstance3D" parent="Companions/C2" unique_id=85805995]
+transform = Transform3D(20.23257, 0, -1.2419578, 0, 252, 0, 29.873226, 0, 0.8411545, 111.61443, 86, -262.47858)
+material_override = ExtResource("8_hq76d")
+mesh = ExtResource("2_h81ss")
+
+[node name="C3" type="Node3D" parent="Companions" unique_id=464081783]
+
+[node name="Shaft" type="MeshInstance3D" parent="Companions/C3" unique_id=1482311268]
+transform = Transform3D(30, 0, 0, 0, 147.6, 0, 0, 0, 30, 59.504913, 33.800003, -446.7871)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("11_g6no3")
+
+[node name="Pod" type="MeshInstance3D" parent="Companions/C3" unique_id=1079282010]
+transform = Transform3D(66, 0, 0, 0, 10, 0, 0, 0, 66, 59.504913, 98.2, -446.7871)
+material_override = ExtResource("9_p2vfj")
+mesh = ExtResource("10_ada0p")
+
+[node name="Spike" type="MeshInstance3D" parent="Companions/C3" unique_id=1757922418]
+transform = Transform3D(7.2, 0, 0, 0, 32.4, 0, 0, 0, 7.2, 59.504913, 123.8, -446.7871)
+material_override = ExtResource("6_8o77j")
+mesh = ExtResource("12_58q8h")

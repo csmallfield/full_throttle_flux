@@ -1,0 +1,23 @@
+[gd_resource type="ArrayMesh" format=4]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_dark.tres" id="1_18v77"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_glow_cool.tres" id="2_txtwa"]
+
+[resource]
+_surfaces = [{
+"aabb": AABB(0, -0.18, -1.6, 0.05, 0.36, 3.2),
+"format": 34359738375,
+"material": ExtResource("1_18v77"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("AAAAAOxROL7NzMy/zcxMPexROD7NzMy/AAAAAOxROD7NzMy/AAAAAOxROL7NzMy/zcxMPexROL7NzMy/zcxMPexROD7NzMy/AAAAAOxROL7NzMw/zcxMPexROD7NzMw/zcxMPexROL7NzMw/AAAAAOxROL7NzMw/AAAAAOxROD7NzMw/zcxMPexROD7NzMw/AAAAAOxROL7NzMy/AAAAAOxROD7NzMw/AAAAAOxROL7NzMw/AAAAAOxROL7NzMy/AAAAAOxROD7NzMy/AAAAAOxROD7NzMw/zcxMPexROL7NzMy/zcxMPexROD7NzMw/zcxMPexROD7NzMy/zcxMPexROL7NzMy/zcxMPexROL7NzMw/zcxMPexROD7NzMw/AAAAAOxROD7NzMy/zcxMPexROD7NzMw/AAAAAOxROD7NzMw/AAAAAOxROD7NzMy/zcxMPexROD7NzMy/zcxMPexROD7NzMw/AAAAAOxROL7NzMy/zcxMPexROL7NzMw/zcxMPexROL7NzMy/AAAAAOxROL7NzMy/AAAAAOxROL7NzMw/zcxMPexROL7NzMw///////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+/")
+}, {
+"aabb": AABB(0.05, -0.1, -1.45, 0.05, 0.2, 2.9),
+"format": 34359738375,
+"material": ExtResource("2_txtwa"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("zcxMPc3MzL2ambm/zczMPc3MzD2ambm/zcxMPc3MzD2ambm/zcxMPc3MzL2ambm/zczMPc3MzL2ambm/zczMPc3MzD2ambm/zcxMPc3MzL2ambk/zczMPc3MzD2ambk/zczMPc3MzL2ambk/zcxMPc3MzL2ambk/zcxMPc3MzD2ambk/zczMPc3MzD2ambk/zcxMPc3MzL2ambm/zcxMPc3MzD2ambk/zcxMPc3MzL2ambk/zcxMPc3MzL2ambm/zcxMPc3MzD2ambm/zcxMPc3MzD2ambk/zczMPc3MzL2ambm/zczMPc3MzD2ambk/zczMPc3MzD2ambm/zczMPc3MzL2ambm/zczMPc3MzL2ambk/zczMPc3MzD2ambk/zcxMPc3MzD2ambm/zczMPc3MzD2ambk/zcxMPc3MzD2ambk/zcxMPc3MzD2ambm/zczMPc3MzD2ambm/zczMPc3MzD2ambk/zcxMPc3MzL2ambm/zczMPc3MzL2ambk/zczMPc3MzL2ambm/zcxMPc3MzL2ambm/zcxMPc3MzL2ambk/zczMPc3MzL2ambk///////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+/")
+}]

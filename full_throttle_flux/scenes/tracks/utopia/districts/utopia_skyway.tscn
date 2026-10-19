@@ -1,0 +1,323 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_mid.tres" id="1_2eva3"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="2_73qo8"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_light.tres" id="3_xwkmq"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_accent.tres" id="4_h07ja"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_skyway_arch_72_129_5_6.res" id="4_xwkmq"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/meshes/gen_skyway_arch_72_175_5_6.res" id="5_h07ja"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_dark.tres" id="5_xgv2d"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="6_c2x7e"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_taper.tres" id="7_gwyri"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cone.tres" id="8_v7464"]
+[ext_resource type="Material" path="res://scenes/tracks/utopia/materials/greybox_floor.tres" id="9_0kd0m"]
+
+[node name="Utopia_Skyway" type="Node3D" unique_id=1099250363]
+
+[node name="Pylons" type="Node3D" parent="." unique_id=1384189643]
+
+[node name="Pylon00" type="MeshInstance3D" parent="Pylons" unique_id=1002554980]
+transform = Transform3D(-7.640033, 0, 7.440791, 0, 82.33381, 0, -19.346056, 0, -2.9384742, -670.73254, -48.833096, 192.4586)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap00" type="MeshInstance3D" parent="Pylons" unique_id=775600004]
+transform = Transform3D(-16.982435, 0.24525087, 8.831951, -7.861713, 3.5023139, -1.4111974, -39.821983, -0.79602116, -3.4878628, -671.0323, -3.170302, 193.43152)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon01" type="MeshInstance3D" parent="Pylons" unique_id=1479646897]
+transform = Transform3D(-5.408721, 0, 7.7247944, 0, 91.67028, 0, -20.084465, 0, -2.0802774, -730.7348, -44.16486, 212.38739)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap01" type="MeshInstance3D" parent="Pylons" unique_id=1769770871]
+transform = Transform3D(-12.591142, 0.3276217, 9.156957, -9.307928, 3.4736936, -1.4930547, -41.11965, -0.88663256, -2.465957, -731.13525, 6.5754275, 213.47105)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon02" type="MeshInstance3D" parent="Pylons" unique_id=1572674965]
+transform = Transform3D(-2.8079126, 0, 7.9267693, 0, 101.34816, 0, -20.6096, 0, -1.0799664, -792.62994, -39.32592, 224.97676)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap02" type="MeshInstance3D" parent="Pylons" unique_id=453037044]
+transform = Transform3D(-7.473673, 0.42093885, 9.393673, -10.926441, 3.4409347, -1.5102952, -41.961376, -0.97096735, -1.2798218, -793.1444, 16.670204, 226.1635)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon03" type="MeshInstance3D" parent="Pylons" unique_id=469404308]
+transform = Transform3D(0.24752136, 0, 7.9994335, 0, 110.845726, 0, -20.798527, 0, 0.095200524, -855.6785, -34.577137, 228.99709)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap03" type="MeshInstance3D" parent="Pylons" unique_id=148429209]
+transform = Transform3D(-1.4185457, 0.526173, 9.491862, -12.719849, 3.4041708, -1.4324101, -42.097427, -1.0463096, 0.112961784, -856.32166, 26.588963, 230.27591)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon04" type="MeshInstance3D" parent="Pylons" unique_id=1223258688]
+transform = Transform3D(3.8492546, 0, 7.8618174, 0, 119.387344, 0, -20.440725, 0, 1.4804826, -918.6796, -30.306326, 222.90448)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap04" type="MeshInstance3D" parent="Pylons" unique_id=934723432]
+transform = Transform3D(5.8373084, 0.6443676, 9.3587055, -14.654515, 3.3639035, -1.2119039, -41.075184, -1.108577, 1.762366, -919.4672, 35.550076, 224.2594)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon05" type="MeshInstance3D" parent="Pylons" unique_id=1104781612]
+transform = Transform3D(8.028198, 0, 7.380087, 0, 125.815994, 0, -19.188225, 0, 3.0877688, -979.5837, -27.092003, 204.8721)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap05" type="MeshInstance3D" parent="Pylons" unique_id=788223433]
+transform = Transform3D(14.473039, 0.7754873, 8.826784, -16.586243, 3.3215544, -0.7805377, -38.09761, -1.1514751, 3.6930552, -980.53156, 42.38388, 206.27945)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon06" type="MeshInstance3D" parent="Pylons" unique_id=1840410851]
+transform = Transform3D(12.559435, 0, 6.3769712, 0, 128.50896, 0, -16.580124, 0, 4.830552, -1034.9404, -25.745522, 173.26395)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap06" type="MeshInstance3D" parent="Pylons" unique_id=31301545]
+transform = Transform3D(24.100426, 0.91512376, 7.652147, -18.122057, 3.2803686, -0.07271728, -32.04311, -1.1669328, 5.796497, -1036.059, 45.442837, 174.69016)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon07" type="MeshInstance3D" parent="Pylons" unique_id=700037119]
+transform = Transform3D(17.24438, 0, 4.4733152, 0, 125.97706, 0, -11.630619, 0, 6.6324544, -1079.4397, -27.01147, 127.75907)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap07" type="MeshInstance3D" parent="Pylons" unique_id=986013185]
+transform = Transform3D(34.36, 1.0192568, 5.345228, -17.45525, 3.2879703, 0.88290066, -21.229809, -1.0537393, 7.925215, -1080.6853, 42.84542, 129.04726)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon08" type="MeshInstance3D" parent="Pylons" unique_id=1586285438]
+transform = Transform3D(20.728662, 0, 0.662003, 0, 117.53582, 0, -1.7212077, 0, 7.972563, -1100.5225, -31.232098, 68.82107)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap08" type="MeshInstance3D" parent="Pylons" unique_id=141326152]
+transform = Transform3D(42.147194, 0.991381, 0.7804442, -12.585829, 3.3835108, 1.7917761, -1.1003927, -0.72733694, 9.398961, -1101.7341, 33.499, 69.710045)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon09" type="MeshInstance3D" parent="Pylons" unique_id=1784130021]
+transform = Transform3D(19.927174, 0, -2.2931495, 0, 105.75936, 0, 5.9621882, 0, 7.664298, -1092.7012, -37.12032, 6.955264)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap09" type="MeshInstance3D" parent="Pylons" unique_id=2080829003]
+transform = Transform3D(41.01972, 0.82022434, -2.6977258, -7.7544794, 3.4717882, 1.8934281, 13.901466, -0.48365137, 9.016497, -1093.7036, 20.689957, 7.546346)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Pylon10" type="MeshInstance3D" parent="Pylons" unique_id=379707918]
+transform = Transform3D(18.754444, 0, -3.4596326, 0, 95.05337, 0, 8.995045, 0, 7.213248, -1069.1963, -42.473316, -51.369503)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="Cap10" type="MeshInstance3D" parent="Pylons" unique_id=209267191]
+transform = Transform3D(39.070454, 0.61527604, -4.0989656, -4.95007, 3.5312443, 1.5232353, 19.621325, -0.33428973, 8.546242, -1069.9484, 9.071623, -50.960873)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("2_73qo8")
+
+[node name="SkyArches" type="Node3D" parent="." unique_id=2048437412]
+
+[node name="SkyArch1" type="Node3D" parent="SkyArches" unique_id=328245170]
+
+[node name="Arch" type="MeshInstance3D" parent="SkyArches/SkyArch1" unique_id=1973521463]
+transform = Transform3D(-0.23058757, 0, 0.9730516, 0, 1.0000001, 0, -0.9730516, 0, -0.23058757, -746.0546, -40, 216.26608)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("4_xwkmq")
+
+[node name="SkyArch2" type="Node3D" parent="SkyArches" unique_id=906076508]
+
+[node name="Arch" type="MeshInstance3D" parent="SkyArches/SkyArch2" unique_id=1682697517]
+transform = Transform3D(-0.005373985, 0, 0.9999856, 0, 1, 0, -0.9999856, 0, -0.005373985, -848.7579, -40, 229.01917)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("5_h07ja")
+
+[node name="CrestFrame" type="Node3D" parent="." unique_id=1359607864]
+
+[node name="InnerTower" type="Node3D" parent="CrestFrame" unique_id=902132967]
+
+[node name="Shaft" type="MeshInstance3D" parent="CrestFrame/InnerTower" unique_id=1547156435]
+transform = Transform3D(31.202702, 0, 17.581078, 0, 291.5993, 0, -39.06906, 0, 14.041215, -982.26355, 105.79965, 97.69336)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("2_73qo8")
+
+[node name="Fin" type="MeshInstance3D" parent="CrestFrame/InnerTower" unique_id=1538903260]
+transform = Transform3D(2.496216, 0, 19.53453, 0, 305.5993, 0, -3.1255248, 0, 15.601351, -965.41406, 112.79965, 76.59607)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("2_73qo8")
+
+[node name="Glaze" type="MeshInstance3D" parent="CrestFrame/InnerTower" unique_id=554849389]
+transform = Transform3D(25.586214, 0, 1.1720718, 0, 283.5993, 0, -32.03663, 0, 0.93608105, -973.27765, 101.79965, 104.86998)
+material_override = ExtResource("5_xgv2d")
+mesh = ExtResource("2_73qo8")
+
+[node name="OuterTower" type="Node3D" parent="CrestFrame" unique_id=235467553]
+
+[node name="Shaft" type="MeshInstance3D" parent="CrestFrame/OuterTower" unique_id=1538280091]
+transform = Transform3D(34, 0, 0, 0, 211.5993, 0, 0, 0, 34, -1093.3452, 65.79965, 236.7792)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("6_c2x7e")
+
+[node name="Band1" type="MeshInstance3D" parent="CrestFrame/OuterTower" unique_id=49270587]
+transform = Transform3D(40, 0, 0, 0, 5, 0, 0, 0, 40, -1093.3452, 93.691574, 236.7792)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("6_c2x7e")
+
+[node name="Top" type="MeshInstance3D" parent="CrestFrame/OuterTower" unique_id=917430721]
+transform = Transform3D(21.76, 0, 0, 0, 22, 0, 0, 0, 21.76, -1093.3452, 182.5993, 236.7792)
+material_override = ExtResource("1_2eva3")
+mesh = ExtResource("6_c2x7e")
+
+[node name="SkyBridge" type="MeshInstance3D" parent="CrestFrame" unique_id=606413204]
+transform = Transform3D(111.08161, 0, 12.502099, 0, 11.999997, 0, -139.08585, 0, 9.984864, -1037.8044, 97.599304, 167.23628)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("2_73qo8")
+
+[node name="SkyBridgeGlaze" type="MeshInstance3D" parent="CrestFrame" unique_id=1220431065]
+transform = Transform3D(108.585396, 0, 13.283481, 0, 6.9999976, 0, -135.96033, 0, 10.608918, -1037.8044, 97.099304, 167.23628)
+material_override = ExtResource("5_xgv2d")
+mesh = ExtResource("2_73qo8")
+
+[node name="OuterNeedles" type="Node3D" parent="." unique_id=988876853]
+
+[node name="Needle0" type="Node3D" parent="OuterNeedles" unique_id=1749503429]
+
+[node name="Shaft" type="MeshInstance3D" parent="OuterNeedles/Needle0" unique_id=125166534]
+transform = Transform3D(16, 0, 0, 0, 172.2, 0, 0, 0, 16, -711.4665, 46.1, 362.22382)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("7_gwyri")
+
+[node name="Pod" type="MeshInstance3D" parent="OuterNeedles/Needle0" unique_id=1361216959]
+transform = Transform3D(35.2, 0, 0, 0, 10, 0, 0, 0, 35.2, -711.4665, 120.40001, 362.22382)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("6_c2x7e")
+
+[node name="Spike" type="MeshInstance3D" parent="OuterNeedles/Needle0" unique_id=317996396]
+transform = Transform3D(3.84, 0, 0, 0, 37.8, 0, 0, 0, 3.84, -711.4665, 151.09999, 362.22382)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("8_v7464")
+
+[node name="Needle1" type="Node3D" parent="OuterNeedles" unique_id=1607762034]
+
+[node name="Shaft" type="MeshInstance3D" parent="OuterNeedles/Needle1" unique_id=833294989]
+transform = Transform3D(22, 0, 0, 0, 229.6, 0, 0, 0, 22, -870.3135, 74.8, 438.71625)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("7_gwyri")
+
+[node name="Pod" type="MeshInstance3D" parent="OuterNeedles/Needle1" unique_id=1065713057]
+transform = Transform3D(48.4, 0, 0, 0, 10, 0, 0, 0, 48.4, -870.3135, 172.2, 438.71625)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("6_c2x7e")
+
+[node name="Spike" type="MeshInstance3D" parent="OuterNeedles/Needle1" unique_id=910365493]
+transform = Transform3D(5.28, 0, 0, 0, 50.4, 0, 0, 0, 5.28, -870.3135, 214.79999, 438.71625)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("8_v7464")
+
+[node name="Needle2" type="Node3D" parent="OuterNeedles" unique_id=36369889]
+
+[node name="Shaft" type="MeshInstance3D" parent="OuterNeedles/Needle2" unique_id=1681764110]
+transform = Transform3D(16, 0, 0, 0, 147.6, 0, 0, 0, 16, -988.99036, 33.800003, 339.40076)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("7_gwyri")
+
+[node name="Pod" type="MeshInstance3D" parent="OuterNeedles/Needle2" unique_id=1297443115]
+transform = Transform3D(35.2, 0, 0, 0, 10, 0, 0, 0, 35.2, -988.99036, 98.2, 339.40076)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("6_c2x7e")
+
+[node name="Spike" type="MeshInstance3D" parent="OuterNeedles/Needle2" unique_id=65616918]
+transform = Transform3D(3.84, 0, 0, 0, 32.4, 0, 0, 0, 3.84, -988.99036, 123.8, 339.40076)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("8_v7464")
+
+[node name="Needle3" type="Node3D" parent="OuterNeedles" unique_id=1411557962]
+
+[node name="Shaft" type="MeshInstance3D" parent="OuterNeedles/Needle3" unique_id=878654051]
+transform = Transform3D(22, 0, 0, 0, 196.8, 0, 0, 0, 22, -1261.04, 58.4, 134.15536)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("7_gwyri")
+
+[node name="Pod" type="MeshInstance3D" parent="OuterNeedles/Needle3" unique_id=708709212]
+transform = Transform3D(48.4, 0, 0, 0, 10, 0, 0, 0, 48.4, -1261.04, 142.6, 134.15536)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("6_c2x7e")
+
+[node name="Spike" type="MeshInstance3D" parent="OuterNeedles/Needle3" unique_id=1312127421]
+transform = Transform3D(5.28, 0, 0, 0, 43.2, 0, 0, 0, 5.28, -1261.04, 178.40001, 134.15536)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("8_v7464")
+
+[node name="Needle4" type="Node3D" parent="OuterNeedles" unique_id=189731960]
+
+[node name="Shaft" type="MeshInstance3D" parent="OuterNeedles/Needle4" unique_id=2019416113]
+transform = Transform3D(16, 0, 0, 0, 155.8, 0, 0, 0, 16, -1192.1382, 37.9, -70.5181)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("7_gwyri")
+
+[node name="Pod" type="MeshInstance3D" parent="OuterNeedles/Needle4" unique_id=1380144511]
+transform = Transform3D(35.2, 0, 0, 0, 10, 0, 0, 0, 35.2, -1192.1382, 105.600006, -70.5181)
+material_override = ExtResource("4_h07ja")
+mesh = ExtResource("6_c2x7e")
+
+[node name="Spike" type="MeshInstance3D" parent="OuterNeedles/Needle4" unique_id=1575088530]
+transform = Transform3D(3.84, 0, 0, 0, 34.2, 0, 0, 0, 3.84, -1192.1382, 132.90001, -70.5181)
+material_override = ExtResource("3_xwkmq")
+mesh = ExtResource("8_v7464")
+
+[node name="InnerQuay" type="Node3D" parent="." unique_id=2104133093]
+
+[node name="Quay00" type="MeshInstance3D" parent="InnerQuay" unique_id=2031586309]
+transform = Transform3D(-9.064598, 0, 47.66297, 0, 35.116997, 0, -28.597782, 0, -15.107663, -726.1112, -22.441504, 148.52121)
+material_override = ExtResource("9_0kd0m")
+mesh = ExtResource("2_73qo8")
+
+[node name="Quay01" type="MeshInstance3D" parent="InnerQuay" unique_id=1563487290]
+transform = Transform3D(-5.763832, 0, 49.068497, 0, 44.463486, 0, -29.4411, 0, -9.606387, -776.8853, -17.76826, 161.56201)
+material_override = ExtResource("9_0kd0m")
+mesh = ExtResource("2_73qo8")
+
+[node name="Quay02" type="MeshInstance3D" parent="InnerQuay" unique_id=1790873283]
+transform = Transform3D(-1.936982, 0, 49.895676, 0, 53.876762, 0, -29.937405, 0, -3.2283034, -827.9449, -13.061623, 168.27176)
+material_override = ExtResource("9_0kd0m")
+mesh = ExtResource("2_73qo8")
+
+[node name="Quay03" type="MeshInstance3D" parent="InnerQuay" unique_id=1036900838]
+transform = Transform3D(2.5261083, 0, 49.82243, 0, 62.825253, 0, -29.893457, 0, 4.2101803, -878.2906, -8.587374, 167.89217)
+material_override = ExtResource("9_0kd0m")
+mesh = ExtResource("2_73qo8")
+
+[node name="Quay04" type="MeshInstance3D" parent="InnerQuay" unique_id=1104334939]
+transform = Transform3D(7.719436, 0, 48.316387, 0, 70.532394, 0, -28.989832, 0, 12.865726, -926.47455, -4.733803, 159.66347)
+material_override = ExtResource("9_0kd0m")
+mesh = ExtResource("2_73qo8")
+
+[node name="Quay05" type="MeshInstance3D" parent="InnerQuay" unique_id=712733918]
+transform = Transform3D(13.599908, 0, 44.56713, 0, 75.87775, 0, -26.74028, 0, 22.666512, -970.4877, -2.0611267, 143.02364)
+material_override = ExtResource("9_0kd0m")
+mesh = ExtResource("2_73qo8")
+
+[node name="Quay06" type="MeshInstance3D" parent="InnerQuay" unique_id=162345367]
+transform = Transform3D(19.720016, 0, 37.679977, 0, 77.39239, 0, -22.607988, 0, 32.86669, -1007.91296, -1.3038101, 117.95755)
+material_override = ExtResource("9_0kd0m")
+mesh = ExtResource("2_73qo8")
+
+[node name="Quay07" type="MeshInstance3D" parent="InnerQuay" unique_id=1639317408]
+transform = Transform3D(26.245432, 0, 24.219902, 0, 73.63512, 0, -14.531941, 0, 43.742386, -1033.191, -3.1824417, 88.52561)
+material_override = ExtResource("9_0kd0m")
+mesh = ExtResource("2_73qo8")
+
+[node name="Quay08" type="MeshInstance3D" parent="InnerQuay" unique_id=1864090874]
+transform = Transform3D(29.992538, 0, 1.115204, 0, 64.11524, 0, -0.66912234, 0, 49.987564, -1040.9453, -7.942383, 59.6402)
+material_override = ExtResource("9_0kd0m")
+mesh = ExtResource("2_73qo8")
