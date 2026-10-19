@@ -18,6 +18,7 @@ extends SceneTree
 ##      physics interpolation),
 ##    strafe=[right, up] (units/frame): camera slides sideways instead, ship hidden,
 ##      prints measured vs expected velocity at the screen centre,
+##    sequence=N: save all N frames (ending at d) as <name>_<variant>/NNNN.png,
 ##    ship_shadow=true, rays={god-ray overrides}, fov, far}
 ## Output: <outdir>/<name>_<variant>.png, and one "MBSTATS {...}" line per "on"
 ## render with the effect's read-back stats.
@@ -120,6 +121,14 @@ func _place(n: Node3D, pose: Dictionary) -> void:
 func _render(shot: Dictionary, variant: String, outdir: String) -> void:
 	var name: String = shot.get("name", "shot")
 	var frames: int = int(shot.get("frames", 4))
+	# sequence=N: fly N frames ending at d and save every one of them (after 3
+	# warm-up frames) to <outdir>/<name>_<variant>/NNNN.png, for a video
+	var seq: int = int(shot.get("sequence", 0))
+	var seq_dir := ""
+	if seq > 0:
+		frames = seq + 3
+		seq_dir = outdir.path_join("%s_%s" % [shot.get("name", "shot"), variant])
+		DirAccess.make_dir_recursive_absolute(seq_dir)
 	var render_hz: float = float(shot.get("render_hz", 60.0))
 	var physics_hz: float = float(shot.get("physics_hz", render_hz))
 	var dt: float = float(shot.get("dt", 1.0 / render_hz))
@@ -170,8 +179,14 @@ func _render(shot: Dictionary, variant: String, outdir: String) -> void:
 			cam.look_at_from_position(cam_pos, base_pose["pos"] + base_pose["fwd"] * 9.0 + base_pose["up"] * 1.0, base_pose["up"])
 			var steps := float(i - (frames - 1))
 			cam.global_position += cam.global_basis.x * float(strafe[0]) * steps + cam.global_basis.y * float(strafe[1]) * steps
-		mb.debug_stats = variant == "on" and i == frames - 1
+		mb.debug_stats = variant == "on" and i == frames - 1 and seq == 0
 		await RenderingServer.frame_post_draw
+		if seq > 0 and i >= 3:
+			root.get_texture().get_image().save_png(seq_dir.path_join("%04d.png" % (i - 3)))
+			if (i - 3) % 30 == 0:
+				print("seq %s_%s %d/%d" % [name, variant, i - 3, seq])
+	if seq > 0:
+		return
 	var img := root.get_texture().get_image()
 	img.save_png(outdir.path_join("%s_%s.png" % [name, variant]))
 	print("saved %s_%s" % [name, variant])
