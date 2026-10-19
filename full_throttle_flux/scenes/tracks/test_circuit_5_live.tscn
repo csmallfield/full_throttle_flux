@@ -1,28 +1,10 @@
-[gd_scene load_steps=11 format=3 uid="uid://deyuu7q2pw8b3"]
+[gd_scene format=3 uid="uid://deyuu7q2pw8b3"]
 
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_kl6nt"]
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_kn5jo"]
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_ow3i1"]
-
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
-sky_top_color = Color(0.05, 0.05, 0.15, 1)
-sky_horizon_color = Color(0.2, 0.15, 0.3, 1)
-ground_bottom_color = Color(0.02, 0.02, 0.05, 1)
-ground_horizon_color = Color(0.2, 0.15, 0.3, 1)
-
-[sub_resource type="Sky" id="Sky_xfmcy"]
-sky_material = SubResource("ProceduralSkyMaterial_8a1g2")
-
-[sub_resource type="Environment" id="Environment_cxd56"]
-background_mode = 2
-sky = SubResource("Sky_xfmcy")
-ambient_light_source = 2
-ambient_light_color = Color(0.25, 0.25, 0.35, 1)
-ambient_light_energy = 0.4
-tonemap_mode = 2
-glow_enabled = true
-glow_intensity = 0.6
-glow_bloom = 0.2
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/swoopy_city.tscn" id="5_swoopy_city"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/swoopy_lighting.tscn" id="6_swoopy_light"]
 
 [sub_resource type="Curve3D" id="Curve3D_4kxxg"]
 closed = true
@@ -90,18 +72,9 @@ shader_parameter/major_line_width = 1.0
 
 [node name="TestCircuit5" type="Node3D"]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_cxd56")
+[node name="SwoopyLighting" parent="." instance=ExtResource("6_swoopy_light")]
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 50, 0)
-light_color = Color(1, 0.95, 0.9, 1)
-shadow_enabled = true
-shadow_blur = 2.0
-directional_shadow_max_distance = 500.0
-directional_shadow_split_1 = 0.04
-directional_shadow_split_2 = 0.12
-directional_shadow_split_3 = 0.35
+[node name="SwoopyCity" parent="." instance=ExtResource("5_swoopy_city")]
 
 [node name="StartingPoint" type="Node" parent="."]
 

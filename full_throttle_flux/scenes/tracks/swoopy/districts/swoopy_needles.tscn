@@ -1,0 +1,61 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_00.res" id="1_pwnkx"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_01.res" id="2_u5y1e"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_02.res" id="3_f33sk"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_03.res" id="4_2upcv"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_04.res" id="5_cr5qt"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_05.res" id="6_ncnpi"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_06.res" id="7_wggr0"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_07.res" id="8_46er7"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_08.res" id="9_00p6w"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_09.res" id="10_28esh"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_needles_needle_10.res" id="11_a0pbs"]
+
+[node name="Swoopy_Needles" type="Node3D" unique_id=1636463103]
+
+[node name="Needles" type="Node3D" parent="." unique_id=997552810]
+
+[node name="Needle00_Discs" type="MeshInstance3D" parent="Needles" unique_id=511835698]
+cast_shadow = 0
+mesh = ExtResource("1_pwnkx")
+
+[node name="Needle01_Stack" type="MeshInstance3D" parent="Needles" unique_id=1452125481]
+cast_shadow = 0
+mesh = ExtResource("2_u5y1e")
+
+[node name="Needle02_Fork" type="MeshInstance3D" parent="Needles" unique_id=1239594026]
+cast_shadow = 0
+mesh = ExtResource("3_f33sk")
+
+[node name="Needle03_Blade" type="MeshInstance3D" parent="Needles" unique_id=2060268320]
+cast_shadow = 0
+mesh = ExtResource("4_2upcv")
+
+[node name="Needle04_Discs" type="MeshInstance3D" parent="Needles" unique_id=373577126]
+cast_shadow = 0
+mesh = ExtResource("5_cr5qt")
+
+[node name="Needle05_Stack" type="MeshInstance3D" parent="Needles" unique_id=1213624372]
+cast_shadow = 0
+mesh = ExtResource("6_ncnpi")
+
+[node name="Needle06_Fork" type="MeshInstance3D" parent="Needles" unique_id=774261876]
+cast_shadow = 0
+mesh = ExtResource("7_wggr0")
+
+[node name="Needle07_Blade" type="MeshInstance3D" parent="Needles" unique_id=184179572]
+cast_shadow = 0
+mesh = ExtResource("8_46er7")
+
+[node name="Needle08_Discs" type="MeshInstance3D" parent="Needles" unique_id=1235124864]
+cast_shadow = 0
+mesh = ExtResource("9_00p6w")
+
+[node name="Needle09_Stack" type="MeshInstance3D" parent="Needles" unique_id=1888526160]
+cast_shadow = 0
+mesh = ExtResource("10_28esh")
+
+[node name="Needle10_Fork" type="MeshInstance3D" parent="Needles" unique_id=865168305]
+cast_shadow = 0
+mesh = ExtResource("11_a0pbs")

@@ -16,7 +16,7 @@
 [ext_resource type="PackedScene" path="res://scenes/tracks/utopia/districts/utopia_mega.tscn" id="14_gkfrn"]
 [ext_resource type="PackedScene" path="res://scenes/tracks/utopia/utopia_track_dressing.tscn" id="15_756bp"]
 
-[node name="UtopiaCity" type="Node3D" unique_id=1406570577]
+[node name="UtopiaCity" type="Node3D" unique_id=638532820]
 
 [node name="Utopia_Base" type="Node3D" parent="." unique_id=1399247945 instance=ExtResource("1_yc7fr")]
 
@@ -44,6 +44,6 @@
 
 [node name="Utopia_Eastsweep" type="Node3D" parent="." unique_id=1142632108 instance=ExtResource("13_6nev1")]
 
-[node name="Utopia_Mega" type="Node3D" parent="." unique_id=965207104 instance=ExtResource("14_gkfrn")]
+[node name="Utopia_Mega" type="Node3D" parent="." unique_id=2017057507 instance=ExtResource("14_gkfrn")]
 
 [node name="UtopiaTrackDressing" type="Node3D" parent="." unique_id=2086885738 instance=ExtResource("15_756bp")]

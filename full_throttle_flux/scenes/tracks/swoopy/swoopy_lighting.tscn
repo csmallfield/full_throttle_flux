@@ -1,0 +1,113 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/utopia/sky/utopia_sky_material.tres" id="1_ectqs"]
+[ext_resource type="Script" path="res://tools/utopia/godrays_effect.gd" id="2_6a1c6"]
+[ext_resource type="Script" path="res://tools/utopia/sky_controller.gd" id="3_nqatk"]
+
+[sub_resource type="Sky" id="Sky_ectqs"]
+sky_material = ExtResource("1_ectqs")
+process_mode = 2
+radiance_size = 2
+
+[sub_resource type="Environment" id="Environment_6a1c6"]
+background_mode = 2
+sky = SubResource("Sky_ectqs")
+ambient_light_source = 3
+ambient_light_energy = 0.42
+reflected_light_source = 2
+tonemap_mode = 4
+tonemap_exposure = 0.86
+tonemap_white = 6.0
+ssao_enabled = true
+ssao_radius = 3.0
+ssao_intensity = 2.5
+ssao_power = 1.6
+ssil_enabled = true
+ssil_radius = 8.0
+ssil_intensity = 0.8
+glow_enabled = true
+glow_intensity = 0.5
+glow_bloom = 0.04
+glow_blend_mode = 2
+glow_hdr_threshold = 1.2
+fog_enabled = true
+fog_light_color = Color(0.7, 0.78, 0.88, 1)
+fog_sun_scatter = 0.3
+fog_density = 0.00016
+fog_aerial_perspective = 0.5
+fog_sky_affect = 0.12
+fog_height = -60.0
+fog_height_density = 0.0022
+volumetric_fog_density = 0.01
+volumetric_fog_albedo = Color(0.7, 0.78, 0.88, 1)
+volumetric_fog_anisotropy = 0.7
+volumetric_fog_length = 450.0
+volumetric_fog_detail_spread = 1.5
+volumetric_fog_ambient_inject = 1.0
+volumetric_fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_contrast = 1.06
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_nqatk"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = false
+needs_normal_roughness = false
+script = ExtResource("2_6a1c6")
+intensity = 0.3
+tint = Color(1, 0.8474118, 0.6817647, 1)
+
+[sub_resource type="Compositor" id="Compositor_c0piq"]
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_nqatk")])
+
+[node name="SwoopyLighting" type="Node3D" unique_id=2046193539]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1152320002]
+environment = SubResource("Environment_6a1c6")
+compositor = SubResource("Compositor_c0piq")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=2050507419]
+transform = Transform3D(0.9063078, 0.2301744, -0.3544375, 0, 0.8386706, 0.54463905, 0.42261827, -0.49361062, 0.7600937, 0, 300, 0)
+light_color = Color(1, 0.8474118, 0.6817647, 1)
+light_energy = 3.3
+light_volumetric_fog_energy = 0.0
+light_angular_distance = 0.6
+shadow_enabled = true
+shadow_bias = 0.04
+shadow_normal_bias = 1.2
+directional_shadow_split_1 = 0.03
+directional_shadow_split_2 = 0.1
+directional_shadow_split_3 = 0.32
+directional_shadow_blend_splits = true
+directional_shadow_fade_start = 0.85
+directional_shadow_max_distance = 1600.0
+
+[node name="SkyFill" type="DirectionalLight3D" parent="." unique_id=1652400549]
+transform = Transform3D(-0.9063078, -0.24589948, 0.34371445, 0, 0.8132977, 0.5818478, -0.42261824, 0.5273332, -0.73709804, 0, 300, 0)
+light_color = Color(0.32500002, 0.45, 0.735, 1)
+light_energy = 0.265
+sky_mode = 1
+
+[node name="SkyController" type="Node" parent="." unique_id=1900248173]
+script = ExtResource("3_nqatk")
+world_environment = NodePath("../WorldEnvironment")
+sun = NodePath("../Sun")
+sky_fill = NodePath("../SkyFill")
+preset = "high_altitude"
+sun_azimuth = 205.0
+sun_elevation = 33.0
+sun_energy = 3.3
+sun_tint = Color(1, 0.98, 0.95, 1)
+zenith_color = Color(0.05, 0.2, 0.52, 1)
+horizon_color = Color(0.74, 0.82, 0.92, 1)
+fog_color = Color(0.7, 0.78, 0.88, 1)
+fog_density = 0.00016
+ambient_energy = 0.42
+exposure = 0.86
+ground_darken = 0.04
+coverage = 0.42
+cloud_shadow_color = Color(0.44, 0.5, 0.64, 1)
+wind_speed = 26.0
+god_ray_intensity = 0.3

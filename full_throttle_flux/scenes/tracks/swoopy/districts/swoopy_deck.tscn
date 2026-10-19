@@ -1,0 +1,90 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_00.res" id="1_8sqv1"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_01.res" id="2_o5sbg"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_02.res" id="3_ufnuy"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_03.res" id="4_xbwow"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_04.res" id="5_60fty"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_05.res" id="6_neehs"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_06.res" id="7_2unhv"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_07.res" id="8_m43q8"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_08.res" id="9_qj7p5"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_09.res" id="10_1g30n"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_10.res" id="11_12sdb"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_11.res" id="12_nvyi6"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_12.res" id="13_esj7a"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_13.res" id="14_tgakw"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_14.res" id="15_40vlu"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_15.res" id="16_v4lfs"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_16.res" id="17_ir28c"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_17.res" id="18_1on2n"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_18.res" id="19_22hj8"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_19.res" id="20_3bbhk"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_deck_girder_20.res" id="21_pjuvq"]
+
+[node name="Swoopy_Deck" type="Node3D" unique_id=665022628]
+
+[node name="Girder" type="Node3D" parent="." unique_id=795222068]
+
+[node name="Girder00" type="MeshInstance3D" parent="Girder" unique_id=1485188807]
+mesh = ExtResource("1_8sqv1")
+
+[node name="Girder01" type="MeshInstance3D" parent="Girder" unique_id=1119494831]
+mesh = ExtResource("2_o5sbg")
+
+[node name="Girder02" type="MeshInstance3D" parent="Girder" unique_id=703747426]
+mesh = ExtResource("3_ufnuy")
+
+[node name="Girder03" type="MeshInstance3D" parent="Girder" unique_id=784636661]
+mesh = ExtResource("4_xbwow")
+
+[node name="Girder04" type="MeshInstance3D" parent="Girder" unique_id=1045128574]
+mesh = ExtResource("5_60fty")
+
+[node name="Girder05" type="MeshInstance3D" parent="Girder" unique_id=1058674836]
+mesh = ExtResource("6_neehs")
+
+[node name="Girder06" type="MeshInstance3D" parent="Girder" unique_id=1382408063]
+mesh = ExtResource("7_2unhv")
+
+[node name="Girder07" type="MeshInstance3D" parent="Girder" unique_id=1004450135]
+mesh = ExtResource("8_m43q8")
+
+[node name="Girder08" type="MeshInstance3D" parent="Girder" unique_id=600888710]
+mesh = ExtResource("9_qj7p5")
+
+[node name="Girder09" type="MeshInstance3D" parent="Girder" unique_id=820109687]
+mesh = ExtResource("10_1g30n")
+
+[node name="Girder10" type="MeshInstance3D" parent="Girder" unique_id=1044426998]
+mesh = ExtResource("11_12sdb")
+
+[node name="Girder11" type="MeshInstance3D" parent="Girder" unique_id=861088423]
+mesh = ExtResource("12_nvyi6")
+
+[node name="Girder12" type="MeshInstance3D" parent="Girder" unique_id=86671289]
+mesh = ExtResource("13_esj7a")
+
+[node name="Girder13" type="MeshInstance3D" parent="Girder" unique_id=1421817191]
+mesh = ExtResource("14_tgakw")
+
+[node name="Girder14" type="MeshInstance3D" parent="Girder" unique_id=1085336641]
+mesh = ExtResource("15_40vlu")
+
+[node name="Girder15" type="MeshInstance3D" parent="Girder" unique_id=155971168]
+mesh = ExtResource("16_v4lfs")
+
+[node name="Girder16" type="MeshInstance3D" parent="Girder" unique_id=177456426]
+mesh = ExtResource("17_ir28c")
+
+[node name="Girder17" type="MeshInstance3D" parent="Girder" unique_id=1090134477]
+mesh = ExtResource("18_1on2n")
+
+[node name="Girder18" type="MeshInstance3D" parent="Girder" unique_id=386171560]
+mesh = ExtResource("19_22hj8")
+
+[node name="Girder19" type="MeshInstance3D" parent="Girder" unique_id=1386267912]
+mesh = ExtResource("20_3bbhk")
+
+[node name="Girder20" type="MeshInstance3D" parent="Girder" unique_id=1047229853]
+mesh = ExtResource("21_pjuvq")

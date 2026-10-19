@@ -1,0 +1,130 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/swoopy/materials/halo.tres" id="1_cblf4"]
+[ext_resource type="TorusMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_torus_300_18.tres" id="2_lad7q"]
+[ext_resource type="Material" path="res://scenes/tracks/swoopy/materials/pale.tres" id="3_eab55"]
+[ext_resource type="TorusMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_torus_190_12.tres" id="4_usr16"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_spire_halo.res" id="5_tyqg4"]
+[ext_resource type="Material" path="res://scenes/tracks/swoopy/materials/glass.tres" id="6_s77q2"]
+[ext_resource type="SphereMesh" path="res://scenes/tracks/utopia/meshes/unit_sphere.tres" id="7_1inlk"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_spire_orb.res" id="8_tr13e"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_spire_inverted.res" id="9_qbfgg"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_spire_cantilever.res" id="10_nmuvo"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_spire_twin.res" id="11_43hyl"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_spire_balanced.res" id="12_ed4ta"]
+[ext_resource type="TorusMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_torus_210_6.tres" id="13_rqcje"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_spire_levitate.res" id="14_jay07"]
+[ext_resource type="TorusMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_torus_100_7.tres" id="15_qdye0"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_spires_spire_cluster.res" id="16_thstl"]
+
+[node name="Swoopy_Spires" type="Node3D" unique_id=1968033151]
+
+[node name="Megastructures" type="Node3D" parent="." unique_id=1699897057]
+
+[node name="Spire_Halo" type="Node3D" parent="Megastructures" unique_id=1498539809]
+
+[node name="Halo" type="MeshInstance3D" parent="Megastructures/Spire_Halo" unique_id=520948488]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1860.9973, 430.84277, 778.04346)
+material_override = ExtResource("1_cblf4")
+cast_shadow = 0
+mesh = ExtResource("2_lad7q")
+
+[node name="HaloUpper" type="MeshInstance3D" parent="Megastructures/Spire_Halo" unique_id=1981191177]
+transform = Transform3D(1, 0, 0, 0, 0.99254614, -0.12186935, 0, 0.12186935, 0.99254614, 1860.9973, 725.9319, 778.04346)
+material_override = ExtResource("3_eab55")
+cast_shadow = 0
+mesh = ExtResource("4_usr16")
+
+[node name="Body" type="MeshInstance3D" parent="Megastructures/Spire_Halo" unique_id=48773192]
+cast_shadow = 0
+mesh = ExtResource("5_tyqg4")
+
+[node name="Spire_Orb" type="Node3D" parent="Megastructures" unique_id=462658316]
+
+[node name="Orb" type="MeshInstance3D" parent="Megastructures/Spire_Orb" unique_id=387958035]
+transform = Transform3D(420, 0, 0, 0, 420, 0, 0, 0, 420, 337.00253, 571.3584, 2088.806)
+material_override = ExtResource("6_s77q2")
+cast_shadow = 0
+mesh = ExtResource("7_1inlk")
+
+[node name="Body" type="MeshInstance3D" parent="Megastructures/Spire_Orb" unique_id=312671157]
+cast_shadow = 0
+mesh = ExtResource("8_tr13e")
+
+[node name="Spire_Inverted" type="Node3D" parent="Megastructures" unique_id=586423813]
+
+[node name="Body" type="MeshInstance3D" parent="Megastructures/Spire_Inverted" unique_id=1696115711]
+cast_shadow = 0
+mesh = ExtResource("9_qbfgg")
+
+[node name="Spire_Cantilever" type="Node3D" parent="Megastructures" unique_id=1773927733]
+
+[node name="Body" type="MeshInstance3D" parent="Megastructures/Spire_Cantilever" unique_id=423922060]
+cast_shadow = 0
+mesh = ExtResource("10_nmuvo")
+
+[node name="Spire_Twin" type="Node3D" parent="Megastructures" unique_id=1315622629]
+
+[node name="Body" type="MeshInstance3D" parent="Megastructures/Spire_Twin" unique_id=866359228]
+cast_shadow = 0
+mesh = ExtResource("11_43hyl")
+
+[node name="Spire_Balanced" type="Node3D" parent="Megastructures" unique_id=429908659]
+
+[node name="Body" type="MeshInstance3D" parent="Megastructures/Spire_Balanced" unique_id=308735899]
+cast_shadow = 0
+mesh = ExtResource("12_ed4ta")
+
+[node name="Spire_Levitate" type="Node3D" parent="Megastructures" unique_id=692062153]
+
+[node name="Ovoid" type="MeshInstance3D" parent="Megastructures/Spire_Levitate" unique_id=731533977]
+transform = Transform3D(300, 0, 0, 0, 390, 0, 0, 0, 300, 736.4092, 770.7538, -2179.0325)
+material_override = ExtResource("3_eab55")
+cast_shadow = 0
+mesh = ExtResource("7_1inlk")
+
+[node name="MoonA" type="MeshInstance3D" parent="Megastructures/Spire_Levitate" unique_id=1794701025]
+transform = Transform3D(80, 0, 0, 0, 80, 0, 0, 0, 80, 996.4092, 830.7538, -2139.0325)
+material_override = ExtResource("6_s77q2")
+cast_shadow = 0
+mesh = ExtResource("7_1inlk")
+
+[node name="MoonB" type="MeshInstance3D" parent="Megastructures/Spire_Levitate" unique_id=452563688]
+transform = Transform3D(52, 0, 0, 0, 52, 0, 0, 0, 52, 536.4092, 650.7538, -2029.0325)
+material_override = ExtResource("6_s77q2")
+cast_shadow = 0
+mesh = ExtResource("7_1inlk")
+
+[node name="Belt" type="MeshInstance3D" parent="Megastructures/Spire_Levitate" unique_id=1128370877]
+transform = Transform3D(1, 0, 0, 0, 0.9702957, -0.2419219, 0, 0.2419219, 0.9702957, 736.4092, 770.7538, -2179.0325)
+material_override = ExtResource("1_cblf4")
+cast_shadow = 0
+mesh = ExtResource("13_rqcje")
+
+[node name="Body" type="MeshInstance3D" parent="Megastructures/Spire_Levitate" unique_id=1612845366]
+cast_shadow = 0
+mesh = ExtResource("14_jay07")
+
+[node name="Spire_Cluster" type="Node3D" parent="Megastructures" unique_id=1438894060]
+
+[node name="Band35" type="MeshInstance3D" parent="Megastructures/Spire_Cluster" unique_id=1820633406]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1678.157, 14.430054, -1117.5514)
+material_override = ExtResource("3_eab55")
+cast_shadow = 0
+mesh = ExtResource("15_qdye0")
+
+[node name="Band50" type="MeshInstance3D" parent="Megastructures/Spire_Cluster" unique_id=1714823138]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1678.157, 243.47156, -1117.5514)
+material_override = ExtResource("3_eab55")
+cast_shadow = 0
+mesh = ExtResource("15_qdye0")
+
+[node name="Band62" type="MeshInstance3D" parent="Megastructures/Spire_Cluster" unique_id=1327553348]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1678.157, 426.7047, -1117.5514)
+material_override = ExtResource("3_eab55")
+cast_shadow = 0
+mesh = ExtResource("15_qdye0")
+
+[node name="Body" type="MeshInstance3D" parent="Megastructures/Spire_Cluster" unique_id=401941099]
+cast_shadow = 0
+mesh = ExtResource("16_thstl")

@@ -332,7 +332,7 @@ func ribbon_wall(parent: Node, name: String, d0: float, d1: float, lat: float, t
 ## with repeated lighting ribs. The massing around it is built separately
 ## from boxes that stop at the tunnel walls.
 func tunnel(parent: Node, name: String, d0: float, d1: float, half_w := 36.0, ceil_h := 24.0,
-		rib_step := 18.0, mat := "mid") -> Node3D:
+		rib_step := 18.0, mat := "mid", strip_mat := "glow", rib_mat := "light") -> Node3D:
 	var g := group(parent, name)
 	ribbon_wall(g, "WallL", d0, d1, -half_w - 2.0, 4.0, -12.0, ceil_h + 6.0, mat)
 	ribbon_wall(g, "WallR", d0, d1, half_w + 2.0, 4.0, -12.0, ceil_h + 6.0, mat)
@@ -345,12 +345,12 @@ func tunnel(parent: Node, name: String, d0: float, d1: float, half_w := 36.0, ce
 		var c := center(d)
 		var b := yaw_at(d)
 		var r := right_flat(d)
-		box(ribs, "Rib%02d" % i, Vector3(c.x, c.y + ceil_h - 1.0, c.z), Vector3(half_w * 2.0, 2.4, 2.0), b, "light")
+		box(ribs, "Rib%02d" % i, Vector3(c.x, c.y + ceil_h - 1.0, c.z), Vector3(half_w * 2.0, 2.4, 2.0), b, rib_mat)
 		for s: float in [-1.0, 1.0]:
 			var p := c + r * s * (half_w - 1.0)
 			p = c + r * s * (half_w + 1.0)
-			box(ribs, "RibCol%02d%s" % [i, "L" if s < 0 else "R"], Vector3(p.x, c.y + ceil_h * 0.5 - 2.0, p.z), Vector3(2.0, ceil_h, 2.0), b, "light")
-		box(ribs, "Strip%02d" % i, Vector3(c.x, c.y + ceil_h - 2.4, c.z), Vector3(half_w * 1.5, 0.5, 0.8), b, "glow")
+			box(ribs, "RibCol%02d%s" % [i, "L" if s < 0 else "R"], Vector3(p.x, c.y + ceil_h * 0.5 - 2.0, p.z), Vector3(2.0, ceil_h, 2.0), b, rib_mat)
+		box(ribs, "Strip%02d" % i, Vector3(c.x, c.y + ceil_h - 2.4, c.z), Vector3(half_w * 1.5, 0.5, 0.8), b, strip_mat)
 		d += rib_step
 		i += 1
 	return g

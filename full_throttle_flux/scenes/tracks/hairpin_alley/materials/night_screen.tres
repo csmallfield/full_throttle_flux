@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://scenes/tracks/hairpin_alley/materials/night_screen.gdshader" id="1_ajxc4"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_ajxc4")
+shader_parameter/brightness = null
+shader_parameter/scroll_speed = null
+shader_parameter/chevron_count = null

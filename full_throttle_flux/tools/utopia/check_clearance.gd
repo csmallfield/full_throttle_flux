@@ -10,13 +10,16 @@ const H_BOT := -2.0     # underside of the road slab
 const H_TOP := 19.0
 const STEP := 2.0
 
+## Optional args (other tracks): -- <track scene> <city node name>
 func _initialize() -> void:
-	var track: Node3D = load("res://scenes/tracks/test_circuit_3_live.tscn").instantiate()
+	var args := OS.get_cmdline_user_args()
+	var track: Node3D = load(args[0] if args.size() > 0 else "res://scenes/tracks/test_circuit_3_live.tscn").instantiate()
+	var city_name := args[1] if args.size() > 1 else "UtopiaCity"
 	root.add_child(track)
 	await process_frame
-	var city := track.get_node_or_null("UtopiaCity")
+	var city := track.get_node_or_null(city_name)
 	if city == null:
-		push_error("no UtopiaCity under the track")
+		push_error("no %s under the track" % city_name)
 		quit(1)
 		return
 	# build collision proxies for every visual mesh in the city

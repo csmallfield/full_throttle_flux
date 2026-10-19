@@ -1,0 +1,44 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://scenes/tracks/swoopy/materials/cloud_sea.gdshader" id="1_kmsst"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_6v6nq"]
+seed = 11
+frequency = 0.005859375
+fractal_octaves = 6
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_1v0tm"]
+noise = SubResource("FastNoiseLite_6v6nq")
+seamless = true
+seamless_blend_skirt = 0.15
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_tssso"]
+seed = 29
+frequency = 0.0078125
+fractal_octaves = 4
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_fxcu0"]
+noise = SubResource("FastNoiseLite_tssso")
+seamless = true
+seamless_blend_skirt = 0.15
+
+[resource]
+render_priority = -1
+shader = ExtResource("1_kmsst")
+shader_parameter/noise_large = SubResource("NoiseTexture2D_1v0tm")
+shader_parameter/noise_small = SubResource("NoiseTexture2D_fxcu0")
+shader_parameter/coverage = 0.4
+shader_parameter/softness = 0.16
+shader_parameter/opacity = 0.88
+shader_parameter/large_tile = 3200.0
+shader_parameter/small_tile = 900.0
+shader_parameter/wind = Vector2(4, 1.5)
+shader_parameter/seed_offset = 3.7
+shader_parameter/lit_color = Color(1, 0.98, 0.95, 1)
+shader_parameter/shade_color = Color(0.58, 0.65, 0.78, 1)
+shader_parameter/brightness = 1.1
+shader_parameter/proximity_fade = 45.0
+shader_parameter/plane_center = Vector2(-317.59445, -127.84102)
+shader_parameter/fade_radius = 6200.0
+shader_parameter/camera_fade_start = 2300.0
+shader_parameter/camera_fade_end = 3700.0

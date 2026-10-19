@@ -1,0 +1,1414 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/night_street.tres" id="1_o1g3c"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="2_58okx"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/night_concrete.tres" id="3_imbfs"]
+
+[node name="Hairpin_Ground" type="Node3D" unique_id=14753056]
+
+[node name="Street" type="MeshInstance3D" parent="." unique_id=1239065815]
+transform = Transform3D(6000, 0, 0, 0, 2, 0, 0, 0, 5000, -185, -25, -395)
+material_override = ExtResource("1_o1g3c")
+mesh = ExtResource("2_58okx")
+
+[node name="DeckPylons" type="Node3D" parent="." unique_id=1904561288]
+
+[node name="Pylon00" type="MeshInstance3D" parent="DeckPylons" unique_id=207834239]
+transform = Transform3D(0.13565186, 0, 5.999773, 0, 83.664116, 0, -15.599411, 0, 0.052173786, -0.34399414, -48.167942, 6.376582)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap00" type="MeshInstance3D" parent="DeckPylons" unique_id=1324692538]
+transform = Transform3D(0.38223046, -0.0019876263, 7.199727, 0.79705185, 3.5994089, 0.0028416838, -43.99112, 0.06519852, 0.06260854, -0.34399414, -4.517781, 6.296874)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon01" type="MeshInstance3D" parent="DeckPylons" unique_id=1017664890]
+transform = Transform3D(-1.0632638, 0, 5.9860473, 0, 83.731865, 0, -15.563723, 0, -0.4089476, -46.30947, -48.134068, 7.8363676)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap01" type="MeshInstance3D" parent="DeckPylons" unique_id=345027724]
+transform = Transform3D(-2.999346, -0.0019332509, 7.1832514, 0.4486419, 3.5998101, 0.008891399, -43.895363, 0.03692472, -0.49073672, -46.307106, -4.54472, 7.7912374)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon02" type="MeshInstance3D" parent="DeckPylons" unique_id=1787409185]
+transform = Transform3D(-1.943207, 0, 5.9532695, 0, 83.73414, 0, -15.478501, 0, -0.7473873, -92.08218, -48.132935, 12.340674)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap02" type="MeshInstance3D" parent="DeckPylons" unique_id=533501750]
+transform = Transform3D(-5.48106, -0.0069864243, 7.1439047, 0.10549405, 3.5999806, 0.016249778, -43.65715, 0.0095762, -0.89686245, -92.07363, -4.626539, 12.32897)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon03" type="MeshInstance3D" parent="DeckPylons" unique_id=2000693995]
+transform = Transform3D(-2.573628, 0, 5.917785, 0, 83.5782, 0, -15.386242, 0, -0.9898569, -137.58575, -48.2109, 19.05765)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap03" type="MeshInstance3D" parent="DeckPylons" unique_id=674166719]
+transform = Transform3D(-7.258154, -0.013788992, 7.1013103, -0.2352791, 3.5999324, 0.021521537, -43.396587, -0.017211173, -1.1878229, -137.5689, -4.748182, 19.078684)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon04" type="MeshInstance3D" parent="DeckPylons" unique_id=1953881409]
+transform = Transform3D(-2.9951715, 0, 5.888372, 0, 83.339, 0, -15.309767, 0, -1.151989, -182.83614, -48.3305, 27.31884)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap04" type="MeshInstance3D" parent="DeckPylons" unique_id=1123761200]
+transform = Transform3D(-8.445215, -0.021370823, 7.0660033, -0.5781121, 3.5996675, 0.025046583, -43.17805, -0.044016123, -1.3823785, -182.81001, -4.897538, 27.372637)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon05" type="MeshInstance3D" parent="DeckPylons" unique_id=1050843078]
+transform = Transform3D(-3.219032, 0, 5.8708715, 0, 83.07781, 0, -15.264267, 0, -1.2380893, -227.90317, -48.461094, 36.53277)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap05" type="MeshInstance3D" parent="DeckPylons" unique_id=303823289]
+transform = Transform3D(-9.073899, -0.028849259, 7.0449967, -0.92888933, 3.5991726, 0.026918551, -43.04418, -0.071588255, -1.4856967, -227.8679, -5.063875, 36.620262)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon06" type="MeshInstance3D" parent="DeckPylons" unique_id=191593731]
+transform = Transform3D(-3.2188377, 0, 5.8708873, 0, 82.80578, 0, -15.264308, 0, -1.2380145, -272.899, -48.59711, 46.089794)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap06" type="MeshInstance3D" parent="DeckPylons" unique_id=1333948248]
+transform = Transform3D(-9.070095, -0.035037898, 7.045016, -1.295734, 3.5984135, 0.026916927, -43.035503, -0.100958265, -1.485607, -272.85614, -5.236107, 46.213184)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon07" type="MeshInstance3D" parent="DeckPylons" unique_id=1279912251]
+transform = Transform3D(-2.8960676, 0, 5.895701, 0, 82.53366, 0, -15.328823, 0, -1.1138722, -317.98438, -48.733173, 55.211586)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap07" type="MeshInstance3D" parent="DeckPylons" unique_id=488984967]
+transform = Transform3D(-8.156769, -0.03757882, 7.074801, -1.6912738, 3.5973191, 0.024217851, -43.204247, -0.13372597, -1.3366388, -317.93842, -5.4000416, 55.375023)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon08" type="MeshInstance3D" parent="DeckPylons" unique_id=1624523577]
+transform = Transform3D(-1.9452381, 0, 5.9531713, 0, 82.27896, 0, -15.478246, 0, -0.74816847, -363.3817, -48.860523, 62.588017)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap08" type="MeshInstance3D" parent="DeckPylons" unique_id=786536091]
+transform = Transform3D(-5.4752846, -0.029886112, 7.1437874, -2.1392925, 3.5957332, 0.016266763, -43.605556, -0.17265438, -0.8977999, -363.34506, -5.5317526, 62.799026)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon09" type="MeshInstance3D" parent="DeckPylons" unique_id=1780320648]
+transform = Transform3D(-0.37926218, 0, 5.998227, 0, 82.06831, 0, -15.59539, 0, -0.14587006, -409.26053, -48.965847, 65.34995)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap09" type="MeshInstance3D" parent="DeckPylons" unique_id=56830388]
+transform = Transform3D(-1.080499, 0.011026286, 7.1977944, -2.8041348, 3.5926433, -0.03328579, -43.89726, -0.22976765, -0.17504218, -409.27435, -5.5558605, 65.63079)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon10" type="MeshInstance3D" parent="DeckPylons" unique_id=1411242690]
+transform = Transform3D(-1.3825338, 0, 5.976391, 0, 82.35128, 0, -15.538616, 0, -0.53174376, -455.14737, -48.82436, 68.41275)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap10" type="MeshInstance3D" parent="DeckPylons" unique_id=1870578219]
+transform = Transform3D(-3.949948, 0.03441019, 7.170599, -3.7655478, 3.5862532, -0.124380976, -43.660267, -0.31241512, -0.63799727, -455.18945, -4.9842215, 68.79459)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon11" type="MeshInstance3D" parent="DeckPylons" unique_id=966663932]
+transform = Transform3D(-1.4297721, 0, 5.9747467, 0, 83.050354, 0, -15.534342, 0, -0.54991233, -500.94012, -48.474827, 72.67734)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap11" type="MeshInstance3D" parent="DeckPylons" unique_id=1789591982]
+transform = Transform3D(-4.1114564, 0.044823505, 7.1679373, -4.5521092, 3.5797944, -0.15945815, -43.570335, -0.3782368, -0.65973294, -500.9949, -4.0553474, 73.139626)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon12" type="MeshInstance3D" parent="DeckPylons" unique_id=457174346]
+transform = Transform3D(-1.1430714, 0, 5.9838715, 0, 83.935326, 0, -15.558065, 0, -0.43964285, -546.7647, -48.032337, 76.532845)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap12" type="MeshInstance3D" parent="DeckPylons" unique_id=471156270]
+transform = Transform3D(-3.330414, 0.056273226, 7.178463, -5.2689743, 3.572993, -0.1774937, -43.556244, -0.43652573, -0.52741104, -546.8335, -2.9645476, 77.066376)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon13" type="MeshInstance3D" parent="DeckPylons" unique_id=1795442318]
+transform = Transform3D(-0.6385073, 0, 5.994972, 0, 84.91715, 0, -15.586927, 0, -0.24557972, -592.66974, -47.541424, 79.21009)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap13" type="MeshInstance3D" parent="DeckPylons" unique_id=1006622015]
+transform = Transform3D(-1.9389801, 0.07265725, 7.191538, -5.954302, 3.5656576, -0.18708514, -43.552113, -0.4907198, -0.2945962, -592.75854, -1.787322, 79.80986)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon14" type="MeshInstance3D" parent="DeckPylons" unique_id=35921152]
+transform = Transform3D(0.06829673, 0, 5.999943, 0, 85.94529, 0, -15.599852, 0, 0.026267974, -638.6413, -47.02736, 80.10427)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap14" type="MeshInstance3D" parent="DeckPylons" unique_id=1513104933]
+transform = Transform3D(0.014498454, 0.09677882, 7.197397, -6.6300735, 3.557614, -0.19099024, -43.497612, -0.542233, 0.031510472, -638.7596, -0.56692624, 80.767)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon15" type="MeshInstance3D" parent="DeckPylons" unique_id=1049721630]
+transform = Transform3D(1.002842, 0, 5.98759, 0, 86.9816, 0, -15.567734, 0, 0.38570845, -684.5933, -46.5092, 78.5898)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap15" type="MeshInstance3D" parent="DeckPylons" unique_id=836922029]
+transform = Transform3D(2.5966308, 0.13191171, 7.1826077, -7.3123155, 3.548668, -0.18990608, -43.310364, -0.5912315, 0.4626891, -684.7545, 0.66355276, 79.312416)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon16" type="MeshInstance3D" parent="DeckPylons" unique_id=646229658]
+transform = Transform3D(2.2183688, 0, 5.939025, 0, 87.98955, 0, -15.441465, 0, 0.85321873, -730.3283, -46.00523, 73.92328)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap16" type="MeshInstance3D" parent="DeckPylons" unique_id=297217625]
+transform = Transform3D(5.950141, 0.1824931, 7.124519, -8.014241, 3.5385933, -0.18333837, -42.852863, -0.63644004, 1.0235305, -730.5513, 1.8715215, 74.70116)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon17" type="MeshInstance3D" parent="DeckPylons" unique_id=126322722]
+transform = Transform3D(3.78853, 0, 5.8203764, 0, 88.926765, 0, -15.132979, 0, 1.457127, -775.453, -45.536617, 65.17129)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap17" type="MeshInstance3D" parent="DeckPylons" unique_id=1631898564]
+transform = Transform3D(10.272218, 0.25450087, 6.9825115, -8.746155, 3.5271413, -0.16970177, -41.880623, -0.6741695, 1.7480665, -775.764, 3.0178108, 65.99529)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon18" type="MeshInstance3D" parent="DeckPylons" unique_id=2011864450]
+transform = Transform3D(5.7822323, 0, 5.572622, 0, 89.73905, 0, -14.488817, 0, 2.2239354, -819.22516, -45.130474, 51.178883)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap18" type="MeshInstance3D" parent="DeckPylons" unique_id=1487484735]
+transform = Transform3D(15.743574, 0.35483173, 6.6857653, -9.511392, 3.514121, -0.14628556, -39.9709, -0.6964532, 2.6681714, -819.65875, 4.0494304, 52.030148)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon19" type="MeshInstance3D" parent="DeckPylons" unique_id=990860612]
+transform = Transform3D(8.139806, 0, 5.1184716, 0, 90.37357, 0, -13.308026, 0, 3.1306944, -860.3348, -44.813213, 30.682726)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap19" type="MeshInstance3D" parent="DeckPylons" unique_id=869634732]
+transform = Transform3D(22.19268, 0.48346382, 6.1414204, -10.233471, 3.5008302, -0.11216559, -36.58909, -0.6858953, 3.7563775, -860.926, 4.8920636, 31.520823)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon20" type="MeshInstance3D" parent="DeckPylons" unique_id=843377156]
+transform = Transform3D(10.758921, 0, 4.3447175, 0, 91.25413, 0, -11.296267, 0, 4.1380463, -897.1707, -44.372936, 3.276597)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap20" type="MeshInstance3D" parent="DeckPylons" unique_id=926054234]
+transform = Transform3D(29.545458, 0.56742245, 5.213223, -9.470056, 3.5153196, -0.09333904, -31.199102, -0.5296791, 4.965238, -897.8634, 5.544845, 3.9247973)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon22" type="MeshInstance3D" parent="DeckPylons" unique_id=1465925285]
+transform = Transform3D(9.021357, 0, -4.894979, 0, 91.62473, 0, 12.726946, 0, 3.4697523, -900.6415, -44.187634, -73.845535)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap22" type="MeshInstance3D" parent="DeckPylons" unique_id=528763283]
+transform = Transform3D(25.090286, 0.3615589, -5.870304, -5.4610114, 3.5698974, 0.25450024, 35.73031, 0.2917308, 4.161101, -901.08215, 4.8089256, -74.20298)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon23" type="MeshInstance3D" parent="DeckPylons" unique_id=667916552]
+transform = Transform3D(3.5619993, 0, -5.8414984, 0, 90.17138, 0, 15.187896, 0, 1.3699996, -858.44305, -44.91431, -91.358795)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap23" type="MeshInstance3D" parent="DeckPylons" unique_id=45663422]
+transform = Transform3D(9.862149, 0.22792612, -7.0019875, -3.3688312, 3.5854099, 0.3397895, 42.74797, 0.2299711, 1.6421678, -858.72144, 2.8681736, -91.63992)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon24" type="MeshInstance3D" parent="DeckPylons" unique_id=1472201914]
+transform = Transform3D(0.30404368, 0, -5.9988604, 0, 88.02489, 0, 15.597037, 0, 0.11693987, -812.91266, -45.987556, -96.80133)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap24" type="MeshInstance3D" parent="DeckPylons" unique_id=137643792]
+transform = Transform3D(0.75869584, 0.20800605, -7.186899, -1.718288, 3.5913815, 0.41091555, 43.95989, 0.13678867, 0.14009912, -813.1668, 0.4650941, -96.96852)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon25" type="MeshInstance3D" parent="DeckPylons" unique_id=1357846665]
+transform = Transform3D(-2.4647355, 0, -5.9246387, 0, 85.16077, 0, 15.404061, 0, -0.94797516, -767.1783, -47.41962, -93.57405)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap25" type="MeshInstance3D" parent="DeckPylons" unique_id=2028456528]
+transform = Transform3D(-6.9618974, 0.23997644, -7.093083, -0.15024614, 3.5916326, 0.49000368, 43.44548, 0.050875723, -1.1349326, -767.47235, -2.4092436, -93.63635)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon26" type="MeshInstance3D" parent="DeckPylons" unique_id=139510379]
+transform = Transform3D(-2.0270433, 0, -5.9491324, 0, 82.6111, 0, 15.467745, 0, -0.7796321, -721.82367, -48.694454, -86.42071)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap26" type="MeshInstance3D" parent="DeckPylons" unique_id=314208400]
+transform = Transform3D(-5.6507206, 0.17487866, -7.131807, 1.4308292, 3.5944877, 0.32220447, 43.612183, -0.09526943, -0.93462116, -722.0376, -5.1178713, -86.3043)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon27" type="MeshInstance3D" parent="DeckPylons" unique_id=32017807]
+transform = Transform3D(-0.78675246, 0, -5.992365, 0, 81.10225, 0, 15.58015, 0, -0.3025971, -676.058, -49.44888, -82.11246)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap27" type="MeshInstance3D" parent="DeckPylons" unique_id=1279835635]
+transform = Transform3D(-2.1922274, 0.034865946, -7.1907196, 3.4767025, 3.5886848, 0.0412206, 43.80761, -0.28306395, -0.36311054, -676.10095, -6.333183, -81.76651)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon28" type="MeshInstance3D" parent="DeckPylons" unique_id=1821170618]
+transform = Transform3D(1.352417, 0, -5.9774103, 0, 81.119545, 0, 15.541267, 0, 0.5201603, -630.1121, -49.44023, -82.64502)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap28" type="MeshInstance3D" parent="DeckPylons" unique_id=17043974]
+transform = Transform3D(3.4553475, -0.21845378, -7.164455, 6.5463347, 3.5556505, -0.3491253, 43.37287, -0.5192565, 0.62345815, -629.84485, -5.348241, -82.0104)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon29" type="MeshInstance3D" parent="DeckPylons" unique_id=8954436]
+transform = Transform3D(3.2647562, 0, -5.8671355, 0, 82.464035, 0, 15.254553, 0, 1.2556754, -584.91504, -48.767982, -90.50895)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap29" type="MeshInstance3D" parent="DeckPylons" unique_id=1015109356]
+transform = Transform3D(8.647852, -0.26954636, -7.0389533, 11.496442, 3.4740918, -0.15393943, 41.581806, -0.90445083, 1.506466, -584.5764, -2.6338801, -89.40548)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon30" type="MeshInstance3D" parent="DeckPylons" unique_id=359541987]
+transform = Transform3D(2.309412, 0, -5.933889, 0, 82.47978, 0, 15.428111, 0, 0.88823533, -539.24066, -48.76011, -95.61997)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap30" type="MeshInstance3D" parent="DeckPylons" unique_id=620637495]
+transform = Transform3D(6.238725, -0.15351646, -7.120641, 11.915421, 3.4654696, -0.01931209, 41.89393, -0.9627834, 1.0658785, -539.0564, -2.5060635, -94.442726)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon33" type="MeshInstance3D" parent="DeckPylons" unique_id=2119449286]
+transform = Transform3D(2.767617, 0, 5.904821, 0, 84.792336, 0, -15.352534, 0, 1.0644681, -531.8617, -47.603836, -182.56645)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap33" type="MeshInstance3D" parent="DeckPylons" unique_id=177781604]
+transform = Transform3D(7.662273, -0.122567184, 7.0857487, 9.211028, 3.5202143, -0.023143724, -42.337296, 0.74368596, 1.2773551, -531.7147, -0.99761796, -183.47592)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon34" type="MeshInstance3D" parent="DeckPylons" unique_id=1088975109]
+transform = Transform3D(3.6098235, 0, 5.837154, 0, 85.692024, 0, -15.1766, 0, 1.3883936, -577.2684, -47.153988, -189.83426)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap34" type="MeshInstance3D" parent="DeckPylons" unique_id=1294488531]
+transform = Transform3D(10.099566, -0.106520385, 7.004523, 6.3935637, 3.5617592, -0.030186418, -42.34526, 0.512372, 1.6660576, -577.1393, -0.91671824, -190.46075)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon36" type="MeshInstance3D" parent="DeckPylons" unique_id=1765206389]
+transform = Transform3D(15.105097, 0, 1.4993131, 0, 88.20433, 0, -3.898214, 0, 5.8096523, -637.9551, -45.897835, -251.37129)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap36" type="MeshInstance3D" parent="DeckPylons" unique_id=1620291779]
+transform = Transform3D(42.605663, -0.046215102, 1.7958176, 1.2741231, 3.5917685, -0.43968952, -10.914854, 0.23887905, 6.958571, -637.8984, 0.6232004, -251.66241)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon38" type="MeshInstance3D" parent="DeckPylons" unique_id=1392987713]
+transform = Transform3D(5.1888514, 0, -5.6583686, 0, 97.40959, 0, 14.711759, 0, 1.995712, -596.2639, -41.295204, -320.48035)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap38" type="MeshInstance3D" parent="DeckPylons" unique_id=807356235]
+transform = Transform3D(15.127402, -0.07752694, -6.7593184, -8.72793, 3.5118427, -0.6841551, 40.385456, 0.7880039, 2.3840184, -596.1686, 11.757441, -321.44366)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon39" type="MeshInstance3D" parent="DeckPylons" unique_id=100735528]
+transform = Transform3D(2.200616, 0, -5.940002, 0, 100.51578, 0, 15.444005, 0, 0.8463907, -551.5934, -39.74211, -330.6356)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap39" type="MeshInstance3D" parent="DeckPylons" unique_id=1437935133]
+transform = Transform3D(6.5383277, -0.058816954, -7.119091, -9.928267, 3.5025368, -0.35991025, 42.363663, 0.82992554, 1.014399, -551.5214, 15.008308, -331.64996)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon40" type="MeshInstance3D" parent="DeckPylons" unique_id=69064441]
+transform = Transform3D(0.8568285, 0, -5.990943, 0, 102.026024, 0, 15.576452, 0, 0.3295494, -505.83685, -38.986988, -334.91388)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap40" type="MeshInstance3D" parent="DeckPylons" unique_id=766472933]
+transform = Transform3D(2.5745008, -0.028794961, -7.1874337, -10.472473, 3.4956696, -0.15646362, 42.657936, 0.8599206, 0.3953659, -505.80164, 16.621546, -335.9649)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon41" type="MeshInstance3D" parent="DeckPylons" unique_id=640885543]
+transform = Transform3D(0.088202186, 0, -5.999904, 0, 102.457886, 0, 15.599751, 0, 0.033923917, -459.8635, -38.771057, -336.23282)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap41" type="MeshInstance3D" parent="DeckPylons" unique_id=203858684]
+transform = Transform3D(0.2606784, -0.0012972219, -7.1998734, -10.819698, 3.4894547, -0.013004324, 42.648167, 0.88527095, 0.04070863, -459.86353, 17.143871, -337.31482)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon42" type="MeshInstance3D" parent="DeckPylons" unique_id=787388224]
+transform = Transform3D(-2.4098563, 0, -5.9279776, 0, 102.89791, 0, 15.412743, 0, -0.92686784, -414.0433, -38.551052, -332.8871)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap42" type="MeshInstance3D" parent="DeckPylons" unique_id=2003005492]
+transform = Transform3D(-6.58466, -0.13907766, -7.1134834, -9.626001, 3.5127468, -0.03612233, 42.4262, 0.7754153, -1.1122273, -413.87308, 17.23052, -333.83478)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon43" type="MeshInstance3D" parent="DeckPylons" unique_id=1489790459]
+transform = Transform3D(-4.201525, 0, -5.7782903, 0, 103.56819, 0, 15.023556, 0, -1.6159712, -369.1624, -38.21591, -322.93008)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap43" type="MeshInstance3D" parent="DeckPylons" unique_id=643964845]
+transform = Transform3D(-11.563073, -0.2144678, -6.9336734, -8.356446, 3.5343337, -0.06413004, 41.622894, 0.64999235, -1.9390883, -368.90015, 17.529984, -323.7245)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon44" type="MeshInstance3D" parent="DeckPylons" unique_id=395477053]
+transform = Transform3D(-5.3205824, 0, -5.6402426, 0, 104.37519, 0, 14.664632, 0, -2.0463777, -325.41565, -37.812405, -308.75214)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap44" type="MeshInstance3D" parent="DeckPylons" unique_id=770486998]
+transform = Transform3D(-14.729832, -0.23808877, -6.7678313, -7.135957, 3.5520918, -0.08397054, 40.842506, 0.53475094, -2.4554863, -325.12457, 17.984957, -309.4057)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon45" type="MeshInstance3D" parent="DeckPylons" unique_id=86706537]
+transform = Transform3D(-5.9831195, 0, -5.5411625, 0, 105.28407, 0, 14.407022, 0, -2.3012, -282.58716, -37.357964, -291.98947)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap45" type="MeshInstance3D" parent="DeckPylons" unique_id=943656394]
+transform = Transform3D(-16.645899, -0.23149252, -6.6487713, -5.9384365, 3.5667207, -0.09862992, 40.29453, 0.4300173, -2.7611806, -282.30417, 18.55265, -292.515)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon46" type="MeshInstance3D" parent="DeckPylons" unique_id=663907006]
+transform = Transform3D(-6.304901, 0, -5.488129, 0, 106.27376, 0, 14.269135, 0, -2.424962, -240.34329, -36.86312, -273.79474)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap46" type="MeshInstance3D" parent="DeckPylons" unique_id=953477258]
+transform = Transform3D(-17.61325, -0.2067925, -6.5849867, -4.7413177, 3.578616, -0.10994514, 40.041145, 0.3327844, -2.909615, -240.0905, 19.205917, -274.20145)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon47" type="MeshInstance3D" parent="DeckPylons" unique_id=82841019]
+transform = Transform3D(-6.3273964, 0, -5.484298, 0, 107.3313, 0, 14.259175, 0, -2.433614, -198.32231, -36.33436, -255.0959)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap47" type="MeshInstance3D" parent="DeckPylons" unique_id=1926162746]
+transform = Transform3D(-17.736004, -0.17110538, -6.580259, -3.522181, 3.587954, -0.11898287, 40.112694, 0.23939303, -2.9199378, -198.11314, 19.926868, -255.38847)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon48" type="MeshInstance3D" parent="DeckPylons" unique_id=927722980]
+transform = Transform3D(-6.025383, 0, -5.534384, 0, 108.4466, 0, 14.389399, 0, -2.3174548, -156.12918, -35.7767, -236.79362)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap48" type="MeshInstance3D" parent="DeckPylons" unique_id=2053142854]
+transform = Transform3D(-16.935854, -0.12942688, -6.640239, -2.2546346, 3.594716, -0.12628454, 40.547424, 0.14582472, -2.7805178, -155.97096, 20.702988, -236.97185)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon49" type="MeshInstance3D" parent="DeckPylons" unique_id=1721783895]
+transform = Transform3D(-5.2832756, 0, -5.6454287, 0, 109.59207, 0, 14.678114, 0, -2.0320292, -113.32445, -35.20397, -219.98473)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap49" type="MeshInstance3D" parent="DeckPylons" unique_id=433692345]
+transform = Transform3D(-14.882847, -0.0870319, -6.7733784, -0.90304947, 3.598638, -0.13182577, 41.396687, 0.047213096, -2.438026, -113.218056, 21.5238, -220.04242)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon50" type="MeshInstance3D" parent="DeckPylons" unique_id=498254428]
+transform = Transform3D(-3.8095925, 0, -5.8183427, 0, 110.49982, 0, 15.127691, 0, -1.4652278, -69.42542, -34.7501, -206.33186)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap50" type="MeshInstance3D" parent="DeckPylons" unique_id=1925602391]
+transform = Transform3D(-10.754672, -0.053483944, -6.980793, 0.58635527, 3.5990522, -0.13448653, 42.66138, -0.0629498, -1.7579666, -69.36006, 22.376272, -206.25493)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon51" type="MeshInstance3D" parent="DeckPylons" unique_id=1770527844]
+transform = Transform3D(-0.9350966, 0, -5.9892116, 0, 110.963585, 0, 15.57195, 0, -0.35965252, -24.113035, -34.518215, -198.84633)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap51" type="MeshInstance3D" parent="DeckPylons" unique_id=877090827]
+transform = Transform3D(-2.6751266, -0.053378627, -7.1858873, 2.2948756, 3.5945156, -0.1296801, 43.858604, -0.19133668, -0.431513, -24.047905, 23.23232, -198.61247)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon52" type="MeshInstance3D" parent="DeckPylons" unique_id=870812569]
+transform = Transform3D(4.3461876, 0, -5.76244, 0, 111.20771, 0, 14.982346, 0, 1.6716106, 21.446697, -34.396145, -203.1965)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap52" type="MeshInstance3D" parent="DeckPylons" unique_id=81526642]
+transform = Transform3D(12.141473, -0.14685091, -6.9142184, 4.279068, 3.582564, -0.10315573, 42.074627, -0.32197672, 2.0057266, 21.625994, 24.008543, -202.80292)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon53" type="MeshInstance3D" parent="DeckPylons" unique_id=877021364]
+transform = Transform3D(9.962594, 0, -4.6170945, 0, 111.231575, 0, 12.004446, 0, 3.831767, 61.54476, -34.384212, -225.06)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap53" type="MeshInstance3D" parent="DeckPylons" unique_id=767165472]
+transform = Transform3D(27.913183, -0.26555276, -5.540294, 5.550529, 3.571097, 0.06414071, 33.556606, -0.36979464, 4.597938, 61.869358, 24.384438, -224.60805)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon55" type="MeshInstance3D" parent="DeckPylons" unique_id=1567141662]
+transform = Transform3D(11.193389, 0, 4.1791973, 0, 103.44953, 0, -10.865913, 0, 4.305149, 64.57832, -38.275234, -303.17206)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap55" type="MeshInstance3D" parent="DeckPylons" unique_id=1673577919]
+transform = Transform3D(31.631294, -0.2437544, 4.981069, -0.80442834, 3.5750113, 0.8365751, -30.574734, -0.3462371, 5.131188, 64.87624, 16.491512, -302.74887)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon56" type="MeshInstance3D" parent="DeckPylons" unique_id=312334615]
+transform = Transform3D(8.457889, 0, 5.041604, 0, 98.75251, 0, -13.108171, 0, 3.2530339, 28.696993, -40.623753, -331.39038)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap56" type="MeshInstance3D" parent="DeckPylons" unique_id=58846068]
+transform = Transform3D(23.981773, -0.20689677, 6.022352, -1.8249764, 3.5804808, 0.68662214, -36.844864, -0.31201214, 3.8858495, 28.94989, 11.624332, -331.00903)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon57" type="MeshInstance3D" parent="DeckPylons" unique_id=1344362679]
+transform = Transform3D(7.1659293, 0, 5.3295183, 0, 94.99946, 0, -13.856748, 0, 2.7561266, -11.07794, -42.50027, -354.125)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap57" type="MeshInstance3D" parent="DeckPylons" unique_id=52955262]
+transform = Transform3D(20.330942, -0.15952133, 6.3773093, -2.1407483, 3.5855289, 0.541497, -38.96242, -0.2802427, 3.297985, -10.882903, 7.6921916, -353.78244)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon58" type="MeshInstance3D" parent="DeckPylons" unique_id=2120077350]
+transform = Transform3D(6.4732857, 0, 5.459054, 0, 92.25311, 0, -14.193541, 0, 2.489725, -52.41266, -43.873444, -374.0825)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap58" type="MeshInstance3D" parent="DeckPylons" unique_id=2051973040]
+transform = Transform3D(18.34027, -0.09418949, 6.541995, -2.2347631, 3.5904734, 0.37453705, -39.93295, -0.2441923, 2.9836252, -52.297382, 4.73753, -373.78397)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon59" type="MeshInstance3D" parent="DeckPylons" unique_id=1607091865]
+transform = Transform3D(6.1553802, 0, 5.5131807, 0, 90.785355, 0, -14.3342705, 0, 2.367454, -94.483955, -44.607323, -392.59634)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap59" type="MeshInstance3D" parent="DeckPylons" unique_id=904997538]
+transform = Transform3D(17.377552, 0.009751117, 6.6146474, -2.2256486, 3.5947545, 0.1353691, -40.361706, -0.19402574, 2.8404424, -94.49543, 3.0397868, -392.359)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon60" type="MeshInstance3D" parent="DeckPylons" unique_id=1742523815]
+transform = Transform3D(4.8971047, 0, 5.6967025, 0, 90.61526, 0, -14.811427, 0, 1.8835018, -137.12273, -44.69237, -409.80487)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap60" type="MeshInstance3D" parent="DeckPylons" unique_id=431993389]
+transform = Transform3D(13.765394, 0.09510865, 6.8359327, -2.9477656, 3.5918536, -0.04095074, -41.687225, -0.22257982, 2.2601655, -137.23895, 3.0320249, -409.53284)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon61" type="MeshInstance3D" parent="DeckPylons" unique_id=734390722]
+transform = Transform3D(2.477542, 0, 5.9238486, 0, 90.3799, 0, -15.402006, 0, 0.9529007, -181.7889, -44.81005, -420.58853)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap61" type="MeshInstance3D" parent="DeckPylons" unique_id=627134649]
+transform = Transform3D(6.9378195, 0.06911431, 7.1085887, -4.5359836, 3.5808043, -0.02071804, -43.21217, -0.36478072, 1.1434761, -181.87329, 3.240913, -420.14267)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon62" type="MeshInstance3D" parent="DeckPylons" unique_id=1463799244]
+transform = Transform3D(0.6022582, 0, 5.9955273, 0, 90.01429, 0, -15.588371, 0, 0.23163776, -227.55429, -44.992855, -424.94794)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap62" type="MeshInstance3D" parent="DeckPylons" unique_id=798327295]
+transform = Transform3D(1.677594, 0.021973625, 7.1946306, -6.1677933, 3.5644543, -0.005036305, -43.533253, -0.5041653, 0.27796525, -227.58101, 3.3398829, -424.33173)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon63" type="MeshInstance3D" parent="DeckPylons" unique_id=596730182]
+transform = Transform3D(-0.51469815, 0, 5.9967337, 0, 89.56946, 0, -15.591507, 0, -0.19796082, -273.5446, -45.21527, -424.87573)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap63" type="MeshInstance3D" parent="DeckPylons" unique_id=1918317677]
+transform = Transform3D(-1.4240986, -0.023156721, 7.1960793, -7.794081, 3.5430691, 0.0043040956, -43.28076, -0.63728064, -0.23755294, -273.5161, 3.3647122, -424.09683)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon64" type="MeshInstance3D" parent="DeckPylons" unique_id=1323287457]
+transform = Transform3D(-0.86665624, 0, 5.990734, 0, 89.09321, 0, -15.575909, 0, -0.33332932, -319.49002, -45.453396, -422.64853)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap64" type="MeshInstance3D" parent="DeckPylons" unique_id=1454154707]
+transform = Transform3D(-2.3786354, -0.046226487, 7.188877, -9.392309, 3.5170236, 0.0072472976, -42.920002, -0.7670786, -0.39999497, -319.43335, 3.356192, -421.711)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon65" type="MeshInstance3D" parent="DeckPylons" unique_id=1129671779]
+transform = Transform3D(-0.50222373, 0, 5.9968896, 0, 88.62645, 0, -15.591913, 0, -0.19316298, -365.43726, -45.686775, -420.4521)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap65" type="MeshInstance3D" parent="DeckPylons" unique_id=749739410]
+transform = Transform3D(-1.3655084, -0.030896291, 7.196266, -10.957925, 3.4865713, 0.00419978, -42.591778, -0.8960274, -0.2317955, -365.3993, 3.3536148, -419.35696)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon66" type="MeshInstance3D" parent="DeckPylons" unique_id=2003562985]
+transform = Transform3D(0.5308058, 0, 5.996526, 0, 88.20601, 0, -15.590967, 0, 0.2041561, -411.42697, -45.896996, -420.3297)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap66" type="MeshInstance3D" parent="DeckPylons" unique_id=1031800798]
+transform = Transform3D(1.4278482, 0.036902297, 7.1958294, -12.491419, 3.4518778, -0.004438794, -42.16546, -1.0213611, 0.24498725, -411.4719, 3.3938007, -419.08136)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon67" type="MeshInstance3D" parent="DeckPylons" unique_id=1301982240]
+transform = Transform3D(0.33195072, 0, 5.9986415, 0, 87.921524, 0, -15.596468, 0, 0.12767336, -457.37216, -46.039238, -422.50632)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap67" type="MeshInstance3D" parent="DeckPylons" unique_id=1449356423]
+transform = Transform3D(0.88460267, 0.025134273, 7.198369, -13.679149, 3.421605, -0.002775895, -41.81027, -1.1189216, 0.153208, -457.4024, 3.4702373, -421.13873)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon68" type="MeshInstance3D" parent="DeckPylons" unique_id=597604104]
+transform = Transform3D(0.047565952, 0, 5.9999723, 0, 87.664116, 0, -15.599928, 0, 0.018294595, -503.36954, -46.167942, -422.7353)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap68" type="MeshInstance3D" parent="DeckPylons" unique_id=1868712005]
+transform = Transform3D(0.1257096, 0.0038393685, 7.1999664, -14.638193, 3.3949354, -0.00039776412, -41.493465, -1.1976644, 0.021953514, -503.37372, 3.5069828, -421.27148)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon69" type="MeshInstance3D" parent="DeckPylons" unique_id=1621532967]
+transform = Transform3D(1.1909196, 0, 5.9824905, 0, 87.41938, 0, -15.554476, 0, 0.45804602, -549.3366, -46.29031, -424.1311)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap69" type="MeshInstance3D" parent="DeckPylons" unique_id=796884948]
+transform = Transform3D(3.118428, 0.102256276, 7.178982, -15.628198, 3.3652601, -0.009958901, -41.01262, -1.2745851, 0.54965466, -549.4607, 3.568541, -422.5732)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon70" type="MeshInstance3D" parent="DeckPylons" unique_id=2112652271]
+transform = Transform3D(4.5867453, 0, 5.7347918, 0, 87.25918, 0, -14.910459, 0, 1.7641327, -594.58167, -46.37041, -431.89438)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap70" type="MeshInstance3D" parent="DeckPylons" unique_id=730999784]
+transform = Transform3D(11.880104, 0.41942203, 6.8816524, -16.73001, 3.3295593, -0.03835552, -38.922615, -1.3031185, 2.1169293, -595.0926, 3.7528257, -430.30115)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon71" type="MeshInstance3D" parent="DeckPylons" unique_id=1355222609]
+transform = Transform3D(10.703224, 0, 4.3650203, 0, 87.29751, 0, -11.349052, 0, 4.116625, -634.4147, -46.351246, -454.0626)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap71" type="MeshInstance3D" parent="DeckPylons" unique_id=1670908673]
+transform = Transform3D(27.366098, 1.0433197, 5.23762, -18.055399, 3.2826364, -0.08949742, -29.344494, -1.0467968, 4.939568, -635.68976, 4.2118382, -452.78308)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon72" type="MeshInstance3D" parent="DeckPylons" unique_id=205682693]
+transform = Transform3D(14.7189045, 0, 1.9879029, 0, 87.63395, 0, -5.1685476, 0, 5.6611166, -658.6011, -46.183025, -492.65942)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap72" type="MeshInstance3D" parent="DeckPylons" unique_id=922179230]
+transform = Transform3D(37.16041, 1.5145187, 2.3851352, -19.37895, 3.231446, -0.12306696, -13.400008, -0.47327492, 6.792348, -660.45276, 4.973754, -492.0827)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon73" type="MeshInstance3D" parent="DeckPylons" unique_id=2136980056]
+transform = Transform3D(15.561415, 0, 0.42173922, 0, 88.18771, 0, -1.0965221, 0, 5.9851594, -667.18756, -45.906143, -537.7064)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap73" type="MeshInstance3D" parent="DeckPylons" unique_id=1083084930]
+transform = Transform3D(38.89213, 1.6644323, 0.50600445, -20.340502, 3.1915717, -0.13010907, -3.10904, -0.059456427, 7.181019, -669.2219, 5.8386555, -537.63464)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon74" type="MeshInstance3D" parent="DeckPylons" unique_id=572937013]
+transform = Transform3D(15.439292, 0, -0.8590187, 0, 89.35966, 0, 2.2334485, 0, 5.938189, -666.11597, -45.320175, -583.60547)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap74" type="MeshInstance3D" parent="DeckPylons" unique_id=291603963]
+transform = Transform3D(39.28063, 1.5380114, -1.0306566, -19.093328, 3.2427495, -0.12908833, 5.3363953, 0.28124246, 7.1246815, -667.99615, 6.607659, -583.94635)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon76" type="MeshInstance3D" parent="DeckPylons" unique_id=31461366]
+transform = Transform3D(1.2230184, 0, -5.981533, 0, 92.40368, 0, 15.551986, 0, 0.4703917, -606.1444, -43.798164, -640.9366)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap76" type="MeshInstance3D" parent="DeckPylons" unique_id=835263646]
+transform = Transform3D(3.3407907, 0.07049278, -7.177832, -11.755571, 3.4691322, -0.0102273235, 42.268734, 0.95924634, 0.5644694, -606.2281, 7.369776, -642.1092)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon77" type="MeshInstance3D" parent="DeckPylons" unique_id=1981731574]
+transform = Transform3D(-0.44775277, 0, -5.997528, 0, 93.41564, 0, 15.593574, 0, -0.1722126, -560.1686, -43.29218, -640.76245)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap77" type="MeshInstance3D" parent="DeckPylons" unique_id=2095309746]
+transform = Transform3D(-1.2458395, -0.017026141, -7.1970325, -8.033733, 3.539484, 0.0037442744, 43.24242, 0.65708756, -0.2066551, -560.1472, 7.2806306, -641.56555)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon78" type="MeshInstance3D" parent="DeckPylons" unique_id=827065539]
+transform = Transform3D(1.4406499, 0, -5.9743605, 0, 94.352425, 0, 15.533337, 0, 0.5540961, -514.2055, -42.823788, -641.5508)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap78" type="MeshInstance3D" parent="DeckPylons" unique_id=969670319]
+transform = Transform3D(4.0483584, 0.029175444, -7.169222, -4.650655, 3.579829, -0.012047231, 43.56584, 0.37943572, 0.66491437, -514.24097, 7.245603, -642.0145)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon79" type="MeshInstance3D" parent="DeckPylons" unique_id=139940006]
+transform = Transform3D(5.5051193, 0, -5.613984, 0, 95.41458, 0, 14.596358, 0, 2.1173534, -469.41315, -42.29271, -651.38513)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap79" type="MeshInstance3D" parent="DeckPylons" unique_id=1790030126]
+transform = Transform3D(15.527867, 0.018367922, -6.736643, -1.3816744, 3.5981512, -0.046034906, 41.145798, 0.11389398, 2.5407722, -469.43558, 7.401394, -651.52435)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon80" type="MeshInstance3D" parent="DeckPylons" unique_id=1875183609]
+transform = Transform3D(9.96629, 0, -4.615915, 0, 95.90235, 0, 12.001378, 0, 3.8331885, -429.7951, -42.048824, -674.3418)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap80" type="MeshInstance3D" parent="DeckPylons" unique_id=1644249648]
+transform = Transform3D(28.093193, -0.085843235, -5.5387263, 1.0291096, 3.5987737, -0.08333624, 33.848385, -0.038167898, 4.599518, -429.69043, 7.816567, -674.2949)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon82" type="MeshInstance3D" parent="DeckPylons" unique_id=1223964056]
+transform = Transform3D(11.81646, 0, 3.9172525, 0, 96.14319, 0, -10.184856, 0, 4.544792, -426.4192, -41.928413, -752.74316)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap82" type="MeshInstance3D" parent="DeckPylons" unique_id=2004044252]
+transform = Transform3D(33.023922, 0.36921066, 4.70026, -5.440518, 3.5720325, -0.09880431, -28.562593, -0.25351068, 5.453236, -426.86942, 9.269747, -752.4321)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon85" type="MeshInstance3D" parent="DeckPylons" unique_id=2050294546]
+transform = Transform3D(5.4071035, 0, -5.628058, 0, 94.64204, 0, 14.632952, 0, 2.0796552, -402.49677, -42.678986, -847.5952)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap85" type="MeshInstance3D" parent="DeckPylons" unique_id=831412182]
+transform = Transform3D(14.1278515, 0.47042274, -6.7535367, -17.275555, 3.310836, -0.045215312, 37.92043, 1.3330667, 2.495537, -403.0714, 11.307585, -849.2246)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon86" type="MeshInstance3D" parent="DeckPylons" unique_id=1817398378]
+transform = Transform3D(3.555382, 0, -5.842095, 0, 94.79788, 0, 15.189446, 0, 1.3674546, -358.45706, -42.601063, -860.7767)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap86" type="MeshInstance3D" parent="DeckPylons" unique_id=1095974387]
+transform = Transform3D(9.263363, 0.31457144, -7.0104537, -17.581137, 3.3000941, -0.02973117, 39.256767, 1.4037176, 1.6409315, -358.8415, 11.55954, -862.4924)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon87" type="MeshInstance3D" parent="DeckPylons" unique_id=1626340429]
+transform = Transform3D(1.8000628, 0, -5.959923, 0, 94.86092, 0, 15.4958, 0, 0.69233185, -313.16245, -42.569542, -868.6529)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap87" type="MeshInstance3D" parent="DeckPylons" unique_id=1584049645]
+transform = Transform3D(4.6764317, 0.16191502, -7.151891, -17.873964, 3.2895722, -0.015052761, 39.9331, 1.4534436, 0.83079636, -313.36032, 11.715105, -870.4293)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon88" type="MeshInstance3D" parent="DeckPylons" unique_id=1307373953]
+transform = Transform3D(0.08899353, 0, -5.9999022, 0, 94.8336, 0, 15.599747, 0, 0.03422828, -267.2699, -42.5832, -871.4347)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap88" type="MeshInstance3D" parent="DeckPylons" unique_id=65705803]
+transform = Transform3D(0.23051035, 0.008136843, -7.1998825, -18.15915, 3.279108, -0.0007441968, 40.077328, 1.4857262, 0.041073933, -267.27985, 11.778296, -873.2506)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon89" type="MeshInstance3D" parent="DeckPylons" unique_id=527284984]
+transform = Transform3D(-1.649671, 0, -5.966358, 0, 94.71532, 0, 15.512531, 0, -0.6344888, -221.35092, -42.642345, -869.1518)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap89" type="MeshInstance3D" parent="DeckPylons" unique_id=46282331]
+transform = Transform3D(-4.259674, -0.15332678, -7.159616, -18.44102, 3.2685537, 0.013795136, 39.721333, 1.5010157, -0.7613852, -221.16359, 11.749834, -870.9864)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon90" type="MeshInstance3D" parent="DeckPylons" unique_id=174537233]
+transform = Transform3D(-3.511827, 0, -5.84599, 0, 94.50124, 0, 15.199575, 0, -1.3507026, -176.00551, -42.74938, -861.58923)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap90" type="MeshInstance3D" parent="DeckPylons" unique_id=134989147]
+transform = Transform3D(-9.038053, -0.33190596, -7.01513, -18.722837, 3.2577853, 0.029366955, 38.77846, 1.4955517, -1.6208296, -175.59999, 11.625974, -863.4172)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon91" type="MeshInstance3D" parent="DeckPylons" unique_id=1861231126]
+transform = Transform3D(-5.629892, 0, -5.5956497, 0, 94.18112, 0, 14.548689, 0, -2.165343, -132.03947, -42.909443, -848.1991)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap91" type="MeshInstance3D" parent="DeckPylons" unique_id=164958395]
+transform = Transform3D(-14.437233, -0.5414034, -6.7146354, -19.00575, 3.2467477, 0.047078237, 36.96414, 1.4579132, -2.598356, -131.37802, 11.396857, -849.9811)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon92" type="MeshInstance3D" parent="DeckPylons" unique_id=1665983247]
+transform = Transform3D(-8.177079, 0, -5.1096754, 0, 93.73791, 0, 13.285156, 0, -3.1450303, -90.794106, -43.131046, -827.9797)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap92" type="MeshInstance3D" parent="DeckPylons" unique_id=1214760228]
+transform = Transform3D(-20.885948, -0.8009468, -6.1313343, -19.28517, 3.235604, 0.06837669, 33.583614, 1.3599083, -3.7738662, -89.8156, 11.044134, -829.642)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon93" type="MeshInstance3D" parent="DeckPylons" unique_id=1104017791]
+transform = Transform3D(-11.26209, 0, -4.151804, 0, 93.15006, 0, 10.794691, 0, -4.331573, -54.870487, -43.42497, -799.45325)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap93" type="MeshInstance3D" parent="DeckPylons" unique_id=383059948]
+transform = Transform3D(-28.636513, -1.1251578, -4.9817386, -19.541405, 3.2251334, 0.09416971, 27.09398, 1.1368961, -5.197443, -53.495857, 10.540083, -800.8434)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon94" type="MeshInstance3D" parent="DeckPylons" unique_id=808736166]
+transform = Transform3D(-14.332796, 0, -2.368775, 0, 92.4098, 0, 6.158815, 0, -5.512614, -29.260153, -43.795105, -761.54236)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap94" type="MeshInstance3D" parent="DeckPylons" unique_id=101968048]
+transform = Transform3D(-36.261223, -1.4623615, -2.8421357, -19.73207, 3.2171395, 0.11983956, 15.223964, 0.6866676, -6.6142197, -27.473019, 9.862963, -762.3821)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon95" type="MeshInstance3D" parent="DeckPylons" unique_id=1437950]
+transform = Transform3D(-15.43345, 0, -0.8744099, 0, 91.68595, 0, 2.2734659, 0, -5.935942, -18.146088, -44.157024, -717.03894)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap95" type="MeshInstance3D" parent="DeckPylons" unique_id=2025232537]
+transform = Transform3D(-39.106903, -1.5643017, -1.0491233, -19.426674, 3.229469, 0.1290395, 5.4087653, 0.2889467, -7.1219864, -16.234426, 9.041584, -717.39386)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon97" type="MeshInstance3D" parent="DeckPylons" unique_id=1445671178]
+transform = Transform3D(-4.751932, 0, 5.714861, 0, 91.07579, 0, -14.85864, 0, -1.8276662, -51.916416, -44.462105, -642.28687)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap97" type="MeshInstance3D" parent="DeckPylons" unique_id=2101385928]
+transform = Transform3D(-12.31041, -0.434058, 6.8577285, -16.713503, 3.3301105, 0.03973681, -38.795784, -1.2969034, -2.1931658, -51.392143, 7.56412, -640.69977)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon98" type="MeshInstance3D" parent="DeckPylons" unique_id=490129503]
+transform = Transform3D(-2.33263, 0, 5.932545, 0, 91.15036, 0, -15.424618, 0, -0.8971653, -97.00038, -44.42482, -633.3912)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap98" type="MeshInstance3D" parent="DeckPylons" unique_id=657322481]
+transform = Transform3D(-6.095071, -0.20290335, 7.1190286, -15.849716, 3.3583074, 0.019506246, -40.591095, -1.28086, -1.0765945, -96.753334, 7.3685093, -631.82556)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon99" type="MeshInstance3D" parent="DeckPylons" unique_id=1787120160]
+transform = Transform3D(-2.8869567, 0, 5.8963623, 0, 91.19208, 0, -15.330543, 0, -1.1103679, -142.38585, -44.403965, -625.91754)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap99" type="MeshInstance3D" parent="DeckPylons" unique_id=1375222332]
+transform = Transform3D(-7.594638, -0.24054195, 7.075599, -15.199282, 3.3783705, 0.022559917, -40.586983, -1.2201443, -1.3324349, -142.0849, 7.2086077, -624.42755)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon100" type="MeshInstance3D" parent="DeckPylons" unique_id=466290614]
+transform = Transform3D(-0.12825125, 0, 5.9997973, 0, 92.191025, 0, -15.599473, 0, -0.049327403, -187.98842, -43.904488, -620.43524)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap100" type="MeshInstance3D" parent="DeckPylons" unique_id=198829495]
+transform = Transform3D(-0.6418403, 0.07289931, 7.1977577, -12.518407, 3.450181, -0.16966543, -42.176743, -1.0251516, -0.05917645, -188.07368, 7.3990335, -619.1823)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon101" type="MeshInstance3D" parent="DeckPylons" unique_id=701537580]
+transform = Transform3D(7.2115636, 0, 5.320405, 0, 96.23749, 0, -13.833054, 0, 2.7736783, -232.01602, -41.881256, -630.61316)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap101" type="MeshInstance3D" parent="DeckPylons" unique_id=588894085]
+transform = Transform3D(18.32348, 0.9797295, 6.245814, -8.567829, 3.451336, -1.4924777, -39.074833, -0.2973373, 3.25612, -233.22055, 11.449322, -630.2534)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon102" type="MeshInstance3D" parent="DeckPylons" unique_id=87966017]
+transform = Transform3D(-3.5275943, 0, 5.844586, 0, 109.24296, 0, -15.195924, 0, -1.3567669, -274.12164, -35.37852, -636.72455)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap102" type="MeshInstance3D" parent="DeckPylons" unique_id=453229234]
+transform = Transform3D(-8.013816, 0.98499584, 6.7999625, 7.2756987, 3.439253, -1.7631489, -42.647896, 0.40164688, -1.5785488, -275.33945, 24.620771, -637.2122)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon103" type="MeshInstance3D" parent="DeckPylons" unique_id=131525674]
+transform = Transform3D(-4.4772987, 0, 5.7475724, 0, 117.58098, 0, -14.943688, 0, -1.7220379, -317.92914, -31.209518, -624.8984)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap103" type="MeshInstance3D" parent="DeckPylons" unique_id=1848173708]
+transform = Transform3D(-11.544559, 0.5732289, 6.852511, 7.9689445, 3.5168037, -0.8172653, -41.703945, 0.51332164, -2.0530899, -318.62878, 31.846025, -625.52606)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon104" type="MeshInstance3D" parent="DeckPylons" unique_id=1302539761]
+transform = Transform3D(-5.5138946, 0, 5.61271, 0, 121.9623, 0, -14.593046, 0, -2.1207285, -361.33838, -29.01885, -610.32733)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap104" type="MeshInstance3D" parent="DeckPylons" unique_id=1180069054]
+transform = Transform3D(-14.669994, 0.49524677, 6.7153788, 8.324035, 3.5241728, -0.5526902, -40.638676, 0.54308045, -2.5373657, -361.94336, 36.10454, -610.9912)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon105" type="MeshInstance3D" parent="DeckPylons" unique_id=1787325357]
+transform = Transform3D(-7.179114, 0, 5.3268933, 0, 124.950714, 0, -13.849923, 0, -2.7611976, -403.34866, -27.52465, -591.9031)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap105" type="MeshInstance3D" parent="DeckPylons" unique_id=672207874]
+transform = Transform3D(-19.4213, 0.5006062, 6.3826084, 8.709198, 3.5232217, -0.3957383, -38.509262, 0.5443369, -3.308428, -403.96008, 39.109283, -592.5686)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon106" type="MeshInstance3D" parent="DeckPylons" unique_id=1606997939]
+transform = Transform3D(-10.677447, 0, 4.374349, 0, 126.9172, 0, -11.373308, 0, -4.1067104, -441.40726, -26.5414, -566.398)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap106" type="MeshInstance3D" parent="DeckPylons" unique_id=1398946422]
+transform = Transform3D(-29.211882, 0.6055874, 5.2462797, 9.27581, 3.5170321, -0.24091735, -31.569372, 0.473021, -4.925293, -442.14594, 41.179115, -566.97754)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon108" type="MeshInstance3D" parent="DeckPylons" unique_id=1237478718]
+transform = Transform3D(-0.7663952, 0, -5.992755, 0, 124.82099, 0, 15.581163, 0, -0.29476738, -423.89432, -27.589504, -505.4088)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap108" type="MeshInstance3D" parent="DeckPylons" unique_id=1521355182]
+transform = Transform3D(-1.8288069, 0.41191334, -7.1464505, 2.9262187, 3.569525, 0.80292207, 43.864487, -0.220951, -0.35151452, -424.3973, 38.015186, -505.13873)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon109" type="MeshInstance3D" parent="DeckPylons" unique_id=1286842382]
+transform = Transform3D(1.7457308, 0, -5.9623127, 0, 119.84823, 0, 15.502014, 0, 0.6714349, -378.29303, -30.075886, -507.73532)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap109" type="MeshInstance3D" parent="DeckPylons" unique_id=1073687881]
+transform = Transform3D(4.961102, 0.39955962, -7.1093154, 0.33217284, 3.5770228, 0.8103542, 43.718155, -0.07252012, 0.80060244, -378.78137, 32.82992, -507.6467)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon110" type="MeshInstance3D" parent="DeckPylons" unique_id=1882221993]
+transform = Transform3D(2.5410225, 0, -5.9198694, 0, 114.66297, 0, 15.391662, 0, 0.9773163, -333.04773, -32.668514, -514.1996)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap110" type="MeshInstance3D" parent="DeckPylons" unique_id=1872723058]
+transform = Transform3D(7.0173407, 0.41342613, -7.059585, -1.322744, 3.5759342, 0.80245394, 43.41667, 0.042124227, 1.1654729, -333.55304, 27.677652, -514.25104)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon111" type="MeshInstance3D" parent="DeckPylons" unique_id=725288331]
+transform = Transform3D(2.869053, 0, -5.8976545, 0, 109.44449, 0, 15.333901, 0, 1.1034819, -288.03824, -35.277756, -522.20123)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap111" type="MeshInstance3D" parent="DeckPylons" unique_id=1833900187]
+transform = Transform3D(7.7880445, 0.4291775, -7.0341387, -2.6556048, 3.5715005, 0.7929089, 43.22377, 0.14209867, 1.316124, -288.5628, 22.586332, -522.3749)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon112" type="MeshInstance3D" parent="DeckPylons" unique_id=1593677652]
+transform = Transform3D(2.974811, 0, -5.8898983, 0, 104.24825, 0, 15.313737, 0, 1.144158, -243.13127, -37.875874, -530.809)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap112" type="MeshInstance3D" parent="DeckPylons" unique_id=110964558]
+transform = Transform3D(7.9476066, 0.4426121, -7.0260253, -3.8273869, 3.5649552, 0.7823849, 43.10669, 0.23492306, 1.3648593, -243.67226, 17.561428, -531.0961)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon113" type="MeshInstance3D" parent="DeckPylons" unique_id=1848380485]
+transform = Transform3D(2.932356, 0, -5.8930473, 0, 99.10288, 0, 15.321923, 0, 1.1278293, -198.23392, -40.448566, -539.5012)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap113" type="MeshInstance3D" parent="DeckPylons" unique_id=945318443]
+transform = Transform3D(7.6999607, 0.45183247, -7.03106, -4.9065223, 3.5567505, 0.77038026, 43.042267, 0.32461542, 1.3456256, -198.78618, 12.610273, -539.89795)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon114" type="MeshInstance3D" parent="DeckPylons" unique_id=615241502]
+transform = Transform3D(2.7589035, 0, -5.905424, 0, 94.02979, 0, 15.354102, 0, 1.0611167, -153.26826, -42.985104, -547.87885)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap114" type="MeshInstance3D" parent="DeckPylons" unique_id=1758276965]
+transform = Transform3D(7.0934944, 0.45487243, -7.047341, -5.930282, 3.5470705, 0.7559521, 43.0176, 0.41398156, 1.2663021, -153.82425, 7.744714, -548.3848)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon115" type="MeshInstance3D" parent="DeckPylons" unique_id=517781505]
+transform = Transform3D(2.4372895, 0, -5.926318, 0, 89.05366, 0, 15.408428, 0, 0.937419, -108.16412, -45.473175, -555.54144)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap115" type="MeshInstance3D" parent="DeckPylons" unique_id=684395825]
+transform = Transform3D(6.083852, 0.4485834, -7.074178, -6.9223065, 3.5359943, 0.73748, 43.024044, 0.5054876, 1.1189862, -108.71244, 2.9847174, -556.15924)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon116" type="MeshInstance3D" parent="DeckPylons" unique_id=1010063576]
+transform = Transform3D(1.9097155, 0, -5.954872, 0, 84.21189, 0, 15.482668, 0, 0.73450595, -62.856205, -47.894054, -561.9829)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap116" type="MeshInstance3D" parent="DeckPylons" unique_id=321284094]
+transform = Transform3D(4.519084, 0.4269639, -7.1108346, -7.8989925, 3.5235822, 0.7118627, 43.048622, 0.60172105, 0.8770886, -63.37814, -1.6352134, -562.7183)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon117" type="MeshInstance3D" parent="DeckPylons" unique_id=2057254792]
+transform = Transform3D(1.0350649, 0, -5.9867783, 0, 79.57276, 0, 15.565624, 0, 0.39810187, -17.292633, -50.21362, -566.4232)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap117" type="MeshInstance3D" parent="DeckPylons" unique_id=945037161]
+transform = Transform3D(2.02896, 0.37679467, -7.1527524, -8.87027, 3.5100305, 0.67223465, 43.048832, 0.70548755, 0.47563547, -17.753366, -6.051015, -567.28546)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon118" type="MeshInstance3D" parent="DeckPylons" unique_id=25659309]
+transform = Transform3D(-0.56041247, 0, -5.996127, 0, 75.28528, 0, 15.5899315, 0, -0.21554326, 28.49447, -52.35736, -567.39355)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap118" type="MeshInstance3D" parent="DeckPylons" unique_id=1275367476]
+transform = Transform3D(-2.3614938, 0.26288596, -7.1703725, -9.834765, 3.4960961, 0.59943664, 42.82173, 0.81743747, -0.2577539, 28.172565, -10.124887, -568.39264)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon119" type="MeshInstance3D" parent="DeckPylons" unique_id=1493973035]
+transform = Transform3D(-4.151349, 0, -5.783653, 0, 71.76827, 0, 15.0374975, 0, -1.5966728, 73.86617, -54.115864, -561.3244)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap119" type="MeshInstance3D" parent="DeckPylons" unique_id=303387606]
+transform = Transform3D(-11.954051, -0.040086016, -6.9287214, -10.776285, 3.4841206, 0.4172118, 40.95085, 0.9051506, -1.9127879, 73.91259, -13.4681835, -562.4314)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon120" type="MeshInstance3D" parent="DeckPylons" unique_id=756690908]
+transform = Transform3D(-11.348652, 0, -4.1167884, 0, 70.68536, 0, 10.70365, 0, -4.3648663, 112.84397, -54.65732, -538.2142)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap120" type="MeshInstance3D" parent="DeckPylons" unique_id=1384144112]
+transform = Transform3D(-31.059223, -0.63326675, -4.940133, -10.549003, 3.4949954, -0.016150517, 29.326494, 0.5864984, -5.237826, 113.617836, -14.709179, -538.93115)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon121" type="MeshInstance3D" parent="DeckPylons" unique_id=123623674]
+transform = Transform3D(-14.844013, 0, -1.8451638, 0, 72.36213, 0, 4.797426, 0, -5.7092357, 135.56596, -53.818935, -498.6777)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap121" type="MeshInstance3D" parent="DeckPylons" unique_id=1298884845]
+transform = Transform3D(-41.12277, -0.644626, -2.2126832, -7.7572927, 3.5411103, -0.2661537, 13.592001, 0.0706756, -6.8464007, 136.35414, -13.803705, -498.76318)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon122" type="MeshInstance3D" parent="DeckPylons" unique_id=837777141]
+transform = Transform3D(-15.568105, 0, -0.38348767, 0, 75.11535, 0, 0.997068, 0, -5.9877324, 143.3835, -52.442326, -453.5168)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap122" type="MeshInstance3D" parent="DeckPylons" unique_id=1239559847]
+transform = Transform3D(-43.58277, -0.43798718, -0.45951667, -5.2058, 3.5694475, -0.3879547, 3.0727684, -0.16495441, -7.1748405, 143.91884, -11.6867285, -453.31476)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon123" type="MeshInstance3D" parent="DeckPylons" unique_id=429657022]
+transform = Transform3D(-15.591178, 0, 0.20176792, 0, 78.31281, 0, -0.52459663, 0, -5.996607, 143.62222, -50.843597, -407.6138)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap123" type="MeshInstance3D" parent="DeckPylons" unique_id=886389188]
+transform = Transform3D(-43.90357, -0.20528631, 0.24168581, -2.594416, 3.5872474, -0.43173212, -1.3212868, -0.22251834, -7.1829796, 143.87312, -9.062107, -407.34164)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon124" type="MeshInstance3D" parent="DeckPylons" unique_id=816473838]
+transform = Transform3D(-15.591676, 0, 0.19599131, 0, 81.38343, 0, -0.50957745, 0, -5.996798, 141.73979, -49.308285, -361.738)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap124" type="MeshInstance3D" parent="DeckPylons" unique_id=237018620]
+transform = Transform3D(-43.97564, 0.023862911, 0.23475891, 0.20445468, 3.593369, -0.43551737, -1.4496374, -0.2170927, -7.1829805, 141.71062, -6.280248, -361.4726)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon125" type="MeshInstance3D" parent="DeckPylons" unique_id=1484975418]
+transform = Transform3D(-15.56242, 0, -0.41621834, 0, 83.67653, 0, 1.0821677, 0, -5.985546, 142.10324, -48.161736, -315.8392)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap125" type="MeshInstance3D" parent="DeckPylons" unique_id=2020558590]
+transform = Transform3D(-43.77924, 0.2599035, -0.49869427, 3.3482041, 3.5840118, -0.39906505, 2.8579762, -0.2175056, -7.171614, 141.78558, -3.5743222, -315.57343)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon126" type="MeshInstance3D" parent="DeckPylons" unique_id=892899147]
+transform = Transform3D(-14.738151, 0, -1.9666944, 0, 85.0784, 0, 5.113405, 0, -5.6685195, 150.45268, -47.4608, -270.7931)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap126" type="MeshInstance3D" parent="DeckPylons" unique_id=670046970]
+transform = Transform3D(-41.12819, 0.49621144, -2.3582408, 7.0013933, 3.5513628, -0.2805535, 13.980448, -0.31874576, -6.797057, 149.84608, -1.2965264, -270.40387)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon127" type="MeshInstance3D" parent="DeckPylons" unique_id=1617634694]
+transform = Transform3D(-10.814832, 0, -4.324135, 0, 85.16794, 0, 11.24275, 0, -4.1595507, 174.5419, -47.41603, -232.13434)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap127" type="MeshInstance3D" parent="DeckPylons" unique_id=597822549]
+transform = Transform3D(-29.618275, 0.5969053, -5.1889334, 10.670761, 3.492509, -0.023901936, 30.739107, -0.6372477, -4.991433, 173.81252, -0.19019604, -231.35533)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon128" type="MeshInstance3D" parent="DeckPylons" unique_id=452537935]
+transform = Transform3D(-5.4590516, 0, -5.620635, 0, 85.161835, 0, 14.613651, 0, -2.0996351, 213.42859, -47.419086, -208.0956)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap128" type="MeshInstance3D" parent="DeckPylons" unique_id=484887637]
+transform = Transform3D(-14.973592, 0.29428962, -6.744626, 9.549384, 3.5141187, 0.045649696, 40.256687, -0.72413045, -2.5195115, 213.06787, -0.5276215, -207.21094)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon129" type="MeshInstance3D" parent="DeckPylons" unique_id=1380186470]
+transform = Transform3D(2.575429, 0, -5.9176693, 0, 86.17944, 0, 15.385941, 0, 0.99054956, 258.65482, -46.91028, -203.55156)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap129" type="MeshInstance3D" parent="DeckPylons" unique_id=1977949633]
+transform = Transform3D(7.19038, -0.08508371, -7.1011715, 5.518916, 3.5715525, -0.021536594, 43.056244, -0.44358993, 1.1886541, 258.7595, -0.6801548, -203.0095)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon130" type="MeshInstance3D" parent="DeckPylons" unique_id=106922752]
+transform = Transform3D(7.321954, 0, -5.298054, 0, 87.58487, 0, 13.774941, 0, 2.816136, 301.55304, -46.207565, -219.57794)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap130" type="MeshInstance3D" parent="DeckPylons" unique_id=650390098]
+transform = Transform3D(20.631104, -0.080082335, -6.357435, 1.3817532, 3.5980942, -0.061226685, 38.83875, -0.08546855, 3.379241, 301.65112, -0.42222118, -219.47359)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon131" type="MeshInstance3D" parent="DeckPylons" unique_id=1374444869]
+transform = Transform3D(7.668171, 0, -5.2250986, 0, 87.67965, 0, 13.585256, 0, 2.9492965, 341.40982, -46.160175, -242.53265)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap131" type="MeshInstance3D" parent="DeckPylons" unique_id=1895729584]
+transform = Transform3D(21.610962, 0.07590429, -6.269869, -2.5802643, 3.5936615, -0.064121544, 38.240143, 0.19958691, 3.539015, 341.3169, -0.00090265274, -242.77652)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon132" type="MeshInstance3D" parent="DeckPylons" unique_id=1102724716]
+transform = Transform3D(4.806286, 0, -5.708133, 0, 86.96847, 0, 14.841146, 0, 1.8485715, 383.10565, -46.515766, -261.76913)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap132" type="MeshInstance3D" parent="DeckPylons" unique_id=1630201308]
+transform = Transform3D(13.442347, 0.14471033, -6.8496532, -6.4907217, 3.5605578, -0.04019132, 41.39051, 0.51135737, 2.2182512, 382.92838, 0.38809204, -262.394)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon133" type="MeshInstance3D" parent="DeckPylons" unique_id=1347200149]
+transform = Transform3D(-0.8123421, 0, -5.9918594, 0, 86.08601, 0, 15.5788355, 0, -0.31243926, 428.4106, -46.956993, -268.04623)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap133" type="MeshInstance3D" parent="DeckPylons" unique_id=924430231]
+transform = Transform3D(-2.2390132, -0.039934654, -7.1902285, -10.147818, 3.502946, 0.0067931027, 42.75522, 0.829322, -0.37492695, 428.45963, 0.5722408, -269.05984)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon134" type="MeshInstance3D" parent="DeckPylons" unique_id=1880302402]
+transform = Transform3D(-7.3723865, 0, -5.2876983, 0, 85.90464, 0, 13.748015, 0, -2.8355331, 472.41, -47.04768, -256.02594)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap134" type="MeshInstance3D" parent="DeckPylons" unique_id=381652229]
+transform = Transform3D(-19.964415, -0.4772936, -6.344769, -11.380232, 3.4772289, -0.08746483, 37.522163, 0.80066776, -3.4023886, 472.9939, 0.76189375, -257.00424)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon135" type="MeshInstance3D" parent="DeckPylons" unique_id=48940808]
+transform = Transform3D(-11.8797035, 0, -3.8888526, 0, 86.552185, 0, 10.111017, 0, -4.5691166, 507.688, -46.723907, -226.93509)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap135" type="MeshInstance3D" parent="DeckPylons" unique_id=1993211868]
+transform = Transform3D(-32.009254, -0.8123943, -4.665264, -12.166894, 3.4585385, -0.17372085, 27.629229, 0.5818307, -5.4813437, 508.6813, 1.6560807, -227.64577)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon136" type="MeshInstance3D" parent="DeckPylons" unique_id=1358389709]
+transform = Transform3D(-14.156918, 0, -2.520381, 0, 87.57082, 0, 6.552991, 0, -5.444968, 532.14575, -46.21459, -188.16182)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap136" type="MeshInstance3D" parent="DeckPylons" unique_id=863732326]
+transform = Transform3D(-38.00993, -1.0017538, -3.023238, -12.933801, 3.4394362, -0.20442542, 17.998951, 0.35604268, -6.531328, 533.37024, 2.910963, -188.59673)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon137" type="MeshInstance3D" parent="DeckPylons" unique_id=1982695361]
+transform = Transform3D(-15.256924, 0, -1.2514081, 0, 88.68776, 0, 3.253661, 0, -5.8680477, 546.57086, -45.656124, -144.60275)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap137" type="MeshInstance3D" parent="DeckPylons" unique_id=1347725309]
+transform = Transform3D(-40.83109, -1.1118554, -1.5011092, -13.6416855, 3.4211433, -0.20013711, 9.095428, 0.13983914, -7.038936, 547.9298, 4.241751, -144.7736)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon138" type="MeshInstance3D" parent="DeckPylons" unique_id=1812186159]
+transform = Transform3D(-15.598899, 0, 0.07133548, 0, 89.69604, 0, -0.18547226, 0, -5.999576, 551.19055, -45.151985, -98.949455)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap138" type="MeshInstance3D" parent="DeckPylons" unique_id=702723477]
+transform = Transform3D(-41.604492, -1.1708663, 0.08557973, -14.319206, 3.4030135, -0.1663464, -0.16374317, -0.09257035, -7.1975694, 552.62164, 5.4518175, -98.836494)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon139" type="MeshInstance3D" parent="DeckPylons" unique_id=1465815005]
+transform = Transform3D(-15.005011, 0, 1.6412609, 0, 90.38207, 0, -4.267278, 0, -5.7711577, 544.8563, -44.808964, -53.53157)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap139" type="MeshInstance3D" parent="DeckPylons" unique_id=585831746]
+transform = Transform3D(-39.84862, -1.1664441, 1.969345, -14.974266, 3.3847828, -0.09404974, -11.129183, -0.377696, -6.9247985, 546.2821, 6.331967, -53.07036)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon140" type="MeshInstance3D" parent="DeckPylons" unique_id=1441250656]
+transform = Transform3D(-12.584251, 0, 3.5459082, 0, 90.46324, 0, -9.219361, 0, -4.8400965, 525.14374, -44.76838, -12.237582)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap140" type="MeshInstance3D" parent="DeckPylons" unique_id=1448070038]
+transform = Transform3D(-33.17172, -1.0332415, 4.2550416, -15.51097, 3.3688488, 0.034302395, -24.39358, -0.73706764, -5.80805, 526.40686, 6.5764256, -11.337073)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon141" type="MeshInstance3D" parent="DeckPylons" unique_id=279076311]
+transform = Transform3D(-6.6088862, 0, 5.4349656, 0, 90.17579, 0, -14.130911, 0, -2.5418792, 490.12018, -44.912106, 16.719378)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap141" type="MeshInstance3D" parent="DeckPylons" unique_id=687773403]
+transform = Transform3D(-17.387138, -0.55427074, 6.5204415, -14.064785, 3.4102395, 0.15529633, -37.892868, -1.0114596, -3.0495455, 490.7959, 5.8519187, 17.956417)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon142" type="MeshInstance3D" parent="DeckPylons" unique_id=891086543]
+transform = Transform3D(-2.7119906, 0, 5.9086375, 0, 89.595024, 0, -15.362458, 0, -1.0430733, 446.13034, -45.202488, 29.675535)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap142" type="MeshInstance3D" parent="DeckPylons" unique_id=1959415719]
+transform = Transform3D(-7.048008, -0.2597204, 7.088022, -12.095536, 3.460066, 0.18508513, -41.71359, -0.9594198, -1.2512743, 446.44724, 4.6790767, 30.848255)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon143" type="MeshInstance3D" parent="DeckPylons" unique_id=62908829]
+transform = Transform3D(-0.8099284, 0, 5.991908, 0, 88.82103, 0, -15.578961, 0, -0.31151092, 400.43423, -45.589485, 34.558975)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap143" type="MeshInstance3D" parent="DeckPylons" unique_id=1068303924]
+transform = Transform3D(-1.9411981, -0.13684097, 7.187781, -10.502927, 3.4946404, 0.19017084, -42.68396, -0.85367703, -0.3736827, 400.6013, 3.4316654, 35.602367)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon144" type="MeshInstance3D" parent="DeckPylons" unique_id=781126095]
+transform = Transform3D(0.2633845, 0, 5.999145, 0, 87.98958, 0, -15.597777, 0, 0.10130173, 354.4646, -46.00521, 35.22331)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap144" type="MeshInstance3D" parent="DeckPylons" unique_id=1729735458]
+transform = Transform3D(0.96430635, -0.0792343, 7.196526, -9.107842, 3.5207794, 0.18773507, -43.036236, -0.74688476, 0.121520735, 354.56137, 2.1899586, 36.136166)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon145" type="MeshInstance3D" parent="DeckPylons" unique_id=1689939089]
+transform = Transform3D(0.9242788, 0, 5.9894595, 0, 87.15675, 0, -15.572596, 0, 0.35549182, 308.5199, -46.421623, 33.39488)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap145" type="MeshInstance3D" parent="DeckPylons" unique_id=1428912154]
+transform = Transform3D(2.7624903, -0.051307097, 7.185063, -7.822213, 3.5414896, 0.1816866, -43.2109, -0.644375, 0.42645437, 308.58258, 0.98296547, 34.182446)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon146" type="MeshInstance3D" parent="DeckPylons" unique_id=823967680]
+transform = Transform3D(1.3407338, 0, 5.9777994, 0, 86.35482, 0, -15.542279, 0, 0.5156668, 262.6603, -46.82259, 30.005945)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap146" type="MeshInstance3D" parent="DeckPylons" unique_id=1323105588]
+transform = Transform3D(3.8967416, -0.038788278, 7.1712885, -6.5974884, 3.5582497, 0.17297754, -43.32769, -0.5453016, 0.6186215, 262.7077, -0.17189932, 30.672422)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon147" type="MeshInstance3D" parent="DeckPylons" unique_id=1071106375]
+transform = Transform3D(1.5869461, 0, 5.968874, 0, 85.60927, 0, -15.519073, 0, 0.6103639, 216.87991, -47.195366, 25.652283)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap147" type="MeshInstance3D" parent="DeckPylons" unique_id=564871397]
+transform = Transform3D(4.5627203, -0.034772895, 7.1608458, -5.401622, 3.5718563, 0.16153955, -43.42815, -0.44792318, 0.73225224, 216.92241, -1.2587774, 26.199743)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon148" type="MeshInstance3D" parent="DeckPylons" unique_id=1109915309]
+transform = Transform3D(1.692355, 0, 5.964589, 0, 84.946495, 0, -15.507932, 0, 0.6509058, 171.14963, -47.526752, 20.783587)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap148" type="MeshInstance3D" parent="DeckPylons" unique_id=943831933]
+transform = Transform3D(4.836645, -0.035186008, 7.156022, -4.2089767, 3.582741, 0.14663936, -43.530354, -0.35032696, 0.78092486, 171.19263, -2.2587867, 21.211763)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon149" type="MeshInstance3D" parent="DeckPylons" unique_id=672384701]
+transform = Transform3D(1.6552308, 0, 5.96613, 0, 84.4001, 0, -15.511938, 0, 0.6366272, 125.42868, -47.79995, 15.809583)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap149" type="MeshInstance3D" parent="DeckPylons" unique_id=1027767421]
+transform = Transform3D(4.7101665, -0.036840588, 7.1582475, -2.9941354, 3.5910966, 0.12668228, -43.64458, -0.2503347, 0.76383436, 125.47372, -3.1455784, 16.115547)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon150" type="MeshInstance3D" parent="DeckPylons" unique_id=119845803]
+transform = Transform3D(1.4361385, 0, 5.9745207, 0, 84.02017, 0, -15.533754, 0, 0.55236095, 79.66561, -47.989918, 11.195803)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap150" type="MeshInstance3D" parent="DeckPylons" unique_id=1718388291]
+transform = Transform3D(4.071008, -0.035945583, 7.1687555, -1.7253958, 3.596895, 0.09837875, -43.77728, -0.14510728, 0.6627712, 79.709564, -3.87772, 11.373158)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Pylon151" type="MeshInstance3D" parent="DeckPylons" unique_id=1344865344]
+transform = Transform3D(0.91552734, 0, 5.9896584, 0, 83.887184, 0, -15.5731125, 0, 0.35212588, 33.808376, -48.056408, 7.6230855)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")
+
+[node name="Cap151" type="MeshInstance3D" parent="DeckPylons" unique_id=171903941]
+transform = Transform3D(2.5848124, -0.025284048, 7.187388, -0.35210505, 3.5997832, 0.054044496, -43.9226, -0.03034557, 0.42253917, 33.839355, -4.380815, 7.660179)
+material_override = ExtResource("3_imbfs")
+mesh = ExtResource("2_58okx")

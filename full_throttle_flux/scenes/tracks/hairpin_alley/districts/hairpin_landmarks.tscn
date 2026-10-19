@@ -1,0 +1,145 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/night_windows_tower.tres" id="1_wgttn"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cyl.tres" id="2_mmf2e"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/neon_cyan.tres" id="3_8osdp"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/night_concrete.tres" id="4_x6hf7"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_taper.tres" id="5_sm3ba"]
+[ext_resource type="CylinderMesh" path="res://scenes/tracks/utopia/meshes/unit_cone.tres" id="6_hul5h"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/beacon_red.tres" id="7_a6s00"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="8_dxvmb"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/neon_magenta.tres" id="9_suylp"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/neon_amber.tres" id="10_frle1"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/neon_white.tres" id="11_wpmq1"]
+
+[node name="Hairpin_Landmarks" type="Node3D" unique_id=1830448487]
+
+[node name="Pin00" type="Node3D" parent="." unique_id=888479831]
+
+[node name="Shaft" type="MeshInstance3D" parent="Pin00" unique_id=1518985328]
+transform = Transform3D(31.31321, 0, 0, 0, 203.8851, 0, 0, 0, 31.31321, -851.39075, 77.94255, -35.714314)
+material_override = ExtResource("1_wgttn")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Ring1" type="MeshInstance3D" parent="Pin00" unique_id=1627615203]
+transform = Transform3D(33.71321, 0, 0, 0, 1.2, 0, 0, 0, 33.71321, -851.39075, 42.711372, -35.714314)
+material_override = ExtResource("3_8osdp")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Ring2" type="MeshInstance3D" parent="Pin00" unique_id=512526371]
+transform = Transform3D(33.71321, 0, 0, 0, 1.2, 0, 0, 0, 33.71321, -851.39075, 160.4851, -35.714314)
+material_override = ExtResource("3_8osdp")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Crown" type="MeshInstance3D" parent="Pin00" unique_id=1219557517]
+transform = Transform3D(18.787926, 0, 0, 0, 30, 0, 0, 0, 18.787926, -851.39075, 194.8851, -35.714314)
+material_override = ExtResource("4_x6hf7")
+mesh = ExtResource("5_sm3ba")
+
+[node name="Mast" type="MeshInstance3D" parent="Pin00" unique_id=2012625284]
+transform = Transform3D(2, 0, 0, 0, 40, 0, 0, 0, 2, -851.39075, 229.8851, -35.714314)
+material_override = ExtResource("4_x6hf7")
+mesh = ExtResource("6_hul5h")
+
+[node name="Beacon" type="MeshInstance3D" parent="Pin00" unique_id=54204293]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, -851.39075, 249.8851, -35.714314)
+material_override = ExtResource("7_a6s00")
+mesh = ExtResource("8_dxvmb")
+
+[node name="Pin01" type="Node3D" parent="." unique_id=540921351]
+
+[node name="Shaft" type="MeshInstance3D" parent="Pin01" unique_id=1919902086]
+transform = Transform3D(48.26848, 0, 0, 0, 213.53908, 0, 0, 0, 48.26848, -572.95703, 82.76954, -260.66156)
+material_override = ExtResource("1_wgttn")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Ring1" type="MeshInstance3D" parent="Pin01" unique_id=658984116]
+transform = Transform3D(50.66848, 0, 0, 0, 1.2, 0, 0, 0, 50.66848, -572.95703, 41.808098, -260.66156)
+material_override = ExtResource("9_suylp")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Ring2" type="MeshInstance3D" parent="Pin01" unique_id=286528122]
+transform = Transform3D(50.66848, 0, 0, 0, 1.2, 0, 0, 0, 50.66848, -572.95703, 170.13908, -260.66156)
+material_override = ExtResource("9_suylp")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Crown" type="MeshInstance3D" parent="Pin01" unique_id=682883022]
+transform = Transform3D(28.961086, 0, 0, 0, 30, 0, 0, 0, 28.961086, -572.95703, 204.53908, -260.66156)
+material_override = ExtResource("4_x6hf7")
+mesh = ExtResource("5_sm3ba")
+
+[node name="Mast" type="MeshInstance3D" parent="Pin01" unique_id=290895101]
+transform = Transform3D(2, 0, 0, 0, 40, 0, 0, 0, 2, -572.95703, 239.53908, -260.66156)
+material_override = ExtResource("4_x6hf7")
+mesh = ExtResource("6_hul5h")
+
+[node name="Beacon" type="MeshInstance3D" parent="Pin01" unique_id=1330745149]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, -572.95703, 259.5391, -260.66156)
+material_override = ExtResource("7_a6s00")
+mesh = ExtResource("8_dxvmb")
+
+[node name="Pin02" type="Node3D" parent="." unique_id=744312057]
+
+[node name="Shaft" type="MeshInstance3D" parent="Pin02" unique_id=2100442164]
+transform = Transform3D(38.69319, 0, 0, 0, 222.49435, 0, 0, 0, 38.69319, 14.590019, 87.24718, -268.5561)
+material_override = ExtResource("1_wgttn")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Ring1" type="MeshInstance3D" parent="Pin02" unique_id=1026816354]
+transform = Transform3D(41.093193, 0, 0, 0, 1.2, 0, 0, 0, 41.093193, 14.590019, 59.35847, -268.5561)
+material_override = ExtResource("10_frle1")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Ring2" type="MeshInstance3D" parent="Pin02" unique_id=1769255666]
+transform = Transform3D(41.093193, 0, 0, 0, 1.2, 0, 0, 0, 41.093193, 14.590019, 179.09436, -268.5561)
+material_override = ExtResource("10_frle1")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Crown" type="MeshInstance3D" parent="Pin02" unique_id=131829241]
+transform = Transform3D(23.215916, 0, 0, 0, 30, 0, 0, 0, 23.215916, 14.590019, 213.49435, -268.5561)
+material_override = ExtResource("4_x6hf7")
+mesh = ExtResource("5_sm3ba")
+
+[node name="Mast" type="MeshInstance3D" parent="Pin02" unique_id=89773223]
+transform = Transform3D(2, 0, 0, 0, 40, 0, 0, 0, 2, 14.590019, 248.49435, -268.5561)
+material_override = ExtResource("4_x6hf7")
+mesh = ExtResource("6_hul5h")
+
+[node name="Beacon" type="MeshInstance3D" parent="Pin02" unique_id=332740128]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 14.590019, 268.49435, -268.5561)
+material_override = ExtResource("7_a6s00")
+mesh = ExtResource("8_dxvmb")
+
+[node name="Pin03" type="Node3D" parent="." unique_id=1554557624]
+
+[node name="Shaft" type="MeshInstance3D" parent="Pin03" unique_id=1268500788]
+transform = Transform3D(40.599785, 0, 0, 0, 257.7671, 0, 0, 0, 40.599785, -476.53607, 104.883545, -714.7943)
+material_override = ExtResource("1_wgttn")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Ring1" type="MeshInstance3D" parent="Pin03" unique_id=1360893649]
+transform = Transform3D(42.999786, 0, 0, 0, 1.2, 0, 0, 0, 42.999786, -476.53607, 45.48636, -714.7943)
+material_override = ExtResource("11_wpmq1")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Ring2" type="MeshInstance3D" parent="Pin03" unique_id=1756578245]
+transform = Transform3D(42.999786, 0, 0, 0, 1.2, 0, 0, 0, 42.999786, -476.53607, 214.36708, -714.7943)
+material_override = ExtResource("11_wpmq1")
+mesh = ExtResource("2_mmf2e")
+
+[node name="Crown" type="MeshInstance3D" parent="Pin03" unique_id=980987111]
+transform = Transform3D(24.35987, 0, 0, 0, 30, 0, 0, 0, 24.35987, -476.53607, 248.76707, -714.7943)
+material_override = ExtResource("4_x6hf7")
+mesh = ExtResource("5_sm3ba")
+
+[node name="Mast" type="MeshInstance3D" parent="Pin03" unique_id=2040687672]
+transform = Transform3D(2, 0, 0, 0, 40, 0, 0, 0, 2, -476.53607, 283.7671, -714.7943)
+material_override = ExtResource("4_x6hf7")
+mesh = ExtResource("6_hul5h")
+
+[node name="Beacon" type="MeshInstance3D" parent="Pin03" unique_id=1168353064]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, -476.53607, 303.7671, -714.7943)
+material_override = ExtResource("7_a6s00")
+mesh = ExtResource("8_dxvmb")
+
+[node name="CoreSpire" type="Node3D" parent="." unique_id=479778345]

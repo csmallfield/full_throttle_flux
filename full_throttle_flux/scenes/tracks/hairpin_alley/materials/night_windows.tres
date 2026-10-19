@@ -1,0 +1,19 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://scenes/tracks/hairpin_alley/materials/night_windows.gdshader" id="1_o7nh4"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_o7nh4")
+shader_parameter/wall_color = null
+shader_parameter/roof_color = null
+shader_parameter/floor_height = null
+shader_parameter/bay_width = null
+shader_parameter/window_fill = null
+shader_parameter/lit_ratio = null
+shader_parameter/energy = null
+shader_parameter/warm = null
+shader_parameter/cool = null
+shader_parameter/neon_a = null
+shader_parameter/neon_b = null
+shader_parameter/ground_y = null
