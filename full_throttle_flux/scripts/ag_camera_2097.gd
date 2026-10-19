@@ -265,6 +265,9 @@ func _ready() -> void:
 	_fov_current = base_fov
 	fov = base_fov
 
+func _exit_tree() -> void:
+	MotionBlurEffect.speed_ratio = -1.0   # nothing drives the fade any more
+
 ## Frame-rate independent smoothing weight.
 static func _w(rate: float, delta: float) -> float:
 	return 1.0 - exp(-maxf(rate, 0.0) * delta)
@@ -277,6 +280,9 @@ func _process(delta: float) -> void:
 		return
 	if delta <= 0.0:
 		return
+	# drives the motion blur's speed fade (also keeps it off during the intro,
+	# when the ship sits on the grid)
+	MotionBlurEffect.speed_ratio = ship.get_speed_ratio()
 	
 	if _intro_active:
 		_process_intro(delta)
@@ -535,6 +541,7 @@ func begin_intro(duration: float = -1.0) -> void:
 	_shake_intensity = 0.0
 
 func _snap_to_ship() -> void:
+	MotionBlurEffect.notify_camera_cut()
 	var pose: Array = _chase_pose()
 	_cam_position = pose[0]
 	# v2.1: this used to omit the `ship_up * aim_height` term that _update_aim()

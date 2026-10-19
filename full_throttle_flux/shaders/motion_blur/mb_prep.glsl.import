@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://rdjwiknsq4da"
+path="res://.godot/imported/mb_prep.glsl-6cf504627ae71663102e50ff8d04591a.res"
+
+[deps]
+
+source_file="res://shaders/motion_blur/mb_prep.glsl"
+dest_files=["res://.godot/imported/mb_prep.glsl-6cf504627ae71663102e50ff8d04591a.res"]
+
+[params]
+

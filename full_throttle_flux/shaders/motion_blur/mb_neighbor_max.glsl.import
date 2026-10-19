@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dlqpk601us6yt"
+path="res://.godot/imported/mb_neighbor_max.glsl-666d8adea25fa32bbec335c90315775d.res"
+
+[deps]
+
+source_file="res://shaders/motion_blur/mb_neighbor_max.glsl"
+dest_files=["res://.godot/imported/mb_neighbor_max.glsl-666d8adea25fa32bbec335c90315775d.res"]
+
+[params]
+

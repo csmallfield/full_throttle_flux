@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cf2eiwkbjvajl"
+path="res://.godot/imported/mb_tile_max.glsl-0157b63bf0c4f693fa3b090d64c90baa.res"
+
+[deps]
+
+source_file="res://shaders/motion_blur/mb_tile_max.glsl"
+dest_files=["res://.godot/imported/mb_tile_max.glsl-0157b63bf0c4f693fa3b090d64c90baa.res"]
+
+[params]
+
