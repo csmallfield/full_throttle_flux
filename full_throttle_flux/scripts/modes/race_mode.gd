@@ -11,6 +11,8 @@ class_name RaceMode
 ##     per race and hands it to every AI controller; skill ranges raised so
 ##     Hard actually reaches skill 1.0 (previously capped at 0.80, which
 ##     meant the expert tuning never ran in real races)
+## v5: TEMPORARY random visual variants per ship (see ModeBase); hull tint is
+##     now silently skipped on models without a 'hull' node
 
 # ============================================================================
 # CONFIGURATION
@@ -269,6 +271,9 @@ func _spawn_player_ship(grid_position: int = 0) -> void:
 	if ship_instance is ShipController:
 		ship_instance.profile = ship_profile
 	
+	# TEMPORARY: random model from the profile's visual pool (before add_child)
+	_apply_visual_variant(ship_instance, ship_profile)
+	
 	add_child(ship_instance)
 	
 	# Position at specified grid slot (CHANGED from hardcoded 0)
@@ -297,6 +302,9 @@ func _spawn_ai_ship(grid_position: int, skill: float) -> void:
 		ai_ship.profile = ship_profile
 		ai_ship.ai_controlled = true  # Mark as AI controlled
 		ai_ship.respawn_manager = respawn_manager  # Assign respawn manager
+	
+	# TEMPORARY: random model from the profile's visual pool (before add_child)
+	_apply_visual_variant(ai_ship, ship_profile)
 	
 	# NEW ORDER - position BEFORE adding to scene:
 # Position on grid first (while not in scene tree)
@@ -392,8 +400,9 @@ func _set_hull_color(ship: Node3D, color: Color) -> void:
 	var hull = ship.find_child("hull", true, false)  # recursive=true, owned=false
 	
 	if not hull:
-		push_warning("RaceMode: hull node not found on %s" % ship.name)
-		print("RaceMode: Could not find 'hull' node in scene tree")
+		# Textured models (e.g. the Tripo imports) have no 'hull' node and keep
+		# their own look. Only variants with a MeshInstance3D named 'hull' get
+		# tinted. Quiet on purpose -- with mixed pools this is the normal case.
 		return
 	
 	if not hull is MeshInstance3D:

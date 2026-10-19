@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="ShipVisualPool" format=3]
+
+[ext_resource type="Script" path="res://scripts/ships/ship_visual_pool.gd" id="1_pool"]
+[ext_resource type="PackedScene" path="res://scenes/ships/variants/variant_red_yellow.tscn" id="2_redyellow"]
+
+[resource]
+script = ExtResource("1_pool")
+variants = Array[PackedScene]([ExtResource("2_redyellow")])

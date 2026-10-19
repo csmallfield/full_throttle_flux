@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cdpw804je2xae" path="res://scenes/red_yellowmodel.tscn" id="1_model"]
+
+[node name="VariantRedYellow" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+transform = Transform3D(1.808, 0, 0, 0, 1.808, 0, 0, 0, 1.808, 0, 0, 0)

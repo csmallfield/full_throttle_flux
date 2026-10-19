@@ -183,6 +183,9 @@ func _spawn_ship() -> void:
 	elif ship_instance.has_method("initialize_with_profile"):
 		ship_instance.initialize_with_profile(ship_profile)
 	
+	# TEMPORARY: random model from the profile's visual pool (before add_child)
+	_apply_visual_variant(ship_instance, ship_profile)
+	
 	add_child(ship_instance)
 	
 	# Position at starting grid
@@ -365,3 +368,82 @@ func cleanup() -> void:
 	camera_instance = null
 	hud_instance = null
 	starting_grid = null
+
+
+# ============================================================================
+# TEMPORARY: RANDOM VISUAL VARIANTS
+# ============================================================================
+# Every spawned ship (player and AI) draws a model from a shuffle bag built
+# from the profile's ShipVisualPool, so a grid shows an even mix rather than
+# whatever pure random happens to land on. A new mode is created per race,
+# so each race starts with a fresh bag.
+#
+# No pool file, or pool disabled = no change in behaviour.
+# Remove this section and the _apply_visual_variant() calls to retire it.
+
+const VISUAL_POOL_PATH := "res://resources/ships/visual_pools/%s_visuals.tres"
+
+var _visual_pool: ShipVisualPool
+var _visual_pool_ship_id: String = ""
+var _visual_bag: Array[int] = []
+var _visual_last_index: int = -1
+var _visual_rng := RandomNumberGenerator.new()
+
+func _apply_visual_variant(ship: Node, ship_profile: ShipProfile) -> void:
+	if ship == null or ship_profile == null:
+		return
+	if ship_profile.ship_id != _visual_pool_ship_id:
+		_load_visual_pool(ship_profile.ship_id)
+	if _visual_pool == null or not _visual_pool.is_usable():
+		return
+	
+	if _visual_bag.is_empty():
+		_refill_visual_bag()
+	var index: int = _visual_bag.pop_back()
+	_visual_last_index = index
+	
+	var variant: PackedScene = _visual_pool.variants[index]
+	if ShipVisuals.swap_mesh(ship, variant):
+		ship.set_meta("visual_variant", variant.resource_path)
+		print("ModeBase: %s -> %s" % [ship.name, variant.resource_path.get_file()])
+
+func _load_visual_pool(ship_id: String) -> void:
+	_visual_pool_ship_id = ship_id
+	_visual_pool = null
+	_visual_bag.clear()
+	_visual_last_index = -1
+	
+	var path := VISUAL_POOL_PATH % ship_id
+	if not ResourceLoader.exists(path):
+		return
+	var res = load(path)
+	if res is ShipVisualPool:
+		_visual_pool = res
+	else:
+		push_warning("ModeBase: %s is not a ShipVisualPool" % path)
+		return
+	
+	if _visual_pool.fixed_seed != 0:
+		_visual_rng.seed = _visual_pool.fixed_seed
+	else:
+		_visual_rng.randomize()
+
+func _refill_visual_bag() -> void:
+	_visual_bag.clear()
+	for i in _visual_pool.variants.size():
+		if _visual_pool.variants[i] != null:
+			_visual_bag.append(i)
+	
+	# Fisher-Yates on our own RNG so fixed_seed is actually reproducible
+	for i in range(_visual_bag.size() - 1, 0, -1):
+		var j := _visual_rng.randi_range(0, i)
+		var tmp := _visual_bag[i]
+		_visual_bag[i] = _visual_bag[j]
+		_visual_bag[j] = tmp
+	
+	# Don't let a refill hand out the model that was just used (back of the
+	# array is drawn first), which would put two identical ships in a row
+	if _visual_bag.size() > 1 and _visual_bag.back() == _visual_last_index:
+		var tmp := _visual_bag[0]
+		_visual_bag[0] = _visual_bag[-1]
+		_visual_bag[-1] = tmp
