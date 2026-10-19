@@ -10,7 +10,8 @@ extends SceneTree
 ##     godot --path . -s res://tools/dev/render_motion_shots.gd -- <shots.json> <outdir> [track_scene]
 ## shots.json: list of
 ##   {name, d, speed=120 (units/s), frames=4, dt=1/60, ratio=0.85 (camera speed pose),
-##    variants=["off","on"] ("on", "off", "noship" = off with every ship hidden),
+##    variants=["off","on"] ("on", "off", "noship" = off with every ship hidden,
+##      "mask" = ships only, flat white on black, for mb_metrics.py),
 ##    mb={MotionBlurEffect overrides}, speed_ratio=1.0 (drives the speed fade),
 ##    ai=[{lat, ahead, speed_delta}] AI ships (ahead/lat relative to the player),
 ##    render_hz / physics_hz: ship moves only on physics ticks, camera every
@@ -92,6 +93,26 @@ func _initialize() -> void:
 	quit()
 
 
+const MASK_LAYER := 1 << 19
+var _mm: StandardMaterial3D
+var _me: Environment
+
+func _mask_mat() -> StandardMaterial3D:
+	if _mm == null:
+		_mm = StandardMaterial3D.new()
+		_mm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_mm.albedo_color = Color.WHITE
+	return _mm
+
+func _mask_env() -> Environment:
+	if _me == null:
+		_me = Environment.new()
+		_me.background_mode = Environment.BG_COLOR
+		_me.background_color = Color.BLACK
+		_me.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	return _me
+
+
 func _make_ship() -> Node3D:
 	var s: Node3D = load("res://scenes/red_yellowmodel.tscn").instantiate()
 	root.add_child(s)
@@ -154,6 +175,15 @@ func _render(shot: Dictionary, variant: String, outdir: String) -> void:
 	for s in [ship] + ai_ships:
 		for g in s.find_children("*", "GeometryInstance3D", true, false):
 			(g as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shot.get("ship_shadow", true) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# "mask": only the ships, flat white on black -> exact hull silhouettes for
+	# tools/dev/mb_metrics.py
+	var is_mask := variant == "mask"
+	for s in [ship] + ai_ships:
+		for g in s.find_children("*", "GeometryInstance3D", true, false):
+			(g as GeometryInstance3D).layers = MASK_LAYER if is_mask else 1
+			(g as GeometryInstance3D).material_override = _mask_mat() if is_mask else null
+	cam.cull_mask = MASK_LAYER if is_mask else 0xFFFFF
+	cam.environment = _mask_env() if is_mask else null
 
 	var t_end := float(frames - 1) * dt
 	var base_pose := _line_pose(d_end)

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Motion blur check: is the ship sharp while the world streaks?
 
-Needs <name>_off.png, <name>_on.png and <name>_noship.png from
-render_motion_shots.gd (variants ["off", "on", "noship"]).
-  ship mask  = pixels where off and noship differ (the ships), eroded 2 px
+Needs <name>_off.png, <name>_on.png and <name>_mask.png from
+render_motion_shots.gd (variants ["off", "on", "mask"]).
+  ship mask  = the ships' white silhouettes in _mask, eroded 2 px
   world mask = everything else, dilated away from the ships by 8 px
 Reports the mean absolute on/off difference (0..255) inside each mask and the
 ratio. A sharp ship has ship_diff close to 0 while world_diff is large.
 
 usage: python3 tools/dev/mb_metrics.py <dir> [name ...]
-       (no names: every *_noship.png in <dir>)
+       (no names: every *_mask.png in <dir>)
 """
 import sys
 from pathlib import Path
@@ -32,16 +32,15 @@ def morph(mask, px, grow):
 
 def main():
     d = Path(sys.argv[1])
-    names = sys.argv[2:] or sorted(p.name[: -len("_noship.png")] for p in d.glob("*_noship.png"))
+    names = sys.argv[2:] or sorted(p.name[: -len("_mask.png")] for p in d.glob("*_mask.png"))
     print(f"{'shot':24s} {'ship px':>8s} {'ship diff':>9s} {'world diff':>10s} {'ratio':>6s}")
     for n in names:
-        on, noship = d / f"{n}_on.png", d / f"{n}_noship.png"
-        off = d / f"{n}_off.png"
-        if not (on.exists() and noship.exists() and off.exists()):
+        on, mask, off = d / f"{n}_on.png", d / f"{n}_mask.png", d / f"{n}_off.png"
+        if not (on.exists() and mask.exists() and off.exists()):
             print(f"{n:24s} missing images")
             continue
-        a_on, a_ns, ref = load(on), load(noship), load(off)
-        ship = np.abs(ref - a_ns).max(axis=2) > 12.0
+        a_on, ref = load(on), load(off)
+        ship = load(mask).max(axis=2) > 128.0
         core = morph(ship, 2, grow=False)
         world = ~morph(ship, 8, grow=True)
         diff = np.abs(a_on - ref).mean(axis=2)

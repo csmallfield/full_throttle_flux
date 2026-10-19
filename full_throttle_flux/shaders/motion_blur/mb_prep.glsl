@@ -64,7 +64,10 @@ vec2 raw_velocity(ivec2 q, float d) {
 	uint f = uint(p.flags);
 	vec2 v = texelFetch(velocity_tex, q, 0).xy;
 	bool sentinel = v.x <= -0.999 && v.y <= -0.999;
-	bool sky = d <= 0.0;
+	// sky = far plane AND nothing wrote velocity there. Trusting a written
+	// velocity keeps geometry correct even if depth reads back empty (some
+	// drivers' MSAA depth resolve).
+	bool sky = d <= 0.0 && v == vec2(0.0);
 	if ((f & F_REPROJ) != 0u && (sentinel || (sky && (f & F_SKY) != 0u))) {
 		vec2 uv = (vec2(q) + 0.5) / p.size;
 		return reproject(uv, max(d, 0.0));
