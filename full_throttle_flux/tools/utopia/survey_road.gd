@@ -19,9 +19,13 @@ const GROUND_MASK := 1
 const WALL_MASK := 4
 const OUT := "res://scenes/tracks/utopia/utopia_road_rails.tscn"
 
+## Optional args (other tracks): -- <track scene> <output rails scene>
 func _initialize() -> void:
-	var track: Node3D = load("res://scenes/tracks/test_circuit_3_live.tscn").instantiate()
-	for n in ["UtopiaCity", "UtopiaLighting"]:
+	var args := OS.get_cmdline_user_args()
+	var track_path := args[0] if args.size() > 0 else "res://scenes/tracks/test_circuit_3_live.tscn"
+	var out_path := args[1] if args.size() > 1 else OUT
+	var track: Node3D = load(track_path).instantiate()
+	for n in ["UtopiaCity", "UtopiaLighting", "HairpinCity", "HairpinLighting", "SwoopyCity", "SwoopyLighting"]:
 		if track.has_node(n):
 			track.get_node(n).free()
 	root.add_child(track)
@@ -123,7 +127,7 @@ func _initialize() -> void:
 		report += "  %s: %d pts, %.0f m, tilt err p99 %.2f deg\n" % [nm, pts[nm].size(), p.curve.get_baked_length(), _tilt_error(p.curve, pts[nm], sm)]
 	var ps := PackedScene.new()
 	ps.pack(rails)
-	ResourceSaver.save(ps, OUT)
+	ResourceSaver.save(ps, out_path)
 	print("SURVEY: %d samples, %d ray misses\n%s" % [n, misses, report])
 	quit()
 

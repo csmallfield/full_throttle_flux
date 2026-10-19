@@ -5,12 +5,14 @@ extends RefCounted
 
 static func build(path: String, params := {}) -> void:
 	var root := Node3D.new()
-	root.name = "UtopiaLighting"
+	root.name = params.get("root_name", "UtopiaLighting")
 
-	# procedural cloud sky (see sky/utopia_sky.gdshader + UtopiaSkyController)
+	# procedural cloud sky (see sky/utopia_sky_common.gdshaderinc + UtopiaSkyController)
 	var sky_mat := ShaderMaterial.new()
-	sky_mat.shader = load("res://scenes/tracks/utopia/sky/utopia_sky.gdshader")
-	sky_mat.set_shader_parameter("cloud_noise", _noise3d())
+	sky_mat.shader = load("res://scenes/tracks/utopia/sky/utopia_sky_full.gdshader")
+	# noise volumes: python3 tools/utopia/gen_cloud_noise.py + bake_cloud_noise.gd
+	sky_mat.set_shader_parameter("shape_noise", load("res://scenes/tracks/utopia/sky/cloud_shape_128.res"))
+	sky_mat.set_shader_parameter("detail_noise", load("res://scenes/tracks/utopia/sky/cloud_detail_64.res"))
 	sky_mat.set_shader_parameter("weather_map", _weather())
 	ResourceSaver.save(sky_mat, "res://scenes/tracks/utopia/sky/utopia_sky_material.tres")
 	sky_mat = load("res://scenes/tracks/utopia/sky/utopia_sky_material.tres")
@@ -52,9 +54,9 @@ static func build(path: String, params := {}) -> void:
 	env.fog_height_density = params.get("fog_height_density", 0.018)
 	# glow keeps the neon track and light strips alive
 	env.glow_enabled = true
-	env.glow_intensity = 0.5
-	env.glow_bloom = 0.04
-	env.glow_hdr_threshold = 1.2
+	env.glow_intensity = params.get("glow_intensity", 0.5)
+	env.glow_bloom = params.get("glow_bloom", 0.04)
+	env.glow_hdr_threshold = params.get("glow_threshold", 1.2)
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 	env.adjustment_enabled = true
 	env.adjustment_contrast = 1.06
@@ -121,6 +123,7 @@ static func build(path: String, params := {}) -> void:
 	Engine.get_main_loop().root.add_child(tmp)
 	tmp.add_child(root)
 	ctl.apply_preset(params.get("sky_preset", "golden_afternoon"))
+	ctl.set("preset", params.get("sky_preset", "golden_afternoon"))   # so the inspector shows it
 	tmp.remove_child(root)
 	tmp.queue_free()
 	var ps := PackedScene.new()
@@ -128,26 +131,6 @@ static func build(path: String, params := {}) -> void:
 	ResourceSaver.save(ps, path)
 	root.free()
 
-
-static func _noise3d() -> NoiseTexture3D:
-	var path := "res://scenes/tracks/utopia/sky/cloud_noise_3d.tres"
-	var fn := FastNoiseLite.new()
-	fn.noise_type = FastNoiseLite.TYPE_CELLULAR
-	fn.cellular_return_type = FastNoiseLite.RETURN_DISTANCE
-	fn.frequency = 0.06
-	fn.fractal_type = FastNoiseLite.FRACTAL_FBM
-	fn.fractal_octaves = 3
-	fn.fractal_gain = 0.45
-	var t := NoiseTexture3D.new()
-	t.width = 64
-	t.height = 64
-	t.depth = 64
-	t.seamless = true
-	t.invert = true
-	t.normalize = true
-	t.noise = fn
-	ResourceSaver.save(t, path)
-	return load(path)
 
 static func _weather() -> NoiseTexture2D:
 	var path := "res://scenes/tracks/utopia/sky/cloud_weather.tres"

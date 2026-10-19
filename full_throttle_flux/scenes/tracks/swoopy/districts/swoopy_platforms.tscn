@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_platforms_deck_0460.res" id="1_1ubwr"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_platforms_deck_1171.res" id="2_gm66i"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_platforms_deck_2877.res" id="3_ydpc6"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_platforms_deck_5528.res" id="4_s3eie"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_platforms_deck_6497.res" id="5_3jun8"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_platforms_start_stands.res" id="6_51iqs"]
+
+[node name="Swoopy_Platforms" type="Node3D" unique_id=838613352]
+
+[node name="ServiceDecks" type="Node3D" parent="." unique_id=1341264324]
+
+[node name="ServiceDeck_0460" type="MeshInstance3D" parent="ServiceDecks" unique_id=1046752070]
+mesh = ExtResource("1_1ubwr")
+
+[node name="ServiceDeck_1171" type="MeshInstance3D" parent="ServiceDecks" unique_id=70462871]
+mesh = ExtResource("2_gm66i")
+
+[node name="ServiceDeck_2877" type="MeshInstance3D" parent="ServiceDecks" unique_id=507420698]
+mesh = ExtResource("3_ydpc6")
+
+[node name="ServiceDeck_5528" type="MeshInstance3D" parent="ServiceDecks" unique_id=1065193737]
+mesh = ExtResource("4_s3eie")
+
+[node name="ServiceDeck_6497" type="MeshInstance3D" parent="ServiceDecks" unique_id=1934330668]
+mesh = ExtResource("5_3jun8")
+
+[node name="StartStands" type="Node3D" parent="." unique_id=1715223872]
+
+[node name="StartStands" type="MeshInstance3D" parent="StartStands" unique_id=1275101900]
+mesh = ExtResource("6_51iqs")

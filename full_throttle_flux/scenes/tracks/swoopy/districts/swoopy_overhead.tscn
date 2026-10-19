@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_gallery_0295.res" id="1_s362v"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_upperdeck_1050.res" id="2_jx5i3"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_catwalks_1350.res" id="3_6nhh7"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_towers_1830.res" id="4_s362v"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_gallery_2310.res" id="5_1rfao"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_catwalks_2790.res" id="6_6wns8"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_towers_3270.res" id="7_cnc67"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_gallery_3750.res" id="8_252tw"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_catwalks_4230.res" id="9_rkanp"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_towers_4710.res" id="10_nslib"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_upperdeck_5350.res" id="11_0ql0f"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_gallery_5665.res" id="12_tcudj"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_towers_6145.res" id="13_68vkw"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_gallery_6625.res" id="14_af7jb"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_towers_7180.res" id="15_vch2c"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_overhead_oh_catwalks_7735.res" id="16_g3tow"]
+
+[node name="Swoopy_Overhead" type="Node3D" unique_id=107788130]
+
+[node name="Overhead" type="Node3D" parent="." unique_id=2065212201]
+
+[node name="Gallery_0295" type="MeshInstance3D" parent="Overhead" unique_id=837084434]
+mesh = ExtResource("1_s362v")
+
+[node name="Upperdeck_1050" type="MeshInstance3D" parent="Overhead" unique_id=1125723600]
+mesh = ExtResource("2_jx5i3")
+
+[node name="Catwalks_1350" type="MeshInstance3D" parent="Overhead" unique_id=1178342856]
+mesh = ExtResource("3_6nhh7")
+
+[node name="Towers_1830" type="MeshInstance3D" parent="Overhead" unique_id=902322528]
+mesh = ExtResource("4_s362v")
+
+[node name="Gallery_2310" type="MeshInstance3D" parent="Overhead" unique_id=871052140]
+mesh = ExtResource("5_1rfao")
+
+[node name="Catwalks_2790" type="MeshInstance3D" parent="Overhead" unique_id=585975832]
+mesh = ExtResource("6_6wns8")
+
+[node name="Towers_3270" type="MeshInstance3D" parent="Overhead" unique_id=1962988617]
+mesh = ExtResource("7_cnc67")
+
+[node name="Gallery_3750" type="MeshInstance3D" parent="Overhead" unique_id=1284463462]
+mesh = ExtResource("8_252tw")
+
+[node name="Catwalks_4230" type="MeshInstance3D" parent="Overhead" unique_id=1734650349]
+mesh = ExtResource("9_rkanp")
+
+[node name="Towers_4710" type="MeshInstance3D" parent="Overhead" unique_id=1887713312]
+mesh = ExtResource("10_nslib")
+
+[node name="Upperdeck_5350" type="MeshInstance3D" parent="Overhead" unique_id=1648708642]
+mesh = ExtResource("11_0ql0f")
+
+[node name="Gallery_5665" type="MeshInstance3D" parent="Overhead" unique_id=1752431356]
+mesh = ExtResource("12_tcudj")
+
+[node name="Towers_6145" type="MeshInstance3D" parent="Overhead" unique_id=1365239532]
+mesh = ExtResource("13_68vkw")
+
+[node name="Gallery_6625" type="MeshInstance3D" parent="Overhead" unique_id=1299730530]
+mesh = ExtResource("14_af7jb")
+
+[node name="Towers_7180" type="MeshInstance3D" parent="Overhead" unique_id=1587014414]
+mesh = ExtResource("15_vch2c")
+
+[node name="Catwalks_7735" type="MeshInstance3D" parent="Overhead" unique_id=1510832032]
+mesh = ExtResource("16_g3tow")

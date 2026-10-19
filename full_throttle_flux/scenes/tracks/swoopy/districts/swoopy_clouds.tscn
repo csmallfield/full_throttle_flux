@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/swoopy/materials/cloud_sea.tres" id="1_q0y0h"]
+[ext_resource type="PlaneMesh" path="res://scenes/tracks/swoopy/meshes/gen_clouds_plane.tres" id="2_tooco"]
+[ext_resource type="Material" path="res://scenes/tracks/swoopy/materials/cloud_sea_low.tres" id="3_53jri"]
+
+[node name="Swoopy_Clouds" type="Node3D" unique_id=941105483]
+
+[node name="CloudDeckUpper" type="MeshInstance3D" parent="." unique_id=614195029]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -317.59445, -235, -127.84102)
+material_override = ExtResource("1_q0y0h")
+cast_shadow = 0
+mesh = ExtResource("2_tooco")
+
+[node name="CloudDeckLower" type="MeshInstance3D" parent="." unique_id=16583938]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -317.59445, -320, -127.84102)
+material_override = ExtResource("3_53jri")
+cast_shadow = 0
+mesh = ExtResource("2_tooco")

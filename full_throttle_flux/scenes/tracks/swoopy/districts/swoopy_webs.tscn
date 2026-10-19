@@ -1,0 +1,330 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_32_43_29.res" id="1_fso48"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_38_50_34.res" id="2_rqlbf"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_21_51_46.res" id="3_g8unq"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_33_42_30.res" id="4_7s0y8"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_18_23_76.res" id="5_53ejv"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_22_37_4.res" id="6_e2jww"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_1_16_63.res" id="7_qg18x"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_18_22_86.res" id="8_bb7ke"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_32_42_13.res" id="9_bw5tx"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_2_15_65.res" id="10_rdtg7"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_64_71_58.res" id="11_uf4p4"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_17_23_44.res" id="12_02agf"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_39_50_28.res" id="13_7jbgs"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_65_71_92.res" id="14_wwjid"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_38_51_77.res" id="15_n4jgq"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_3_15_64.res" id="16_jqcoa"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_21_52_82.res" id="17_m8es6"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_1_17_70.res" id="18_2qamq"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_58_67_130.res" id="19_jyl21"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_20_55_110.res" id="20_wxfn0"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_35_41_1.res" id="21_38prc"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_34_41_25.res" id="22_fk2ed"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_29_33_18.res" id="23_fplmx"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_20_52_78.res" id="24_2sh3c"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_59_66_80.res" id="25_nv417"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_3_16_58.res" id="26_er2bi"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_28_34_1.res" id="27_0bedg"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_64_70_66.res" id="28_v4ryf"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_57_67_119.res" id="29_5s01j"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_14_25_19.res" id="30_yxr1x"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_14_25_189.res" id="31_dhory"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_24_36_22.res" id="32_tl4sa"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_24_36_209.res" id="33_mvbv5"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_60_66_83.res" id="34_8mn1k"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_60_66_262.res" id="35_ejksu"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_69_74_89.res" id="36_udeha"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_69_74_282.res" id="37_odlnh"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_57_68_113.res" id="38_68350"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_57_68_294.res" id="39_n62op"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_39_49_50.res" id="40_5ydvl"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_39_49_226.res" id="41_edhb3"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_26_35_13.res" id="42_7butg"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_26_35_178.res" id="43_w37eo"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_31_43_17.res" id="44_njh74"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_31_43_210.res" id="45_mpnu2"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_60_65_81.res" id="46_wxd3v"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_60_65_275.res" id="47_r3u5r"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_19_55_82.res" id="48_3ntnv"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_19_55_243.res" id="49_b5hq1"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_56_68_114.res" id="50_vcf5m"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_56_68_308.res" id="51_35600"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_2_14_59.res" id="52_rh7io"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_2_14_226.res" id="53_l4ppo"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_36_40_29.res" id="54_ejmod"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_36_40_138.res" id="55_vpl06"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_13_25_40.res" id="56_dxedt"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_13_25_205.res" id="57_rx844"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_4_13_83.res" id="58_b7dm0"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_4_13_247.res" id="59_85xtl"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_31_44_49.res" id="60_cu7hr"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_31_44_201.res" id="61_t8awh"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_24_37_8.res" id="62_7nhtu"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_24_37_217.res" id="63_dg04j"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_0_69_98.res" id="64_8523x"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_0_69_263.res" id="65_tjxcc"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_19_56_105.res" id="66_e24mf"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_19_56_259.res" id="67_o1lhr"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_12_26_62.res" id="68_yeirv"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_12_26_260.res" id="69_akd0n"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_40_45_36.res" id="70_87pdr"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_40_45_212.res" id="71_ka8do"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_58_70_78.res" id="72_g6n4o"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_58_70_244.res" id="73_64vpf"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_6_12_82.res" id="74_3fdbl"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_6_12_287.res" id="75_oyf5f"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_6_11_69.res" id="76_fij4o"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_6_11_222.res" id="77_31b05"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_5_11_86.res" id="78_xp7ta"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_5_11_291.res" id="79_xjn30"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_5_10_67.res" id="80_xnexq"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/swoopy/meshes/gen_webs_link_5_10_251.res" id="81_3vlnv"]
+
+[node name="Swoopy_Webs" type="Node3D" unique_id=1315943915]
+
+[node name="Links" type="Node3D" parent="." unique_id=561966843]
+
+[node name="Link_3648_5011_29" type="MeshInstance3D" parent="Links" unique_id=1191197069]
+mesh = ExtResource("1_fso48")
+
+[node name="Link_4410_5736_34" type="MeshInstance3D" parent="Links" unique_id=1983331614]
+mesh = ExtResource("2_rqlbf")
+
+[node name="Link_2247_5843_46" type="MeshInstance3D" parent="Links" unique_id=153178589]
+mesh = ExtResource("3_g8unq")
+
+[node name="Link_3775_4912_30" type="MeshInstance3D" parent="Links" unique_id=726577288]
+mesh = ExtResource("4_7s0y8")
+
+[node name="Link_1915_2489_76" type="MeshInstance3D" parent="Links" unique_id=936372105]
+mesh = ExtResource("5_53ejv")
+
+[node name="Link_2367_4277_4" type="MeshInstance3D" parent="Links" unique_id=1467071908]
+mesh = ExtResource("6_e2jww")
+
+[node name="Link_0143_1698_63" type="MeshInstance3D" parent="Links" unique_id=283157161]
+mesh = ExtResource("7_qg18x")
+
+[node name="Link_1915_2367_86" type="MeshInstance3D" parent="Links" unique_id=161957278]
+mesh = ExtResource("8_bb7ke")
+
+[node name="Link_3648_4912_13" type="MeshInstance3D" parent="Links" unique_id=2128743382]
+mesh = ExtResource("9_bw5tx")
+
+[node name="Link_0248_1586_65" type="MeshInstance3D" parent="Links" unique_id=377975867]
+mesh = ExtResource("10_rdtg7")
+
+[node name="Link_7217_7917_58" type="MeshInstance3D" parent="Links" unique_id=763121045]
+mesh = ExtResource("11_uf4p4")
+
+[node name="Link_1807_2489_44" type="MeshInstance3D" parent="Links" unique_id=1543233828]
+mesh = ExtResource("12_02agf")
+
+[node name="Link_4546_5736_28" type="MeshInstance3D" parent="Links" unique_id=426099299]
+mesh = ExtResource("13_7jbgs")
+
+[node name="Link_7322_7917_92" type="MeshInstance3D" parent="Links" unique_id=1233364660]
+mesh = ExtResource("14_wwjid")
+
+[node name="Link_4410_5843_77" type="MeshInstance3D" parent="Links" unique_id=1103098404]
+mesh = ExtResource("15_n4jgq")
+
+[node name="Link_0351_1586_64" type="MeshInstance3D" parent="Links" unique_id=1350481895]
+mesh = ExtResource("16_jqcoa")
+
+[node name="Link_2247_5949_82" type="MeshInstance3D" parent="Links" unique_id=1694610848]
+mesh = ExtResource("17_m8es6")
+
+[node name="Link_0143_1807_70" type="MeshInstance3D" parent="Links" unique_id=620674378]
+mesh = ExtResource("18_2qamq")
+
+[node name="Link_6600_7521_130" type="MeshInstance3D" parent="Links" unique_id=395814990]
+mesh = ExtResource("19_jyl21")
+
+[node name="Link_2124_6281_110" type="MeshInstance3D" parent="Links" unique_id=105733141]
+mesh = ExtResource("20_wxfn0")
+
+[node name="Link_4024_4807_1" type="MeshInstance3D" parent="Links" unique_id=160121934]
+mesh = ExtResource("21_38prc")
+
+[node name="Link_3904_4807_25" type="MeshInstance3D" parent="Links" unique_id=2101596908]
+mesh = ExtResource("22_fk2ed")
+
+[node name="Link_3271_3775_18" type="MeshInstance3D" parent="Links" unique_id=61344610]
+mesh = ExtResource("23_fplmx")
+
+[node name="Link_2124_5949_78" type="MeshInstance3D" parent="Links" unique_id=1566700365]
+mesh = ExtResource("24_2sh3c")
+
+[node name="Link_6709_7418_80" type="MeshInstance3D" parent="Links" unique_id=1155217153]
+mesh = ExtResource("25_nv417")
+
+[node name="Link_0351_1698_58" type="MeshInstance3D" parent="Links" unique_id=1161661915]
+mesh = ExtResource("26_er2bi")
+
+[node name="Link_3136_3904_1" type="MeshInstance3D" parent="Links" unique_id=759382100]
+mesh = ExtResource("27_0bedg")
+
+[node name="Link_7217_7820_66" type="MeshInstance3D" parent="Links" unique_id=1982702348]
+mesh = ExtResource("28_v4ryf")
+
+[node name="Link_6497_7521_119" type="MeshInstance3D" parent="Links" unique_id=1648864611]
+mesh = ExtResource("29_5s01j")
+
+[node name="Link_1489_2748_19" type="MeshInstance3D" parent="Links" unique_id=1010326417]
+mesh = ExtResource("30_yxr1x")
+
+[node name="Link_1489_2748_189" type="MeshInstance3D" parent="Links" unique_id=1580123847]
+mesh = ExtResource("31_dhory")
+
+[node name="Link_2618_4148_22" type="MeshInstance3D" parent="Links" unique_id=330805669]
+mesh = ExtResource("32_tl4sa")
+
+[node name="Link_2618_4148_209" type="MeshInstance3D" parent="Links" unique_id=754958069]
+mesh = ExtResource("33_mvbv5")
+
+[node name="Link_6805_7418_83" type="MeshInstance3D" parent="Links" unique_id=747832925]
+mesh = ExtResource("34_8mn1k")
+
+[node name="Link_6805_7418_262" type="MeshInstance3D" parent="Links" unique_id=526118084]
+mesh = ExtResource("35_ejksu")
+
+[node name="Link_7723_8232_89" type="MeshInstance3D" parent="Links" unique_id=390803301]
+mesh = ExtResource("36_udeha")
+
+[node name="Link_7723_8232_282" type="MeshInstance3D" parent="Links" unique_id=580787143]
+mesh = ExtResource("37_odlnh")
+
+[node name="Link_6497_7625_113" type="MeshInstance3D" parent="Links" unique_id=308698646]
+mesh = ExtResource("38_68350")
+
+[node name="Link_6497_7625_294" type="MeshInstance3D" parent="Links" unique_id=127383234]
+mesh = ExtResource("39_n62op")
+
+[node name="Link_4546_5635_50" type="MeshInstance3D" parent="Links" unique_id=406908731]
+mesh = ExtResource("40_5ydvl")
+
+[node name="Link_4546_5635_226" type="MeshInstance3D" parent="Links" unique_id=433409055]
+mesh = ExtResource("41_edhb3")
+
+[node name="Link_2877_4024_13" type="MeshInstance3D" parent="Links" unique_id=1905413339]
+mesh = ExtResource("42_7butg")
+
+[node name="Link_2877_4024_178" type="MeshInstance3D" parent="Links" unique_id=1353931867]
+mesh = ExtResource("43_w37eo")
+
+[node name="Link_3523_5011_17" type="MeshInstance3D" parent="Links" unique_id=2090560221]
+mesh = ExtResource("44_njh74")
+
+[node name="Link_3523_5011_210" type="MeshInstance3D" parent="Links" unique_id=1296709154]
+mesh = ExtResource("45_mpnu2")
+
+[node name="Link_6805_7322_81" type="MeshInstance3D" parent="Links" unique_id=636307819]
+mesh = ExtResource("46_wxd3v")
+
+[node name="Link_6805_7322_275" type="MeshInstance3D" parent="Links" unique_id=311578324]
+mesh = ExtResource("47_r3u5r")
+
+[node name="Link_2020_6281_82" type="MeshInstance3D" parent="Links" unique_id=1108526768]
+mesh = ExtResource("48_3ntnv")
+
+[node name="Link_2020_6281_243" type="MeshInstance3D" parent="Links" unique_id=698499157]
+mesh = ExtResource("49_b5hq1")
+
+[node name="Link_6386_7625_114" type="MeshInstance3D" parent="Links" unique_id=2095840545]
+mesh = ExtResource("50_vcf5m")
+
+[node name="Link_6386_7625_308" type="MeshInstance3D" parent="Links" unique_id=1300409246]
+mesh = ExtResource("51_35600")
+
+[node name="Link_0248_1489_59" type="MeshInstance3D" parent="Links" unique_id=1799494633]
+mesh = ExtResource("52_rh7io")
+
+[node name="Link_0248_1489_226" type="MeshInstance3D" parent="Links" unique_id=167081229]
+mesh = ExtResource("53_l4ppo")
+
+[node name="Link_4148_4677_29" type="MeshInstance3D" parent="Links" unique_id=299855345]
+mesh = ExtResource("54_ejmod")
+
+[node name="Link_4148_4677_138" type="MeshInstance3D" parent="Links" unique_id=2120704713]
+mesh = ExtResource("55_vpl06")
+
+[node name="Link_1383_2748_40" type="MeshInstance3D" parent="Links" unique_id=1275825910]
+mesh = ExtResource("56_dxedt")
+
+[node name="Link_1383_2748_205" type="MeshInstance3D" parent="Links" unique_id=1351766243]
+mesh = ExtResource("57_rx844")
+
+[node name="Link_0460_1383_83" type="MeshInstance3D" parent="Links" unique_id=860277837]
+mesh = ExtResource("58_b7dm0")
+
+[node name="Link_0460_1383_247" type="MeshInstance3D" parent="Links" unique_id=830573690]
+mesh = ExtResource("59_85xtl")
+
+[node name="Link_3523_5123_49" type="MeshInstance3D" parent="Links" unique_id=506785061]
+mesh = ExtResource("60_cu7hr")
+
+[node name="Link_3523_5123_201" type="MeshInstance3D" parent="Links" unique_id=2125555556]
+mesh = ExtResource("61_t8awh")
+
+[node name="Link_2618_4277_8" type="MeshInstance3D" parent="Links" unique_id=1508910389]
+mesh = ExtResource("62_7nhtu")
+
+[node name="Link_2618_4277_217" type="MeshInstance3D" parent="Links" unique_id=1332948498]
+mesh = ExtResource("63_dg04j")
+
+[node name="Link_0040_7723_98" type="MeshInstance3D" parent="Links" unique_id=1000261586]
+mesh = ExtResource("64_8523x")
+
+[node name="Link_0040_7723_263" type="MeshInstance3D" parent="Links" unique_id=1722847242]
+mesh = ExtResource("65_tjxcc")
+
+[node name="Link_2020_6386_105" type="MeshInstance3D" parent="Links" unique_id=1492483605]
+mesh = ExtResource("66_e24mf")
+
+[node name="Link_2020_6386_259" type="MeshInstance3D" parent="Links" unique_id=67197799]
+mesh = ExtResource("67_o1lhr")
+
+[node name="Link_1280_2877_62" type="MeshInstance3D" parent="Links" unique_id=1862332722]
+mesh = ExtResource("68_yeirv")
+
+[node name="Link_1280_2877_260" type="MeshInstance3D" parent="Links" unique_id=1354809423]
+mesh = ExtResource("69_akd0n")
+
+[node name="Link_4677_5225_36" type="MeshInstance3D" parent="Links" unique_id=1885207828]
+mesh = ExtResource("70_87pdr")
+
+[node name="Link_4677_5225_212" type="MeshInstance3D" parent="Links" unique_id=3204587]
+mesh = ExtResource("71_ka8do")
+
+[node name="Link_6600_7820_78" type="MeshInstance3D" parent="Links" unique_id=2114769109]
+mesh = ExtResource("72_g6n4o")
+
+[node name="Link_6600_7820_244" type="MeshInstance3D" parent="Links" unique_id=1861789332]
+mesh = ExtResource("73_64vpf")
+
+[node name="Link_0665_1280_82" type="MeshInstance3D" parent="Links" unique_id=1096779413]
+mesh = ExtResource("74_3fdbl")
+
+[node name="Link_0665_1280_287" type="MeshInstance3D" parent="Links" unique_id=659291614]
+mesh = ExtResource("75_oyf5f")
+
+[node name="Link_0665_1171_69" type="MeshInstance3D" parent="Links" unique_id=644589013]
+mesh = ExtResource("76_fij4o")
+
+[node name="Link_0665_1171_222" type="MeshInstance3D" parent="Links" unique_id=1899100896]
+mesh = ExtResource("77_31b05")
+
+[node name="Link_0561_1171_86" type="MeshInstance3D" parent="Links" unique_id=2127803422]
+mesh = ExtResource("78_xp7ta")
+
+[node name="Link_0561_1171_291" type="MeshInstance3D" parent="Links" unique_id=432411950]
+mesh = ExtResource("79_xjn30")
+
+[node name="Link_0561_1066_67" type="MeshInstance3D" parent="Links" unique_id=1284269801]
+mesh = ExtResource("80_xnexq")
+
+[node name="Link_0561_1066_251" type="MeshInstance3D" parent="Links" unique_id=614901333]
+mesh = ExtResource("81_3vlnv")

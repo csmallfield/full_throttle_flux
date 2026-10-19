@@ -61,13 +61,13 @@ tint = Color(1, 0.8, 0.6, 1)
 [sub_resource type="Compositor" id="Compositor_tdn86"]
 compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_bacn7")])
 
-[node name="UtopiaLighting" type="Node3D" unique_id=1758887997]
+[node name="UtopiaLighting" type="Node3D" unique_id=2048072628]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1565072819]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=654124087]
 environment = SubResource("Environment_j0i7u")
 compositor = SubResource("Compositor_tdn86")
 
-[node name="Sun" type="DirectionalLight3D" parent="." unique_id=2019901845]
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1501315940]
 transform = Transform3D(0.81915206, 0.22411418, -0.5279799, 0, 0.92050487, 0.39073113, 0.57357645, -0.3200682, 0.75403345, 0, 300, 0)
 light_color = Color(1, 0.8, 0.6, 1)
 light_energy = 3.0
@@ -83,13 +83,13 @@ directional_shadow_blend_splits = true
 directional_shadow_fade_start = 0.85
 directional_shadow_max_distance = 1400.0
 
-[node name="SkyFill" type="DirectionalLight3D" parent="." unique_id=1488789821]
+[node name="SkyFill" type="DirectionalLight3D" parent="." unique_id=1822895457]
 transform = Transform3D(-0.819152, -0.3132057, 0.48051232, 0, 0.8377476, 0.5460575, -0.5735764, 0.4473041, -0.6862427, 0, 300, 0)
 light_color = Color(0.375, 0.495, 0.735, 1)
 light_energy = 0.29
 sky_mode = 1
 
-[node name="SkyController" type="Node" parent="." unique_id=211763639]
+[node name="SkyController" type="Node" parent="." unique_id=1272287548]
 script = ExtResource("3_bacn7")
 world_environment = NodePath("../WorldEnvironment")
 sun = NodePath("../Sun")

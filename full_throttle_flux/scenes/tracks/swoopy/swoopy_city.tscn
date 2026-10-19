@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/districts/swoopy_deck.tscn" id="1_8oxeg"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/districts/swoopy_piers.tscn" id="2_tljqh"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/districts/swoopy_webs.tscn" id="3_cpmo3"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/districts/swoopy_platforms.tscn" id="4_tbebw"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/districts/swoopy_city.tscn" id="5_gfgwr"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/districts/swoopy_overhead.tscn" id="5_tljqh"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/districts/swoopy_needles.tscn" id="6_5a14x"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/districts/swoopy_spires.tscn" id="7_3l5cq"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/districts/swoopy_clouds.tscn" id="8_nf2qs"]
+[ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/swoopy_track_dressing.tscn" id="10_cpmo3"]
+
+[node name="SwoopyCity" type="Node3D" unique_id=297196820]
+
+[node name="Swoopy_Deck" type="Node3D" parent="." unique_id=665022628 instance=ExtResource("1_8oxeg")]
+
+[node name="Swoopy_Piers" type="Node3D" parent="." unique_id=283308919 instance=ExtResource("2_tljqh")]
+
+[node name="Swoopy_Webs" type="Node3D" parent="." unique_id=1315943915 instance=ExtResource("3_cpmo3")]
+
+[node name="Swoopy_Platforms" type="Node3D" parent="." unique_id=838613352 instance=ExtResource("4_tbebw")]
+
+[node name="Swoopy_Overhead" type="Node3D" parent="." unique_id=107788130 instance=ExtResource("5_tljqh")]
+
+[node name="Swoopy_City" type="Node3D" parent="." unique_id=47052639 instance=ExtResource("5_gfgwr")]
+
+[node name="Swoopy_Needles" type="Node3D" parent="." unique_id=1636463103 instance=ExtResource("6_5a14x")]
+
+[node name="Swoopy_Spires" type="Node3D" parent="." unique_id=1968033151 instance=ExtResource("7_3l5cq")]
+
+[node name="Swoopy_Clouds" type="Node3D" parent="." unique_id=941105483 instance=ExtResource("8_nf2qs")]
+
+[node name="SwoopyTrackDressing" type="Node3D" parent="." unique_id=86368515 instance=ExtResource("10_cpmo3")]

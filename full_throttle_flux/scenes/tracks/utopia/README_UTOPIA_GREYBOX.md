@@ -212,17 +212,50 @@ $UtopiaLighting/SkyController.transition_to("storm_light", 8.0)
 
 Snapping between presets is instant for the sun and the sky. The ambient/reflection cubemap updates incrementally, so it catches up over roughly a second. `transition_to()` hides this.
 
-### The sky shader: `sky/utopia_sky.gdshader`
+### Where to adjust the sky
+
+| What | Where |
+|---|---|
+| Everyday controls: sun, colours, coverage, wind, quality, billow size, detail, edge softness, dither | `UtopiaLighting/SkyController` in the inspector |
+| Weather presets | `PRESETS` in `tools/utopia/sky_controller.gd` |
+| Every shader uniform, including advanced ones (cloud heights and scales, phase, horizon fade, cirrus, sun disk) | `sky/utopia_sky_material.tres`. The controller overwrites the ones it drives. |
+| Cloud shapes themselves | Regenerate the noise volumes: `python3 tools/utopia/gen_cloud_noise.py`, then `godot --path . -s res://tools/utopia/bake_cloud_noise.gd`. The bake must run **without** `--headless`. |
+
+### Cloud quality
+
+`cloud_quality` on the controller swaps the shader variant and the step counts:
+
+| Tier | Cloud resolution | March steps | Light taps | Use |
+|---|---|---|---|---|
+| low | ¼ | 20 | 2 | Weak GPUs |
+| medium | ½ | 32 | 3 | What v4/v5 shipped with |
+| **high** (default) | full | 40 | 4 | Racing |
+| ultra | full | 64 | 6 | Screenshots and replays |
+
+Grazing rays near the horizon automatically get up to 1.75× more steps.
+
+**Cost:** I couldn't measure it here (I only have a software renderer). Full-res clouds cost roughly 2–4× what half-res does. On an RTX 3080 at 1440p I'd expect *high* to land around 1.5–3 ms. Check the GPU profiler (Debugger → Visual Profiler → Sky). If it's too heavy, *medium* is still much better than before because of the new noise.
+
+### The sky shader: `sky/utopia_sky_common.gdshaderinc`
+
+Three thin variants include it: `utopia_sky_full`, `utopia_sky_half` and `utopia_sky_quarter.gdshader`.
 
 * **Atmosphere:** an art-directed gradient (zenith, horizon, ground), plus a forward-scattering sun glow, a halo and a sun disk. It reads the Sun via `LIGHT0_*`, so moving the light moves the sky.
-* **Cumulus deck:** raymarched (28 steps, with a 3-tap light march toward the sun) in Godot's **half-resolution sky pass**.
-  * It sits on a curved shell (planet radius 60 km), so clouds sink to the horizon and fade into the haze.
-  * It uses Beer and powder lighting with a forward/back phase (silver linings) and an ambient term that runs from the shadow colour at the base to the sky colour at the top.
-  * Shape comes from a 64³ Worley-ish noise volume (`sky/cloud_noise_3d.tres`) and a 512² weather map (`sky/cloud_weather.tres`). Both are FastNoiseLite resources, so you can edit them in the inspector.
+* **Cumulus:** raymarched on a curved shell (planet radius 60 km), so the clouds sink to the horizon and dissolve into the haze.
+  * **Shape** comes from a **128³ tileable Perlin-Worley volume**, which gives billowy cauliflower tops.
+  * **Erosion** comes from a **64³ Worley FBM volume**: wispy at the cloud base, billowy toward the top. It fades out past `detail_fade_distance`, where it would only alias.
+  * **Coverage** is set by the 512² weather map.
+  * **Lighting:** Beer and powder terms, a forward/back phase (silver linings), and a jittered light march toward the sun.
+  * **Dither:** the march start is dithered per pixel (`cloud_dither`), so thick clouds don't show step "slices".
+* **Why it looked blocky before:** there were three causes:
+  1. a half-res pass that was upscaled;
+  2. a low-detail 64³ single-octave cellular noise, which gave faceted shapes;
+  3. 28 fixed, undithered steps, which made banding visible.
+
+  All three are fixed.
 * **Cirrus:** a streaky 2D layer at 7 km.
-* **Wind:** the noise moves with `TIME`, so clouds drift with no script running. The sky also uses the camera `POSITION` (`cloud_parallax`), so the deck slides past as you race. At 120 m/s that is a strong sense of travel.
-* **Cubemap pass:** the ambient/reflection pass skips the raymarch (it uses a coverage veil) and most of the sun glow, so the sky lights the city without the ambient going orange.
-* **Cost:** expect the half-res cloud pass to cost on the order of 1 ms at 1080p, but I couldn't measure it (the cloud only renders with a software renderer). If you need it cheaper, lower `march_steps` first. `use_quarter_res_pass` is the next step down.
+* **Wind** drifts the clouds with `TIME`. **Parallax** slides the deck past as the camera travels.
+* **Cubemap pass:** the ambient/reflection pass skips the raymarch (it uses a coverage veil) and most of the sun glow.
 
 ### God rays
 

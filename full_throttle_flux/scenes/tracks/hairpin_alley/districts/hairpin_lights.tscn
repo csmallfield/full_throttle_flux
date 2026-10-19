@@ -1,0 +1,2289 @@
+[gd_scene format=3]
+
+[node name="Hairpin_Lights" type="Node3D" unique_id=1307494313]
+
+[node name="DeckLights" type="Node3D" parent="." unique_id=42448414]
+
+[node name="L000" type="OmniLight3D" parent="DeckLights" unique_id=2020923555]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5075387, 12.553296, 24.608387)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L001" type="OmniLight3D" parent="DeckLights" unique_id=488811823]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.240166, 13.08747, -10.692965)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L002" type="OmniLight3D" parent="DeckLights" unique_id=1933998986]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66.494194, 12.70541, 27.666597)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L003" type="OmniLight3D" parent="DeckLights" unique_id=1346738578]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104.450485, 12.762717, -4.185096)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L004" type="OmniLight3D" parent="DeckLights" unique_id=911510994]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -132.71866, 12.747656, 36.428665)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L005" type="OmniLight3D" parent="DeckLights" unique_id=157798845]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -172.48763, 12.355499, 6.8597317)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L006" type="OmniLight3D" parent="DeckLights" unique_id=1218540889]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -198.94125, 12.727428, 48.675045)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L007" type="OmniLight3D" parent="DeckLights" unique_id=1761822636]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -239.57048, 11.896204, 20.308235)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L008" type="OmniLight3D" parent="DeckLights" unique_id=1837031597]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -265.38754, 12.688143, 62.511)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L009" type="OmniLight3D" parent="DeckLights" unique_id=1363210695]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -305.93723, 11.410164, 34.071274)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L010" type="OmniLight3D" parent="DeckLights" unique_id=287101438]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -332.7991, 12.6872425, 75.60516)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L020" type="OmniLight3D" parent="DeckLights" unique_id=1000075863]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -674.97675, 20.48873, 94.80304)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L021" type="OmniLight3D" parent="DeckLights" unique_id=236430453]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -706.2037, 15.286185, 56.740795)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L022" type="OmniLight3D" parent="DeckLights" unique_id=1633295438]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -744.3167, 22.62315, 87.19246)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L023" type="OmniLight3D" parent="DeckLights" unique_id=1937757938]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -770.3317, 16.48769, 45.603806)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L024" type="OmniLight3D" parent="DeckLights" unique_id=1284771874]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -812.63153, 24.60533, 69.50963)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L025" type="OmniLight3D" parent="DeckLights" unique_id=742896265]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -830.15125, 17.389576, 23.970692)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L026" type="OmniLight3D" parent="DeckLights" unique_id=959523906]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -876.56104, 26.102386, 37.61057)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L027" type="OmniLight3D" parent="DeckLights" unique_id=1940924057]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -881.77405, 18.617113, -10.2318735)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L028" type="OmniLight3D" parent="DeckLights" unique_id=1088024230]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -930.19257, 26.474216, -15.387142)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L029" type="OmniLight3D" parent="DeckLights" unique_id=1525328662]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -899.732, 19.85414, -46.470955)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L030" type="OmniLight3D" parent="DeckLights" unique_id=357504755]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -901.5351, 23.843073, -92.6281)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L031" type="OmniLight3D" parent="DeckLights" unique_id=613731592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -857.0526, 18.939518, -72.15869)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L040" type="OmniLight3D" parent="DeckLights" unique_id=1432033518]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -560.7142, 9.346994, -114.424255)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L041" type="OmniLight3D" parent="DeckLights" unique_id=669824947]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -521.8015, 19.18153, -85.19135)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L042" type="OmniLight3D" parent="DeckLights" unique_id=1919813919]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -516.03796, 9.557572, -128.03265)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L043" type="OmniLight3D" parent="DeckLights" unique_id=199154369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -478.7771, 20.355225, -151.34839)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L044" type="OmniLight3D" parent="DeckLights" unique_id=1963761097]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -519.698, 11.423602, -157.9335)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L045" type="OmniLight3D" parent="DeckLights" unique_id=514137956]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -541.5907, 19.553146, -199.39392)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L046" type="OmniLight3D" parent="DeckLights" unique_id=816200243]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -581.78467, 13.682898, -170.66096)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L047" type="OmniLight3D" parent="DeckLights" unique_id=2042749568]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -598.6825, 18.34132, -216.43913)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L048" type="OmniLight3D" parent="DeckLights" unique_id=735672343]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -646.46045, 16.294275, -220.67775)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L049" type="OmniLight3D" parent="DeckLights" unique_id=1693288639]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -622.1752, 18.981396, -262.4747)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L050" type="OmniLight3D" parent="DeckLights" unique_id=370796224]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -650.02844, 24.317303, -300.51257)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L051" type="OmniLight3D" parent="DeckLights" unique_id=566703369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -601.227, 24.033012, -296.67474)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L052" type="OmniLight3D" parent="DeckLights" unique_id=742147320]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -581.6424, 34.224144, -340.09802)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L053" type="OmniLight3D" parent="DeckLights" unique_id=166646426]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -541.5542, 28.19823, -311.2918)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L054" type="OmniLight3D" parent="DeckLights" unique_id=881720751]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -511.101, 37.697556, -349.03516)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L055" type="OmniLight3D" parent="DeckLights" unique_id=808304533]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -475.4989, 29.558716, -315.39734)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L065" type="OmniLight3D" parent="DeckLights" unique_id=669203427]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -161.64876, 37.214256, -218.9118)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L066" type="OmniLight3D" parent="DeckLights" unique_id=1892024242]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -116.72554, 39.226215, -240.03482)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L067" type="OmniLight3D" parent="DeckLights" unique_id=29662799]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96.17923, 39.30226, -195.16582)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L068" type="OmniLight3D" parent="DeckLights" unique_id=623428339]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.1767, 39.581554, -221.55626)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L069" type="OmniLight3D" parent="DeckLights" unique_id=342465912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.400162, 41.54463, -181.59511)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L070" type="OmniLight3D" parent="DeckLights" unique_id=416900997]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.263757, 39.62755, -219.21147)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L071" type="OmniLight3D" parent="DeckLights" unique_id=821588202]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49.447464, 43.725636, -197.15044)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L072" type="OmniLight3D" parent="DeckLights" unique_id=132097124]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55.154408, 39.24436, -245.58133)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L073" type="OmniLight3D" parent="DeckLights" unique_id=284828265]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.151794, 40.88842, -261.45178)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L074" type="OmniLight3D" parent="DeckLights" unique_id=790233977]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.12329, 35.46355, -283.32758)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L075" type="OmniLight3D" parent="DeckLights" unique_id=647320193]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.202126, 30.97155, -331.6415)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L076" type="OmniLight3D" parent="DeckLights" unique_id=452486407]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.758001, 28.96449, -321.45352)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L077" type="OmniLight3D" parent="DeckLights" unique_id=1068243664]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28015804, 24.455877, -369.1942)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L078" type="OmniLight3D" parent="DeckLights" unique_id=210953665]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.086983, 23.896263, -352.06134)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L079" type="OmniLight3D" parent="DeckLights" unique_id=2020972244]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -61.73265, 20.342785, -398.68774)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L089" type="OmniLight3D" parent="DeckLights" unique_id=348897587]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -401.09055, 15.126995, -440.97076)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L090" type="OmniLight3D" parent="DeckLights" unique_id=458023894]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -436.15768, 25.443485, -408.41733)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L091" type="OmniLight3D" parent="DeckLights" unique_id=446285064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -469.188, 14.288287, -443.86487)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L092" type="OmniLight3D" parent="DeckLights" unique_id=503181836]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -503.4071, 25.904188, -410.08557)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L093" type="OmniLight3D" parent="DeckLights" unique_id=1588504488]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -536.359, 13.565342, -444.79187)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L094" type="OmniLight3D" parent="DeckLights" unique_id=2047425191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -573.0188, 26.421402, -414.77744)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L095" type="OmniLight3D" parent="DeckLights" unique_id=2022685122]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -596.0224, 12.919317, -455.2792)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L096" type="OmniLight3D" parent="DeckLights" unique_id=595137459]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -640.1998, 27.422688, -444.29303)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L097" type="OmniLight3D" parent="DeckLights" unique_id=741591722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -633.6013, 12.635056, -489.4195)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L098" type="OmniLight3D" parent="DeckLights" unique_id=1776285360]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -673.7492, 28.990477, -509.58725)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L099" type="OmniLight3D" parent="DeckLights" unique_id=1472041410]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -645.65314, 13.01209, -546.5015)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L100" type="OmniLight3D" parent="DeckLights" unique_id=1475613805]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -677.06836, 30.075771, -580.50336)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L101" type="OmniLight3D" parent="DeckLights" unique_id=655596868]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -638.51917, 16.00138, -602.12256)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L102" type="OmniLight3D" parent="DeckLights" unique_id=2113259858]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -638.58624, 29.655432, -646.6939)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L103" type="OmniLight3D" parent="DeckLights" unique_id=1490547155]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -599.2692, 19.588505, -620.5798)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L104" type="OmniLight3D" parent="DeckLights" unique_id=1292708299]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -565.6852, 27.839575, -656.09344)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L105" type="OmniLight3D" parent="DeckLights" unique_id=1652264572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -531.686, 22.046873, -620.95166)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L106" type="OmniLight3D" parent="DeckLights" unique_id=450059883]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -501.27728, 26.050312, -660.27716)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L107" type="OmniLight3D" parent="DeckLights" unique_id=1038802179]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -458.82663, 24.369875, -635.8618)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L108" type="OmniLight3D" parent="DeckLights" unique_id=270196175]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -447.0629, 24.638548, -684.14276)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L109" type="OmniLight3D" parent="DeckLights" unique_id=1153641707]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -396.94666, 25.396097, -684.05524)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L110" type="OmniLight3D" parent="DeckLights" unique_id=1109581828]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -425.06323, 27.28549, -720.0835)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L111" type="OmniLight3D" parent="DeckLights" unique_id=1796976621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -412.95953, 24.263153, -766.99023)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L112" type="OmniLight3D" parent="DeckLights" unique_id=1125737056]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -462.11072, 30.389505, -770.6097)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L113" type="OmniLight3D" parent="DeckLights" unique_id=1028120335]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -438.68118, 21.793247, -803.08746)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L114" type="OmniLight3D" parent="DeckLights" unique_id=1677241796]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -439.596, 33.719967, -844.2696)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L115" type="OmniLight3D" parent="DeckLights" unique_id=1721493064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -395.01843, 20.242685, -827.2685)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L124" type="OmniLight3D" parent="DeckLights" unique_id=276994127]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -99.68176, 34.68991, -845.1242)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L125" type="OmniLight3D" parent="DeckLights" unique_id=602257884]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.94197, 18.552498, -800.3252)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L126" type="OmniLight3D" parent="DeckLights" unique_id=1068879351]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42.880577, 34.05016, -801.6854)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L127" type="OmniLight3D" parent="DeckLights" unique_id=275385633]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -51.404827, 17.450052, -757.24347)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L128" type="OmniLight3D" parent="DeckLights" unique_id=584233804]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.207358, 32.9876, -736.49695)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L129" type="OmniLight3D" parent="DeckLights" unique_id=1416267524]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.226387, 16.574837, -699.7222)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L130" type="OmniLight3D" parent="DeckLights" unique_id=2070579992]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.261919, 31.362255, -663.1117)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L131" type="OmniLight3D" parent="DeckLights" unique_id=2068561940]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.8993, 16.764038, -664.89215)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L132" type="OmniLight3D" parent="DeckLights" unique_id=654400806]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75.24851, 30.239346, -624.7341)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L133" type="OmniLight3D" parent="DeckLights" unique_id=1405176462]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -114.13079, 17.18932, -652.4873)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L134" type="OmniLight3D" parent="DeckLights" unique_id=88699857]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -142.11179, 29.738453, -613.32404)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L135" type="OmniLight3D" parent="DeckLights" unique_id=294086251]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -179.35048, 18.429008, -641.8767)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L136" type="OmniLight3D" parent="DeckLights" unique_id=615659428]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -213.71832, 29.624102, -608.4477)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L137" type="OmniLight3D" parent="DeckLights" unique_id=632912898]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -232.00471, 28.874937, -652.72186)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L138" type="OmniLight3D" parent="DeckLights" unique_id=1994610293]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -267.28635, 38.26377, -617.82733)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L139" type="OmniLight3D" parent="DeckLights" unique_id=1414456492]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -308.67828, 50.58704, -643.5793)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L140" type="OmniLight3D" parent="DeckLights" unique_id=418723447]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -331.621, 47.779327, -599.51324)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L141" type="OmniLight3D" parent="DeckLights" unique_id=1990519775]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -375.20108, 57.315403, -621.2353)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L142" type="OmniLight3D" parent="DeckLights" unique_id=851978670]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -391.93616, 52.472897, -575.036)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L143" type="OmniLight3D" parent="DeckLights" unique_id=577783739]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -438.93945, 61.374866, -587.7011)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L144" type="OmniLight3D" parent="DeckLights" unique_id=2131402742]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -436.45105, 54.759933, -540.8789)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L145" type="OmniLight3D" parent="DeckLights" unique_id=679136314]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -470.56894, 62.471573, -511.14456)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L146" type="OmniLight3D" parent="DeckLights" unique_id=540251114]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -425.06207, 54.36767, -524.411)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L147" type="OmniLight3D" parent="DeckLights" unique_id=551879428]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -391.2199, 52.35034, -488.6919)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L148" type="OmniLight3D" parent="DeckLights" unique_id=1495649572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -361.5484, 48.249153, -527.9065)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L149" type="OmniLight3D" parent="DeckLights" unique_id=674077450]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -322.73407, 43.67393, -497.23303)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L159" type="OmniLight3D" parent="DeckLights" unique_id=1685925170]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8060403, 4.8607297, -547.16486)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L160" type="OmniLight3D" parent="DeckLights" unique_id=568991228]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.88173, 9.910052, -581.1143)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L161" type="OmniLight3D" parent="DeckLights" unique_id=81963180]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 68.83112, -1.0369039, -541.30316)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L162" type="OmniLight3D" parent="DeckLights" unique_id=1409228634]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 113.083015, 6.8003917, -557.1673)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L163" type="OmniLight3D" parent="DeckLights" unique_id=259977694]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108.27903, -1.2135627, -510.56998)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L164" type="OmniLight3D" parent="DeckLights" unique_id=171431570]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 153.29813, 6.6785564, -493.4431)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L165" type="OmniLight3D" parent="DeckLights" unique_id=593140770]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 123.817444, 3.2794178, -454.7019)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L166" type="OmniLight3D" parent="DeckLights" unique_id=1930159547]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 160.93217, 8.820793, -422.1622)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L167" type="OmniLight3D" parent="DeckLights" unique_id=428326123]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 124.45342, 8.924732, -389.23557)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L168" type="OmniLight3D" parent="DeckLights" unique_id=834077037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 159.73593, 11.274043, -354.0984)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L169" type="OmniLight3D" parent="DeckLights" unique_id=993669204]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 124.786766, 14.78102, -319.67783)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L170" type="OmniLight3D" parent="DeckLights" unique_id=1903968454]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 165.11774, 12.9103, -290.874)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L171" type="OmniLight3D" parent="DeckLights" unique_id=1341298938]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 144.16595, 19.876884, -247.46179)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L172" type="OmniLight3D" parent="DeckLights" unique_id=911622427]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 192.35109, 12.134219, -243.93138)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L173" type="OmniLight3D" parent="DeckLights" unique_id=1611006176]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 202.12317, 20.5635, -196.97498)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L174" type="OmniLight3D" parent="DeckLights" unique_id=503653101]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 241.57144, 13.560813, -222.25269)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L175" type="OmniLight3D" parent="DeckLights" unique_id=2047167874]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 279.3026, 18.35961, -191.53946)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L176" type="OmniLight3D" parent="DeckLights" unique_id=1379623483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 296.1859, 16.583576, -237.4805)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L177" type="OmniLight3D" parent="DeckLights" unique_id=1113166021]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 343.6967, 16.530485, -222.45871)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L178" type="OmniLight3D" parent="DeckLights" unique_id=1823496962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 357.57678, 19.492157, -269.41672)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L179" type="OmniLight3D" parent="DeckLights" unique_id=1260569370]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 400.79083, 14.476616, -245.88504)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L180" type="OmniLight3D" parent="DeckLights" unique_id=1950806039]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 431.42114, 21.701385, -282.34894)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L181" type="OmniLight3D" parent="DeckLights" unique_id=8361077]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 455.3366, 12.88471, -241.2316)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L182" type="OmniLight3D" parent="DeckLights" unique_id=2025935894]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 500.86676, 22.741371, -253.2899)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L183" type="OmniLight3D" parent="DeckLights" unique_id=1828789526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 498.02048, 13.5928135, -205.38007)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L184" type="OmniLight3D" parent="DeckLights" unique_id=675319851]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 544.0778, 24.825996, -194.23932)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L185" type="OmniLight3D" parent="DeckLights" unique_id=1469190769]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 523.31964, 14.950281, -150.8844)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L186" type="OmniLight3D" parent="DeckLights" unique_id=2123096852]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 562.8555, 27.054844, -124.741486)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L187" type="OmniLight3D" parent="DeckLights" unique_id=1445935833]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 529.5931, 16.191286, -90.46061)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L188" type="OmniLight3D" parent="DeckLights" unique_id=645109912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 557.53467, 28.782455, -52.43567)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L189" type="OmniLight3D" parent="DeckLights" unique_id=1986663541]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 514.0609, 16.606377, -34.518707)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L190" type="OmniLight3D" parent="DeckLights" unique_id=611683423]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 519.93396, 28.983662, 12.023319)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L191" type="OmniLight3D" parent="DeckLights" unique_id=785939826]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 474.90448, 16.596018, 0.22082806)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L192" type="OmniLight3D" parent="DeckLights" unique_id=1859879994]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 452.2049, 26.503025, 42.45939)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L201" type="OmniLight3D" parent="DeckLights" unique_id=113627397]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 147.14967, 13.121986, -0.93821144)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L202" type="OmniLight3D" parent="DeckLights" unique_id=891554530]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 109.50064, 15.049511, 31.421553)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L203" type="OmniLight3D" parent="DeckLights" unique_id=1456798928]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 79.192535, 12.798316, -7.405775)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L204" type="OmniLight3D" parent="DeckLights" unique_id=1367829276]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.449936, 13.371877, 26.013)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="L205" type="OmniLight3D" parent="DeckLights" unique_id=1356301741]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.280839, 13.072669, -11.30168)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 18.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 60.0
+
+[node name="TunnelLights" type="Node3D" parent="." unique_id=1063254546]
+
+[node name="GateTunnel_00" type="OmniLight3D" parent="TunnelLights" unique_id=1107368672]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -385.409, 27.938248, 63.16129)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="GateTunnel_01" type="OmniLight3D" parent="TunnelLights" unique_id=546206426]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -413.1385, 27.951038, 63.54658)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="GateTunnel_02" type="OmniLight3D" parent="TunnelLights" unique_id=1119209674]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -440.9558, 28.234596, 64.87714)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="GateTunnel_03" type="OmniLight3D" parent="TunnelLights" unique_id=986875959]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -468.77997, 28.684875, 66.98763)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="GateTunnel_04" type="OmniLight3D" parent="TunnelLights" unique_id=1517205756]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -496.60205, 29.230032, 69.28881)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="GateTunnel_05" type="OmniLight3D" parent="TunnelLights" unique_id=1947483156]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -524.43207, 29.835743, 71.48085)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="GateTunnel_06" type="OmniLight3D" parent="TunnelLights" unique_id=24930265]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -552.2771, 30.48198, 73.36804)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="GateTunnel_07" type="OmniLight3D" parent="TunnelLights" unique_id=1464156143]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -580.1377, 31.155348, 74.79736)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="GateTunnel_08" type="OmniLight3D" parent="TunnelLights" unique_id=1725201744]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -608.0068, 31.845806, 75.63194)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="MarketBore_00" type="OmniLight3D" parent="TunnelLights" unique_id=634618099]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -825.0367, 37.418434, -94.67201)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="MarketBore_01" type="OmniLight3D" parent="TunnelLights" unique_id=1416096298]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -797.0526, 35.836018, -95.71611)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="MarketBore_02" type="OmniLight3D" parent="TunnelLights" unique_id=56637483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -769.0335, 34.05171, -93.66539)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="MarketBore_03" type="OmniLight3D" parent="TunnelLights" unique_id=395743317]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -741.6428, 32.233814, -89.74566)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="MarketBore_04" type="OmniLight3D" parent="TunnelLights" unique_id=260165541]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -714.4503, 30.843493, -86.7057)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="MarketBore_05" type="OmniLight3D" parent="TunnelLights" unique_id=1514583277]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -687.3224, 29.994078, -84.908195)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="MarketBore_06" type="OmniLight3D" parent="TunnelLights" unique_id=2062401488]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -660.40515, 29.809834, -84.784996)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="MarketBore_07" type="OmniLight3D" parent="TunnelLights" unique_id=1578057918]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -633.9181, 30.405043, -86.975464)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="MarketBore_08" type="OmniLight3D" parent="TunnelLights" unique_id=234676015]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -607.6861, 31.688196, -92.349205)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_00" type="OmniLight3D" parent="TunnelLights" unique_id=1344565035]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -436.55392, 52.709145, -328.01608)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_01" type="OmniLight3D" parent="TunnelLights" unique_id=1621608802]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -409.49097, 52.960266, -325.12695)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_02" type="OmniLight3D" parent="TunnelLights" unique_id=414435026]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -382.5531, 53.271225, -319.9254)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_03" type="OmniLight3D" parent="TunnelLights" unique_id=1680989180]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -355.85367, 53.6295, -312.94412)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_04" type="OmniLight3D" parent="TunnelLights" unique_id=832959677]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -329.42065, 54.02539, -304.6128)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_05" type="OmniLight3D" parent="TunnelLights" unique_id=1387675315]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -303.2337, 54.4515, -295.27576)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_06" type="OmniLight3D" parent="TunnelLights" unique_id=25066216]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -277.24692, 54.902138, -285.21408)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_07" type="OmniLight3D" parent="TunnelLights" unique_id=847079016]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -251.4001, 55.37291, -274.66602)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_08" type="OmniLight3D" parent="TunnelLights" unique_id=239976214]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -225.62624, 55.86019, -263.84564)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_09" type="OmniLight3D" parent="TunnelLights" unique_id=1135391900]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -199.85068, 56.360985, -252.95757)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="TowerBore_10" type="OmniLight3D" parent="TunnelLights" unique_id=1377489543]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -173.9926, 56.87252, -242.21344)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_00" type="OmniLight3D" parent="TunnelLights" unique_id=1675881459]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90.827156, 40.193245, -392.8302)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_01" type="OmniLight3D" parent="TunnelLights" unique_id=1653537788]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -115.75293, 39.966503, -403.499)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_02" type="OmniLight3D" parent="TunnelLights" unique_id=117434471]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -141.9885, 40.09781, -413.81403)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_03" type="OmniLight3D" parent="TunnelLights" unique_id=2111586536]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -169.26387, 40.162434, -421.43607)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_04" type="OmniLight3D" parent="TunnelLights" unique_id=857408881]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -197.15082, 40.162956, -426.50888)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_05" type="OmniLight3D" parent="TunnelLights" unique_id=1120519926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -225.33667, 40.10649, -429.39636)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_06" type="OmniLight3D" parent="TunnelLights" unique_id=953331241]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -253.59648, 40.00251, -430.5786)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_07" type="OmniLight3D" parent="TunnelLights" unique_id=1317820014]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -281.80508, 39.86122, -430.57965)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_08" type="OmniLight3D" parent="TunnelLights" unique_id=613821602]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -309.9049, 39.692657, -429.92108)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_09" type="OmniLight3D" parent="TunnelLights" unique_id=1062317614]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -337.87875, 39.506287, -429.10257)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="LongBore_10" type="OmniLight3D" parent="TunnelLights" unique_id=831785133]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -365.71814, 39.311035, -428.59778)
+light_color = Color(0.56, 0.945, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="NorthBore_00" type="OmniLight3D" parent="TunnelLights" unique_id=1475160758]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -351.31528, 51.125473, -846.50183)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="NorthBore_01" type="OmniLight3D" parent="TunnelLights" unique_id=1830943725]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -324.79657, 51.149467, -851.29706)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="NorthBore_02" type="OmniLight3D" parent="TunnelLights" unique_id=2066871025]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -297.98825, 51.139423, -854.2621)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="NorthBore_03" type="OmniLight3D" parent="TunnelLights" unique_id=1092999549]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -271.03632, 51.09549, -855.4218)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="NorthBore_04" type="OmniLight3D" parent="TunnelLights" unique_id=27807630]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -244.08327, 51.017365, -854.7784)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="NorthBore_05" type="OmniLight3D" parent="TunnelLights" unique_id=230328595]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -217.27817, 50.90418, -852.30743)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="NorthBore_06" type="OmniLight3D" parent="TunnelLights" unique_id=91659947]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -190.78708, 50.754417, -847.9532)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="NorthBore_07" type="OmniLight3D" parent="TunnelLights" unique_id=124261914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -164.81422, 50.565804, -841.62445)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="NorthBore_08" type="OmniLight3D" parent="TunnelLights" unique_id=1797434813]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -139.62778, 50.335247, -833.19147)
+light_color = Color(1, 0.769, 0.5325, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_00" type="OmniLight3D" parent="TunnelLights" unique_id=76136016]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -299.96475, 60.012882, -518.3657)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_01" type="OmniLight3D" parent="TunnelLights" unique_id=711621600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -272.52643, 56.898415, -522.95215)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_02" type="OmniLight3D" parent="TunnelLights" unique_id=541489515]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -245.12433, 53.801872, -527.71844)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_03" type="OmniLight3D" parent="TunnelLights" unique_id=1856243916]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -217.74176, 50.725845, -532.5464)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_04" type="OmniLight3D" parent="TunnelLights" unique_id=2076960101]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -190.3654, 47.673218, -537.33685)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_05" type="OmniLight3D" parent="TunnelLights" unique_id=1975983153]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -162.98193, 44.64727, -541.99896)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_06" type="OmniLight3D" parent="TunnelLights" unique_id=761627882]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -135.58095, 41.652306, -546.44025)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_07" type="OmniLight3D" parent="TunnelLights" unique_id=1915826907]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -108.15566, 38.694233, -550.55896)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_08" type="OmniLight3D" parent="TunnelLights" unique_id=822007246]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80.703094, 35.781136, -554.23444)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_09" type="OmniLight3D" parent="TunnelLights" unique_id=1295399524]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -53.228836, 32.924786, -557.313)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="RampBore_10" type="OmniLight3D" parent="TunnelLights" unique_id=1069501694]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.75533, 30.143076, -559.58655)
+light_color = Color(1, 0.56, 0.835, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="HomeBore_00" type="OmniLight3D" parent="TunnelLights" unique_id=212038403]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 407.0407, 39.53177, 26.17553)
+light_color = Color(0.9175, 0.95600003, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="HomeBore_01" type="OmniLight3D" parent="TunnelLights" unique_id=2137019273]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 379.48688, 38.950783, 27.927256)
+light_color = Color(0.9175, 0.95600003, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="HomeBore_02" type="OmniLight3D" parent="TunnelLights" unique_id=1266909417]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 351.7634, 38.3524, 28.46065)
+light_color = Color(0.9175, 0.95600003, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="HomeBore_03" type="OmniLight3D" parent="TunnelLights" unique_id=1394356446]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 323.9594, 37.747257, 28.087944)
+light_color = Color(0.9175, 0.95600003, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="HomeBore_04" type="OmniLight3D" parent="TunnelLights" unique_id=55088879]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 296.12314, 37.142982, 27.03105)
+light_color = Color(0.9175, 0.95600003, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="HomeBore_05" type="OmniLight3D" parent="TunnelLights" unique_id=372195735]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 268.2762, 36.545547, 25.456491)
+light_color = Color(0.9175, 0.95600003, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="HomeBore_06" type="OmniLight3D" parent="TunnelLights" unique_id=1998489483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 240.42987, 35.960213, 23.496284)
+light_color = Color(0.9175, 0.95600003, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="HomeBore_07" type="OmniLight3D" parent="TunnelLights" unique_id=714845338]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.58821, 35.392063, 21.261345)
+light_color = Color(0.9175, 0.95600003, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="HomeBore_08" type="OmniLight3D" parent="TunnelLights" unique_id=1501157771]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 184.74945, 34.846416, 18.850704)
+light_color = Color(0.9175, 0.95600003, 1, 1)
+light_energy = 16.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 50.0
+
+[node name="SignSpill" type="Node3D" parent="." unique_id=800586677]
+
+[node name="Spill00" type="OmniLight3D" parent="SignSpill" unique_id=2015932450]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -965.90656, 29.110125, 16.905865)
+light_color = Color(1, 0.2, 0.7, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill01" type="OmniLight3D" parent="SignSpill" unique_id=2131705515]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -451.4471, 21.13598, -94.12077)
+light_color = Color(0.2, 0.9, 1, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill02" type="OmniLight3D" parent="SignSpill" unique_id=291861798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -697.98816, 24.013193, -235.87839)
+light_color = Color(1, 0.58, 0.15, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill03" type="OmniLight3D" parent="SignSpill" unique_id=1874796808]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76.34665, 47.694767, -159.90463)
+light_color = Color(1, 0.2, 0.7, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill04" type="OmniLight3D" parent="SignSpill" unique_id=735168484]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -644.7526, 25.983444, -385.8385)
+light_color = Color(0.2, 0.9, 1, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill05" type="OmniLight3D" parent="SignSpill" unique_id=585886115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -699.46075, 29.17212, -643.8237)
+light_color = Color(1, 0.58, 0.15, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill06" type="OmniLight3D" parent="SignSpill" unique_id=1199514777]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -523.28827, 33.309525, -758.00275)
+light_color = Color(0.2, 0.9, 1, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill07" type="OmniLight3D" parent="SignSpill" unique_id=5607744]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.26598, 30.157818, -654.6383)
+light_color = Color(1, 0.58, 0.15, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill08" type="OmniLight3D" parent="SignSpill" unique_id=110434997]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -511.26978, 65.16902, -542.4098)
+light_color = Color(1, 0.2, 0.7, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill09" type="OmniLight3D" parent="SignSpill" unique_id=2099101672]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.07755, 8.296707, -617.0693)
+light_color = Color(0.2, 0.9, 1, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill10" type="OmniLight3D" parent="SignSpill" unique_id=1226315962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 138.39563, 23.082857, -181.26413)
+light_color = Color(1, 0.58, 0.15, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill11" type="OmniLight3D" parent="SignSpill" unique_id=909791906]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 415.6565, 22.8553, -330.08936)
+light_color = Color(1, 0.2, 0.7, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0
+
+[node name="Spill12" type="OmniLight3D" parent="SignSpill" unique_id=649501578]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 587.4673, 28.712141, 5.0983562)
+light_color = Color(0.2, 0.9, 1, 1)
+light_energy = 40.0
+light_specular = 0.4
+distance_fade_enabled = true
+distance_fade_begin = 700.0
+distance_fade_length = 200.0
+omni_range = 90.0

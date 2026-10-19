@@ -1,0 +1,583 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/night_dark.tres" id="1_gmj7t"]
+[ext_resource type="BoxMesh" path="res://scenes/tracks/utopia/meshes/unit_box.tres" id="2_15r2o"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/night_concrete.tres" id="3_ldrw5"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/night_screen.tres" id="4_cmpml"]
+[ext_resource type="QuadMesh" path="res://scenes/tracks/hairpin_alley/meshes/unit_quad.tres" id="5_45qx3"]
+[ext_resource type="Material" path="res://scenes/tracks/hairpin_alley/materials/neon_white.tres" id="6_15r2o"]
+
+[node name="Hairpin_Signs" type="Node3D" unique_id=161754937]
+
+[node name="Corner00_R123" type="Node3D" parent="." unique_id=1167149076]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner00_R123" unique_id=1547932251]
+transform = Transform3D(14.9720125, 0, 1.9408096, 0, 21.999998, 0, -60.165096, 0, 0.48296815, -967.26514, 32.114174, 16.567787)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner00_R123" unique_id=697281181]
+transform = Transform3D(0.48296815, 0, 1.9408096, 0, 46.114174, 0, -1.9408096, 0, 0.48296815, -972.3363, -0.94291306, 36.946285)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner00_R123" unique_id=319413167]
+transform = Transform3D(0.48296815, 0, 1.9408096, 0, 46.114174, 0, -1.9408096, 0, 0.48296815, -962.194, -0.94291306, -3.810713)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner00_R123" unique_id=313471834]
+transform = Transform3D(14.489044, 0, 0.9704048, 0, 20, 0, -58.22429, 0, 0.24148408, -965.90656, 32.114174, 16.905865)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.2, 0.7, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner00_R123" unique_id=1021721406]
+transform = Transform3D(14.9720125, 0, 0.5822429, 0, 0.6, 0, -60.165096, 0, 0.14489046, -966.4888, 43.414173, 16.760975)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegL" type="MeshInstance3D" parent="Corner00_R123" unique_id=574764024]
+transform = Transform3D(0.7178403, 0, 2.4989407, 0, 68.8071, 0, -2.4989407, 0, 0.7178403, -798.77234, 10.403549, 99.287186)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegR" type="MeshInstance3D" parent="Corner00_R123" unique_id=638046284]
+transform = Transform3D(0.7178403, 0, 2.4989407, 0, 68.8071, 0, -2.4989407, 0, 0.7178403, -777.2372, 10.403549, 24.318958)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryBeam" type="MeshInstance3D" parent="Corner00_R123" unique_id=903736429]
+transform = Transform3D(22.63958, 0, 2.3067148, 0, 1.9999985, 0, -78.81275, 0, 0.66262186, -788.00476, 43.8071, 61.80307)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryScreen" type="MeshInstance3D" parent="Corner00_R123" unique_id=1025459779]
+transform = Transform3D(8.282773, 0, 0.9611311, 0, 5, 0, -28.833933, 0, 0.27609244, -786.6592, 40.3071, 62.189598)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.2, 0.7, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="Corner01_L161" type="Node3D" parent="." unique_id=1670152666]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner01_L161" unique_id=1518295087]
+transform = Transform3D(2.6132674, 0, -1.9982227, 0, 22.000002, 0, 61.944904, 0, 0.084298946, -450.04837, 24.15169, -94.17978)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner01_L161" unique_id=110414547]
+transform = Transform3D(0.084298946, 0, -1.9982227, 0, 38.15169, 0, 1.9982227, 0, 0.084298946, -450.9335, -4.924156, -115.16112)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner01_L161" unique_id=1341169022]
+transform = Transform3D(0.084298946, 0, -1.9982227, 0, 38.15169, 0, 1.9982227, 0, 0.084298946, -449.16324, -4.924156, -73.19844)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner01_L161" unique_id=1097902393]
+transform = Transform3D(2.5289683, 0, -0.99911135, 0, 20.000002, 0, 59.946682, 0, 0.042149473, -451.4471, 24.15169, -94.12077)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = -1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(0.2, 0.9, 1, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner01_L161" unique_id=1785120764]
+transform = Transform3D(2.6132674, 0, -0.59946686, 0, 0.600002, 0, 61.944904, 0, 0.025289685, -450.84766, 35.451687, -94.146065)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="Corner02_R149" type="Node3D" parent="." unique_id=1537876080]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner02_R149" unique_id=564126800]
+transform = Transform3D(36.587963, 0, 1.6146189, 0, 22.000002, 0, -50.053185, 0, 1.1802568, -699.1184, 27.013193, -236.70457)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner02_R149" unique_id=930632827]
+transform = Transform3D(1.1802568, 0, 1.6146189, 0, 41.0132, 0, -1.6146189, 0, 1.1802568, -711.5111, -3.4934025, -219.75108)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner02_R149" unique_id=849088475]
+transform = Transform3D(1.1802568, 0, 1.6146189, 0, 41.0132, 0, -1.6146189, 0, 1.1802568, -686.7257, -3.4934025, -253.65807)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner02_R149" unique_id=1322074373]
+transform = Transform3D(35.407707, 0, 0.80730945, 0, 20.000002, 0, -48.43857, 0, 0.5901284, -697.98816, 27.013193, -235.87839)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.58, 0.15, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner02_R149" unique_id=1309795923]
+transform = Transform3D(36.587963, 0, 0.4843857, 0, 0.600002, 0, -50.053185, 0, 0.35407707, -698.47253, 38.31319, -236.23247)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegL" type="MeshInstance3D" parent="Corner02_R149" unique_id=1388080919]
+transform = Transform3D(2.5678425, 0, -0.40765783, 0, 66.35393, 0, 0.40765783, 0, 2.5678425, -531.0831, 9.176964, -139.237)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegR" type="MeshInstance3D" parent="Corner02_R149" unique_id=905679167]
+transform = Transform3D(2.5678425, 0, -0.40765783, 0, 66.35393, 0, 0.40765783, 0, 2.5678425, -454.04782, 9.176964, -127.00726)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryBeam" type="MeshInstance3D" parent="Corner02_R149" unique_id=1863253439]
+transform = Transform3D(80.9858, 0, -0.37629956, 0, 2.0000005, 0, 12.856901, 0, 2.3703163, -492.56546, 41.353924, -133.12213)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryScreen" type="MeshInstance3D" parent="Corner02_R149" unique_id=34334915]
+transform = Transform3D(29.628952, 0, -0.15679148, 0, 5, 0, 4.7037444, 0, 0.98763174, -492.78497, 37.853924, -131.73944)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.58, 0.15, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="Corner03_L140" type="Node3D" parent="." unique_id=1308862167]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner03_L140" unique_id=1163322159]
+transform = Transform3D(-19.710705, 0, -1.8962387, 0, 21.999998, 0, 58.783398, 0, -0.6358292, 77.67402, 50.70249, -159.45955)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner03_L140" unique_id=2012452850]
+transform = Transform3D(-0.6358292, 0, -1.8962387, 0, 64.70249, 0, 1.8962387, 0, -0.6358292, 84.35023, 8.351246, -179.37006)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner03_L140" unique_id=849489587]
+transform = Transform3D(-0.6358292, 0, -1.8962387, 0, 64.70249, 0, 1.8962387, 0, -0.6358292, 70.99781, 8.351246, -139.54904)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner03_L140" unique_id=841634714]
+transform = Transform3D(-19.074877, 0, -0.94811934, 0, 20, 0, 56.88716, 0, -0.3179146, 76.34665, 50.70249, -159.90463)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = -1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.2, 0.7, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner03_L140" unique_id=1900587377]
+transform = Transform3D(-19.710705, 0, -0.5688716, 0, 0.6, 0, 58.783398, 0, -0.19074877, 76.91552, 62.00249, -159.71388)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegL" type="MeshInstance3D" parent="Corner03_L140" unique_id=1775615992]
+transform = Transform3D(-0.9427024, 0, -2.423079, 0, 80.88276, 0, 2.423079, 0, -0.9427024, -116.96886, 16.44138, -263.0052)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegR" type="MeshInstance3D" parent="Corner03_L140" unique_id=841225379]
+transform = Transform3D(-0.9427024, 0, -2.423079, 0, 80.88276, 0, 2.423079, 0, -0.9427024, -145.24992, 16.44138, -190.3128)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryBeam" type="MeshInstance3D" parent="Corner03_L140" unique_id=951764960]
+transform = Transform3D(-29.731384, 0, -2.2366884, 0, 2.0000002, 0, 76.42019, 0, -0.87018687, -131.10939, 55.882755, -226.659)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryScreen" type="MeshInstance3D" parent="Corner03_L140" unique_id=1850245922]
+transform = Transform3D(-10.877336, 0, -0.9319535, 0, 5, 0, 27.958605, 0, -0.36257786, -132.41412, 52.382755, -227.16661)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = -1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.2, 0.7, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="Corner04_R64" type="Node3D" parent="." unique_id=953771996]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner04_R64" unique_id=968159923]
+transform = Transform3D(-7.8412647, 0, 1.9731332, 0, 18.000002, 0, -47.355198, 0, -0.32671937, -646.1338, 27.976923, -385.6098)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner04_R64" unique_id=1903517585]
+transform = Transform3D(-0.32671937, 0, 1.9731332, 0, 43.97693, 0, -1.9731332, 0, -0.32671937, -643.5037, -2.0115376, -369.72607)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner04_R64" unique_id=261050252]
+transform = Transform3D(-0.32671937, 0, 1.9731332, 0, 43.97693, 0, -1.9731332, 0, -0.32671937, -648.76385, -2.0115376, -401.49353)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner04_R64" unique_id=1884131113]
+transform = Transform3D(-7.5145454, 0, 0.9865666, 0, 16.000002, 0, -45.382065, 0, -0.16335969, -644.7526, 27.976923, -385.8385)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(0.2, 0.9, 1, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner04_R64" unique_id=2031262268]
+transform = Transform3D(-7.8412647, 0, 0.59194, 0, 0.600002, 0, -47.355198, 0, -0.098015815, -645.34454, 37.27692, -385.74048)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="Corner05_R79" type="Node3D" parent="." unique_id=542653902]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner05_R79" unique_id=500963766]
+transform = Transform3D(44.223705, 0, 0.7775764, 0, 18, 0, -18.661833, 0, 1.8426543, -700.00507, 31.160696, -645.1136)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner05_R79" unique_id=816135090]
+transform = Transform3D(1.8426543, 0, 0.7775764, 0, 47.160698, 0, -0.7775764, 0, 1.8426543, -714.83844, -0.41965103, -638.8541)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner05_R79" unique_id=1788451433]
+transform = Transform3D(1.8426543, 0, 0.7775764, 0, 47.160698, 0, -0.7775764, 0, 1.8426543, -685.1717, -0.41965103, -651.37305)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner05_R79" unique_id=143812645]
+transform = Transform3D(42.38105, 0, 0.3887882, 0, 16, 0, -17.884256, 0, 0.9213272, -699.46075, 31.160696, -643.8237)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.58, 0.15, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner05_R79" unique_id=1010918391]
+transform = Transform3D(44.223705, 0, 0.23327293, 0, 0.5999981, 0, -18.661833, 0, 0.5527963, -699.69403, 40.460697, -644.3765)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="Corner06_L116" type="Node3D" parent="." unique_id=900767135]
+
+[node name="GantryLegL" type="MeshInstance3D" parent="Corner06_L116" unique_id=1776813641]
+transform = Transform3D(0.22156665, 0, -2.590542, 0, 75.16212, 0, 2.590542, 0, 0.22156665, -610.4648, 13.581055, -679.7152)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegR" type="MeshInstance3D" parent="Corner06_L116" unique_id=256844519]
+transform = Transform3D(0.22156665, 0, -2.590542, 0, 75.16212, 0, 2.590542, 0, 0.22156665, -603.8178, 13.581055, -601.9989)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryBeam" type="MeshInstance3D" parent="Corner06_L116" unique_id=1116660362]
+transform = Transform3D(6.9878716, 0, -2.39127, 0, 1.9999999, 0, 81.70171, 0, 0.20452307, -607.1413, 50.162113, -640.85706)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryScreen" type="MeshInstance3D" parent="Corner06_L116" unique_id=662213044]
+transform = Transform3D(2.5565383, 0, -0.9963624, 0, 5.0000005, 0, 29.890871, 0, 0.085217945, -608.5362, 46.662113, -640.73773)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = -1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.2, 0.7, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="Corner07_R101" type="Node3D" parent="." unique_id=1486408766]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner07_R101" unique_id=383187821]
+transform = Transform3D(52.565804, 0, 1.0605186, 0, 22, 0, -32.876076, 0, 1.6956711, -524.03064, 36.309525, -759.1897)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner07_R101" unique_id=979058581]
+transform = Transform3D(1.6956711, 0, 1.0605186, 0, 50.309525, 0, -1.0605186, 0, 1.6956711, -541.8352, 1.1547623, -748.05426)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner07_R101" unique_id=297562104]
+transform = Transform3D(1.6956711, 0, 1.0605186, 0, 50.309525, 0, -1.0605186, 0, 1.6956711, -506.2261, 1.1547623, -770.32513)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner07_R101" unique_id=1271393238]
+transform = Transform3D(50.870132, 0, 0.5302593, 0, 20, 0, -31.81556, 0, 0.84783554, -523.28827, 36.309525, -758.00275)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(0.2, 0.9, 1, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner07_R101" unique_id=155941646]
+transform = Transform3D(52.565804, 0, 0.3181556, 0, 0.6, 0, -32.876076, 0, 0.5087013, -523.60645, 47.609524, -758.5115)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegL" type="MeshInstance3D" parent="Corner07_R101" unique_id=1867204481]
+transform = Transform3D(1.7477744, 0, -1.9249115, 0, 67.12133, 0, 1.9249115, 0, 1.7477744, -452.22772, 9.560665, -706.4828)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegR" type="MeshInstance3D" parent="Corner07_R101" unique_id=41063390]
+transform = Transform3D(1.7477744, 0, -1.9249115, 0, 67.12133, 0, 1.9249115, 0, 1.7477744, -399.7945, 9.560665, -648.7355)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryBeam" type="MeshInstance3D" parent="Corner07_R101" unique_id=159334660]
+transform = Transform3D(55.122116, 0, -1.7768415, 0, 2.0000005, 0, 60.708748, 0, 1.6133304, -426.0111, 42.121326, -677.60913)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryScreen" type="MeshInstance3D" parent="Corner07_R101" unique_id=1534360775]
+transform = Transform3D(20.166628, 0, -0.7403506, 0, 5, 0, 22.210518, 0, 0.67222095, -427.0476, 38.621326, -676.668)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(0.2, 0.9, 1, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="Corner08_R81" type="Node3D" parent="." unique_id=1195424119]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner08_R81" unique_id=1412543930]
+transform = Transform3D(-38.984818, 0, -1.1668037, 0, 18, 0, 28.003288, 0, -1.6243674, 31.082743, 32.153503, -653.5012)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner08_R81" unique_id=97708270]
+transform = Transform3D(-1.6243674, 0, -1.1668037, 0, 48.153503, 0, 1.1668037, 0, -1.6243674, 44.158897, 0.07675171, -662.894)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner08_R81" unique_id=1837213758]
+transform = Transform3D(-1.6243674, 0, -1.1668037, 0, 48.153503, 0, 1.1668037, 0, -1.6243674, 18.006586, 0.07675171, -644.10846)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner08_R81" unique_id=735764218]
+transform = Transform3D(-37.36045, 0, -0.58340186, 0, 16, 0, 26.836485, 0, -0.8121837, 30.26598, 32.153503, -654.6383)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.58, 0.15, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner08_R81" unique_id=2097711927]
+transform = Transform3D(-38.984818, 0, -0.35004112, 0, 0.6, 0, 28.003288, 0, -0.48731023, 30.61602, 41.453503, -654.151)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="Corner09_L143" type="Node3D" parent="." unique_id=1556015310]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner09_L143" unique_id=484002984]
+transform = Transform3D(-23.159746, 0, 1.8552247, 0, 22.000004, 0, -57.511967, 0, -0.7470886, -512.5684, 68.16905, -541.88684)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner09_L143" unique_id=1613142592]
+transform = Transform3D(-0.7470886, 0, 1.8552247, 0, 82.16905, 0, -1.8552247, 0, -0.7470886, -504.724, 17.084526, -522.407)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner09_L143" unique_id=63201466]
+transform = Transform3D(-0.7470886, 0, 1.8552247, 0, 82.16905, 0, -1.8552247, 0, -0.7470886, -520.41284, 17.084526, -561.3667)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner09_L143" unique_id=218456739]
+transform = Transform3D(-22.412659, 0, 0.92761236, 0, 20, 0, -55.656742, 0, -0.3735443, -511.26978, 68.16905, -542.4098)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = -1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.2, 0.7, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner09_L143" unique_id=944648342]
+transform = Transform3D(-23.159746, 0, 0.55656743, 0, 0.6, 0, -57.511967, 0, -0.22412659, -511.82635, 79.469055, -542.18567)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegL" type="MeshInstance3D" parent="Corner09_L143" unique_id=763473315]
+transform = Transform3D(-0.75260955, 0, 2.4886901, 0, 98.17128, 0, -2.4886901, 0, -0.75260955, -308.54312, 25.08564, -586.99536)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegR" type="MeshInstance3D" parent="Corner09_L143" unique_id=550959402]
+transform = Transform3D(-0.75260955, 0, 2.4886901, 0, 98.17128, 0, -2.4886901, 0, -0.75260955, -331.12143, 25.08564, -661.6561)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryBeam" type="MeshInstance3D" parent="Corner09_L143" unique_id=589778033]
+transform = Transform3D(-23.736149, 0, 2.2972527, 0, 1.9999982, 0, -78.48946, 0, -0.6947166, -319.83228, 73.17128, -624.32574)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryScreen" type="MeshInstance3D" parent="Corner09_L143" unique_id=491116717]
+transform = Transform3D(-8.683956, 0, 0.95718855, 0, 5, 0, -28.715656, 0, -0.28946522, -318.49222, 69.67128, -624.731)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = -1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.2, 0.7, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="Corner10_R67" type="Node3D" parent="." unique_id=1020291092]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner10_R67" unique_id=1116759216]
+transform = Transform3D(13.86031, 0, -1.9148052, 0, 18, 0, 45.955322, 0, 0.5775129, 104.417915, 10.332805, -617.4735)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner10_R67" unique_id=1079908970]
+transform = Transform3D(0.5775129, 0, -1.9148052, 0, 26.332806, 0, 1.9148052, 0, 0.5775129, 99.768936, -10.833597, -632.8877)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner10_R67" unique_id=1198696894]
+transform = Transform3D(0.5775129, 0, -1.9148052, 0, 26.332806, 0, 1.9148052, 0, 0.5775129, 109.066895, -10.833597, -602.0593)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner10_R67" unique_id=1112971325]
+transform = Transform3D(13.282797, 0, -0.9574026, 0, 16, 0, 44.04052, 0, 0.28875646, 103.07755, 10.332805, -617.0693)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(0.2, 0.9, 1, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner10_R67" unique_id=1955357634]
+transform = Transform3D(13.86031, 0, -0.57444155, 0, 0.59999907, 0, 45.955322, 0, 0.17325388, 103.65199, 19.632805, -617.24255)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="Corner11_L101" type="Node3D" parent="." unique_id=1728264150]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner11_L101" unique_id=2132326176]
+transform = Transform3D(-61.987114, 0, 0.040776283, 0, 22, 0, -1.2640648, 0, -1.9995843, 138.36708, 26.083282, -179.86443)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner11_L101" unique_id=430583639]
+transform = Transform3D(-1.9995843, 0, 0.040776283, 0, 40.083282, 0, -0.040776283, 0, -1.9995843, 159.36272, -3.9583588, -179.43628)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner11_L101" unique_id=1798805604]
+transform = Transform3D(-1.9995843, 0, 0.040776283, 0, 40.083282, 0, -0.040776283, 0, -1.9995843, 117.37145, -3.9583588, -180.29257)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner11_L101" unique_id=1098887911]
+transform = Transform3D(-59.98753, 0, 0.020388141, 0, 20, 0, -1.2232885, 0, -0.99979216, 138.39563, 26.083282, -181.26413)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = -1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.58, 0.15, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner11_L101" unique_id=1989638472]
+transform = Transform3D(-61.987114, 0, 0.012232886, 0, 0.6, 0, -1.2640648, 0, -0.59987533, 138.38339, 37.38328, -180.66426)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegL" type="MeshInstance3D" parent="Corner11_L101" unique_id=1066380042]
+transform = Transform3D(-2.5983646, 0, 0.092205934, 0, 52.434025, 0, -0.092205934, 0, -2.5983646, 182.528, 2.2170086, -404.23575)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryLegR" type="MeshInstance3D" parent="Corner11_L101" unique_id=39511706]
+transform = Transform3D(-2.5983646, 0, 0.092205934, 0, 52.434025, 0, -0.092205934, 0, -2.5983646, 104.57707, 2.2170086, -407.00192)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryBeam" type="MeshInstance3D" parent="Corner11_L101" unique_id=1314199238]
+transform = Transform3D(-81.94842, 0, 0.085113175, 0, 2.0000007, 0, -2.9080334, 0, -2.3984904, 143.55254, 27.434015, -405.61884)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="GantryScreen" type="MeshInstance3D" parent="Corner11_L101" unique_id=1017172754]
+transform = Transform3D(-29.98113, 0, 0.03546382, 0, 5.0000005, 0, -1.0639147, 0, -0.999371, 143.60219, 23.934015, -407.01794)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = -1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.58, 0.15, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="Corner12_R75" type="Node3D" parent="." unique_id=370745574]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner12_R75" unique_id=782310304]
+transform = Transform3D(27.611412, 0, -1.6359726, 0, 18, 0, 39.263344, 0, 1.1504755, 416.80167, 24.855145, -330.89468)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner12_R75" unique_id=2006264032]
+transform = Transform3D(1.1504755, 0, -1.6359726, 0, 40.855145, 0, 1.6359726, 0, 1.1504755, 407.54034, -3.5724277, -344.06427)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner12_R75" unique_id=1101653940]
+transform = Transform3D(1.1504755, 0, -1.6359726, 0, 40.855145, 0, 1.6359726, 0, 1.1504755, 426.063, -3.5724277, -317.7251)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner12_R75" unique_id=1911656178]
+transform = Transform3D(26.460938, 0, -0.8179863, 0, 16, 0, 37.62737, 0, 0.57523775, 415.6565, 24.855145, -330.08936)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(1, 0.2, 0.7, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner12_R75" unique_id=727692787]
+transform = Transform3D(27.611412, 0, -0.4907918, 0, 0.6, 0, 39.263344, 0, 0.34514266, 416.14728, 34.155144, -330.4345)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
+
+[node name="Corner13_R60" type="Node3D" parent="." unique_id=1931059569]
+
+[node name="Frame" type="MeshInstance3D" parent="Corner13_R60" unique_id=895404529]
+transform = Transform3D(-45.704468, 0, -0.611098, 0, 18, 0, 14.666351, 0, -1.9043528, 587.8951, 30.713253, 6.431403)
+material_override = ExtResource("1_gmj7t")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg-3" type="MeshInstance3D" parent="Corner13_R60" unique_id=928537717]
+transform = Transform3D(-1.9043528, 0, -0.611098, 0, 46.713253, 0, 0.611098, 0, -1.9043528, 603.2251, -0.6433735, 1.512064)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Leg3" type="MeshInstance3D" parent="Corner13_R60" unique_id=1231571357]
+transform = Transform3D(-1.9043528, 0, -0.611098, 0, 46.713253, 0, 0.611098, 0, -1.9043528, 572.56506, -0.6433735, 11.350742)
+material_override = ExtResource("3_ldrw5")
+mesh = ExtResource("2_15r2o")
+
+[node name="Screen" type="MeshInstance3D" parent="Corner13_R60" unique_id=2035416720]
+transform = Transform3D(-43.800114, 0, -0.305549, 0, 16, 0, 14.055254, 0, -0.9521764, 587.4673, 30.713253, 5.0983562)
+material_override = ExtResource("4_cmpml")
+cast_shadow = 0
+instance_shader_parameters/arrow_dir = 1.0
+instance_shader_parameters/pattern_seed = 0.0
+instance_shader_parameters/screen_color = Color(0.2, 0.9, 1, 1)
+mesh = ExtResource("5_45qx3")
+
+[node name="TopNeon" type="MeshInstance3D" parent="Corner13_R60" unique_id=2098435892]
+transform = Transform3D(-45.704468, 0, -0.1833294, 0, 0.6, 0, 14.666351, 0, -0.5713059, 587.65063, 40.013252, 5.669662)
+material_override = ExtResource("6_15r2o")
+mesh = ExtResource("2_15r2o")
