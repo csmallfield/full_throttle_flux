@@ -16,6 +16,7 @@ const TRACKS: Array[String] = [
 	"res://scenes/tracks/test_circuit_5_live.tscn",
 	"res://scenes/tracks/test_circuit_6_live.tscn",
 	"res://scenes/tracks/test_circuit_7_live.tscn",
+	"res://scenes/tracks/loop_lab.tscn",
 ]
 
 const SHIP_PROFILES: Array[String] = [
@@ -29,6 +30,10 @@ const SHIP_SCENE := "res://scenes/ships/default_racer.tscn"
 
 ## Overridden by --time-scale=N.
 @export var time_scale: float = 8.0
+
+## v30: --track=<substring> trains only the matching scene(s), so one new track
+## can be trained without overwriting the others' trained lines.
+var track_filter: String = ""
 
 var _results: Array[Dictionary] = []
 
@@ -46,9 +51,13 @@ func _parse_args() -> void:
 			max_iterations = int(arg.split("=")[1])
 		elif arg.begins_with("--time-scale="):
 			time_scale = float(arg.split("=")[1])
+		elif arg.begins_with("--track="):
+			track_filter = arg.split("=")[1]
 
 func _run_all() -> void:
 	for track_path in TRACKS:
+		if track_filter != "" and not track_filter in track_path:
+			continue
 		for profile_path in SHIP_PROFILES:
 			await _train_one(track_path, profile_path)
 

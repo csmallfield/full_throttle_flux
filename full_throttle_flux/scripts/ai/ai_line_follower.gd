@@ -257,16 +257,16 @@ func _get_signed_curvature(offset: float, sample_distance: float) -> float:
 
 	var pos_current: Vector3 = spline_helper.spline_offset_to_world(offset)
 	var pos_ahead: Vector3 = spline_helper.spline_offset_to_world(offset + delta)
+	# v30: flatten onto the road plane (world XZ outside magnetic zones).
+	var up: Vector3 = spline_helper.steering_up_at_offset(offset + delta)
 
-	var dir_current: Vector3 = (pos_ahead - pos_current)
-	dir_current.y = 0
+	var dir_current: Vector3 = (pos_ahead - pos_current).slide(up)
 	if dir_current.length_squared() < 0.001:
 		return 0.0
 	dir_current = dir_current.normalized()
 
 	var pos_further: Vector3 = spline_helper.spline_offset_to_world(offset + delta * 2.0)
-	var dir_ahead: Vector3 = (pos_further - pos_ahead)
-	dir_ahead.y = 0
+	var dir_ahead: Vector3 = (pos_further - pos_ahead).slide(up)
 	if dir_ahead.length_squared() < 0.001:
 		return 0.0
 	dir_ahead = dir_ahead.normalized()
@@ -275,7 +275,7 @@ func _get_signed_curvature(offset: float, sample_distance: float) -> float:
 	var dot: float = dir_current.dot(dir_ahead)
 
 	var curvature_magnitude: float = 1.0 - dot
-	var turn_direction: float = sign(cross.y)
+	var turn_direction: float = sign(cross.dot(up))
 
 	return curvature_magnitude * turn_direction
 
@@ -560,10 +560,13 @@ func signed_line_curvature(offset: float, line_factor: float = 1.0) -> float:
 	var p1: Vector3 = _line_point(offset, line_factor)
 	var p2: Vector3 = _line_point(o_next, line_factor)
 	
-	var a: Vector3 = p1 - p0
-	var b: Vector3 = p2 - p1
-	a.y = 0.0
-	b.y = 0.0
+	# v30: flatten onto the road plane (world XZ outside magnetic zones, where
+	# slide(UP) is exactly the old `.y = 0`). Over the top of a loop the XZ
+	# projection REVERSES, which read as a 180-degree turn and slammed the
+	# steering feedforward to full lock.
+	var up: Vector3 = spline_helper.steering_up_at_offset(offset)
+	var a: Vector3 = (p1 - p0).slide(up)
+	var b: Vector3 = (p2 - p1).slide(up)
 	var la: float = a.length()
 	var lb: float = b.length()
 	if la < 0.01 or lb < 0.01:
@@ -575,7 +578,7 @@ func signed_line_curvature(offset: float, line_factor: float = 1.0) -> float:
 	# curvature. Sign from the vertical component of the cross product.
 	var dot: float = clampf(a.dot(b), -1.0, 1.0)
 	var turn: float = acos(dot)
-	var turn_sign: float = signf(a.cross(b).y)
+	var turn_sign: float = signf(a.cross(b).dot(up))
 	var arc: float = 0.5 * (la + lb)
 	if arc < 0.01:
 		return 0.0

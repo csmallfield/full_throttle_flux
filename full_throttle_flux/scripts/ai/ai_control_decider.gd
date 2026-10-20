@@ -432,19 +432,31 @@ func _recovery_controls(target_position: Vector3, delta: float) -> Dictionary:
 # STEERING
 # ============================================================================
 
+## v30: reference up for steering. World UP unless the ship is in a magnetic
+## zone, where it is the ship's (smoothed) track normal.
+func _steering_up() -> Vector3:
+	if ship.magnet_weight > 0.0:
+		var n: Vector3 = ship.current_track_normal
+		if n.length_squared() > 0.25:
+			return n.normalized()
+	return Vector3.UP
+
 func _calculate_steering(target_position: Vector3, delta: float,
 		use_feedforward: bool = true) -> float:
 	"""Calculate steering input to reach target position."""
 	var ship_pos: Vector3 = ship.global_position
 	var ship_forward: Vector3 = -ship.global_transform.basis.z
+	# v30: measure heading error in the ROAD plane inside magnetic zones; in
+	# world XZ (exactly the old `.y = 0`) everywhere else. On a loop wall the
+	# XZ projection of "ahead" collapses, and over the top it points backwards.
+	var up: Vector3 = _steering_up()
 
-	var to_target: Vector3 = target_position - ship_pos
-	to_target.y = 0
+	var to_target: Vector3 = (target_position - ship_pos).slide(up)
 	if to_target.length_squared() < 0.01:
 		return 0.0
 	to_target = to_target.normalized()
 
-	ship_forward.y = 0
+	ship_forward = ship_forward.slide(up)
 	if ship_forward.length_squared() < 0.01:
 		return 0.0
 	ship_forward = ship_forward.normalized()
@@ -457,19 +469,20 @@ func _calculate_steering(target_position: Vector3, delta: float,
 	# from the velocity vector instead makes the controller steer the PATH.
 	var reference: Vector3 = ship_forward
 	if slip_compensation > 0.0 and ship.velocity.length() > slip_compensation_min_speed:
-		var vel_dir: Vector3 = ship.velocity
-		vel_dir.y = 0.0
+		var vel_dir: Vector3 = ship.velocity.slide(up)
 		if vel_dir.length_squared() > 0.01:
 			vel_dir = vel_dir.normalized()
 			# Guard against reversing into a spin: only trust the velocity
 			# vector while it still broadly agrees with where we point.
 			if vel_dir.dot(ship_forward) > 0.3:
-				reference = ship_forward.slerp(vel_dir, slip_compensation).normalized()
+				# v30: slerp_safe -- plain slerp errors when the two are
+				# parallel to float precision (dead-straight flat road).
+				reference = ShipController.slerp_safe(ship_forward, vel_dir, slip_compensation).normalized()
 
 	var cross: Vector3 = reference.cross(to_target)
 	var dot: float = reference.dot(to_target)
 
-	var angle_sign: float = sign(cross.y)
+	var angle_sign: float = sign(cross.dot(up))
 	var angle: float = acos(clamp(dot, -1.0, 1.0))
 
 	var steer: float = angle * angle_sign * steering_sensitivity

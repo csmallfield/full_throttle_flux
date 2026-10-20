@@ -8,4 +8,4 @@ track_id = "loop_lab"
 display_name = "Loop Lab"
 description = "Greybox test: a vertical loop and a barrel roll, held by magnetic lock zones."
 author = "Flux Industries"
-supports_race = false
+supports_race = true

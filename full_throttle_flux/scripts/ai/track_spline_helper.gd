@@ -31,6 +31,13 @@ var is_valid: bool = false
 var cached_points: PackedVector3Array
 var cached_offsets: PackedFloat32Array  # Corresponding spline offsets (0-1)
 
+## v30: the track's magnetic lock zones, if it has any. Inside a zone the road
+## can be vertical or upside down, so every "flatten onto the ground plane"
+## the AI does must flatten onto the ROAD plane instead. Outside zones (and on
+## every track without a MagneticTrack) all of that stays world-Y, exactly as
+## before.
+var magnetic: MagneticTrack = null
+
 # ============================================================================
 # INITIALIZATION
 # ============================================================================
@@ -53,9 +60,39 @@ func initialize(track_root: Node) -> bool:
 	
 	_build_point_cache()
 	
+	magnetic = _find_magnetic(track_root)
+	
 	is_valid = true
 	print("TrackSplineHelper: Initialized with spline '%s', length: %.1f units" % [track_path.name, total_length])
 	return true
+
+func _find_magnetic(node: Node) -> MagneticTrack:
+	if node is MagneticTrack:
+		return node
+	for child in node.get_children():
+		var found := _find_magnetic(child)
+		if found:
+			return found
+	return null
+
+## v30: magnetic zone weight (0..1) at a spline offset (0-1). 0 on tracks
+## without zones.
+func zone_weight_at_offset(offset: float) -> float:
+	if magnetic == null or not magnetic.is_valid():
+		return 0.0
+	offset = fmod(offset, 1.0)
+	if offset < 0.0:
+		offset += 1.0
+	return magnetic.zone_at(offset * total_length)[0]
+
+## v30: the "up" the AI should measure headings and turns about at `offset`:
+## world UP outside magnetic zones (bit-identical to the pre-v30 XZ-plane
+## maths: v.slide(UP) == v with y zeroed, cross.dot(UP) == cross.y), and the
+## banked/rolled road up inside them.
+func steering_up_at_offset(offset: float) -> Vector3:
+	if zone_weight_at_offset(offset) > 0.0:
+		return get_up_at_offset(offset, true).normalized()
+	return Vector3.UP
 
 func _find_track_spline(root: Node) -> Path3D:
 	"""Search for Path3D node by known names, then by type."""
@@ -257,6 +294,17 @@ func get_curvature_at_offset(offset: float, sample_distance: float = 20.0) -> fl
 	
 	var dir1 := (pos_ahead - pos_current).normalized()
 	var dir2 := (pos_further - pos_ahead).normalized()
+	
+	# v30: in a magnetic zone only the turn WITHIN the road plane is a corner;
+	# a loop's vertical curvature needs no steering at all.
+	if zone_weight_at_offset(offset) > 0.0:
+		var up := get_up_at_offset(offset + delta, true).normalized()
+		var f1 := dir1.slide(up)
+		var f2 := dir2.slide(up)
+		if f1.length_squared() < 1e-6 or f2.length_squared() < 1e-6:
+			return 0.0
+		dir1 = f1.normalized()
+		dir2 = f2.normalized()
 	
 	# Dot product: 1.0 = straight, 0.0 = 90 degree turn, -1.0 = hairpin
 	var dot := dir1.dot(dir2)

@@ -3,8 +3,8 @@
 A new greybox test track with a **vertical loop** and a **360° barrel roll**,
 and the feature that makes them drivable: **magnetic lock zones**, stretches
 of track (by distance along the MainSpline) where ships are held to the road.
-Single player only for now (time trial and endless). AI and the cinematic
-camera rig are not done yet.
+Includes a first pass of AI support: AI races Loop Lab with a trained line.
+The cinematic camera rig is not done yet.
 
 ## Files
 
@@ -16,13 +16,16 @@ camera rig are not done yet.
 | `tools/loop_lab/check_loop_lab.gd` | Raycasts the built road against its spline frames every 10 m |
 | `tools/dev/loop_lab_drive_boot.gd` + `loop_lab_driver.gd` | Headless autopilot harness (any track): zone stats, camera stats, A/B runs, chase-cam stills |
 | `scenes/tracks/loop_lab.tscn` | The track (generated, don't hand-edit the curve; re-run the builder) |
-| `resources/tracks/loop_lab.tres` | Track profile ("Loop Lab"), in the manifest; `supports_race = false` until AI is done |
+| `resources/tracks/loop_lab.tres` | Track profile ("Loop Lab"), in the manifest; all modes including race |
+| `resources/ai_data/loop_lab_default_racer_trained_line.tres` | Trained AI line for Loop Lab (default racer) |
+| `tools/dev/ai_race_probe_boot.gd` + `ai_race_probe.gd` | Headless 8-ship race probe: laps, respawns, airborne-in-zone, seeded and checksummed for A/B |
 
 Also changed:
 
 - `ship_controller.gd`: magnetic zone support (below). Inert on tracks without a `MagneticTrack`.
 - `ag_camera_2097.gd`: `magnetic_follow_boost` (tighter frame follow in zones), and a `slerp` fix.
 - `track_respawn_manager.gd`: on tracks with zones, never respawns inside one, and respawns behind the ship.
+- AI: `track_spline_helper.gd`, `ai_line_follower.gd`, `ai_control_decider.gd`, `ai_racing_line_baker.gd` (see "AI support"); `train_ai_lines.gd` has Loop Lab and a `--track=` filter.
 
 ## Magnetic zones
 
@@ -128,8 +131,39 @@ LL_TRACK=test_circuit_6_live godot --headless --fixed-fps 60 --path . -s res://t
 
 Env: `LL_TRACK`, `LL_MAGNET`, `LL_MAGNET_ZONE`, `LL_SPEED`, `LL_LAT`, `LL_LAPS`, `LL_TRACE=1`, `LL_SHOTS`, `LL_SHOT_DIR`, `LL_OVERVIEW` (see the script header). It uses its own sim-time lap timer, because `RaceManager` times laps with the wall clock, which is meaningless under `--fixed-fps`.
 
+## AI support
+
+The AI measured everything that steers in world XZ (`.y = 0`, sign from `cross.y`). On a loop wall the XZ projection of "ahead" collapses, and over the top it reverses. **With the old code, all seven AI ships got stuck circling inside the loop for a whole 140 s race (0 laps).**
+
+What changed. Each is inside magnetic zones only; outside them every expression reduces exactly to the old one (`v.slide(UP)` is `v` with y zeroed, `cross.dot(UP)` is `cross.y`):
+
+- `TrackSplineHelper` finds the track's `MagneticTrack` and offers `zone_weight_at_offset()` and `steering_up_at_offset()` (world UP outside zones, the banked/rolled road up inside). Its fallback `get_curvature_at_offset()` counts only in-road turning inside zones.
+- `AILineFollower`: `signed_line_curvature()` (the steering feedforward) and `_get_signed_curvature()` flatten onto the road plane. Over the loop top the XZ projection read as a 180° turn and slammed the feedforward to full lock.
+- `AIControlDecider._calculate_steering()`: the heading error (to target, nose and slip-compensated velocity) is measured about the ship's track normal inside zones. Slip compensation uses `slerp_safe` (it hit the same parallel-vector error on Loop Lab's straights).
+- `AIRacingLineBaker`: curvature inside zones is the in-road (geodesic) part only, since vertical curvature needs no steering. Zones are added to the cache key only when present, so zone-less tracks keep their hashes. Measured: this barely matters on Loop Lab (3D loop curvature 0.0135, which the speed model allows at ~117–120 u/s), but a 35 m loop would have been planned at ~60 u/s.
+- The trainer needed nothing: it drives the real `ShipController`, so the zones just work. `train_ai_lines.gd --track=loop_lab` trains one track without touching the others' saved lines.
+
+Results (8-ship `RaceMode` races, 140 s, `ai_race_probe`):
+
+| Setup | Result |
+|---|---|
+| Trained line (33.08 s lap), default zones, two grid seeds | Every AI ship 3 laps, 0 respawns, never airborne in a zone, skills 0.50–0.72, avoidance on |
+| Loop in momentum mode (magnet 0 on "Loop") | Same: 3 laps each, 0 respawns (AI carries well over 40 u/s over the top) |
+| Old AI code, same race | 0 laps, all ships stuck circling the loop |
+
+The trained line runs the loop and the roll at a flat 120 target.
+
+**Regression:** seeded 8-ship races (75 s) on Utopia, Swoopy, Hairpin Alley and The Drop give **bit-identical** checksums of every ship's final transform and velocity, old AI code vs new. The probe seeds the global RNG because the player's grid slot and each AI's wobble phase use it; unseeded, identical code gives different races.
+
+```
+PROBE_TRACK=loop_lab PROBE_SECONDS=140 godot --headless --fixed-fps 60 --path . -s res://tools/dev/ai_race_probe_boot.gd
+godot --headless --path . res://tools/train_ai_lines.tscn -- --track=loop_lab
+```
+
+Env: `PROBE_TRACK`, `PROBE_SECONDS`, `PROBE_SEED`, `PROBE_MAGNET`, `PROBE_MAGNET_ZONE`.
+
 ## Not done yet / next
 
-- **AI.** `ai_line_follower.gd` and `ai_control_decider.gd` flatten headings to the XZ plane (`.y = 0`), which breaks on vertical track. The baker and trainer also need checking for Y-up assumptions. Loop Lab has `supports_race = false` until then.
+- **AI edge cases not covered:** an AI that falls off (only possible with magnet < ~0.1 on a roll) respawns behind the zone and tries again, but nothing teaches it to carry more speed. The AI debug markers still offset by world Y.
 - **Cinematic camera rig** places every shot relative to world up.
 - **Things to feel by hand:** whether magnet 1 on the loop is too forgiving; `magnetic_follow_boost` (1.8 cuts the camera's pitch lag in the loop from ~33° to ~28°; 1.0 is the old camera); `slope_gravity_scale` on the loop (default loses ~16 u/s at full throttle).
