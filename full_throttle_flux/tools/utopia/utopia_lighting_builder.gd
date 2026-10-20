@@ -67,7 +67,10 @@ static func build(path: String, params := {}) -> void:
 	we.environment = env
 	var comp := Compositor.new()
 	var rays := UtopiaGodRays.new()
-	var effects: Array[CompositorEffect] = [rays]
+	# motion blur first: it runs in HDR before the god rays, so the rays (and
+	# glow/tonemap after them) stay crisp
+	var blur := MotionBlurEffect.new()
+	var effects: Array[CompositorEffect] = [blur, rays]
 	comp.compositor_effects = effects
 	we.compositor = comp
 	root.add_child(we)

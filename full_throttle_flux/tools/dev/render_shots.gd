@@ -47,8 +47,10 @@ func _initialize() -> void:
 			skyctl.apply_preset(shot["preset"])
 		if shot.has("rays"):
 			var we: WorldEnvironment = track.find_child("WorldEnvironment", true, false)
-			for k in shot["rays"]:
-				we.compositor.compositor_effects[0].set(k, shot["rays"][k])
+			for e in we.compositor.compositor_effects:
+				if e is UtopiaGodRays:
+					for k in shot["rays"]:
+						e.set(k, shot["rays"][k])
 		if shot.has("sky") and skyctl:
 			for k in shot["sky"]:
 				skyctl.set(k, shot["sky"][k])

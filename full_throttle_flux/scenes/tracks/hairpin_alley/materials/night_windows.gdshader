@@ -22,7 +22,9 @@ uniform float ground_y = -16.0;                 // no windows below street level
 
 varying vec3 wpos;
 varying vec3 wnrm;
-varying float bseed;
+// flat: a per-building constant. Interpolated, it arrives with ulp-level
+// per-pixel differences that h21() amplifies into per-pixel lit/unlit noise.
+varying flat float bseed;
 
 float h21(vec2 p) {
 	p = fract(p * vec2(123.34, 456.21));
@@ -51,7 +53,12 @@ void fragment() {
 		// building "type" from its seed: office (cool, dense) / residential (warm, sparse)
 		float office = step(0.62, bseed);
 		float ratio = lit_ratio * mix(0.8, 1.35, office);
-		float r = h21(cell + vec2(bseed * 91.0, floor(dot(n.xz, vec2(3.0, 7.0)))));
+		// per-face seed. floor(x + 0.5), not floor(x): on axis-aligned faces
+		// x is exactly an integer (+-3, +-7), and the interpolated normal's
+		// ~1e-7 wobble made floor() flip per pixel -> speckled windows that
+		// shimmered in motion and streaked under motion blur
+		float face = floor(dot(n.xz, vec2(3.0, 7.0)) + 0.5);
+		float r = h21(cell + vec2(bseed * 91.0, face));
 		float lit = step(1.0 - ratio, r);
 		// whole lit floors in some offices, dark ground floor shop band handled below
 		lit = max(lit, office * step(0.93, h21(vec2(cell.y, bseed * 17.0))));
