@@ -127,6 +127,23 @@ var ai_controlled: bool = false
 var respawn_manager: TrackRespawnManager = null
 
 # ============================================================================
+# MAGNETIC LOCK STATE (v30)
+# ============================================================================
+# Tracks with a MagneticTrack node can hold ships to the road through loops and
+# barrel rolls. Everything below is inert (weight 0) on tracks without one, and
+# every code path that consults it reduces to the pre-v30 maths at weight 0.
+
+var _mag_track: MagneticTrack = null
+var _mag: MagneticTrack.Tracker = null
+var _mag_lookup_done := false
+## 0 outside any zone, ramps to 1 inside. Read by the camera.
+var magnet_weight := 0.0
+## Effective magnet strength of the current zone (0 = momentum, 1 = magnetic).
+var magnet_strength := 0.0
+## True when the ground this tick came from the spline, not the hover ray.
+var magnet_contact_recovered := false
+
+# ============================================================================
 # SHIP COLLISION STATE (v7 - Impulse Exchange)
 # ============================================================================
 
@@ -445,6 +462,7 @@ func _physics_process(delta: float) -> void:
 	_pre_collision_speed = velocity.length()
 	
 	_read_input()
+	_update_magnetic()
 	_update_ground_detection()
 	_update_safe_position(delta)
 	_check_respawn_needed()
@@ -457,6 +475,10 @@ func _physics_process(delta: float) -> void:
 	_apply_drag(delta)
 	_apply_speed_limit(delta)
 	_align_to_track(delta)
+	
+	# v30: floor/wall/ceiling classification relative to the road, so the
+	# track counts as floor on a loop wall or upside down.
+	up_direction = current_track_normal.normalized() if magnet_weight > 0.0 else Vector3.UP
 	
 	move_and_slide()
 	
@@ -516,6 +538,9 @@ func _read_input() -> void:
 func _update_safe_position(delta: float) -> void:
 	"""Periodically save position while grounded for respawn."""
 	if not is_grounded:
+		return
+	# v30: never remember a spot on a loop or roll (it may be upside down).
+	if magnet_weight > 0.0:
 		return
 	
 	_safe_position_timer += delta
@@ -579,6 +604,12 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 	current_track_normal = Vector3.UP
 	smoothed_track_normal = Vector3.UP
 	
+	# v30: re-acquire the spline position from scratch after a teleport.
+	if _mag:
+		_mag.reset()
+	magnet_weight = 0.0
+	magnet_contact_recovered = false
+	
 	# Stop any wall scraping audio
 	if _is_scraping_wall:
 		_is_scraping_wall = false
@@ -611,6 +642,81 @@ func set_safe_position(position: Vector3, rotation: Basis) -> void:
 	last_safe_rotation = rotation
 
 # ============================================================================
+# MAGNETIC LOCK (v30)
+# ============================================================================
+
+func _update_magnetic() -> void:
+	magnet_contact_recovered = false
+	if not _mag_lookup_done:
+		_mag_lookup_done = true
+		if is_inside_tree():
+			_mag_track = get_tree().get_first_node_in_group(MagneticTrack.GROUP) as MagneticTrack
+			if _mag_track and _mag_track.is_valid():
+				_mag = _mag_track.make_tracker()
+	if _mag == null:
+		magnet_weight = 0.0
+		magnet_strength = 0.0
+		return
+	_mag.update(global_position)
+	magnet_weight = _mag.weight
+	magnet_strength = _mag.magnet if _mag.zone else 0.0
+
+## Reference "up" for airborne maths: world UP outside zones, the road's up
+## once a zone is at least half blended in.
+func _air_up() -> Vector3:
+	if magnet_weight >= 0.5:
+		return _mag.surface_up
+	return Vector3.UP
+
+## Up axis that separates walls from road in collision handling.
+func _wall_reference_up() -> Vector3:
+	if magnet_weight > 0.0:
+		return current_track_normal.normalized()
+	return Vector3.UP
+
+func _normal_smoothing_rate() -> float:
+	if magnet_weight > 0.0 and _mag.zone:
+		return lerpf(_track_normal_smoothing,
+				maxf(_track_normal_smoothing, _mag.zone.normal_smoothing), magnet_weight)
+	return _track_normal_smoothing
+
+## Hover ray missed. Inside a zone with contact recovery, take the ground from
+## the spline's surface frame instead. Returns true if it did.
+func _try_magnetic_contact() -> bool:
+	if magnet_weight <= 0.0 or _mag.zone == null or not _mag.zone.contact_recovery:
+		return false
+	var z: MagneticZone = _mag.zone
+	if _mag.height < -1.0 or _mag.height > _hover_height * z.recovery_range:
+		return false
+	if absf(_mag.lateral) > z.recovery_half_width:
+		return false
+	is_grounded = true
+	time_since_grounded = 0.0
+	ground_distance = maxf(_mag.height, 0.0)
+	magnet_contact_recovered = true
+	var dt: float = get_physics_process_delta_time()
+	smoothed_track_normal = smoothed_track_normal.lerp(
+			_mag.surface_up, _smooth(_normal_smoothing_rate(), dt)).normalized()
+	current_track_normal = smoothed_track_normal
+	return true
+
+func get_magnet_weight() -> float:
+	return magnet_weight
+
+## v30: Vector3.slerp() normalises cross(a, b) to get its rotation axis. When
+## a and b are parallel to float precision (a level ship on perfectly flat
+## road) that axis comes out non-unit and Basis rejects it ("axis must be
+## normalized", every frame on Loop Lab's grid). This detects exactly that
+## case -- same float32 maths as the engine -- and lerps instead, which at
+## those angles is slerp to float precision. Everywhere slerp works it IS
+## slerp, so existing tracks stay bit-identical (verified on circuit 7).
+static func slerp_safe(a: Vector3, b: Vector3, weight: float) -> Vector3:
+	var axis := a.cross(b)
+	if axis.length_squared() != 0.0 and not axis.normalized().is_normalized():
+		return a.lerp(b, weight)
+	return a.slerp(b, weight)
+
+# ============================================================================
 # GROUND DETECTION & HOVER
 # ============================================================================
 
@@ -632,7 +738,7 @@ func _update_ground_detection() -> void:
 			is_grounded = false
 			time_since_grounded += get_physics_process_delta_time()
 			var away: Vector3 = global_position - (ray_collider as Node3D).global_position
-			away.y = 0.0
+			away = away.slide(_air_up())
 			if away.length() > 0.01:
 				velocity += away.normalized() * 15.0 * get_physics_process_delta_time()
 			return
@@ -644,35 +750,84 @@ func _update_ground_detection() -> void:
 		var new_normal = hover_ray.get_collision_normal()
 		var dt: float = get_physics_process_delta_time()
 		smoothed_track_normal = smoothed_track_normal.lerp(
-				new_normal, _smooth(_track_normal_smoothing, dt)).normalized()
+				new_normal, _smooth(_normal_smoothing_rate(), dt)).normalized()
 		current_track_normal = smoothed_track_normal
+	elif _try_magnetic_contact():
+		pass
 	else:
 		is_grounded = false
 		var dt_air: float = get_physics_process_delta_time()
 		time_since_grounded += dt_air
-		current_track_normal = current_track_normal.lerp(Vector3.UP, _smooth(2.0, dt_air))
+		current_track_normal = current_track_normal.lerp(_air_up(), _smooth(2.0, dt_air))
 
 func _apply_hover_force(delta: float) -> void:
 	if not is_grounded:
 		var gravity_multiplier = 1.0 + clampf(time_since_grounded * 2.0, 0.0, 1.0)
+		if magnet_weight > 0.0:
+			_apply_magnetic_air_gravity(gravity_multiplier, delta)
+			return
 		velocity.y -= _gravity * gravity_multiplier * delta
 		velocity.y *= _decay(AIRBORNE_VERTICAL_RETAIN, delta)
 		return
+	
+	var w := magnet_weight
+	var force_max: float = _hover_force_max
+	if w > 0.0 and _mag.zone:
+		force_max *= lerpf(1.0, _mag.zone.hover_force_scale, w)
 	
 	var height_error = _hover_height - ground_distance
 	var vertical_velocity = velocity.dot(current_track_normal)
 	var spring_force = height_error * _hover_stiffness
 	var damping_force = -vertical_velocity * _hover_damping
-	var total_force = clampf(spring_force + damping_force, -_hover_force_max, _hover_force_max)
+	var total_force = clampf(spring_force + damping_force, -force_max, force_max)
+	
+	# v30: anti-grav hover is repulsive. Outside zones the spring has always
+	# been allowed to pull the ship back down too (it's what keeps ships glued
+	# over crests), so keep that; inside a zone the pull fades with the magnet,
+	# so at magnet 0 a ship that's too slow at the top of a loop can drop off.
+	if w > 0.0 and total_force < 0.0:
+		total_force *= lerpf(1.0, magnet_strength, w)
 	
 	velocity += current_track_normal * total_force * delta
 	
 	# Slope gravity
+	var slope_accel := Vector3.ZERO
 	var slope_dot = current_track_normal.dot(Vector3.UP)
 	if slope_dot < 0.99:
 		var slope_dir = Vector3.DOWN.slide(current_track_normal.normalized()).normalized()
 		var slope_strength = (1.0 - slope_dot) * _gravity * _slope_gravity_factor
-		velocity += slope_dir * slope_strength * delta
+		slope_accel = slope_dir * slope_strength
+	
+	if w > 0.0:
+		slope_accel = slope_accel.lerp(_magnetic_surface_gravity(), w)
+	
+	velocity += slope_accel * delta
+
+## v30: gravity on a grounded ship inside a magnetic zone.
+## Along the road: real gravity, scaled by the profile's slope factor and the
+## zone's slope_gravity_scale (so climbing a loop costs speed).
+## Into/out of the road: blends from real gravity (magnet 0; pulls the ship off
+## a ceiling) to a fixed pull into the road (magnet 1).
+func _magnetic_surface_gravity() -> Vector3:
+	var n: Vector3 = current_track_normal.normalized()
+	var g_world: Vector3 = Vector3.DOWN * _gravity
+	var slope_scale: float = _mag.zone.slope_gravity_scale if _mag.zone else 1.0
+	var along: Vector3 = g_world.slide(n) * _slope_gravity_factor * slope_scale
+	var into: float = lerpf(g_world.dot(n), -_gravity, magnet_strength)
+	return along + n * into
+
+## v30: gravity on an airborne ship inside a magnetic zone. Points between world
+## down (magnet 0) and into the road (magnet 1), so a magnetic zone pulls a
+## ship that has come loose back onto the track instead of letting it fall.
+func _apply_magnetic_air_gravity(multiplier: float, delta: float) -> void:
+	var into_road: Vector3 = -_mag.surface_up
+	var g_dir: Vector3 = Vector3.DOWN.lerp(into_road, magnet_strength * magnet_weight)
+	if g_dir.length() < 0.01:
+		g_dir = into_road
+	g_dir = g_dir.normalized()
+	velocity += g_dir * _gravity * multiplier * delta
+	var split: Array = _split_on_axis(velocity, g_dir)
+	velocity = (split[0] as Vector3) + g_dir * ((split[1] as float) * _decay(AIRBORNE_VERTICAL_RETAIN, delta))
 
 # ============================================================================
 # THRUST SYSTEM
@@ -691,13 +846,13 @@ func _apply_thrust(delta: float) -> void:
 	if is_grounded:
 		forward_dir = forward_dir.slide(current_track_normal.normalized()).normalized()
 	else:
-		forward_dir.y = 0
+		# v30: flatten against _air_up() (world UP outside magnetic zones,
+		# identical to the old `forward_dir.y = 0`).
+		forward_dir = forward_dir.slide(_air_up())
 		if forward_dir.length() > 0.01:
 			forward_dir = forward_dir.normalized()
 		else:
-			forward_dir = -global_transform.basis.z
-			forward_dir.y = 0
-			forward_dir = forward_dir.normalized()
+			forward_dir = (-global_transform.basis.z).slide(_air_up()).normalized()
 	
 	velocity += forward_dir * thrust_force * delta
 
@@ -804,7 +959,7 @@ func _apply_airbrakes(delta: float) -> void:
 	
 	# Longitudinal braking only; lateral loss is handled by scrub in
 	# _apply_grip(). Applied in the track plane so it never fights the hover.
-	var axis: Vector3 = current_track_normal.normalized() if is_grounded else Vector3.UP
+	var axis: Vector3 = current_track_normal.normalized() if is_grounded else _air_up()
 	var retain: float = _decay(lerpf(1.0, _airbrake_drag, brake_amount), delta)
 	
 	if is_grounded:
@@ -841,7 +996,7 @@ func _apply_pitch(delta: float) -> void:
 
 func _apply_drag(delta: float) -> void:
 	var retain: float = _decay(_drag_coefficient if is_grounded else _air_drag, delta)
-	var axis: Vector3 = current_track_normal.normalized() if is_grounded else Vector3.UP
+	var axis: Vector3 = current_track_normal.normalized() if is_grounded else _air_up()
 	var split: Array = _split_on_axis(velocity, axis)
 	velocity = (split[0] as Vector3) * retain + axis * (split[1] as float)
 
@@ -878,7 +1033,11 @@ func _align_to_track(delta: float) -> void:
 	
 	var current_up = global_transform.basis.y
 	var target_up = current_track_normal
-	var new_up = current_up.slerp(target_up, _smooth(_track_align_speed, delta))
+	var align_rate: float = _track_align_speed
+	if magnet_weight > 0.0 and _mag.zone:
+		align_rate = lerpf(_track_align_speed, maxf(_track_align_speed, _mag.zone.normal_smoothing), magnet_weight)
+	# v30: see slerp_safe().
+	var new_up = ShipController.slerp_safe(current_up, target_up, _smooth(align_rate, delta))
 	
 	var forward = -global_transform.basis.z
 	var right = forward.cross(new_up).normalized()
@@ -924,7 +1083,7 @@ func _handle_collisions() -> void:
 		
 		if collider is ShipController:
 			continue  # handled in pass 1
-		elif absf(normal.y) < 0.5:
+		elif absf(normal.dot(_wall_reference_up())) < 0.5:
 			_handle_wall_collision(normal)
 			had_wall_collision = true
 	
@@ -954,8 +1113,15 @@ func _handle_wall_collision(wall_normal: Vector3) -> void:
 	var reflected = velocity.bounce(wall_normal)
 	velocity = reflected * _wall_bounce_retain
 	
-	var rotate_away = wall_normal.cross(Vector3.UP).dot(-global_transform.basis.z)
-	rotate_y(rotate_away * _wall_rotation_force * get_physics_process_delta_time())
+	if magnet_weight > 0.0:
+		# v30: turn away from the wall about the ship's own up axis; world Y
+		# is meaningless on a loop or mid-roll.
+		var up: Vector3 = global_transform.basis.y.normalized()
+		var turn: float = wall_normal.cross(up).dot(-global_transform.basis.z)
+		rotate(up, turn * _wall_rotation_force * get_physics_process_delta_time())
+	else:
+		var rotate_away = wall_normal.cross(Vector3.UP).dot(-global_transform.basis.z)
+		rotate_y(rotate_away * _wall_rotation_force * get_physics_process_delta_time())
 	
 	if _collision_shake_enabled and camera and impact_speed > _shake_speed_threshold:
 		var speed_ratio = (impact_speed - _shake_speed_threshold) / (_max_speed - _shake_speed_threshold)
@@ -1203,11 +1369,15 @@ func get_max_speed() -> float:
 	return _max_speed
 
 func get_debug_info() -> String:
-	return "Speed: %.0f / %.0f\nGrip: %.1f  Scrub: %.1f\nGrounded: %s\nAirbrake: %s\nYaw: %.0f deg/s  Slip: %.0f deg\nRoll: %.0f deg" % [
+	var s := "Speed: %.0f / %.0f\nGrip: %.1f  Scrub: %.1f\nGrounded: %s\nAirbrake: %s\nYaw: %.0f deg/s  Slip: %.0f deg\nRoll: %.0f deg" % [
 		velocity.length(), _max_speed, current_grip, current_scrub,
 		is_grounded, is_airbraking,
 		rad_to_deg(measured_yaw_rate), rad_to_deg(slip_angle), rad_to_deg(visual_roll)
 	]
+	if _mag:
+		s += "\nMagnet: %.2f x %.2f%s  @ %.0f m" % [magnet_weight, magnet_strength,
+				" (spline contact)" if magnet_contact_recovered else "", _mag.distance]
+	return s
 
 func lock_controls() -> void:
 	controls_locked = true
@@ -1221,13 +1391,11 @@ func apply_boost(amount: float) -> void:
 	if is_grounded:
 		forward = forward.slide(current_track_normal).normalized()
 	else:
-		forward.y = 0
+		forward = forward.slide(_air_up())
 		if forward.length() > 0.01:
 			forward = forward.normalized()
 		else:
-			forward = -global_transform.basis.z
-			forward.y = 0
-			forward = forward.normalized()
+			forward = (-global_transform.basis.z).slide(_air_up()).normalized()
 	
 	velocity += forward * amount
 	

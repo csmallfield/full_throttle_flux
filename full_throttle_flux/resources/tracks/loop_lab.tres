@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_looplab"]
+
+[resource]
+script = ExtResource("1_looplab")
+track_id = "loop_lab"
+display_name = "Loop Lab"
+description = "Greybox test: a vertical loop and a barrel roll, held by magnetic lock zones."
+author = "Flux Industries"
+supports_race = false

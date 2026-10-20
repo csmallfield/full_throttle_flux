@@ -73,6 +73,10 @@ class_name AGCamera2097
 ## Keep well above yaw_follow_rate or banked sections feel seasick.
 @export var up_follow_rate := 11.0
 
+## v30: multiplies yaw_follow_rate and up_follow_rate inside magnetic zones
+## (blended by the ship's magnet weight). 1 = no change.
+@export var magnetic_follow_boost := 1.8
+
 # ============================================================================
 # AIM
 # ============================================================================
@@ -319,8 +323,11 @@ func _process(delta: float) -> void:
 # ============================================================================
 
 func _update_frame(ship_forward: Vector3, ship_up: Vector3, delta: float) -> void:
-	_cam_forward = _cam_forward.slerp(ship_forward, _w(yaw_follow_rate, delta)).normalized()
-	_cam_up = _cam_up.slerp(ship_up, _w(up_follow_rate, delta)).normalized()
+	# v30: tighter frame follow inside magnetic zones (loops pitch the ship
+	# ~100 deg/s; at the flat-track rates the camera trails it by ~30 deg).
+	var boost: float = lerpf(1.0, magnetic_follow_boost, ship.magnet_weight)
+	_cam_forward = _slerp_unit(_cam_forward, ship_forward, _w(yaw_follow_rate * boost, delta))
+	_cam_up = _slerp_unit(_cam_up, ship_up, _w(up_follow_rate * boost, delta))
 	
 	# Re-orthogonalise. Note this never falls back to Vector3.UP, so the
 	# camera survives banked, vertical and inverted track.
@@ -329,6 +336,11 @@ func _update_frame(ship_forward: Vector3, ship_up: Vector3, delta: float) -> voi
 		right = ship.global_transform.basis.x
 	right = right.normalized()
 	_cam_up = right.cross(_cam_forward).normalized()
+
+## v30: slerp that survives parallel vectors (dead-straight flat road at
+## constant speed); see ShipController.slerp_safe().
+static func _slerp_unit(a: Vector3, b: Vector3, weight: float) -> Vector3:
+	return ShipController.slerp_safe(a, b, weight).normalized()
 
 func _build_basis() -> Basis:
 	var right := _cam_forward.cross(_cam_up).normalized()
