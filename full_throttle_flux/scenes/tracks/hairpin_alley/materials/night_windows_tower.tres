@@ -16,4 +16,4 @@ shader_parameter/warm = null
 shader_parameter/cool = null
 shader_parameter/neon_a = null
 shader_parameter/neon_b = null
-shader_parameter/ground_y = null
+shader_parameter/ground_y = -24.0

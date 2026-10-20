@@ -9,13 +9,13 @@
 [ext_resource type="PackedScene" path="res://scenes/tracks/hairpin_alley/districts/hairpin_lights.tscn" id="7_vrut7"]
 [ext_resource type="PackedScene" path="res://scenes/tracks/hairpin_alley/hairpin_track_dressing.tscn" id="8_13m5c"]
 
-[node name="HairpinCity" type="Node3D" unique_id=308224038]
+[node name="HairpinCity" type="Node3D" unique_id=419473014]
 
 [node name="Hairpin_Ground" type="Node3D" parent="." unique_id=14753056 instance=ExtResource("1_dgjak")]
 
-[node name="Hairpin_Frontage" type="Node3D" parent="." unique_id=1477556843 instance=ExtResource("2_13m5c")]
+[node name="Hairpin_Frontage" type="Node3D" parent="." unique_id=864510826 instance=ExtResource("2_13m5c")]
 
-[node name="Hairpin_Infill" type="Node3D" parent="." unique_id=1254348863 instance=ExtResource("3_a8jvg")]
+[node name="Hairpin_Infill" type="Node3D" parent="." unique_id=2106326401 instance=ExtResource("3_a8jvg")]
 
 [node name="Hairpin_Tunnels" type="Node3D" parent="." unique_id=1276660375 instance=ExtResource("4_lybkn")]
 

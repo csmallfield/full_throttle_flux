@@ -19,8 +19,10 @@ Changes to `scenes/tracks/test_circuit_6_live.tscn`:
 The raceway is an elevated deck threading a dense grid of towers at night.
 
 * **Canyon frontage:** buildings stand right at the walls, with facades 38 m from the centreline (the walls' outer face is at 28.6 m). They line both sides for the whole lap.
-  * On the *inside* of corners the blocks get shorter and narrower, so they don't fan into each other.
-  * On the *outside* of corners the frontage drops to low shop podiums, so the corner billboard reads above it.
+  * Lots are office-scale: 60–120 m along the track and 50–90 m deep, with 8–22 m service alleys and the odd 30–45 m plaza. Each lot is a podium over the whole footprint, usually with a tower on part of it (flush with the facade or set back), or one big mid-rise slab. For reference, the ship is about 3.8 m wide and the road is 34 m.
+  * Lots are cut at zone edges rather than dropped. Lots on the inside of gentle curves are shortened and pushed out so the straight box clears the bow. Deep lots that would reach another pass of the track fall back to a shallower, then shorter footprint.
+  * On the *inside* of tight corners the blocks are small (22×24 m), so they don't fan into each other.
+  * On the *outside* of corners the frontage drops to low shop podiums, so the corner billboard reads above it. The board's own pad (corner start to apex, ±15 m) stays empty.
 * **Oversailing floors and sky-bridges:** upper blocks cantilever over the walls and bridges span the track. Everything is at least 22 m above the road, so the city weaves over you.
 * **Seven fully enclosed tunnels,** about 1.9 km of the 7 km lap, each bored through a megablock:
 
@@ -42,7 +44,7 @@ The raceway is an elevated deck threading a dense grid of towers at night.
 
   Colours cycle magenta, cyan and amber, and a matching coloured light spills onto the road.
 * **Landmarks:** a tower with neon rings stands in the eye of each big hairpin, and a 620 m core spire with cyan bands is visible from much of the lap.
-* **The background city:** about 2,000 blocks drawn as chunked MultiMeshes with no shadows, so it's cheap. A dense core is surrounded by an outer skyline that runs about 2 km out.
+* **The background city:** about 600 office-scale blocks drawn as chunked MultiMeshes with no shadows, so it's cheap. The dense core uses 100 m cells with 60–80 m footprints, and the outer skyline, which runs about 2 km out, uses 180 m cells with 105–140 m footprints. Where a full block won't fit between passes of the track, it shrinks to 70% or 50% instead of leaving a hole.
 
 ## Night look
 
@@ -79,9 +81,11 @@ tools/hairpin/
 ```
 godot --headless --path . -s res://tools/utopia/survey_road.gd -- res://scenes/tracks/test_circuit_6_live.tscn res://scenes/tracks/hairpin_alley/hairpin_road_rails.tscn
 godot --path . -s res://tools/hairpin/build_hairpin_dressing.gd      # NOT --headless
-godot --path . -s res://tools/hairpin/build_hairpin.gd               # writes the city + lighting
+godot --path . -s res://tools/hairpin/build_hairpin.gd               # writes the city + lighting; NOT --headless
 godot --headless --path . -s res://tools/utopia/check_clearance.gd -- res://scenes/tracks/test_circuit_6_live.tscn HairpinCity
 ```
+
+Don't run `build_hairpin.gd` headless. The dummy renderer drops MultiMesh instance transforms, so the infill gets saved as zero-size boxes and the background city disappears. Pass district ids to rebuild only some, for example `-- frontage infill`. The window materials' `ground_y` matches `HairpinLayout.GROUND_Y`, and `make_night_materials.gd` writes it from there.
 
 The clearance check reports **0 intrusions**. It checks MeshInstances only. The MultiMesh background city stays at least 82 m from every pass and goes through the same placement guard.
 

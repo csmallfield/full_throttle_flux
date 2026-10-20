@@ -1,6 +1,7 @@
 extends SceneTree
 ## Regenerates the Hairpin Alley greybox night city.
-##   godot --headless --path . -s res://tools/hairpin/build_hairpin.gd [-- district ...]
+##   godot --path . -s res://tools/hairpin/build_hairpin.gd [-- district ...]
+## Not headless: the dummy renderer drops MultiMesh transforms (infill saves empty).
 ## Writes scenes/tracks/hairpin_alley/:
 ##   districts/hairpin_<id>.tscn, hairpin_city.tscn, hairpin_lighting.tscn
 ## WARNING: overwrites those files (see the Utopia readme for the

@@ -7,7 +7,7 @@ class_name HairpinLayout
 ## billboard on its outside (plus overhead arrow gantries before the big ones).
 ##
 ## Shares UtopiaKit / UtopiaLayout helpers (track space, clearance guards).
-## Build: godot --headless --path . -s res://tools/hairpin/build_hairpin.gd
+## Build: godot --path . -s res://tools/hairpin/build_hairpin.gd   (not headless: MultiMesh infill)
 
 const GROUND_Y := -24.0          # street level (lowest road deck is ~14 m above)
 const FRONT_LAT := 38.0          # facade line, measured from the centreline
@@ -108,21 +108,6 @@ func in_tunnel(d: float, margin := 0.0) -> bool:
 			return true
 	return false
 
-## Outside of a corner (where its billboard stands) is kept free of frontage.
-func billboard_zone(d: float, lat: float) -> bool:
-	for c in corners:
-		var outside := -1.0 if c[2] > 0.0 else 1.0
-		if signf(lat) == outside and d >= c[0] - 60.0 and d <= c[1] + 20.0:
-			return true
-	return false
-
-## track distance of the billboard of the corner whose zone contains d
-func billboard_d(d: float) -> float:
-	for c in corners:
-		if d >= c[0] - 60.0 and d <= c[1] + 20.0:
-			return lerpf(c[0], c[3], 0.5)
-	return -1e9
-
 func road_y(d: float) -> float:
 	return k.center(d).y + 2.0
 
@@ -155,40 +140,120 @@ func district_ground(root: Node3D) -> void:
 # FRONTAGE: buildings lining both sides of the deck, track-aligned
 # =============================================================================
 
+## Office-scale lots: 60-120 m along the track, 50-90 m deep. Corner insides
+## still get the small 22 x 24 m blocks (the hairpin eyes are too tight).
+const LOT_ALONG := Vector2(60.0, 120.0)
+const LOT_DEPTH := Vector2(50.0, 90.0)
+const MAX_RECESS := 14.0   # how far a lot may sit back to clear the inside of a curve
+
+## Zones along one side of the track, as [from_d, to_d, rank]; where they
+## overlap the highest rank wins. Lots are cut at zone edges, never dropped whole.
+const Z_FREE := 0
+const Z_LOW := 1      # outside of a corner: low shop podiums under the billboard's sight-line
+const Z_TIGHT := 2    # inside of a tight corner: small blocks only
+const Z_SKIP := 3     # tunnel megablocks, the billboard's own pad
+
+func _side_zones(side: float) -> Array:
+	var iv := []
+	for t in TUNNELS:
+		iv.append([t[0] - 12.0, t[1] + 12.0, Z_SKIP])
+	for c in corners:
+		var outside := -1.0 if c[2] > 0.0 else 1.0
+		if side == outside:
+			iv.append([c[0] - 60.0, c[1] + 20.0, Z_LOW])
+			iv.append([c[0] - 15.0, c[3] + 15.0, Z_SKIP])   # the board searches d0..apex
+	var run0 := -1.0
+	var n := _curv.size()
+	for j in range(n + 1):
+		var c := _curv[j] if j < n else 0.0
+		var tight := signf(c) == side and absf(c) > 0.35
+		if tight and run0 < 0.0:
+			run0 = j * 5.0
+		elif not tight and run0 >= 0.0:
+			iv.append([run0 - 10.0, j * 5.0 + 10.0, Z_TIGHT])
+			run0 = -1.0
+	return iv
+
+func _zone_at(iv: Array, d: float) -> int:
+	var z := Z_FREE
+	for v in iv:
+		if d >= v[0] and d < v[1]:
+			z = maxi(z, v[2])
+	return z
+
+## Next zone edge after d (the zone is constant until then).
+func _zone_end(iv: Array, d: float) -> float:
+	var e := k.length
+	for v in iv:
+		for x: float in [v[0], v[1]]:
+			if x > d + 0.01 and x < e:
+				e = x
+	return e
+
 func district_frontage(root: Node3D) -> void:
 	rng.seed = 6061
+	var tally := {"skip_m": 0.0, "corner_inside": 0, "no_fit": 0, "spire": 0, "lots": 0, "low": 0}
 	for side: float in [-1.0, 1.0]:
 		var sg := k.group(root, "Left" if side < 0.0 else "Right")
+		var iv := _side_zones(side)
 		var d := 0.0
 		var i := 0
-		while d < k.length:
-			var along := rng.randf_range(26.0, 52.0)
-			var gap := rng.randf_range(3.0, 9.0)
-			var dc := d + along * 0.5
-			d += along + gap
-			var curv := curv_at(dc)
-			var inside := signf(curv) == side and absf(curv) > 0.35
-			if in_tunnel(dc, 30.0):
+		while d < k.length - 20.0:
+			var zone := _zone_at(iv, d)
+			var zend := _zone_end(iv, d)
+			if zone == Z_SKIP:
+				tally.skip_m += zend - d
+				d = zend
 				continue
-			var depth := rng.randf_range(26.0, 44.0)
-			if inside:
+			if zone == Z_TIGHT:
 				# inside of a corner: short, narrow blocks so they don't fan into each other
-				along = minf(along, 22.0)
-				depth = minf(depth, 24.0)
-			var low := billboard_zone(dc, side)
-			var lat := side * (FRONT_LAT + depth * 0.5 + rng.randf_range(0.0, 4.0))
+				var sd := d + 14.0
+				while sd < zend - 8.0:
+					var ry0 := road_y(sd)
+					var t0 := ry0 + 18.0 + pow(rng.randf(), 1.4) * 120.0
+					var lat0 := side * (FRONT_LAT + 12.0 + rng.randf_range(0.0, 4.0))
+					if tb(sg, "B%03d" % i, sd, lat0, 22.0, 24.0, t0, "win_tower" if t0 - ry0 > 90.0 else "win", GROUND_Y) != null:
+						i += 1
+						tally.corner_inside += 1
+					sd += 28.0
+				d = zend + 6.0
+				continue
+			# mostly service alleys, now and then a plaza-wide gap
+			var gap := rng.randf_range(8.0, 22.0) if rng.randf() < 0.8 else rng.randf_range(30.0, 45.0)
+			var along := minf(rng.randf_range(LOT_ALONG.x, LOT_ALONG.y), zend - d - 4.0)
+			if along < 30.0:
+				d = zend   # too short for a lot: leave it as an alley
+				continue
+			var lot0 := d
+			# a straight box on a gentle curve bows toward the inside: shorten
+			# the lot until the bow fits, and push it out by that much
+			var tight := _inside_curv(lot0, lot0 + along, side)
+			var R := 57.3 / maxf(tight, 0.001)
+			along = minf(along, sqrt(8.0 * R * MAX_RECESS))
+			d += along + gap
+			var recess := along * along / (8.0 * R) if tight > 0.0 else 0.0
+			var dc := lot0 + along * 0.5
+			var low := zone == Z_LOW
 			var ry := road_y(dc)
 			var dens := clampf(1.0 - Vector2(k.center(dc).x - CITY_C.x, k.center(dc).z - CITY_C.z).length() / 1100.0, 0.25, 1.0)
-			var top := ry + 18.0 + pow(rng.randf(), 1.4) * 170.0 * dens
+			var depth := rng.randf_range(LOT_DEPTH.x, LOT_DEPTH.y)
+			var front := FRONT_LAT + recess + rng.randf_range(0.0, 4.0)
+			# deep lots hit the other leg of a hairpin: try shallower, then shorter
+			var fit := _fit_lot(dc, side, front, along, depth)
+			if fit == Vector2.ZERO:
+				print("  GUARD skip frontage lot %s d=%.0f" % ["L" if side < 0.0 else "R", dc])
+				tally.no_fit += 1
+				continue
+			var lc := k.at_y(dc, side * (front + fit.y * 0.5), 0.0)
+			if Vector2(lc.x - CITY_C.x, lc.z - CITY_C.z).length() < 70.0 + fit.length() * 0.5:
+				tally.spire += 1
+				continue   # leave the core spire's plaza open
+			_frontage_lot(sg, "B%03d" % i, dc, side, front, fit.x, fit.y, ry, dens, low)
+			tally.lots += 1
 			if low:
-				# outside of a corner: the billboard stands here, keep the
-				# frontage low (podium shops) so the sign reads above it
-				if absf(dc - billboard_d(dc)) < 45.0:
-					d += 0.0
-					continue
-				top = ry + rng.randf_range(4.0, 8.0)
-			_frontage_building(sg, "B%03d" % i, dc, lat, along, depth, top, side)
+				tally.low += 1
 			i += 1
+	print("  frontage lots: ", tally)
 	# sky-bridges and oversailing upper floors on the straighter bits
 	var br := k.group(root, "Oversail")
 	rng.seed = 6062
@@ -209,32 +274,88 @@ func district_frontage(root: Node3D) -> void:
 			tb(br, "Cantilever%02d" % j, dd, side * 34.0, rng.randf_range(24.0, 40.0), 24.0, y + rng.randf_range(16.0, 34.0), "win", y)
 		j += 1
 
-func _frontage_building(g: Node, name: String, d: float, lat: float, along: float, depth: float, top: float, side: float) -> void:
+## Strongest same-side (inside) curvature over a lot, deg/m; 0 if it only bends away.
+func _inside_curv(d0: float, d1: float, side: float) -> float:
+	var m := 0.0
+	var d := d0
+	while d <= d1:
+		var c := curv_at(d)
+		if signf(c) == side:
+			m = maxf(m, absf(c))
+		d += 5.0
+	return m
+
+## Largest (along, depth) footprint that clears every pass from street to
+## a tall top; ZERO if even a 30 x 28 m lot won't fit.
+func _fit_lot(dc: float, side: float, front: float, along: float, depth: float) -> Vector2:
+	var b := k.yaw_at(dc)
+	for a: float in [along, along * 0.7, 30.0]:
+		for dp: float in [depth, depth * 0.7, 40.0, 28.0]:
+			if a < 30.0 or dp < 28.0:
+				continue
+			var base := k.at_y(dc, side * (front + dp * 0.5), GROUND_Y)
+			if _guard_quiet(base, dp, a, b, GROUND_Y, road_y(dc) + 400.0):
+				return Vector2(a, dp)
+	return Vector2.ZERO
+
+## One frontage lot: a podium over the whole footprint plus (usually) a
+## tower on part of it -- the street wall reads as one big office block.
+func _frontage_lot(g: Node, name: String, d: float, side: float, front: float, along: float, depth: float,
+		ry: float, dens: float, low: bool) -> void:
 	var b := k.yaw_at(d)
-	var mat := "win_tower" if top - road_y(d) > 90.0 else "win"
-	if tb(g, name, d, lat, along, depth, top, mat, GROUND_Y) == null:
-		return
+	var fwd := k.fwd_flat(d)
 	var face := k.right_flat(d) * (-side)                 # toward the track
-	var face_c := k.at_y(d, lat, 0.0) + face * (depth * 0.5 + 0.25)
+	var lat := side * (front + depth * 0.5)
+	var base := k.at_y(d, lat, GROUND_Y)
+	var pod_top := ry + rng.randf_range(10.0, 28.0)
+	if low:
+		# outside of a corner: the billboard reads above low shop podiums
+		pod_top = ry + rng.randf_range(4.0, 8.0)
+	elif rng.randf() < 0.25:
+		pod_top = ry + rng.randf_range(30.0, 60.0)        # one big mid-rise slab, no tower
+	if wb(g, name, base, depth, along, pod_top, b, "win") == null:
+		return
+	var top := pod_top
+	var t_along := along
+	var t_depth := depth
+	var t_base := base
+	if not low and pod_top - ry < 30.0 and rng.randf() < 0.85:
+		t_along = along * rng.randf_range(0.45, 0.8)
+		t_depth = depth * rng.randf_range(0.5, 0.85)
+		# flush with the facade (a straight street wall) or set back from it
+		var setback := 0.0 if rng.randf() < 0.5 else rng.randf_range(6.0, minf(15.0, depth - t_depth))
+		var slide := rng.randf_range(-0.5, 0.5) * (along - t_along)
+		t_base = base + face * (depth * 0.5 - t_depth * 0.5 - setback) + fwd * slide
+		top = ry + 40.0 + pow(rng.randf(), 1.5) * 190.0 * dens
+		var mat := "win_tower" if top - ry > 90.0 else "win"
+		var tw := wb(g, name + "_Tower", Vector3(t_base.x, pod_top, t_base.z), t_depth, t_along, top, b, mat)
+		if tw == null:
+			top = pod_top
+			t_along = along
+			t_depth = depth
+			t_base = base
+	# signs hang on the podium facade, below its roof
+	var face_c := base + face * (depth * 0.5 + 0.25)
 	var r := rng.randf()
-	if r < 0.22:
+	if r < 0.3 and pod_top - ry > 16.0:
 		# vertical blade sign on the facade
-		var h := rng.randf_range(12.0, 26.0)
-		var y0 := road_y(d) + rng.randf_range(8.0, 30.0)
-		var off := k.fwd_flat(d) * rng.randf_range(-along * 0.35, along * 0.35)
+		var h := minf(rng.randf_range(12.0, 26.0), pod_top - ry - 4.0)
+		var y0 := ry + rng.randf_range(4.0, maxf(4.0, pod_top - ry - h - 2.0))
+		var off := fwd * rng.randf_range(-along * 0.4, along * 0.4)
 		var bc := Vector3(face_c.x, y0, face_c.z) + off + face * 0.6
 		if _guard(name + "_Blade", bc, 4.0, 4.0, b, y0, y0 + h):
 			k.box(g, name + "_Blade", bc + Vector3.UP * h * 0.5, Vector3(1.0, h, 4.0), b, ["cyan", "magenta", "amber"][rng.randi() % 3])
-	elif r < 0.42:
+	elif r < 0.55 and pod_top - ry > 14.0:
 		# ad screen facing the track
-		var w := minf(along * 0.7, rng.randf_range(12.0, 22.0))
-		var y1 := road_y(d) + rng.randf_range(14.0, 40.0)
-		screen(g, name + "_Ad", Vector3(face_c.x, y1, face_c.z) + face * 0.3, Vector2(w, w * 0.5), face, NEON_COLORS[rand_neon()], 0.0, rng.randf() * 10.0)
+		var w := minf(along * 0.5, rng.randf_range(16.0, 30.0))
+		var y1 := ry + rng.randf_range(4.0, maxf(4.0, pod_top - ry - w * 0.5 - 2.0)) + w * 0.25
+		var off2 := fwd * rng.randf_range(-along * 0.3, along * 0.3)
+		screen(g, name + "_Ad", Vector3(face_c.x, y1, face_c.z) + off2 + face * 0.3, Vector2(w, w * 0.5), face, NEON_COLORS[rand_neon()], 0.0, rng.randf() * 10.0)
 	if rng.randf() < 0.35:
-		# neon crown line
-		k.block_to(g, name + "_Crown", k.at_y(d, lat, top), depth + 0.6, along + 0.6, top + 0.8, b, rand_neon())
-	if top - road_y(d) > 110.0:
-		k.box(g, name + "_Beacon", k.at_y(d, lat, top + 1.5), Vector3(2, 2, 2), b, "red")
+		# neon crown line on the highest roof
+		k.block_to(g, name + "_Crown", Vector3(t_base.x, top, t_base.z), t_depth + 0.6, t_along + 0.6, top + 0.8, b, rand_neon())
+	if top - ry > 110.0:
+		k.box(g, name + "_Beacon", Vector3(t_base.x, top + 1.5, t_base.z), Vector3(2, 2, 2), b, "red")
 
 # =============================================================================
 # INFILL: the rest of the city as chunked MultiMeshes (no shadows, cheap)
@@ -243,8 +364,9 @@ func _frontage_building(g: Node, name: String, d: float, lat: float, along: floa
 func district_infill(root: Node3D) -> void:
 	rng.seed = 6063
 	var chunks := {}   # [tile, mat] -> Array[Transform3D]
-	_grid_fill(chunks, Rect2(-1250, -1250, 2100, 1650), 46.0, 34.0, 1.0)      # dense core
-	_grid_fill(chunks, Rect2(-2400, -2300, 4300, 3700), 110.0, 70.0, 0.55)    # outer skyline
+	# office-scale city blocks: 60-80 m footprints in the core, 105-140 m outside
+	_grid_fill(chunks, Rect2(-1250, -1250, 2100, 1650), 100.0, 80.0, 1.0)     # dense core
+	_grid_fill(chunks, Rect2(-2400, -2300, 4300, 3700), 180.0, 140.0, 0.55)   # outer skyline
 	var box_mesh: Mesh = k.meshes["box"]
 	for key in chunks:
 		var arr: Array = chunks[key]
@@ -271,19 +393,29 @@ func _grid_fill(chunks: Dictionary, rect: Rect2, cell: float, block: float, heig
 			# the dense core owns its own rect
 			if height_k < 1.0 and Rect2(-1250, -1250, 2100, 1650).has_point(Vector2(c.x, c.z)):
 				continue
-			var nt := near_track(c)
-			if nt.x < 82.0:
-				continue
 			if rng.randf() < 0.08:
 				continue   # small plazas
-			var w := block * rng.randf_range(0.7, 1.0)
-			var dpt := block * rng.randf_range(0.7, 1.0)
+			var w0 := block * rng.randf_range(0.75, 1.0)
+			var d0 := block * rng.randf_range(0.75, 1.0)
+			var b := Basis(Vector3.UP, deg_to_rad(rng.randf_range(-3.0, 3.0)))
+			# keep the footprint's edge 60 m off every pass; between hairpin legs
+			# shrink the block rather than leave a hole in the skyline
+			var w := 0.0
+			var dpt := 0.0
+			var nt := Vector2.ZERO
+			for s: float in [1.0, 0.7, 0.5]:
+				nt = footprint_clear(c, w0 * s, d0 * s, b)
+				if nt.x >= 60.0:
+					w = w0 * s
+					dpt = d0 * s
+					break
+			if w == 0.0:
+				continue
 			var dist := Vector2(c.x - CITY_C.x, c.z - CITY_C.z).length()
 			var dens := clampf(1.0 - dist / 1500.0, 0.12, 1.0)
 			var top := GROUND_Y + 25.0 + pow(rng.randf(), 1.6) * 260.0 * dens * height_k
-			if nt.x < 130.0:
+			if nt.x < 150.0:
 				top = minf(top, nt.y + 150.0)
-			var b := Basis(Vector3.UP, deg_to_rad(rng.randf_range(-3.0, 3.0)))
 			if not _guard("infill", c, w, dpt, b, GROUND_Y, top):
 				continue
 			var mat := "win_tower" if top - GROUND_Y > 120.0 else "win"

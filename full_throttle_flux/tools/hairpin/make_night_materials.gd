@@ -18,9 +18,12 @@ func _std(name: String, albedo: Color, rough: float, emis := Color.BLACK, energy
 func _initialize() -> void:
 	var w := ShaderMaterial.new()
 	w.shader = load(M + "night_windows.gdshader")
+	# windows start at the street, which the layout owns
+	w.set_shader_parameter("ground_y", HairpinLayout.GROUND_Y)
 	ResourceSaver.save(w, M + "night_windows.tres")
 	var w2 := ShaderMaterial.new()   # denser, brighter tower variant
 	w2.shader = w.shader
+	w2.set_shader_parameter("ground_y", HairpinLayout.GROUND_Y)
 	w2.set_shader_parameter("lit_ratio", 0.6)
 	w2.set_shader_parameter("floor_height", 3.8)
 	w2.set_shader_parameter("bay_width", 2.6)
