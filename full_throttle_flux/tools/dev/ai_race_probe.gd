@@ -33,6 +33,15 @@ var zone_ticks := {}
 var vmin := {}
 var vmax := {}
 var laps := {}
+## v33: lap completions in race frames (RaceManager's lap times are wall
+## clock, meaningless under --fixed-fps), wall contacts (rising edges of the
+## ship's scrape state) and ticks spent on a wall. Read-only: the checksum is
+## unaffected.
+var lap_frames := {}
+var walls := {}
+var wall_ticks := {}
+var scraping := {}
+var frame_now := 0
 
 func _ready() -> void:
 	await get_tree().process_frame
@@ -78,7 +87,7 @@ func _ready() -> void:
 				if z.zone_name == only:
 					z.magnet_strength = mo.to_float()
 	
-	rm.ship_lap_completed.connect(func(s, n, _t): laps[s] = n)
+	rm.ship_lap_completed.connect(_on_ship_lap)
 	var graph := get_tree().get_first_node_in_group(TrackGraph.GROUP) as TrackGraph
 	if graph and graph.branches.is_empty() and graph.jumps.is_empty():
 		graph = null
@@ -91,13 +100,24 @@ func _ready() -> void:
 		vmin[s] = INF
 		vmax[s] = 0.0
 		laps[s] = 0
+		lap_frames[s] = []
+		walls[s] = 0
+		wall_ticks[s] = 0
+		scraping[s] = false
 		s.ship_respawned.connect(func(): respawns[s] += 1)
 	
 	# The player ship gets no input and sits on the grid; the AI field races.
 	var frames := int(seconds * 60.0)
 	for f in frames:
+		frame_now = f + 1
 		await get_tree().physics_frame
 		for s in ships:
+			var scr: bool = s.get("_is_scraping_wall") == true
+			if scr:
+				wall_ticks[s] += 1
+				if not scraping[s]:
+					walls[s] += 1
+			scraping[s] = scr
 			var v: float = s.velocity.length()
 			vmin[s] = minf(vmin[s], v)
 			vmax[s] = maxf(vmax[s], v)
@@ -117,8 +137,59 @@ func _ready() -> void:
 			respawns[s], zone_ticks[s], air_in_zone[s], t.origin.snapped(Vector3.ONE * 0.1)])
 	if graph:
 		_fork_report()
+	_lap_report()
 	print("PROBE track=%s seconds=%.0f ships=%d checksum=%d" % [track_id, seconds, ships.size(), str(h).hash()])
 	get_tree().quit(0)
+
+func _on_ship_lap(s, n, _t) -> void:
+	laps[s] = n
+	if lap_frames.has(s):
+		lap_frames[s].append(frame_now)
+
+## v33: per-ship lap times in simulated seconds (lap 1 is the standing start,
+## timed from the green light), wall contacts, and the field's spread at each
+## lap line every AI crossed.
+func _lap_report() -> void:
+	var ai_ships: Array = ships.filter(func(s): return s.ai_controlled)
+	var flying: Array[float] = []
+	for s in ai_ships:
+		var times: Array[float] = []
+		var prev := 0
+		for fr in lap_frames[s]:
+			times.append((fr - prev) / 60.0)
+			prev = fr
+		flying.append_array(times.slice(1))
+		print("PROBELAP %-12s laps=%s walls=%d wall_ticks=%d respawns=%d" % [
+			s.name, str(times.map(func(x): return snappedf(x, 0.01))),
+			walls[s], wall_ticks[s], respawns[s]])
+	var spreads: Array[float] = []
+	var k := 0
+	while true:
+		var lo := INF
+		var hi := -INF
+		var all_done := true
+		for s in ai_ships:
+			if lap_frames[s].size() <= k:
+				all_done = false
+				break
+			lo = minf(lo, lap_frames[s][k])
+			hi = maxf(hi, lap_frames[s][k])
+		if not all_done or ai_ships.is_empty():
+			break
+		spreads.append(snappedf((hi - lo) / 60.0, 0.01))
+		k += 1
+	var tw := 0
+	for s in ai_ships:
+		tw += walls[s]
+	flying.sort()
+	var mean := 0.0
+	for x in flying:
+		mean += x
+	if not flying.is_empty():
+		mean /= flying.size()
+	print("PROBEFIELD ai=%d walls=%d best_flying=%.2f mean_flying=%.2f flying_laps=%d spread_at_lap_line=%s" % [
+		ai_ships.size(), tw, flying[0] if not flying.is_empty() else 0.0, mean,
+		flying.size(), str(spreads)])
 
 func _find_ships(n: Node) -> Array:
 	var out: Array = []
