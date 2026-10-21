@@ -42,6 +42,10 @@ class RespawnPoint:
 	var position: Vector3
 	var rotation: Basis
 	var spline_offset: float  # 0.0 to 1.0
+	## v31 (tracks with a TrackGraph): -1 = MainSpline, else branch index, and
+	## metres along that path.
+	var path: int = -1
+	var path_distance: float = 0.0
 	
 	func _init(pos: Vector3, rot: Basis, offset: float) -> void:
 		position = pos
@@ -53,6 +57,18 @@ var spline_helper: TrackSplineHelper
 var is_initialized: bool = false
 var track_root_node: Node = null  # Store reference for world access
 var _magnetic: MagneticTrack = null  # v30: set when the track has magnetic zones
+var _graph: TrackGraph = null  # v31: set when the track has branches or jumps
+
+func _find_graph(node: Node) -> TrackGraph:
+	if node == null:
+		return null
+	if node is TrackGraph and (node as TrackGraph).is_valid():
+		return node
+	for child in node.get_children():
+		var found := _find_graph(child)
+		if found:
+			return found
+	return null
 
 func _find_magnetic_track(node: Node) -> MagneticTrack:
 	if node == null:
@@ -127,6 +143,12 @@ func _generate_respawn_points() -> void:
 	# may be vertical or upside down there) and orient by the banked/rolled
 	# surface frame, which a barrel roll leaves a full turn of tilt behind.
 	_magnetic = _find_magnetic_track(track_root_node)
+	_graph = _find_graph(track_root_node)
+	if _graph and _graph.branches.is_empty() and _graph.jumps.is_empty():
+		_graph = null
+	if _graph:
+		_generate_graph_points(num_points)
+		return
 	
 	for i in range(num_points):
 		var spline_offset := float(i) / float(num_points)
@@ -159,6 +181,81 @@ func _create_respawn_point(spline_offset: float) -> RespawnPoint:
 	respawn_pos = _find_clear_respawn_position(respawn_pos, up)
 	
 	return RespawnPoint.new(respawn_pos, rotation, spline_offset)
+
+## v31: respawn points on the MainSpline and on every branch, none inside a
+## jump (kicker to landing end) or in the run-up before one, so a ship that
+## falls short comes back far enough before the jump to make it, on the path
+## it was on. Branch points stop short of the junctions (main points cover
+## those). Oriented by the banked road frame.
+func _generate_graph_points(num_points: int) -> void:
+	var length := spline_helper.total_length
+	for i in range(num_points):
+		var d := float(i) / float(num_points) * length
+		if _magnetic and _magnetic.is_in_zone(d):
+			continue
+		if _graph.is_respawn_excluded(-1, d):
+			continue
+		respawn_points.append(_graph_point(-1, d, d))
+	for bi in _graph.branches.size():
+		var br: TrackBranch = _graph.branches[bi]
+		var lb := _graph.path_length(bi)
+		var b := br.fork_blend
+		while b <= lb - br.rejoin_blend:
+			if not _graph.is_respawn_excluded(bi, b):
+				respawn_points.append(_graph_point(bi, b, _graph.branch_to_main(bi, b)))
+			b += respawn_point_spacing
+	if debug_print:
+		print("TrackRespawnManager: Generated %d respawn points (main + %d branch(es), jumps excluded)" % [
+			respawn_points.size(), _graph.branches.size()])
+
+## Graph points sit GRAPH_RESPAWN_HEIGHT above the road, inside the hover
+## ray's reach, so ShipController.settle_on_surface() puts the ship straight
+## onto its hover height. From respawn_height_offset (20 m) the ray can't reach,
+## the ship free-falls, and the stock hover spring pulls it down harder still
+## once in range: measured ~42 u/s into the road, which pushed the hull
+## through the road's one-sided collision on Fork Lab.
+const GRAPH_RESPAWN_HEIGHT := 4.0
+
+func _graph_point(path: int, d: float, main_d: float) -> RespawnPoint:
+	var f := _graph.frame_at(path, d)
+	var up := f.basis.y.normalized()
+	var rotation := Basis(f.basis.x.normalized(), up, f.basis.z.normalized()).orthonormalized()
+	var pos := f.origin + up * GRAPH_RESPAWN_HEIGHT
+	var p := RespawnPoint.new(pos, rotation, main_d / spline_helper.total_length)
+	p.path = path
+	p.path_distance = d
+	return p
+
+## v31: the last respawn point BEHIND the ship on the path it is on; before a
+## branch's first point, the last main point before its fork.
+func _graph_respawn(world_position: Vector3) -> Dictionary:
+	var loc := _graph.locate(world_position)
+	var path: int = loc.path
+	var main_d: float = loc.distance
+	if path >= 0:
+		var best: RespawnPoint = null
+		for p in respawn_points:
+			if p.path == path and p.path_distance <= float(loc.distance) \
+					and (best == null or p.path_distance > best.path_distance):
+				best = p
+		if best:
+			return {"position": best.position, "rotation": best.rotation, "found": true,
+					"path": path, "path_distance": best.path_distance}
+		main_d = _graph.branches[path].fork_distance
+	var length := _graph.main_length()
+	var behind: RespawnPoint = null
+	var best_gap := INF
+	for p in respawn_points:
+		if p.path != -1:
+			continue
+		var gap := fposmod(main_d - p.path_distance, length)
+		if gap < best_gap:
+			best_gap = gap
+			behind = p
+	if behind == null:
+		return {"found": false}
+	return {"position": behind.position, "rotation": behind.rotation, "found": true,
+			"path": -1, "path_distance": behind.path_distance}
 
 func _find_clear_respawn_position(initial_pos: Vector3, up_dir: Vector3) -> Vector3:
 	"""Find a clear position for respawning, checking for collisions."""
@@ -211,6 +308,9 @@ func get_nearest_respawn_point(world_position: Vector3) -> Dictionary:
 	"""
 	if not is_initialized or respawn_points.is_empty():
 		return {"found": false}
+	
+	if _graph:
+		return _graph_respawn(world_position)
 	
 	# Convert world position to spline offset
 	var spline_offset := spline_helper.world_to_spline_offset(world_position)

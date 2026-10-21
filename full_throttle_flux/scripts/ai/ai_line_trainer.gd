@@ -428,6 +428,9 @@ func _drive_lap() -> float:
 	return -1.0
 
 func _record(offset: float) -> void:
+	# v32: nothing to learn about speed or tracking in the air over a jump.
+	if not _helper.jump_spans.is_empty() and _helper.in_jump_span(offset * _helper.total_length):
+		return
 	var idx: int = wrapi(int(offset * float(_sample_count)), 0, _sample_count)
 	
 	var desired: float = _line.get_lateral_at(offset)

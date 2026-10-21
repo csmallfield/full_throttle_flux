@@ -62,6 +62,24 @@ class_name CinematicCameraRig
 ##
 ## On tracks without zones none of this runs and every camera is
 ## bit-identical to before (verified with tools/dev/cine_rig_probe.gd).
+##
+## FORKS AND JUMPS (v32)
+## ---------------------------------------------------------------------------
+## On tracks whose TrackGraph has route laps (Fork Lab):
+##   * Everything that places a camera along the spline (roadkill, whip,
+##     handheld's track clamp, kamikaze, zone frames) uses the route lap the
+##     FOLLOWED ship is on: the AI's chosen route (known 300 m before the
+##     fork), or for the player a TrackGraph.Tracker. When the route changes,
+##     the spline-planted cameras replant along the new route.
+##   * Each jump on that route is a zone (a non-loop one): witnesses stay out
+##     of the space the jump flies through and, near it, take their shot from
+##     a spot chosen by measurement (cine_rig_probe CR_ANALYZE=1; see
+##     jump_witness_*). Track-fixed cameras never plant in a gap.
+##   * Riding cameras need nothing: their frame is world-up outside magnetic
+##     zones and their ground clearance only lifts them over road that is
+##     actually there, so in flight they carry on beside the ship, neither
+##     diving into the gap nor stalling.
+## None of it runs on tracks without route laps.
 
 signal camera_changed(camera_name: String)
 
@@ -203,8 +221,41 @@ const CAMERA_NAMES: PackedStringArray = [
 ## How far above a riding camera to look for the road under it.
 @export var ride_clear_search: float = 20.0
 
+@export_group("Forks and jumps (v32)")
+## Place spline cameras along the followed ship's route lap, and treat jumps
+## as zones. Off = v31 behaviour (MainSpline only, no jump zones), for A/B.
+@export var route_aware: bool = true
+## Witness spot for a jump, chosen by cine_rig_probe CR_ANALYZE=1 (raycasting
+## the racer's recorded path through each jump from a grid of spots): along
+## the jump at this fraction from its lip to its landing lip, this high above
+## the lower lip, standing this far off (plus zone_envelope_margin) beyond the
+## swept envelope, on the side that sees more of the road. Measured on Fork
+## Lab: from 3/4 of the way across the gap to the landing lip, 20-35 m up and
+## 8-20 m out, 100% of both jumps is in view. Low spots (level with the lips
+## or under the gap) lose the racer behind the ramps' own bulk.
+@export var jump_witness_gap_frac: float = 0.85
+@export var jump_witness_height: float = 25.0
+@export var jump_witness_standoff: float = 14.0
+## Track-fixed cameras planted in a gap move this far past its landing lip.
+@export var jump_gap_plant_after: float = 15.0
+## Cameras ON the road ahead of a ship approaching a jump are behind the
+## kicker's crest. Roadkill lies on the kicker ramp this far before the lip
+## instead (the ramp is concave, so it sees all the way down it); kamikaze
+## rises over the crest, at most this high, while it is on the jump.
+@export var jump_ramp_plant_before: float = 6.0
+@export var jump_crest_lift_max: float = 24.0
+
 var cameras: Array[Camera3D] = []
 var active_camera: Camera3D
+
+var _graph: TrackGraph = null
+var _graph_checked := false
+var _route := -99
+var _route_helpers := {}
+var _route_tracker: TrackGraph.Tracker = null
+var _route_ai: AIShipController = null
+var _route_ai_checked := false
+var _route_gaps: Array = []   # [lip, landing, kicker] route distances on the current route
 
 var _target: ShipController
 var _cams: Dictionary = {}
@@ -255,6 +306,10 @@ func follow(ship: ShipController) -> void:
 	if ship == _target:
 		return
 	_target = ship
+	_route = -99
+	_route_ai_checked = false
+	if _route_tracker:
+		_route_tracker.reset()
 	_body = _measure_hull(ship)
 	set_physics_process(_target != null)
 	if _target:
@@ -338,6 +393,7 @@ func _update(dt: float, snap_now: bool) -> void:
 	if _space == null:
 		_space = get_world_3d().direct_space_state
 	
+	_route_tick()
 	var k := _size_scale()
 	var sp := _speed_scale()
 	var f := _target.global_transform
@@ -424,6 +480,14 @@ func _update(dt: float, snap_now: bool) -> void:
 			plant = _clear_ground(p + fw * ahead + sw * (11.0 * k) * side_sign
 					+ Vector3.UP * (trackside_height * k), trackside_clearance)
 			plant = _outside_zones(plant)
+			if _graph and not _sees(plant, p + Vector3.UP * (0.5 * k)):
+				# v32 (route tracks only): the alternate side can't see the
+				# ship from here; try the other one.
+				var other := _outside_zones(_clear_ground(p + fw * ahead - sw * (11.0 * k) * side_sign
+						+ Vector3.UP * (trackside_height * k), trackside_clearance))
+				if _sees(other, p + Vector3.UP * (0.5 * k)):
+					plant = other
+					side_sign = -side_sign
 		_state["trackside"] = {"plant": plant, "side": side_sign, "zone": zi}
 	var dist := plant.distance_to(p)
 	_look("trackside", plant, p + Vector3.UP * (0.5 * k), 8.0, snap_now or replant,
@@ -813,6 +877,8 @@ func _kamikaze(dt: float, snap_now: bool, k: float, p: Vector3, fwd: Vector3,
 			# which put this camera below the geometry looking at nothing.
 			# Every other camera clears the ground; this one was not.
 			pos = _clear_ground(pos + Vector3.UP * (2.4 * k), 2.4 * k)
+			if not _route_gaps.is_empty():
+				pos = _crest_lift("kamikaze", pos, up_pt, off * spline.total_length, dt)
 	else:
 		pos = st.get("pos", p)
 		var to_ship: Vector3 = p - pos
@@ -845,6 +911,8 @@ func _on_track(near: Vector3, lateral: float) -> Vector3:
 	if spline == null or not spline.is_valid:
 		return near
 	var off: float = spline.world_to_spline_offset(near)
+	if not _route_gaps.is_empty():
+		off = _off_gap(off)
 	return spline.spline_offset_to_world_with_lateral(off, lateral, true)
 
 ## Underdamped spring toward a moving point: overshoots, then settles. Used
@@ -932,6 +1000,7 @@ func _build_zones() -> void:
 	_zones.clear()
 	if spline == null or not spline.is_valid or spline.magnetic == null \
 			or not spline.magnetic.is_valid():
+		_build_jump_zones()
 		return
 	var mt := spline.magnetic
 	var length := mt.get_length()
@@ -991,6 +1060,7 @@ func _build_zones() -> void:
 		z["sides"] = {}
 		z["side"] = _side_for(z, z.spot_a, z.spot_y, 1.0)
 		_zones.append(z)
+	_build_jump_zones()
 
 ## Which side of zone `z` sees more of its road from a witness spot at
 ## (`along`, `height`, `standoff_scale`): raycast from it, on each side, to
@@ -1005,7 +1075,6 @@ func _side_for(z: Dictionary, along: float, height: float, standoff_scale: float
 		return cache[key]
 	if _space == null:
 		_space = get_world_3d().direct_space_state
-	var mt := spline.magnetic
 	var length: float = z.length
 	var score := {1.0: 0, -1.0: 0}
 	for side: float in [1.0, -1.0]:
@@ -1014,7 +1083,7 @@ func _side_for(z: Dictionary, along: float, height: float, standoff_scale: float
 		var spot := _zone_world(z, clampf(along, z.a0, z.a1), c, height)
 		var d := 0.0
 		while d <= float(z.span):
-			var fr := mt.frame_at(fposmod(float(z.start) + d, length))
+			var fr := _zone_frame(z, fposmod(float(z.start) + d, length))
 			for lat: float in [-17.0, -8.5, 0.0, 8.5, 17.0]:
 				var pt := fr.origin + fr.basis.x.normalized() * lat + fr.basis.y.normalized() * 2.75
 				if _space.intersect_ray(PhysicsRayQueryParameters3D.create(spot, pt, ground_mask)).is_empty():
@@ -1193,6 +1262,8 @@ func _roadkill(dt: float, snap_now: bool, k: float, sp: float, p: Vector3, fw: V
 					"d": zoff * spline.total_length, "up": rup}
 		else:
 			rplant = _on_track(p + fw * ahead, 2.2 * k * rside)
+			if not _route_gaps.is_empty():
+				rplant = _ramp_plant(p + fw * ahead, rplant, 2.2 * k * rside)
 			rplant = _clear_ground(rplant + Vector3.UP * (0.28 * k), 0.30)
 			rk = {"plant": rplant, "side": rside}
 		_state["roadkill"] = rk
@@ -1408,3 +1479,166 @@ func _clear_ground(pos: Vector3, min_height: float) -> Vector3:
 	if hit:
 		pos.y = maxf(pos.y, (hit["position"] as Vector3).y + min_height)
 	return pos
+
+# ============================================================================
+# v32: FORKS AND JUMPS
+# ============================================================================
+
+## Point `spline` at the followed ship's route lap. Tracks without route laps:
+## does nothing (and costs one group lookup, once).
+func _route_tick() -> void:
+	if not _graph_checked:
+		_graph_checked = true
+		if route_aware and is_inside_tree():
+			var g := get_tree().get_first_node_in_group(TrackGraph.GROUP) as TrackGraph
+			if g and g.is_valid() and g.has_routes():
+				_graph = g
+				_route_tracker = g.make_tracker()
+				_route_helpers[-1] = TrackSplineHelper.for_path(g.route_path(-1), g.get_parent())
+				for r in g.branches.size():
+					if g.route_path(r):
+						_route_helpers[r] = TrackSplineHelper.for_path(g.route_path(r), g.get_parent())
+	if _graph == null or _target == null:
+		return
+	if not _route_ai_checked:
+		_route_ai_checked = true
+		_route_ai = _find_ai(get_tree().root)
+	var r := _route
+	if _route_ai and _route_ai.route_follower:
+		r = _route_ai.route_follower.active_route()
+	else:
+		_route_tracker.update(_target.global_position)
+		r = _route_tracker.route
+	if not _route_helpers.has(r):
+		r = -1
+	if r == _route and spline == _route_helpers[r]:
+		return
+	var first := _route == -99
+	_route = r
+	spline = _route_helpers[r]
+	_route_gaps.clear()
+	for e in _graph.route_jumps(r):
+		_route_gaps.append([float(e.lip), float(e.landing), float(e.kicker)])
+	_zones_built = false
+	if not first:
+		# Spline-planted shots belong to the old route: replant on this one.
+		for key in ["trackside", "crane", "pan", "handheld", "kamikaze", "roadkill", "whip", "crossing"]:
+			_state.erase(key)
+
+func _find_ai(n: Node) -> AIShipController:
+	if n is AIShipController and (n as AIShipController).ship == _target:
+		return n
+	for c in n.get_children():
+		var f := _find_ai(c)
+		if f:
+			return f
+	return null
+
+## Clear line of sight (ground and walls) from `from` to `to`.
+func _sees(from: Vector3, to: Vector3) -> bool:
+	if _space == null:
+		return true
+	return _space.intersect_ray(PhysicsRayQueryParameters3D.create(from, to, ground_mask)).is_empty()
+
+## Spline offset (0..1) moved out of any jump gap, to just past its landing.
+func _off_gap(off: float) -> float:
+	var length := spline.total_length
+	var d := off * length
+	for gap in _route_gaps:
+		if d > float(gap[0]) - 2.0 and d < float(gap[1]) + 2.0:
+			return fposmod(float(gap[1]) + jump_gap_plant_after, length) / length
+	return off
+
+## Roadkill aimed at a jump (anywhere from its kicker to just past its
+## landing) while the ship has yet to reach the kicker: on the ramp, just
+## before the lip, so the ship comes up the ramp at it and launches over it.
+func _ramp_plant(want: Vector3, plant: Vector3, lateral: float) -> Vector3:
+	if _ship_d < 0.0:
+		return plant
+	var d := spline.world_to_spline_offset(want) * spline.total_length
+	for gap in _route_gaps:
+		var kick := float(gap[2])
+		if d >= kick and d < float(gap[1]) + jump_gap_plant_after + 2.0 and _ship_d < kick:
+			return spline.spline_offset_to_world_with_lateral(
+					(float(gap[0]) - jump_ramp_plant_before) / spline.total_length, lateral, true)
+	return plant
+
+## A camera riding the road at route distance `d`, with a jump's crest
+## between it and the ship (the camera past the kicker, the ship short of the
+## lip): lift it until it sees `aim` over the crest. The lift eases in and out.
+func _crest_lift(key: String, pos: Vector3, aim: Vector3, d: float, dt: float) -> Vector3:
+	var want := 0.0
+	for gap in _route_gaps:
+		if d >= float(gap[2]) - 10.0 and d - _ship_d < 800.0 \
+				and _ship_d >= 0.0 and _ship_d < float(gap[0]):
+			want = jump_crest_lift_max
+			var lift := 0.0
+			while lift <= jump_crest_lift_max:
+				var q := PhysicsRayQueryParameters3D.create(pos + Vector3.UP * lift, aim, ground_mask)
+				if _space.intersect_ray(q).is_empty():
+					want = lift
+					break
+				lift += 3.0
+			break
+	var cur: float = _state.get(key + "_lift", 0.0)
+	cur = move_toward(cur, want, (30.0 if want > cur else 8.0) * dt)
+	_state[key + "_lift"] = cur
+	return pos + Vector3.UP * cur
+
+## Road frame for zone `z` at distance `d`: the MagneticTrack's for loop and
+## roll zones (unchanged), the route lap's for jumps.
+func _zone_frame(z: Dictionary, d: float) -> Transform3D:
+	if z.has("path"):
+		var path: Path3D = z.path
+		return path.global_transform * TrackRoadSegment.frame_at(path.curve, d)
+	return spline.magnetic.frame_at(d)
+
+## One zone per jump on the current route lap, in the same form as the
+## magnetic zones (a non-loop one), so every witness rule applies to it.
+func _build_jump_zones() -> void:
+	if _graph == null or spline == null or not spline.is_valid or spline.track_path == null:
+		return
+	var path := spline.track_path
+	var length := spline.total_length
+	var hw := zone_envelope_half_width
+	for e in _graph.route_jumps(_route):
+		var j: TrackJump = e.jump
+		var start: float = e.kicker
+		var span: float = float(e.end) - start
+		var zd := {"path": path}
+		var o := _zone_frame(zd, start).origin
+		var tf := _zone_frame(zd, maxf(start - 20.0, 0.0))
+		var h := (-tf.basis.z).slide(Vector3.UP)
+		h = h.normalized() if h.length_squared() > 1e-6 else Vector3.FORWARD
+		var sdir := h.cross(Vector3.UP).normalized()
+		var lo := Vector3(INF, INF, INF)
+		var hi := Vector3(-INF, -INF, -INF)
+		var cmin := INF
+		var d := 0.0
+		while d <= span + 0.01:
+			var fr := _zone_frame(zd, start + d)
+			var x := fr.basis.x.normalized()
+			var y := fr.basis.y.normalized()
+			cmin = minf(cmin, fr.origin.y - o.y)
+			for sx: float in [-hw, hw]:
+				for sy: float in [-zone_envelope_depth, zone_envelope_height]:
+					var lp := fr.origin + x * sx + y * sy - o
+					var l := Vector3(lp.dot(h), lp.dot(sdir), lp.y)
+					lo = Vector3(minf(lo.x, l.x), minf(lo.y, l.y), minf(lo.z, l.z))
+					hi = Vector3(maxf(hi.x, l.x), maxf(hi.y, l.y), maxf(hi.z, l.z))
+			d += 4.0
+		var lip := _zone_frame(zd, e.lip).origin - o
+		var land := _zone_frame(zd, e.landing).origin - o
+		var z := {
+			"name": j.jump_name, "start": start, "span": span, "length": length,
+			"o": o, "h": h, "s": sdir, "path": path, "jump": true,
+			"a0": lo.x, "a1": hi.x, "c0": lo.y, "c1": hi.y, "y0": lo.z, "y1": hi.z,
+			"axis_a": (lo.x + hi.x) * 0.5, "axis_y": (lo.z + hi.z) * 0.5, "base_y": cmin,
+			"loop_like": false, "standoff": jump_witness_standoff,
+			"gap_a0": lip.dot(h), "gap_a1": land.dot(h), "gap_y": minf(lip.y, land.y),
+		}
+		z["spot_a"] = lerpf(float(z.gap_a0), float(z.gap_a1), jump_witness_gap_frac)
+		z["spot_y"] = float(z.gap_y) + jump_witness_height
+		z["sides"] = {}
+		z["side"] = _side_for(z, z.spot_a, z.spot_y, 1.0)
+		_zones.append(z)
