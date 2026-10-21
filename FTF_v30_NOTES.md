@@ -3,8 +3,8 @@
 A new greybox test track with a **vertical loop** and a **360° barrel roll**,
 and the feature that makes them drivable: **magnetic lock zones**, stretches
 of track (by distance along the MainSpline) where ships are held to the road.
-Includes a first pass of AI support: AI races Loop Lab with a trained line.
-The cinematic camera rig is not done yet.
+Includes AI support (AI races Loop Lab with a trained line) and cinematic
+camera rig support, worked out per camera.
 
 ## Files
 
@@ -19,6 +19,7 @@ The cinematic camera rig is not done yet.
 | `resources/tracks/loop_lab.tres` | Track profile ("Loop Lab"), in the manifest; all modes including race |
 | `resources/ai_data/loop_lab_default_racer_trained_line.tres` | Trained AI line for Loop Lab (default racer) |
 | `tools/dev/ai_race_probe_boot.gd` + `ai_race_probe.gd` | Headless 8-ship race probe: laps, respawns, airborne-in-zone, seeded and checksummed for A/B |
+| `tools/dev/cine_rig_probe_boot.gd` + `cine_rig_probe.gd` | Cinematic rig probe: per camera per section occlusion, jumps, distance, transform checksum for A/B; `CR_ANALYZE=1` grid-searches witness spots; `CR_SHOTS` renders stills |
 
 Also changed:
 
@@ -26,6 +27,7 @@ Also changed:
 - `ag_camera_2097.gd`: `magnetic_follow_boost` (tighter frame follow in zones), and a `slerp` fix.
 - `track_respawn_manager.gd`: on tracks with zones, never respawns inside one, and respawns behind the ship.
 - AI: `track_spline_helper.gd`, `ai_line_follower.gd`, `ai_control_decider.gd`, `ai_racing_line_baker.gd` (see "AI support"); `train_ai_lines.gd` has Loop Lab and a `--track=` filter.
+- `scripts/debug/cinematic_camera_rig.gd`: per-camera loop/roll handling (see "Cinematic camera rig").
 
 ## Magnetic zones
 
@@ -162,8 +164,71 @@ godot --headless --path . res://tools/train_ai_lines.tscn -- --track=loop_lab
 
 Env: `PROBE_TRACK`, `PROBE_SECONDS`, `PROBE_SEED`, `PROBE_MAGNET`, `PROBE_MAGNET_ZONE`.
 
+## Cinematic camera rig
+
+Each camera is handled by what it physically is. The rig as a whole is never rotated.
+
+| Kind | Cameras | In a zone |
+|---|---|---|
+| **Mounted** on the ship | cockpit, flank, bumper, tail, fisheye, fisheye_rear | Unchanged: already in the ship's frame, they loop and roll with it |
+| **Riding** the track (camera ships) | front, side, lowchase, skim, drone, overtake, orbit, vertigo, crashzoom, kamikaze | Offsets, up and ground clearance follow the road (ship up) instead of world Y. Heading smoothing stays in the road plane. Between ticks their offset is carried with the road's rotation. Orbit's circle axis is carried along with the road, so it turns smoothly through the loop. |
+| **Fixed to the track** | roadkill, whip | Bolted to the road wherever it is (up the loop, upside down at the top), oriented by it; "passed" is measured along the spline |
+| **Witnesses** in the world | trackside, crane, pan, crossing, handheld, heli, helilost | World-up, never inside a zone's swept space, watch from outside (below) |
+
+What broke, measured with `cine_rig_probe` on Loop Lab before the change:
+
+- `_clear_ground` casts down from 400 m above. Near the loop it found the loop's TOP, so chase cameras were thrown up to 120 m from the ship and lost it 40–50% of the time.
+- Everything used the ship's forward flattened onto world XZ, which collapses on the loop wall and reverses over the top.
+- The velocity feedforward in `_place` moves the camera in a straight line, which leaves a loop's curve and goes into the road (front was blocked by the road at its own position).
+- Planted cameras landed inside the loop or in the space the roll sweeps through: 55–98% occluded.
+
+**Witness placement was measured, not guessed.** `CR_ANALYZE=1` records the racer's path through each zone and raycasts it from a grid of candidate spots:
+
+- **Loop:** stand ~25 m outside its footprint, level with its hub + 20 m, on its centre line: 87% in view. 130 m out managed under 75%, because the racer hugs the near wall at the bottom and a distant camera can't see over it. The hub itself sees 100%, so the cable cam crosses *through* it along the axis (`crossing_through_loops`; it never touches the road).
+- **Roll:** from anywhere off the centreline the racer is hidden behind its own road for part of the turn; the best measured is ~58%. Beside the middle is the worst; anywhere from 80% along to past the exit is equal, so the closest is used (80% along, 12 m up).
+- **Side:** chosen per zone and per spot by raycasting the road (right across its width) from both sides. On Loop Lab it differs between high and low cameras.
+
+Per-camera zone behaviour:
+
+- **Trackside:** a tower at the witness spot.
+- **Pan:** the same spot further back.
+- **Handheld:** close in.
+- **Crane:** on a loop, a reveal: low by the entry as the ship approaches, up to the hub as it starts to climb. On a roll, crane DOWN from high over its middle (higher measured worse there).
+- **Heli and helilost:** on a loop, move out to the side and hold the hub line, drifting a little with the ship. Over a roll they keep their normal follow, pushed out of the swept space.
+- **Zone shots:** chosen at a normal replant when a zone is within 250 m, and cut to at 150 m if a normal shot is running. Earlier versions planted up to 1.3 km out.
+
+Occlusion through each zone, before → after (75 s race, one AI ship; mounted cameras 0% throughout):
+
+| Camera | Loop | Roll |
+|---|---|---|
+| front | 40 → 0 | 24 → 0 |
+| lowchase / skim / drone | 40–42 → 0 | 25–41 → 0 |
+| overtake | 35 → 1 | 23 → 0 |
+| orbit / vertigo / crashzoom | 39–48 → 13–18 | 19–40 → 0–25 |
+| side | 46 → 35 | 34 → 0 |
+| kamikaze | 37 → 4 | 32 → 12 |
+| roadkill / whip | 59–68 → 0 | 35–60 → 3–6 |
+| trackside | 68 → 14 | 28 → 44 |
+| crane | 62 → 14 | 18 → 49 |
+| pan | 55 → 25 | 98 → 45 |
+| handheld | 28 → 21 | 62 → 44 |
+| crossing | 55 → 34 | 37 → 50 |
+| heli | 26 → 28 | 41 → 41 |
+
+The roll numbers for trackside, crane and crossing went *up*. Before, those cameras were on or right next to the roll's road, inside the space it sweeps through (the road passed through them). Now they're outside, at the measured best. Side's 35% in the loop is the same wall-hugging occlusion it has on open track (26%).
+
+**Regression:** on Utopia, Swoopy, Hairpin Alley and The Drop, a checksum of all 25 cameras' transforms and FOV every tick of a seeded 45 s race is **identical** with `main`'s rig and the new one. Everything above only runs on tracks with zones; the shared helpers take their old path exactly when there are none.
+
+```
+CR_SECONDS=75 godot --headless --fixed-fps 60 --path . -s res://tools/dev/cine_rig_probe_boot.gd
+CR_ANALYZE=1 CR_SECONDS=40 godot --headless --fixed-fps 60 --path . -s res://tools/dev/cine_rig_probe_boot.gd
+```
+
+Env: `CR_TRACK`, `CR_SECONDS`, `CR_SEED`, `CR_SHIP`, `CR_DEBUG_CAM` (log what blocks that camera), `CR_ANALYZE`, `CR_SHOTS="cam@distance,..."` + `CR_SHOT_DIR` (needs a renderer).
+
 ## Not done yet / next
 
 - **AI edge cases not covered:** an AI that falls off (only possible with magnet < ~0.1 on a roll) respawns behind the zone and tries again, but nothing teaches it to carry more speed. The AI debug markers still offset by world Y.
-- **Cinematic camera rig** places every shot relative to world up.
+- **Rig on non-loop zones:** witness placement assumes a zone is a loop or a roll. A roll inside a corner, or a loop that turns, would need its envelope as more than one box.
+- **Rig side camera:** sits on whichever wall the racer hugs, on any track. Choosing its side by the racer's lateral would fix that, but changes existing tracks.
 - **Things to feel by hand:** whether magnet 1 on the loop is too forgiving; `magnetic_follow_boost` (1.8 cuts the camera's pitch lag in the loop from ~33° to ~28°; 1.0 is the old camera); `slope_gravity_scale` on the loop (default loses ~16 u/s at full throttle).
