@@ -27,6 +27,11 @@ extends Node
 ##      CR_SHOTS "cam@distance,..." + CR_SHOT_DIR: save that camera's view
 ##      when the followed ship first passes each spline distance (needs a
 ##      renderer: run under xvfb-run without --headless)
+## v32, tracks with a TrackGraph: sections are each jump (as the rig's zones),
+## "branch", "main route" (between fork and rejoin) and "open"; CR_ANALYZE
+## grid-searches witness spots for the jumps too; CR_NO_ROUTES=1 turns the
+## rig's route awareness off (v31 behaviour) for before/after numbers;
+## CR_ROUTE=0 makes every AI take the shortcut every lap.
 
 var rig  # untyped: the probe also runs against older rig versions (A/B)
 var ship: ShipController
@@ -82,8 +87,21 @@ func _ready() -> void:
 	helper = ai.line_follower.spline_helper if ai.line_follower else null
 	mt = get_tree().get_first_node_in_group(MagneticTrack.GROUP) as MagneticTrack
 	
+	gtrk = null
+	var graph := get_tree().get_first_node_in_group(TrackGraph.GROUP) as TrackGraph
+	if graph and graph.has_routes():
+		gref = graph
+		gtrk = graph.make_tracker()
+		if OS.get_environment("CR_ROUTE") != "":
+			for a in ais:
+				(a as AIShipController).fixed_route = int(OS.get_environment("CR_ROUTE"))
+				if (a as AIShipController).route_follower:
+					(a as AIShipController).route_choice = (a as AIShipController).fixed_route
+					(a as AIShipController).route_follower.set_route((a as AIShipController).fixed_route, false)
 	rig = CinematicCameraRig.new()
 	rig.name = "CinematicCameraRig"
+	if OS.get_environment("CR_NO_ROUTES") == "1":
+		rig.route_aware = false
 	root.add_child(rig)
 	rig.spline = helper
 	rig.follow(ship)
@@ -119,7 +137,12 @@ func _find_ais(n: Node, out: Array) -> void:
 	for c in n.get_children():
 		_find_ais(c, out)
 
+var gref: TrackGraph
+var gtrk: TrackGraph.Tracker
+
 func _section() -> String:
+	if gtrk:
+		return _graph_section()
 	if mt == null:
 		return "open"
 	var d := mt.closest_distance(ship.global_position)
@@ -173,22 +196,41 @@ func _measure() -> void:
 				s.jump += 1
 		prev[cname] = t
 
+func _graph_section() -> String:
+	gtrk.update(ship.global_position)
+	var jumps: Array = gref.jumps
+	for j in jumps:
+		if (j as TrackJump).branch == gtrk.path and gtrk.distance >= (j as TrackJump).kicker_start \
+				and gtrk.distance <= (j as TrackJump).landing_end:
+			return (j as TrackJump).jump_name.replace(" ", "_")
+	if gtrk.path >= 0:
+		return "branch"
+	var br: TrackBranch = gref.branches[0]
+	if gtrk.distance > br.fork_distance and gtrk.distance < br.rejoin_distance:
+		return "main_route"
+	return "open"
+
+var _zone_by_name := {}
+
 func _record_path() -> void:
 	if rig._zones.is_empty() or rig._ship_d < 0.0:
 		return
 	for i in rig._zones.size():
 		var rel: float = rig._zone_rel(rig._zones[i])
 		if rel >= 0.0 and rel <= float(rig._zones[i].span):
-			var arr: PackedVector3Array = _path.get(i, PackedVector3Array())
+			# Keyed by name: on route tracks the zone list is rebuilt per route.
+			var key: String = rig._zones[i].name
+			_zone_by_name[key] = rig._zones[i]
+			var arr: PackedVector3Array = _path.get(key, PackedVector3Array())
 			arr.append(ship.global_position)
-			_path[i] = arr   # packed arrays are values: write it back
+			_path[key] = arr   # packed arrays are values: write it back
 
 ## Visibility of the recorded ship path from a grid of candidate witness
 ## positions around each zone (zone-local along / across / height).
 func _analyze() -> void:
 	var space := ship.get_world_3d().direct_space_state
 	for i in _path.keys():
-		var z: Dictionary = rig._zones[i]
+		var z: Dictionary = _zone_by_name[i]
 		var pts: PackedVector3Array = _path[i]
 		print("ANALYZE zone %s: %d path samples, box along[%.0f..%.0f] across[%.0f..%.0f] height[%.0f..%.0f] axis(a=%.0f,y=%.0f) loop_like=%s" % [
 			z.name, pts.size(), z.a0, z.a1, z.c0, z.c1, z.y0, z.y1, z.axis_a, z.axis_y, str(z.loop_like)])
@@ -206,6 +248,21 @@ func _analyze() -> void:
 		if not z.loop_like:
 			heights = [float(z.base_y) + 5.0, float(z.base_y) + 12.0, float(z.base_y) + 20.0,
 					float(z.base_y) + 30.0, float(z.y1) + 10.0, float(z.y1) + 30.0]
+		var is_jump: bool = z.has("jump")
+		if is_jump:
+			# Jumps: along the gap, beyond the landing looking back, and also
+			# low and under the gap looking up.
+			var g0: float = z.gap_a0
+			var g1: float = z.gap_a1
+			var gy: float = z.gap_y
+			alongs = [z.a0, g0 - 20.0, g0, lerpf(g0, g1, 0.25), lerpf(g0, g1, 0.5), lerpf(g0, g1, 0.75), g1,
+					g1 + 30.0, z.a1, z.a1 + 40.0, z.a1 + 100.0]
+			acrosses = []
+			for st in [8.0, 20.0, 40.0, 70.0]:
+				acrosses.append(float(z.c0) - st)
+				acrosses.append(float(z.c1) + st)
+			acrosses.append((float(z.c0) + float(z.c1)) * 0.5)
+			heights = [gy - 25.0, gy - 10.0, gy + 3.0, gy + 10.0, gy + 20.0, gy + 35.0]
 		var results := []
 		for a in alongs:
 			for c in acrosses:
@@ -214,7 +271,8 @@ func _analyze() -> void:
 					# skip positions inside the swept envelope
 					var l: Vector3 = rig._zone_local(z, cam)
 					if l.x > z.a0 - 6.0 and l.x < z.a1 + 6.0 and l.y > z.c0 - 6.0 and l.y < z.c1 + 6.0 and l.z < z.y1 + 6.0:
-						if not (z.loop_like and absf(l.z - float(z.axis_y)) < 1.0):
+						if not (z.loop_like and absf(l.z - float(z.axis_y)) < 1.0) \
+								and not (is_jump and l.z < float(z.y0) - 6.0):
 							continue
 					var vis := 0
 					for pt in pts:
@@ -227,13 +285,20 @@ func _analyze() -> void:
 					results.append([float(vis) / pts.size(), a, c, y, dmean / pts.size()])
 		results.sort_custom(func(x, y): return x[0] > y[0])
 		for r in results.slice(0, 14):
-			print("ANALYZE   vis=%5.1f%%  along=%7.1f across=%7.1f height=%6.1f  mean dist %.0f" % [
-				100.0 * r[0], r[1], r[2], r[3], r[4]])
+			var note := ""
+			if is_jump:
+				note = "  (gap frac %.2f, %+.0f over the lower lip, %.0f m beyond the envelope)" % [
+					(float(r[1]) - float(z.gap_a0)) / maxf(float(z.gap_a1) - float(z.gap_a0), 0.01),
+					float(r[3]) - float(z.gap_y), maxf(float(z.c0) - float(r[2]), float(r[2]) - float(z.c1))]
+			print("ANALYZE   vis=%5.1f%%  along=%7.1f across=%7.1f height=%6.1f  mean dist %.0f%s" % [
+				100.0 * r[0], r[1], r[2], r[3], r[4], note])
 
 func _maybe_shoot() -> void:
-	if helper == null:
+	# v32: on route tracks, distances are along the rig's current route lap.
+	var hl: TrackSplineHelper = rig.spline if gtrk and rig.spline else helper
+	if hl == null:
 		return
-	var d := helper.world_to_spline_offset(ship.global_position) * helper.total_length
+	var d := hl.world_to_spline_offset(ship.global_position) * hl.total_length
 	for sh in shots:
 		if sh[2]:
 			continue
