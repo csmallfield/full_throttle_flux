@@ -43,7 +43,9 @@ signal ship_collision(other_ship: ShipController, impact_speed: float)
 
 @export_group("Respawn")
 
-## Y position below which the ship will respawn
+## Y position below which the ship will respawn. v33: a backstop only; with a
+## respawn manager (every mode, every track) a ship that leaves the track is
+## caught much sooner by TrackRespawnManager.off_track_reason().
 @export var respawn_y_threshold: float = -100.0
 
 ## How often to save safe position while grounded (seconds)
@@ -119,6 +121,7 @@ var controls_locked := false
 var last_safe_position := Vector3.ZERO
 var last_safe_rotation := Basis.IDENTITY
 var _safe_position_timer := 0.0
+var _respawn_reason := ""  # v33: printed with the next respawn
 
 # AI control state
 var ai_controlled: bool = false
@@ -438,6 +441,10 @@ func settle_on_surface() -> void:
 	
 	global_position = surface + normal * _hover_height
 	velocity.y = 0.0
+	# v33: the hover spring reads ground_distance before the next ray update
+	# when this runs mid-tick (a respawn from _check_respawn_needed()); a stale
+	# airborne value there kicked the ship off its equilibrium.
+	ground_distance = _hover_height
 	
 	current_track_normal = normal
 	smoothed_track_normal = normal
@@ -573,6 +580,13 @@ func _check_respawn_needed() -> void:
 	"""Check if ship has fallen below threshold and needs respawn."""
 	if global_position.y < respawn_y_threshold:
 		respawn()
+		return
+	# v33: off the track (fallen below the road it left, or airborne too long).
+	if respawn_manager and respawn_manager.is_initialized:
+		var why := respawn_manager.off_track_reason(self, get_physics_process_delta_time())
+		if why != "":
+			_respawn_reason = why
+			respawn()
 
 func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = Basis.IDENTITY) -> void:
 	"""Respawn the ship at the last safe position or a custom location."""
@@ -587,9 +601,9 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 		# ship last had road under it, not from where it fell to: a ship
 		# knocked off the side can drop nearer another route (measured: one
 		# fell beside the branch's landing and came back on the main route,
-		# ahead of where it left).
-		var query_pos: Vector3 = last_safe_position if _graph else global_position
-		var respawn_data := respawn_manager.get_nearest_respawn_point(query_pos)
+		# ahead of where it left). v33: on every track; a ship that fell
+		# hundreds of metres is nearest some unrelated part of the lap.
+		var respawn_data := respawn_manager.get_nearest_respawn_point(last_safe_position, get_rid())
 		if respawn_data.found:
 			target_position = respawn_data.position
 			target_rotation = respawn_data.rotation
@@ -659,6 +673,9 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 	elif respawn_manager and respawn_manager.is_initialized:
 		source = "respawn_manager"
 	
+	if _respawn_reason != "":
+		source += ", " + _respawn_reason
+		_respawn_reason = ""
 	if ai_controlled:
 		print("AI Ship respawned at: %s (source: %s)" % [target_position, source])
 	else:

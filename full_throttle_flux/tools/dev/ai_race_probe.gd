@@ -18,6 +18,17 @@ extends Node
 ##      PROBE_SABOTAGE=1 (graph tracks: once per AI, take over in the branch
 ##      jump's run-up and hold ~55 u/s to the lip so it falls short, then
 ##      hand control back)
+##      PROBE_PUSH="d:side,d:side" (v33, any track: knock AI ships off the
+##      track as they pass d metres along the MainSpline; side O = outside of
+##      the corner ahead (default), I, L, R. See FallMonitor),
+##      PROBE_PUSH_SHIPS (AI ships pushed per spot, default 2),
+##      PROBE_PUSH_PASS (which pass of the spot, default 2 = second lap),
+##      PROBE_PUSH_LAT / PROBE_PUSH_UP (kick in u/s, default 70 / 35)
+##
+## v33: every run also prints the longest continuous airborne spell of any
+## ship and the race's total respawns (AIRMAX; pushed falls excluded), and an
+## ORGANIC line for every respawn that was not forced: where the ship left the
+## road, how fast, how long it was airborne and where it came back.
 ##
 ## v32: on tracks with a TrackGraph (forks / jumps) it also reports, per ship:
 ## route decisions and the route actually driven each time through the fork,
@@ -33,6 +44,15 @@ var zone_ticks := {}
 var vmin := {}
 var vmax := {}
 var laps := {}
+var air_t := {}
+var air_max := {}
+var air_max_at := {}
+var fm: FallMonitor = null
+var push_spots: Array = []   # [d, side, pushed count]
+var push_prev_d := {}
+var push_passes := {}        # "ship:spot index" -> passes so far
+var geo: FallMonitor = null  # spline queries for the respawn log
+var took_off := {}           # ship -> [frame, position, velocity] when it last left the ground
 
 func _ready() -> void:
 	await get_tree().process_frame
@@ -92,6 +112,14 @@ func _ready() -> void:
 		vmax[s] = 0.0
 		laps[s] = 0
 		s.ship_respawned.connect(func(): respawns[s] += 1)
+		s.ship_respawned.connect(_log_respawn.bind(s))
+		air_t[s] = 0.0
+		air_max[s] = 0.0
+		air_max_at[s] = ""
+	var spline := get_tree().root.find_child("MainSpline", true, false)
+	if spline:
+		geo = FallMonitor.new(spline.get_parent(), (ships[0] as Node3D).get_world_3d())
+	_push_setup()
 	
 	# The player ship gets no input and sits on the grid; the AI field races.
 	var frames := int(seconds * 60.0)
@@ -107,6 +135,9 @@ func _ready() -> void:
 					air_in_zone[s] += 1
 		if graph:
 			_fork_tick(f)
+		_air_tick(f)
+		if fm:
+			_push_tick(f)
 	
 	var h := []
 	for s in ships:
@@ -117,8 +148,93 @@ func _ready() -> void:
 			respawns[s], zone_ticks[s], air_in_zone[s], t.origin.snapped(Vector3.ONE * 0.1)])
 	if graph:
 		_fork_report()
+	var tot := 0
+	var worst := 0.0
+	var worst_s := ""
+	for s in ships:
+		tot += int(respawns[s])
+		if float(air_max[s]) > worst:
+			worst = air_max[s]
+			worst_s = "%s %s" % [s.name, air_max_at[s]]
+	print("AIRMAX longest airborne %.2f s (%s); total respawns %d" % [worst, worst_s, tot])
+	if fm:
+		var lp := {}
+		for s in ships:
+			lp[s] = "laps=%d" % laps[s]
+		fm.report(lp)
 	print("PROBE track=%s seconds=%.0f ships=%d checksum=%d" % [track_id, seconds, ships.size(), str(h).hash()])
 	get_tree().quit(0)
+
+## Longest continuous airborne spell per ship, outside pushed falls.
+func _air_tick(frame: int) -> void:
+	for s in ships:
+		if s.is_grounded or (fm and fm.is_busy(s)):
+			air_t[s] = 0.0
+			continue
+		if float(air_t[s]) == 0.0:
+			took_off[s] = [frame, (s as Node3D).global_position, s.velocity]
+		air_t[s] = float(air_t[s]) + 1.0 / 60.0
+		if float(air_t[s]) > float(air_max[s]):
+			air_max[s] = air_t[s]
+			air_max_at[s] = "f%d y=%.0f" % [frame, (s as Node3D).global_position.y]
+
+## Every respawn that was not forced by PROBE_PUSH: where the ship left the
+## road and how fast, and where it came back.
+func _log_respawn(s: ShipController) -> void:
+	if geo == null or (fm and fm.is_busy(s)) or not took_off.has(s):
+		return
+	var t: Array = took_off[s]
+	var p: Vector3 = t[1]
+	var d := geo.distance_of(p)
+	var fr := geo.frame_at(d)
+	var rd := geo.distance_of(s.global_position)
+	print("ORGANIC %s left the road at %.0f m (lat %.1f, y %.1f, v %s = %.0f u/s), airborne %.2f s, respawned at %.0f m" % [
+			s.name, d, (p - fr.origin).dot(fr.basis.x.normalized()), p.y, (t[2] as Vector3).snapped(Vector3.ONE * 0.1),
+			(t[2] as Vector3).length(), float(air_t[s]), rd])
+
+func _push_setup() -> void:
+	var spec := OS.get_environment("PROBE_PUSH")
+	if spec == "":
+		return
+	var track: Node = null
+	for s in ships:
+		if s.respawn_manager and s.respawn_manager.track_root_node:
+			track = s.respawn_manager.track_root_node
+	if track == null:
+		track = get_tree().root.find_child("MainSpline", true, false).get_parent()
+	fm = FallMonitor.new(track, (ships[0] as Node3D).get_world_3d())
+	for item in spec.split(",", false):
+		var kv := item.split(":")
+		push_spots.append([kv[0].to_float(), kv[1] if kv.size() > 1 else "O", 0])
+
+func _push_tick(frame: int) -> void:
+	var per_spot := int(OS.get_environment("PROBE_PUSH_SHIPS")) if OS.get_environment("PROBE_PUSH_SHIPS") != "" else 2
+	var on_pass := int(OS.get_environment("PROBE_PUSH_PASS")) if OS.get_environment("PROBE_PUSH_PASS") != "" else 2
+	var lat := OS.get_environment("PROBE_PUSH_LAT").to_float() if OS.get_environment("PROBE_PUSH_LAT") != "" else 70.0
+	var up := OS.get_environment("PROBE_PUSH_UP").to_float() if OS.get_environment("PROBE_PUSH_UP") != "" else 35.0
+	for s in ships:
+		if not s.ai_controlled or fm.is_busy(s):
+			continue
+		var d := fm.distance_of(s.global_position)
+		var prev: float = push_prev_d.get(s, -1.0)
+		push_prev_d[s] = d
+		if prev < 0.0:
+			continue
+		for i in push_spots.size():
+			var sp: Array = push_spots[i]
+			var spot: float = sp[0]
+			# Crossed the spot going forward (0 < step < 60 m, wrap aware).
+			var a := fposmod(spot - prev, fm.length)
+			var step := fposmod(d - prev, fm.length)
+			if step <= 0.0 or step > 60.0 or a > step:
+				continue
+			var key := "%s:%d" % [s.name, i]
+			push_passes[key] = int(push_passes.get(key, 0)) + 1
+			if int(push_passes[key]) != on_pass or int(sp[2]) >= per_spot:
+				continue
+			sp[2] = int(sp[2]) + 1
+			fm.push(s, spot, sp[1], frame, lat, up)
+	fm.tick(frame)
 
 func _find_ships(n: Node) -> Array:
 	var out: Array = []

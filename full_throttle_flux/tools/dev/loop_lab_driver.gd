@@ -25,6 +25,11 @@ extends Node
 ##              starts (for rendering just one section)
 ##   LL_OVERVIEW  "x,y,z>x,y,z" -- after driving, one wide shot from a free
 ##              camera at the first point looking at the second
+##   LL_PUSH    v33: "d:side,d:side" -- knock the ship off the track the first
+##              time it passes each distance (side O = outside of the corner
+##              ahead, I, L, R) and measure the fall, respawn, settle and the
+##              chase camera (FallMonitor). LL_PUSH_LAT / LL_PUSH_UP: kick in
+##              u/s (default 70 / 35)
 
 var ship: ShipController
 var cam: Camera3D
@@ -44,6 +49,11 @@ var sim_t := 0.0
 var shots: Array = []      # [name, distance, taken]
 var shot_dir := "user://loop_lab_shots"
 var _lap_mark := -1.0
+var fm: FallMonitor = null
+var push_spots: Array = []   # [d, side, done]
+var _frame := 0
+var _air := 0.0
+var _air_max := 0.0
 
 func _env_f(k: String, d: float) -> float:
 	var v := OS.get_environment(k)
@@ -101,6 +111,13 @@ func _ready() -> void:
 	trk = mt.make_tracker()
 	ship.ai_controlled = true
 	ship.ship_respawned.connect(func(): respawns += 1)
+	# v33: after a respawn the autopilot re-acquires its spline position.
+	ship.ship_respawned.connect(func(): trk.reset())
+	for item in OS.get_environment("LL_PUSH").split(",", false):
+		var kv := item.split(":")
+		push_spots.append([kv[0].to_float(), kv[1] if kv.size() > 1 else "O", false])
+	if not push_spots.is_empty():
+		fm = FallMonitor.new(_find_path(root).get_parent(), ship.get_world_3d())
 	# RaceManager times laps with the wall clock, which is meaningless under
 	# --fixed-fps, so time them in simulated seconds here.
 	root.get_node("RaceManager").lap_completed.connect(_on_lap)
@@ -119,6 +136,8 @@ func _ready() -> void:
 		sim_t = t
 		_drive()
 		_measure(dt)
+		_frame += 1
+		_push_tick()
 		await _maybe_shoot()
 		if trace and t >= next_trace:
 			next_trace = t + 0.25
@@ -279,9 +298,32 @@ func _trace_line(t: float) -> void:
 		ship.global_transform.basis.y.snapped(Vector3.ONE * 0.01),
 		rad_to_deg(cam.global_transform.basis.y.angle_to(ship.global_transform.basis.y)) if cam else 0.0])
 
+func _push_tick() -> void:
+	if ship.controls_locked:
+		return
+	if ship.is_grounded or (fm and fm.is_busy(ship)):
+		_air = 0.0
+	else:
+		_air += 1.0 / 60.0
+		_air_max = maxf(_air_max, _air)
+	if fm == null:
+		return
+	if not fm.is_busy(ship) and laps_done == 0:
+		for sp in push_spots:
+			if not sp[2] and trk.distance >= (sp[0] as float) and trk.distance < (sp[0] as float) + 60.0:
+				sp[2] = true
+				fm.push(ship, sp[0], sp[1], _frame, _env_f("LL_PUSH_LAT", 70.0), _env_f("LL_PUSH_UP", 35.0), cam)
+				break
+	fm.tick(_frame)
+
 func _report(t: float) -> void:
-	print("DRIVE done t=%.1f s laps=%d lap_times=%s respawns=%d" % [t, laps_done,
-			str(lap_times.map(func(x): return snappedf(x, 0.01))), respawns])
+	print("DRIVE done t=%.1f s laps=%d lap_times=%s respawns=%d airmax=%.2f" % [t, laps_done,
+			str(lap_times.map(func(x): return snappedf(x, 0.01))), respawns, _air_max])
+	if fm:
+		fm.report()
+	# v33: for bit-identical A/B of time-trial runs.
+	var tr := ship.global_transform
+	print("DRIVE checksum=%d" % str([tr.origin, tr.basis.x, tr.basis.y, ship.velocity, lap_times, respawns]).hash())
 	for z in stats:
 		var s: Dictionary = stats[z]
 		print("ZONE %-14s ticks=%5d air=%4d recovered=%4d inverted=%4d hover[%.2f..%.2f] v[%.0f..%.0f] up_err=%.1f cam_up=%.1f cam_aim=%.1f cam_d[%.1f..%.1f] wall=%d" % [
