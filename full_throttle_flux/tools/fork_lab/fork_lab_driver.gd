@@ -146,6 +146,12 @@ func _ready() -> void:
 	ship.ai_controlled = true
 	ship.ship_respawned.connect(_on_respawn)
 	root.get_node("RaceManager").lap_completed.connect(_on_lap)
+	# v33: never file autopilot laps as player recordings. Under --fixed-fps
+	# their wall-clock lap times are a few seconds, so they would top every
+	# bucket and push real laps out of the KEEP=10 store (deleting them).
+	var recorder := root.find_child("LapRecorder", true, false)
+	if recorder:
+		recorder.set("_enabled", false)
 	path = -1
 	dist = g.locate(ship.global_position).distance
 	rig_every = int(_env_f("FL_RIG", 0.0))
