@@ -1241,56 +1241,62 @@ func _crossing(dt: float, snap_now: bool, k: float, sp: float, p: Vector3,
 		fw: Vector3, sw: Vector3, speed: float, up_pt: Vector3) -> void:
 	var cs: Dictionary = _state.get("crossing", {})
 	var czone: int = cs.get("zone", -1)
-	if czone >= 0 and (snap_now or _zone_done(czone)):
+	# A snap (camera cycled, ship changed) only re-frames a zone shot; ending
+	# it on snap made the replant below pick the same zone again, forever.
+	if czone >= 0 and _zone_done(czone):
 		czone = -1
 		cs = {"side": cs.get("side", 1.0)}
-	if czone >= 0:
-		var z: Dictionary = _zones[czone]
-		var u: float = clampf((_zone_rel(z) + 0.1 * float(z.span)) / (1.2 * float(z.span)), 0.0, 1.0)
-		var c_a: float
-		var c_b: float
-		var y: float
-		var ca: float = z.axis_a
-		if z.loop_like and crossing_through_loops:
-			# Along the loop's axis, through the hub. The racer is on the
-			# inside of the hoop, facing this line the whole way round
-			# (measured 100% in view from the hub).
-			var st: float = float(z.standoff) + zone_envelope_margin
-			c_a = float(z.c0) - st
-			c_b = float(z.c1) + st
-			y = z.axis_y
-		else:
-			c_a = float(z.c0) - 30.0
-			c_b = float(z.c1) + 30.0
-			y = float(z.y1) + zone_envelope_margin + crossing_height * k
-			ca = lerpf(z.a0, z.a1, 0.75)
-		if float(cs.get("side", 1.0)) < 0.0:
-			var t := c_a
-			c_a = c_b
-			c_b = t
-		var pos := _zone_world(z, ca, lerpf(c_a, c_b, u), y)
-		var fov := clampf(rad_to_deg(2.0 * atan(7.0 * k / maxf(pos.distance_to(p), 1.0))), 10.0, 46.0)
-		_look("crossing", pos, up_pt, 6.0, snap_now or bool(cs.get("fresh", false)), fov, dt)
-		cs["fresh"] = false
-		_state["crossing"] = cs
-		return
-	var ccentre: Vector3 = cs.get("centre", Vector3.INF)
-	var caxis: Vector3 = cs.get("axis", sw)
-	var ct2: float = float(cs.get("t", 0.0)) + dt * crossing_rate
-	if snap_now or ccentre == Vector3.INF or ct2 >= 1.0 or (p - ccentre).dot(fw) > 90.0 * sp \
-			or _zone_cut(sp):
-		var zi := _zone_window(ZONE_SHOT_LEAD * sp)
-		if zi >= 0:
-			_state["crossing"] = {"zone": zi, "side": -float(cs.get("side", 1.0)), "fresh": true}
-			_crossing(dt, snap_now, k, sp, p, fw, sw, speed, up_pt)
+	if czone < 0:
+		# Normal shot (original behaviour), unless a zone is coming up.
+		var ccentre: Vector3 = cs.get("centre", Vector3.INF)
+		var caxis: Vector3 = cs.get("axis", sw)
+		var ct2: float = float(cs.get("t", 0.0)) + dt * crossing_rate
+		if snap_now or ccentre == Vector3.INF or ct2 >= 1.0 or (p - ccentre).dot(fw) > 90.0 * sp \
+				or _zone_cut(sp):
+			var zi := _zone_window(ZONE_SHOT_LEAD * sp)
+			if zi >= 0:
+				czone = zi
+				cs = {"zone": zi, "side": -float(cs.get("side", 1.0)), "fresh": true}
+			else:
+				ccentre = p + fw * clampf(speed * 1.6, 90.0, 240.0)
+				caxis = sw
+				ct2 = 0.0
+		if czone < 0:
+			_state["crossing"] = {"centre": ccentre, "axis": caxis, "t": ct2, "side": cs.get("side", 1.0)}
+			_look("crossing", _clear_ground(ccentre + caxis * lerpf(58.0 * k, -58.0 * k, ct2)
+					+ Vector3.UP * (crossing_height * k), crossing_clearance),
+					up_pt, 6.0, snap_now, 46.0, dt)
 			return
-		ccentre = p + fw * clampf(speed * 1.6, 90.0, 240.0)
-		caxis = sw
-		ct2 = 0.0
-	_state["crossing"] = {"centre": ccentre, "axis": caxis, "t": ct2, "side": cs.get("side", 1.0)}
-	_look("crossing", _clear_ground(ccentre + caxis * lerpf(58.0 * k, -58.0 * k, ct2)
-			+ Vector3.UP * (crossing_height * k), crossing_clearance),
-			up_pt, 6.0, snap_now, 46.0, dt)
+	# Zone shot: the cable strung beside/over the zone, run timed to the
+	# ship's progress through it.
+	var z: Dictionary = _zones[czone]
+	var u: float = clampf((_zone_rel(z) + 0.1 * float(z.span)) / (1.2 * float(z.span)), 0.0, 1.0)
+	var c_a: float
+	var c_b: float
+	var y: float
+	var ca: float = z.axis_a
+	if z.loop_like and crossing_through_loops:
+		# Along the loop's axis, through the hub. The racer is on the
+		# inside of the hoop, facing this line the whole way round
+		# (measured 100% in view from the hub).
+		var st: float = float(z.standoff) + zone_envelope_margin
+		c_a = float(z.c0) - st
+		c_b = float(z.c1) + st
+		y = z.axis_y
+	else:
+		c_a = float(z.c0) - 30.0
+		c_b = float(z.c1) + 30.0
+		y = float(z.y1) + zone_envelope_margin + crossing_height * k
+		ca = lerpf(z.a0, z.a1, 0.75)
+	if float(cs.get("side", 1.0)) < 0.0:
+		var t := c_a
+		c_a = c_b
+		c_b = t
+	var pos := _zone_world(z, ca, lerpf(c_a, c_b, u), y)
+	var fov := clampf(rad_to_deg(2.0 * atan(7.0 * k / maxf(pos.distance_to(p), 1.0))), 10.0, 46.0)
+	_look("crossing", pos, up_pt, 6.0, snap_now or bool(cs.get("fresh", false)), fov, dt)
+	cs["fresh"] = false
+	_state["crossing"] = cs
 
 # ============================================================================
 # PLACEMENT HELPERS

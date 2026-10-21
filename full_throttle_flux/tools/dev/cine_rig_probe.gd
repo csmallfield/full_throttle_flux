@@ -21,6 +21,9 @@ extends Node
 ##
 ## Env: CR_TRACK (default loop_lab), CR_SECONDS (default 90), CR_SEED (1234),
 ##      CR_SHIP (index into the AI field, default 0),
+##      CR_SNAP_EVERY N: every N ticks snap the rig and cycle its camera, and
+##      every 8N switch it to the next ship -- what the spectator's Y / ship
+##      step keys do -- at every point round the lap,
 ##      CR_SHOTS "cam@distance,..." + CR_SHOT_DIR: save that camera's view
 ##      when the followed ship first passes each spline distance (needs a
 ##      renderer: run under xvfb-run without --headless)
@@ -85,15 +88,27 @@ func _ready() -> void:
 	rig.spline = helper
 	rig.follow(ship)
 	
+	var snap_every := int(OS.get_environment("CR_SNAP_EVERY")) if OS.get_environment("CR_SNAP_EVERY") != "" else 0
+	var snaps := 0
 	var frames := int(seconds * 60.0)
 	for f in frames:
 		await get_tree().physics_frame
+		if snap_every > 0 and f > 0 and f % snap_every == 0:
+			if f % (snap_every * 8) == 0:
+				idx = (idx + 1) % ais.size()
+				ship = (ais[idx] as AIShipController).ship
+				rig.follow(ship)
+			rig.snap()
+			rig.cycle(1)
+			snaps += 1
 		_measure()
 		if OS.get_environment("CR_ANALYZE") == "1" and f % 3 == 0:
 			_record_path()
 		if not shots.is_empty():
 			await _maybe_shoot()
 	_report(track_id, seconds)
+	if snap_every > 0:
+		print("CRP snaps=%d (camera cycled each time)" % snaps)
 	if OS.get_environment("CR_ANALYZE") == "1":
 		_analyze()
 	get_tree().quit(0)

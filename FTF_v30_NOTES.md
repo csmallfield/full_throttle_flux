@@ -224,7 +224,9 @@ CR_SECONDS=75 godot --headless --fixed-fps 60 --path . -s res://tools/dev/cine_r
 CR_ANALYZE=1 CR_SECONDS=40 godot --headless --fixed-fps 60 --path . -s res://tools/dev/cine_rig_probe_boot.gd
 ```
 
-Env: `CR_TRACK`, `CR_SECONDS`, `CR_SEED`, `CR_SHIP`, `CR_DEBUG_CAM` (log what blocks that camera), `CR_ANALYZE`, `CR_SHOTS="cam@distance,..."` + `CR_SHOT_DIR` (needs a renderer).
+Env: `CR_TRACK`, `CR_SECONDS`, `CR_SEED`, `CR_SHIP`, `CR_DEBUG_CAM` (log what blocks that camera), `CR_ANALYZE`, `CR_SNAP_EVERY=N` (snap + cycle the rig every N ticks and change ship every 8N, like the spectator's keys), `CR_SHOTS="cam@distance,..."` + `CR_SHOT_DIR` (needs a renderer).
+
+**Fixed after first hand test:** F9 then Y crashed with "Stack overflow. Check for infinite recursion". The cable cam's zone replant called itself. On a snap (cycling camera, changing ship) with a zone within 250 m, it ended the zone shot and immediately chose it again, forever. The original probe only attached the rig once, at the start line, just out of range. It's restructured without recursion (a snap now re-frames a zone shot instead of ending it), and `CR_SNAP_EVERY` covers it: the old rig reproduces the error; the fix ran 1,126 snaps and cycles over two laps, three ships and two seeds with no errors.
 
 ## Not done yet / next
 
