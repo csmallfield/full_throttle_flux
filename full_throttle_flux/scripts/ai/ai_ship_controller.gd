@@ -214,6 +214,10 @@ func initialize(p_track_root: Node, p_baked_line: BakedRacingLine = null) -> voi
 	line_follower.skill_level = skill_level
 	line_follower.initialize(spline_helper, baked_line, perf_model)
 	
+	# v32: forks -- one follower per route lap (main, and through each branch).
+	if spline_helper.graph and spline_helper.graph.has_routes():
+		_setup_routes()
+	
 	# Create control decider
 	control_decider = AIControlDecider.new()
 	control_decider.initialize(ship, line_follower, perf_model)
@@ -284,6 +288,7 @@ func set_race_ships(ships: Array[ShipController]) -> void:
 	Register all ships in the race for avoidance awareness.
 	Call this from RaceMode after spawning all ships.
 	"""
+	_race_ships = ships
 	if ship_avoidance:
 		ship_avoidance.set_race_ships(ships)
 	total_race_ships = ships.size()
@@ -308,6 +313,10 @@ func _physics_process(delta: float) -> void:
 	if not is_initialized or not ai_active or not ship:
 		return
 	
+	# v32: which route lap to follow (forks only).
+	if route_follower:
+		_update_route()
+	
 	# Update line follower with current position
 	line_follower.update_position(ship.global_position)
 	
@@ -319,9 +328,16 @@ func _physics_process(delta: float) -> void:
 	var controls := control_decider.decide_controls(delta)
 	
 	# Apply avoidance adjustments (NEW)
-	if ship_avoidance and avoidance_enabled:
+	# v32: never on a kicker run-up or in the air: a swerve at the lip is a
+	# heading error the ship carries through the whole flight (measured: 17
+	# degrees off avoiding the ship ahead, flew over the landing's wall).
+	if ship_avoidance and avoidance_enabled and not (route_follower and _on_jump()):
 		ship_avoidance.update(delta)
 		controls = ship_avoidance.adjust_controls(controls)
+	
+	# v32: kicker run-ups and flight (tracks with jumps only).
+	if route_follower and not route_jumps.is_empty():
+		controls = _jump_controls(controls)
 	
 	# Apply controls to ship
 	_apply_controls(controls)
@@ -343,6 +359,276 @@ func _apply_controls(controls: Dictionary) -> void:
 	# Braking is executed through the airbrake channels: the decider merges
 	# its brake command into BOTH airbrakes (dual airbrakes are the only real
 	# brake in this ship physics). controls.brake is kept for telemetry.
+
+# ============================================================================
+# ROUTES: FORKS AND JUMPS (v32)
+# ============================================================================
+# Only on tracks whose TrackGraph has route laps (Fork Lab). Everywhere else
+# route_follower stays null and none of this runs.
+#
+# The AI follows one ROUTE LAP at a time (main, or through a branch), each with
+# its own spline, racing line and speed profile (AIRouteFollower). Per lap it
+# decides its route at a decision point before the fork and may change its
+# mind up to a commit point (traffic, or too slow for the branch's jump).
+# Its TrackGraph.Tracker overrides the choice if it ends up on the other road
+# (shoved across by contact), so it never steers back through a wall.
+
+## Metres before the fork where the route for this lap is chosen...
+@export var route_decision_lead: float = 300.0
+## ...and where it can no longer be changed (traffic, speed).
+@export var route_commit_lead: float = 60.0
+## Chance of taking a shortcut at skill 0 and at skill 1 (if fast enough).
+@export var shortcut_take_min: float = 0.25
+@export var shortcut_take_max: float = 0.8
+## Speed margin over the jump's measured clean-landing speed that the AI
+## wants at the lip, at skill 0 and at skill 1.
+@export var jump_margin_novice: float = 20.0
+@export var jump_margin_expert: float = 6.0
+## Full throttle, no brakes from this far before a kicker to its lip.
+@export var kicker_runup: float = 60.0
+
+## -2 = choose a route each lap; -1 / r = always follow that route lap (the
+## trainer uses this to drive one route).
+var fixed_route: int = -2
+
+var route_follower: AIRouteFollower = null
+var route_tracker: TrackGraph.Tracker = null
+var route_graph: TrackGraph = null
+## Route chosen for the current lap (-1 = main).
+var route_choice: int = -1
+## Per-ship tilt on the shortcut take rate (so the field doesn't move as one).
+var route_bias: float = 0.0
+## route id -> Array of TrackGraph.route_jumps() entries.
+var route_jumps := {}
+## Telemetry: decisions [lap_marker, route, reason], switches, holds.
+var route_log: Array = []
+var route_traffic_switches: int = 0
+var route_forced_switches: int = 0
+var in_flight_ticks: int = 0
+var _route_phase: int = 0   # 0 before decision, 1 decided, 2 committed
+var _race_ships: Array = []
+var _route_track_id: String = ""
+
+func _setup_routes() -> void:
+	route_graph = spline_helper.graph
+	_route_track_id = _guess_track_id()
+	route_follower = AIRouteFollower.new()
+	route_follower.skill_level = skill_level
+	# Main route: a plain helper on the MainSpline (no branch mapping: steering
+	# wants the closest point on the line it follows).
+	var main_helper := TrackSplineHelper.for_path(route_graph.route_path(-1), track_root)
+	main_helper.set_jump_spans(route_graph, -1)
+	line_follower.spline_helper = main_helper
+	if fixed_route >= 0:
+		# Training a branch route: the line passed in belongs to that route.
+		line_follower.baked_line = _route_line(-1, main_helper)
+	route_follower.add_view(-1, line_follower)
+	route_jumps[-1] = route_graph.route_jumps(-1)
+	for r in route_graph.branches.size():
+		var rp := route_graph.route_path(r)
+		if rp == null:
+			continue
+		var h := TrackSplineHelper.for_path(rp, track_root)
+		h.set_jump_spans(route_graph, r)
+		var line: BakedRacingLine = baked_line if r == fixed_route else _route_line(r, h)
+		var f := AILineFollower.new()
+		f.skill_level = skill_level
+		f.initialize(h, line, perf_model)
+		route_follower.add_view(r, f)
+		route_jumps[r] = route_graph.route_jumps(r)
+	line_follower = route_follower
+	route_follower.initialize(main_helper, baked_line, perf_model)
+	route_follower._mirror()
+	route_tracker = route_graph.make_tracker()
+	route_bias = randf_range(-0.15, 0.15)
+	if fixed_route != -2:
+		route_choice = fixed_route
+		route_follower.set_route(fixed_route, false)
+	if ship and not ship.ship_respawned.is_connected(_on_route_respawn):
+		ship.ship_respawned.connect(_on_route_respawn)
+
+## Racing line for route lap `r`: trained if there is one, else baked.
+func _route_line(r: int, h: TrackSplineHelper) -> BakedRacingLine:
+	var tid := route_track_id(_route_track_id, r)
+	if ship and ship.profile and (prefer_trained_line or fixed_route != -2):
+		var trained := AILineTrainer.load_trained_line(tid, ship.profile.ship_id)
+		if trained:
+			return trained
+	if ship and ship.profile and ship.get_world_3d():
+		return AIRacingLineBaker.new().bake(h, ship.profile, ship.get_world_3d(), tid)
+	return null
+
+## Track id under which route lap `r` keeps its baked/trained lines.
+static func route_track_id(track_id: String, r: int) -> String:
+	return track_id if r < 0 else "%s__route%d" % [track_id, r]
+
+func _update_route() -> void:
+	route_tracker.update(ship.global_position)
+	if fixed_route != -2:
+		return
+	var md := route_tracker.main_distance()
+	var br: TrackBranch = route_graph.branches[0]
+	var to_fork := _ahead(br.fork_distance, md)
+	# Decision and commit points (one fork per lap on these tracks).
+	if _route_phase == 0 and to_fork <= route_decision_lead and to_fork > route_commit_lead:
+		route_choice = _decide_route()
+		_route_phase = 1
+	elif _route_phase == 1 and to_fork <= route_commit_lead:
+		_commit_route()
+		_route_phase = 2
+	elif _route_phase == 2 and to_fork > route_decision_lead and _ahead(md, br.rejoin_distance) > 50.0 \
+			and _ahead(md, br.rejoin_distance) < route_graph.main_length() * 0.5:
+		_route_phase = 0   # past the rejoin: next lap decides again
+	# Shoved onto the other road (unambiguously): follow the road it is on.
+	if not route_tracker.ambiguous and route_tracker.route != route_choice \
+			and (route_tracker.path >= 0 or _between(md, br.fork_distance, br.rejoin_distance)) \
+			and route_tracker.separation < INF:
+		route_forced_switches += 1
+		route_log.append([Engine.get_physics_frames(), route_tracker.route, "forced (on the other road)"])
+		route_choice = route_tracker.route
+	if route_follower.active_route() != route_choice:
+		route_follower.set_route(route_choice, true)
+
+func _decide_route() -> int:
+	var choice := -1
+	var reason := "main"
+	for r in route_graph.branches.size():
+		if not route_jumps.has(r):
+			continue
+		var pred := _predicted_lip_speed(r)
+		var need := _needed_lip_speed(r)
+		if pred < need:
+			reason = "main (predicted lip %.0f < %.0f)" % [pred, need]
+			continue
+		var p := clampf(lerpf(shortcut_take_min, shortcut_take_max, skill_level) + route_bias, 0.0, 1.0)
+		if randf() < p:
+			choice = r
+			reason = "shortcut (p %.2f, lip %.0f >= %.0f)" % [p, pred, need]
+			break
+		reason = "main (p %.2f roll)" % p
+	route_log.append([Engine.get_physics_frames(), choice, reason])
+	return choice
+
+## At the commit point: bail out of the shortcut if now too slow for its jump,
+## or switch routes if a slower ship is right ahead on the chosen one.
+func _commit_route() -> void:
+	if route_choice >= 0 and _predicted_lip_speed(route_choice) < _needed_lip_speed(route_choice):
+		route_log.append([Engine.get_physics_frames(), -1, "commit: too slow for the jump"])
+		route_choice = -1
+		return
+	var blocker := _blocking_ship()
+	if blocker == null:
+		return
+	var other := -1 if route_choice >= 0 else 0
+	if other >= 0 and _predicted_lip_speed(other) < _needed_lip_speed(other):
+		return
+	route_traffic_switches += 1
+	route_log.append([Engine.get_physics_frames(), other, "commit: blocked by %s" % blocker.name])
+	route_choice = other
+
+func _blocking_ship() -> ShipController:
+	var fwd := -ship.global_transform.basis.z
+	var my_speed := ship.velocity.length()
+	for s in _race_ships:
+		if s == ship or not is_instance_valid(s):
+			continue
+		var rel: Vector3 = (s as Node3D).global_position - ship.global_position
+		var ahead := rel.dot(fwd)
+		if ahead < 0.0 or ahead > 45.0:
+			continue
+		if rel.slide(fwd).slide(Vector3.UP).length() > 10.0:
+			continue
+		if (s as ShipController).velocity.length() < my_speed - 3.0:
+			return s
+	return null
+
+func _needed_lip_speed(r: int) -> float:
+	var need := 0.0
+	for e in route_jumps.get(r, []):
+		need = maxf(need, (e.jump as TrackJump).clean_speed)
+	return need + lerpf(jump_margin_novice, jump_margin_expert, skill_level)
+
+## Speed this ship would carry over route r's jump lips: what its profile asks
+## for there (scaled by its skill margin), capped by what full throttle can
+## reach from its current speed.
+func _predicted_lip_speed(r: int) -> float:
+	var v := route_follower.views[route_follower.view_for_route(r)]
+	if v.baked_line == null or not v.baked_line.is_usable():
+		return 0.0
+	var length: float = v.spline_helper.total_length
+	var here: float = v.spline_helper.world_to_spline_offset(ship.global_position) * length
+	var margin := lerpf(v.skill_speed_margin_min, 1.0, skill_level)
+	var worst := INF
+	for e in route_jumps.get(r, []):
+		if (e.jump as TrackJump).branch != r:
+			continue
+		var lip: float = e.lip
+		var profile: float = v.baked_line.get_speed_at(lip / length) * margin
+		var reach := INF
+		if perf_model:
+			reach = perf_model.speed_after_full_throttle(ship.velocity.length(), fposmod(lip - here, length))
+		worst = minf(worst, minf(profile, reach))
+	return worst if worst < INF else 999.0
+
+func _on_route_respawn() -> void:
+	route_tracker.reset()
+	route_tracker.update(ship.global_position)
+	if route_tracker.path >= 0:
+		route_choice = route_tracker.path
+		_route_phase = 2
+	route_follower.set_route(route_choice, false)
+
+## Full throttle and no brakes up the kicker; in the air, hold: full thrust
+## (it acts horizontally), no airbrakes, and steer only to keep the nose on the
+## velocity so the ship lands straight. The decider's smoothing and stuck
+## timers are held at those values, so nothing fires mid-flight and control
+## resumes from them on landing (no lurch).
+func _jump_controls(controls: Dictionary) -> Dictionary:
+	if ship.jump != null and not ship.is_grounded:
+		in_flight_ticks += 1
+		var up := Vector3.UP
+		var fwd := (-ship.global_transform.basis.z).slide(up)
+		var vel := ship.velocity.slide(up)
+		var steer := 0.0
+		if fwd.length_squared() > 0.01 and vel.length_squared() > 1.0:
+			var ang := fwd.normalized().signed_angle_to(vel.normalized(), up)
+			steer = clampf(ang * 3.0, -0.5, 0.5)
+		var held := {"throttle": 1.0, "brake": 0.0, "steer": steer,
+				"airbrake_left": 0.0, "airbrake_right": 0.0}
+		control_decider.hold(held)
+		return held
+	var route := route_follower.active_route()
+	var length: float = route_follower.spline_helper.total_length
+	var dr: float = route_follower.current_spline_offset * length
+	for e in route_jumps.get(route, []):
+		if _between(dr, float(e.kicker) - kicker_runup, float(e.lip) + 3.0):
+			controls.throttle = 1.0
+			controls.brake = 0.0
+			controls.airbrake_left = 0.0
+			controls.airbrake_right = 0.0
+			control_decider.hold_throttle()
+			break
+	return controls
+
+## True from a kicker's run-up until landed (route tracks only).
+func _on_jump() -> bool:
+	if ship.jump != null:
+		return true
+	if route_jumps.is_empty():
+		return false
+	var length: float = route_follower.spline_helper.total_length
+	var dr: float = route_follower.current_spline_offset * length
+	for e in route_jumps.get(route_follower.active_route(), []):
+		if _between(dr, float(e.kicker) - kicker_runup, float(e.lip) + 3.0):
+			return true
+	return false
+
+## Metres from `from` forward to `d` on the main lap.
+func _ahead(d: float, from: float) -> float:
+	return fposmod(d - from, route_graph.main_length())
+
+func _between(d: float, a: float, b: float) -> bool:
+	return d >= a and d <= b
 
 # ============================================================================
 # PUBLIC API

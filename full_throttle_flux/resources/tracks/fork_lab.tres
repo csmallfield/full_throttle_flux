@@ -6,6 +6,6 @@
 script = ExtResource("1_forklab")
 track_id = "fork_lab"
 display_name = "Fork Lab"
-description = "Greybox test: a fork with two routes (long and safe, or a shortcut over a big jump) and a jump everyone takes."
+description = "Greybox test: a fork with two routes (long and safe, or a shortcut over a big jump) and a jump everyone takes. AI races both routes."
 author = "Flux Industries"
-supports_race = false
+supports_race = true

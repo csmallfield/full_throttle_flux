@@ -17,7 +17,13 @@ const TRACKS: Array[String] = [
 	"res://scenes/tracks/test_circuit_6_live.tscn",
 	"res://scenes/tracks/test_circuit_7_live.tscn",
 	"res://scenes/tracks/loop_lab.tscn",
+	"res://scenes/tracks/fork_lab.tscn",
 ]
+
+## v32: tracks with forks train one line per ROUTE LAP (-1 = the main route,
+## r = through branch r), saved as <track>[__route<r>]. The AI follows one
+## route lap at a time (AIRouteFollower), so each needs its own line.
+const ROUTES := {"fork_lab": [-1, 0]}
 
 const SHIP_PROFILES: Array[String] = [
 	"res://resources/ships/default_racer.tres",
@@ -59,9 +65,14 @@ func _run_all() -> void:
 		if track_filter != "" and not track_filter in track_path:
 			continue
 		for profile_path in SHIP_PROFILES:
-			await _train_one(track_path, profile_path)
+			var tid := track_path.get_file().get_basename()
+			if ROUTES.has(tid):
+				for r in ROUTES[tid]:
+					await _train_one(track_path, profile_path, r)
+			else:
+				await _train_one(track_path, profile_path)
 
-func _train_one(track_path: String, profile_path: String) -> void:
+func _train_one(track_path: String, profile_path: String, route: int = -2) -> void:
 	var scene := load(track_path) as PackedScene
 	var profile := load(profile_path) as ShipProfile
 	if scene == null or profile == null:
@@ -79,9 +90,15 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	var track_id := AILineTrainer.track_id_for(track)
 	if track_id.is_empty():
 		track_id = track_path.get_file().get_basename()
-	print_rich("\n[b]%s[/b] / %s" % [track_id, profile.ship_id])
 	
 	var helper := TrackSplineHelper.new(track)
+	if route != -2 and helper.graph:
+		# v32: train along one route lap, with its jumps marked.
+		var g: TrackGraph = helper.graph
+		helper = TrackSplineHelper.for_path(g.route_path(route), track)
+		helper.set_jump_spans(g, route)
+		track_id = AIShipController.route_track_id(track_id, route)
+	print_rich("\n[b]%s[/b] / %s" % [track_id, profile.ship_id])
 	if not helper.is_valid:
 		push_error("trainer: no usable spline in %s" % track_id)
 		track.queue_free()
@@ -109,6 +126,10 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	
 	# --- ship + AI ---
 	var ship: ShipController = (load(SHIP_SCENE) as PackedScene).instantiate()
+	# v32 fix: drive the profile being trained. The scene's own profile is
+	# speed_demon (max 160, different grip/steer/hover), and before this every
+	# line was trained with that ship's physics under a default_racer label.
+	ship.profile = profile
 	add_child(ship)
 	var grid := _find(track, "StartingGrid")
 	if grid and grid.has_method("get_pole_position"):
@@ -121,6 +142,8 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	ai.avoidance_enabled = false
 	add_child(ai)
 	ai.prefer_trained_line = false  # test the line we pass, not the saved one
+	if route != -2:
+		ai.fixed_route = route
 	ai.initialize(track, line)
 	
 	if not ai.is_initialized:

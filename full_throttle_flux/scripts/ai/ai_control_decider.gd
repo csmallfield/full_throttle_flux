@@ -381,6 +381,33 @@ func _outward_tracking_error(target: Dictionary) -> float:
 	return maxf(outward, 0.0)
 
 # ============================================================================
+# HOLD (v32: jump flight)
+# ============================================================================
+
+## Set the smoothed outputs to `controls` and clear the stuck and saturation
+## timers. Used while a ship flies off a jump (steering means nothing in the
+## air), so control resumes from these values on landing instead of from
+## whatever the line tracking asked for mid-air.
+func hold(controls: Dictionary) -> void:
+	smoothed_throttle = controls.throttle
+	smoothed_brake = controls.brake
+	smoothed_steer = controls.steer
+	prev_steer = controls.steer
+	smoothed_airbrake_left = controls.airbrake_left
+	smoothed_airbrake_right = controls.airbrake_right
+	_stuck_time = 0.0
+	_recovery_time = 0.0
+	is_recovering = false
+	_steer_saturated_time = 0.0
+
+## Full throttle, no brakes (a kicker run-up); steering untouched.
+func hold_throttle() -> void:
+	smoothed_throttle = 1.0
+	smoothed_brake = 0.0
+	smoothed_airbrake_left = 0.0
+	smoothed_airbrake_right = 0.0
+
+# ============================================================================
 # STUCK RECOVERY
 # ============================================================================
 

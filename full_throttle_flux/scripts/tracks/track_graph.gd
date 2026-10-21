@@ -283,3 +283,227 @@ func is_respawn_excluded(index: int, d: float) -> bool:
 		if d >= j.kicker_start - j.respawn_runup and d <= j.landing_end:
 			return true
 	return false
+
+
+# =============================================================================
+# ROUTE LAPS (v32)
+# =============================================================================
+# A route is a whole lap: -1 = the MainSpline, i = through branch i (main to
+# its fork, the branch, main from its rejoin), carried by the branch's
+# route_path. The AI and the cinematic rig work along one lap spline at a time.
+
+## Route-lap Path3D (-1 = MainSpline), or null if the branch has none.
+func route_path(route: int) -> Path3D:
+	_resolve()
+	if route < 0:
+		return _main
+	if route >= branches.size() or branches[route] == null or branches[route].route_path.is_empty():
+		return null
+	return get_node_or_null(branches[route].route_path) as Path3D
+
+
+func has_routes() -> bool:
+	for i in branches.size():
+		if route_path(i) != null:
+			return true
+	return false
+
+
+## [path, path distance] for route-lap distance `dr`.
+func route_to_path(route: int, dr: float) -> Array:
+	if route < 0:
+		return [-1, fposmod(dr, _main_len)]
+	var br := branches[route]
+	if dr < br.route_fork:
+		return [-1, dr]
+	if dr < br.route_rejoin:
+		var s := (dr - br.route_fork) / maxf(br.route_rejoin - br.route_fork, 0.001)
+		return [route, s * _branch_lens[route]]
+	return [-1, fposmod(br.rejoin_distance + (dr - br.route_rejoin), _main_len)]
+
+
+## Route-lap distance of `d` metres along `path` (which must lie on the route).
+func path_to_route(route: int, path: int, d: float) -> float:
+	if route < 0:
+		return d
+	var br := branches[route]
+	if path == route:
+		return br.route_fork + d / maxf(_branch_lens[route], 0.001) * (br.route_rejoin - br.route_fork)
+	if d <= br.fork_distance:
+		return d
+	return br.route_rejoin + (d - br.rejoin_distance)
+
+
+## The jumps a lap along `route` goes over, as route-lap distances:
+## [{jump, kicker, lip, landing, end}].
+func route_jumps(route: int) -> Array:
+	var out: Array = []
+	for j in jumps:
+		if j == null:
+			continue
+		if j.branch >= 0 and j.branch != route:
+			continue
+		if j.branch < 0 and route >= 0:
+			# Main jump: only if it isn't on the stretch the branch bypasses.
+			var br := branches[route]
+			if j.kicker_start > br.fork_distance and j.landing_end < br.rejoin_distance:
+				continue
+		var p := j.branch
+		out.append({"jump": j, "kicker": path_to_route(route, p, j.kicker_start),
+				"lip": path_to_route(route, p, j.lip), "landing": path_to_route(route, p, j.landing),
+				"end": path_to_route(route, p, j.landing_end)})
+	return out
+
+
+## Per-ship tracker of which path the ship is on and how far along it (v32).
+func make_tracker() -> Tracker:
+	return Tracker.new(self)
+
+
+## Follows one ship with local searches (cheap, and never confused by another
+## part of the track running nearby). In the junctions it compares the ship's
+## distance to both centre lines; `ambiguous` is true while that comparison is
+## too close to call (the ship is between the two roads before they split).
+## `route` is the route lap the ship is committed to: the branch once it is
+## unambiguously on it, the main route once it is unambiguously on the main
+## road between fork and rejoin; on shared road it keeps its last value.
+class Tracker extends RefCounted:
+	var graph: TrackGraph
+	var path: int = -1
+	var distance: float = -1.0
+	var route: int = -1
+	var ambiguous: bool = false
+	## |distance to the other centre line - distance to this one| in junctions.
+	var separation: float = INF
+	
+	const WINDOW := 30.0
+	const STEP := 2.0
+	const LOST := 40.0
+	const CLEAR := 12.0
+	
+	func _init(g: TrackGraph) -> void:
+		graph = g
+	
+	func reset() -> void:
+		distance = -1.0
+	
+	func main_distance() -> float:
+		if path < 0:
+			return distance
+		return graph.branch_to_main(path, distance)
+	
+	func update(world_pos: Vector3) -> void:
+		if not graph.is_valid():
+			return
+		if distance < 0.0:
+			var loc := graph.locate(world_pos)
+			path = loc.path
+			distance = loc.distance
+			_update_route(world_pos)
+			return
+		var sq := _local(path, world_pos)
+		if sq > LOST * LOST:
+			var loc2 := graph.locate(world_pos)
+			path = loc2.path
+			distance = loc2.distance
+		_transitions(world_pos)
+		_update_route(world_pos)
+	
+	func _local(p: int, world_pos: Vector3) -> float:
+		var res := _search(p, world_pos, distance)
+		distance = res[0]
+		return res[1]
+	
+	## [best distance, squared distance] on path p near d.
+	func _search(p: int, world_pos: Vector3, d0: float) -> Array:
+		var path3d := graph.path_of(p)
+		var length := graph.path_length(p)
+		var local := path3d.global_transform.affine_inverse() * world_pos
+		var c := path3d.curve
+		var best := d0
+		var best_sq := INF
+		var k := -WINDOW
+		while k <= WINDOW:
+			var s := d0 + k
+			s = fposmod(s, length) if p < 0 else clampf(s, 0.0, length)
+			var q := c.sample_baked(s).distance_squared_to(local)
+			if q < best_sq:
+				best_sq = q
+				best = s
+			k += STEP
+		for i in 2:
+			var a := c.sample_baked(best)
+			var t := c.sample_baked(clampf(best + 0.5, 0.0, length)) - c.sample_baked(clampf(best - 0.5, 0.0, length))
+			if t.length_squared() < 1e-6:
+				break
+			var s2 := best + clampf((local - a).dot(t.normalized()), -STEP, STEP)
+			best = fposmod(s2, length) if p < 0 else clampf(s2, 0.0, length)
+		return [best, c.sample_baked(best).distance_squared_to(local)]
+	
+	func _transitions(world_pos: Vector3) -> void:
+		ambiguous = false
+		separation = INF
+		var own_sq := _search(path, world_pos, distance)[1] as float
+		if path < 0:
+			for bi in graph.branches.size():
+				var br: TrackBranch = graph.branches[bi]
+				var lb := graph.path_length(bi)
+				var into := _since(distance, br.fork_distance)
+				var before := _since(br.rejoin_distance, distance)
+				var guess := -1.0
+				if into >= 0.0 and into <= br.fork_blend + 20.0:
+					guess = into
+				elif before >= 0.0 and before <= br.rejoin_blend + 20.0:
+					guess = lb - before
+				if guess < 0.0:
+					continue
+				var r := _search(bi, world_pos, guess)
+				_compare(sqrt(own_sq), sqrt(r[1] as float))
+				if (r[1] as float) + 1.0 < own_sq and not ambiguous:
+					path = bi
+					distance = r[0]
+					return
+		else:
+			var br2: TrackBranch = graph.branches[path]
+			var lb2 := graph.path_length(path)
+			if distance >= lb2 - 0.5:
+				path = -1
+				distance = fposmod(br2.rejoin_distance + 0.5, graph.main_length())
+				return
+			var mg := -1.0
+			if distance <= br2.fork_blend + 20.0:
+				mg = br2.fork_distance + distance
+			elif distance >= lb2 - br2.rejoin_blend - 20.0:
+				mg = br2.rejoin_distance - (lb2 - distance)
+			if mg < 0.0:
+				return
+			var r2 := _search(-1, world_pos, fposmod(mg, graph.main_length()))
+			_compare(sqrt(own_sq), sqrt(r2[1] as float))
+			if (r2[1] as float) + 1.0 < own_sq and not ambiguous or distance <= 0.5:
+				path = -1
+				distance = r2[0]
+	
+	func _compare(own: float, other: float) -> void:
+		separation = absf(own - other)
+		ambiguous = separation < CLEAR
+	
+	## Metres from `from` forward to `d` on the main lap (negative = behind).
+	func _since(d: float, from: float) -> float:
+		var L := graph.main_length()
+		var x := fposmod(d - from, L)
+		return x if x < L * 0.5 else x - L
+	
+	func _update_route(_world_pos: Vector3) -> void:
+		if ambiguous:
+			return
+		if path >= 0:
+			route = path
+			return
+		for bi in graph.branches.size():
+			var br: TrackBranch = graph.branches[bi]
+			var into := _since(distance, br.fork_distance)
+			var to_rejoin := _since(br.rejoin_distance, distance)
+			if into > 0.0 and to_rejoin > 0.0 and separation > CLEAR and separation < INF:
+				route = -1
+			elif into > br.fork_blend and to_rejoin > br.rejoin_blend:
+				route = -1

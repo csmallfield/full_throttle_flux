@@ -94,7 +94,11 @@ func _initialize() -> void:
 		B[k] = branch_t.baked_at_arc(branch_t.marks[k], branch_offs)
 	M["length"] = main_curve.get_baked_length()
 	B["length"] = branch_curve.get_baked_length()
-	var root := _build_scene(main_curve, branch_curve)
+	var route_curve := _build_route()
+	if route_curve == null:
+		quit(1)
+		return
+	var root := _build_scene(main_curve, branch_curve, route_curve)
 	_save(root)
 	quit(0)
 
@@ -209,11 +213,56 @@ func _build_branch(main_curve: Curve3D) -> void:
 	t.P[t.P.size() - 1] = rejoin
 
 
+## v32: a whole lap THROUGH the branch (main to the fork, the branch, main
+## from the rejoin), as its own closed-lap curve. The AI, its baker and
+## trainer, and the cinematic rig all work in "a lap along one spline"; giving
+## the shortcut route its own lap spline lets all of them run unchanged on it.
+## Logic only: no geometry is built from it. Tilts are re-solved for the
+## joined curve.
+var route_t: Turtle
+var route_offs := PackedFloat32Array()
+var R := {}
+
+func _build_route() -> Curve3D:
+	var t := Turtle.new()
+	route_t = t
+	var fork_arc: float = main_t.marks["fork"]
+	var rejoin_arc: float = main_t.marks["rejoin"]
+	var arc := 0.0
+	var prev := Vector3.INF
+	var add := func(p: Vector3, tan: Vector3, up: Vector3) -> void:
+		if prev != Vector3.INF:
+			arc += p.distance_to(prev)
+		t.P.append(p)
+		t.T.append(tan)
+		t.U.append(up)
+		t.S.append(arc)
+		prev = p
+	for i in main_t.P.size():
+		if main_t.S[i] < fork_arc - 0.001:
+			add.call(main_t.P[i], main_t.T[i], main_t.U[i])
+	var fork_index := t.P.size()
+	for i in branch_t.P.size() - 1:
+		add.call(branch_t.P[i], branch_t.T[i], branch_t.U[i])
+	var rejoin_index := t.P.size()
+	for i in main_t.P.size():
+		if main_t.S[i] >= rejoin_arc - 0.001:
+			add.call(main_t.P[i], main_t.T[i], main_t.U[i])
+	var c := t.build_curve("FORKLAB route via branch", route_offs)
+	if c == null:
+		return null
+	R["fork"] = route_offs[fork_index]
+	R["rejoin"] = route_offs[rejoin_index]
+	R["length"] = c.get_baked_length()
+	print("FORKLAB route via branch: %.1f m, fork at %.1f, rejoin at %.1f" % [R.length, R.fork, R.rejoin])
+	return c
+
+
 # =============================================================================
 # SCENE
 # =============================================================================
 
-func _build_scene(main_curve: Curve3D, branch_curve: Curve3D) -> Node3D:
+func _build_scene(main_curve: Curve3D, branch_curve: Curve3D, route_curve: Curve3D) -> Node3D:
 	var root := Node3D.new()
 	root.name = "ForkLab"
 	_add_environment(root)
@@ -226,6 +275,10 @@ func _build_scene(main_curve: Curve3D, branch_curve: Curve3D) -> Node3D:
 	br.name = "BranchSpline"
 	br.curve = branch_curve
 	root.add_child(br)
+	var rt := Path3D.new()
+	rt.name = "RouteSpline_Branch"
+	rt.curve = route_curve
+	root.add_child(rt)
 	
 	var g := TrackGraph.new()
 	g.name = "TrackGraph"
@@ -236,6 +289,9 @@ func _build_scene(main_curve: Curve3D, branch_curve: Curve3D) -> Node3D:
 	tb.path = NodePath("../BranchSpline")
 	tb.fork_distance = M.fork
 	tb.rejoin_distance = M.rejoin
+	tb.route_path = NodePath("../RouteSpline_Branch")
+	tb.route_fork = R.fork
+	tb.route_rejoin = R.rejoin
 	g.branches = [tb] as Array[TrackBranch]
 	
 	# Junction extents from the geometry: where the centre lines are
@@ -255,6 +311,7 @@ func _build_scene(main_curve: Curve3D, branch_curve: Curve3D) -> Node3D:
 	sj.landing = M.sj_landing
 	sj.landing_end = M.sj_end
 	sj.respawn_runup = SJ.respawn_runup
+	sj.clean_speed = 66.0   # measured (FTF_v31_NOTES.md)
 	var bj := TrackJump.new()
 	bj.jump_name = "Branch jump"
 	bj.branch = 0
@@ -263,6 +320,7 @@ func _build_scene(main_curve: Curve3D, branch_curve: Curve3D) -> Node3D:
 	bj.landing = B.bj_landing
 	bj.landing_end = B.bj_end
 	bj.respawn_runup = BJ.respawn_runup
+	bj.clean_speed = 93.0   # measured (FTF_v31_NOTES.md)
 	g.jumps = [sj, bj] as Array[TrackJump]
 	print("FORKLAB shared jump: kicker %.1f lip %.1f landing %.1f end %.1f (main m)" % [M.sj_kicker, M.sj_lip, M.sj_landing, M.sj_end])
 	print("FORKLAB branch jump: kicker %.1f lip %.1f landing %.1f end %.1f (branch m)" % [B.bj_kicker, B.bj_lip, B.bj_landing, B.bj_end])

@@ -145,6 +145,14 @@ func setup_race() -> void:
 	# Load track (from parent)
 	await _load_track()
 	
+	# v32: races never created a respawn manager, so every ship respawned at
+	# its last grounded "safe" spot. On a track with jumps that is the kicker
+	# ramp, at zero speed: a ship that fell short fell again, forever
+	# (measured on Fork Lab). Tracks with a TrackGraph get the branch- and
+	# jump-aware manager; other tracks are unchanged (see the v32 notes).
+	if _track_graph_node(track_instance) != null:
+		await _setup_respawn_manager()
+	
 	# Bake the shared AI racing line (cached after first run per track+ship)
 	await _bake_racing_line()
 	
@@ -254,6 +262,17 @@ func _spawn_all_ships() -> void:
 	
 	print("RaceMode: Spawned %d total ships (1 player + %d AI)" % [all_ships.size(), ai_ships.size()])
 
+func _track_graph_node(n: Node) -> TrackGraph:
+	if n == null:
+		return null
+	if n is TrackGraph:
+		return n
+	for c in n.get_children():
+		var f := _track_graph_node(c)
+		if f:
+			return f
+	return null
+
 func _spawn_player_ship(grid_position: int = 0) -> void:
 	"""Spawn the player's ship at the specified grid position."""
 	var ship_profile = GameManager.get_selected_ship()
@@ -270,6 +289,8 @@ func _spawn_player_ship(grid_position: int = 0) -> void:
 	# Apply profile
 	if ship_instance is ShipController:
 		ship_instance.profile = ship_profile
+		if respawn_manager:
+			ship_instance.respawn_manager = respawn_manager  # v32 (graph tracks)
 	
 	# TEMPORARY: random model from the profile's visual pool (before add_child)
 	_apply_visual_variant(ship_instance, ship_profile)

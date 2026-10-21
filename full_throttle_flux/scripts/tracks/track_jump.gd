@@ -33,6 +33,11 @@ class_name TrackJump
 ## No respawn points this far before kicker_start (run-up from standstill).
 @export var respawn_runup: float = 250.0
 
+## Measured lowest lip speed (u/s) that lands cleanly (v32: the AI only takes
+## a route over this jump if it predicts this plus a skill-dependent margin).
+## 0 = unknown.
+@export var clean_speed: float = 0.0
+
 @export_group("Flight physics")
 
 ## Horizontal speed retained per second while flying from this jump, like the

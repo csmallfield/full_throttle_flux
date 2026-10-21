@@ -44,6 +44,24 @@ var magnetic: MagneticTrack = null
 ## null on every track without branches (all queries exactly as before).
 var graph: TrackGraph = null
 
+## v32: [start, end] distances (metres along this helper's spline) of designed
+## jumps, kicker to landing end. Set by whoever builds a route-lap helper for
+## the AI (empty everywhere else). The baker plans only in-road curvature there
+## (a kicker's vertical bend needs no steering and must not cost lip speed) and
+## the trainer doesn't tune speeds there (the ship is in the air).
+var jump_spans: PackedVector2Array = PackedVector2Array()
+
+func set_jump_spans(graph_: TrackGraph, route: int) -> void:
+	jump_spans = PackedVector2Array()
+	for e in graph_.route_jumps(route):
+		jump_spans.append(Vector2(float(e.kicker) - 10.0, float(e.end) + 10.0))
+
+func in_jump_span(d: float) -> bool:
+	for sp in jump_spans:
+		if d >= sp.x and d <= sp.y:
+			return true
+	return false
+
 # ============================================================================
 # INITIALIZATION
 # ============================================================================
@@ -74,6 +92,22 @@ func initialize(track_root: Node) -> bool:
 	is_valid = true
 	print("TrackSplineHelper: Initialized with spline '%s', length: %.1f units" % [track_path.name, total_length])
 	return true
+
+## v32: a helper on one specific lap spline (e.g. a TrackBranch route lap),
+## for the AI and the cinematic rig. Plain closest-point queries on that curve:
+## no branch mapping (graph stays null), because the curve IS the route.
+static func for_path(path: Path3D, track_root: Node = null) -> TrackSplineHelper:
+	var h := TrackSplineHelper.new()
+	if path == null or path.curve == null:
+		return h
+	h.track_path = path
+	h.curve = path.curve
+	h.total_length = h.curve.get_baked_length()
+	h._build_point_cache()
+	if track_root:
+		h.magnetic = h._find_magnetic(track_root)
+	h.is_valid = true
+	return h
 
 func _find_graph(node: Node) -> TrackGraph:
 	if node is TrackGraph:

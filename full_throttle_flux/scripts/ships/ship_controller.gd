@@ -583,7 +583,13 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 		target_position = custom_position
 		target_rotation = custom_rotation if custom_rotation != Basis.IDENTITY else last_safe_rotation
 	elif respawn_manager and respawn_manager.is_initialized:
-		var respawn_data := respawn_manager.get_nearest_respawn_point(global_position)
+		# v32: on tracks with jumps, look up the respawn point from where the
+		# ship last had road under it, not from where it fell to: a ship
+		# knocked off the side can drop nearer another route (measured: one
+		# fell beside the branch's landing and came back on the main route,
+		# ahead of where it left).
+		var query_pos: Vector3 = last_safe_position if _graph else global_position
+		var respawn_data := respawn_manager.get_nearest_respawn_point(query_pos)
 		if respawn_data.found:
 			target_position = respawn_data.position
 			target_rotation = respawn_data.rotation

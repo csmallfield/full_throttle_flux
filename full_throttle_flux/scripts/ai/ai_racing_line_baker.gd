@@ -550,11 +550,14 @@ func _compute_curvatures(points: PackedVector3Array, seg_lengths: PackedFloat32A
 ## which keeps _compute_curvatures on its original path).
 func _zone_weights(spline_helper: TrackSplineHelper, n: int) -> PackedFloat32Array:
 	var w := PackedFloat32Array()
-	if spline_helper.magnetic == null:
+	if spline_helper.magnetic == null and spline_helper.jump_spans.is_empty():
 		return w
 	w.resize(n)
 	for i in range(n):
 		w[i] = spline_helper.zone_weight_at_offset(float(i) / float(n))
+		# v32: jumps -- the kicker's and landing's vertical bend is not a corner.
+		if spline_helper.in_jump_span(float(i) / float(n) * spline_helper.total_length):
+			w[i] = 1.0
 	return w
 
 # ============================================================================
@@ -724,6 +727,9 @@ func _compute_source_hash(spline_helper: TrackSplineHelper, profile: ShipProfile
 		for z in spline_helper.magnetic.zones:
 			if z:
 				parts.append([z.enabled, z.start_distance, z.end_distance, z.ramp_in, z.ramp_out])
+	# v32: likewise jump spans (only appended when present).
+	if not spline_helper.jump_spans.is_empty():
+		parts.append(spline_helper.jump_spans)
 	return parts.hash()
 
 func _cache_path(track_id: String, ship_id: String, source_hash: int) -> String:

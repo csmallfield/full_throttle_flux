@@ -41,3 +41,17 @@ class_name TrackBranch
 
 ## Branch metres before the rejoin over which they overlap again.
 @export var rejoin_blend: float = 150.0
+
+@export_group("Route lap (v32)")
+
+## A whole-lap Path3D that runs main -> this branch -> main (relative to the
+## TrackGraph). The AI's racing line, its trainer and the cinematic rig work
+## along one lap spline at a time; this is the one for the shortcut route.
+## Logic only (no geometry). Empty = no route lap.
+@export var route_path: NodePath
+
+## Route-lap distance of the fork and of the rejoin. Before route_fork and
+## after route_rejoin the route lap is the MainSpline (offset by the
+## difference in length after the rejoin); between them it is the branch.
+@export var route_fork: float = 0.0
+@export var route_rejoin: float = 0.0
