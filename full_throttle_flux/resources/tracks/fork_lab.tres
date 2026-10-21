@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_forklab"]
+
+[resource]
+script = ExtResource("1_forklab")
+track_id = "fork_lab"
+display_name = "Fork Lab"
+description = "Greybox test: a fork with two routes (long and safe, or a shortcut over a big jump) and a jump everyone takes."
+author = "Flux Industries"
+supports_race = false
