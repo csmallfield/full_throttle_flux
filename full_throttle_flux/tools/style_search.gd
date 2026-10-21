@@ -40,7 +40,6 @@ const TRACKS: Array[String] = [
 const SHIP_PROFILES: Array[String] = [
 	"res://resources/ships/default_racer.tres",
 ]
-const SHIP_SCENE := "res://scenes/ships/default_racer.tscn"
 
 const TIME_SCALE := 8.0
 const WARMUP_SECONDS := 6.0
@@ -130,8 +129,15 @@ var _line_cache: Dictionary = {}
 var _theoretical: float = 0.0
 
 func _ready() -> void:
+	# v33: --track=<substring> searches only the matching circuit(s).
+	var track_filter := ""
+	for arg in OS.get_cmdline_user_args() + OS.get_cmdline_args():
+		if arg.begins_with("--track="):
+			track_filter = arg.split("=")[1]
 	for profile_path in SHIP_PROFILES:
 		for track_path in TRACKS:
+			if track_filter != "" and not track_filter in track_path:
+				continue
 			await _run_track(track_path, profile_path)
 	get_tree().quit()
 
@@ -156,8 +162,11 @@ func _run_track(track_path: String, profile_path: String) -> void:
 	print_rich("\n[b]=== %s / %s ===[/b] %d styles" % [
 		AILineTrainer.track_id_for(_track), _profile.ship_id, _styles.size()])
 
-	var ship_scene: PackedScene = _profile.ship_scene if _profile.ship_scene else load(SHIP_SCENE)
-	_ship = ship_scene.instantiate()
+	# v33 fix: this never assigned the profile, so every style search drove
+	# the ship scene's embedded speed_demon (max 160, half the grip) while
+	# baking and saving under default_racer. The helper sets the profile
+	# before _ready(), and the saves stamp what the ship actually drove.
+	_ship = AILineTrainer.spawn_ship(_profile)
 	add_child(_ship)
 	var grid := _find(_track, "StartingGrid")
 	if grid and grid.has_method("get_pole_position"):
@@ -616,7 +625,7 @@ func _assemble_and_measure() -> void:
 		# measured. v15 omitted this, so assembled lines reported 0.000s.
 		line.is_trained = true
 		line.trained_lap_time = result.lap_time
-		var err := AILineTrainer.save_trained_line(line, _profile)
+		var err := AILineTrainer.save_trained_line(line, _profile, _ship)
 		print("  saved assembled line%s" % ["" if err == OK else " FAILED"])
 	else:
 		# The splice lost. Do NOT fall back to nothing -- with no saved line
@@ -687,7 +696,7 @@ func _save_uniform_anchor(anchor: int, best_single: float) -> void:
 	line.is_trained = true
 	line.trained_lap_time = best_single
 	
-	var err := AILineTrainer.save_trained_line(line, _profile)
+	var err := AILineTrainer.save_trained_line(line, _profile, _ship)
 	print("  saved uniform '%s' strategy (%.3fs)%s" % [
 		style.name, best_single, "" if err == OK else " FAILED"])
 
