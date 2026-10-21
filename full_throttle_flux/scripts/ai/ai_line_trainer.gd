@@ -227,13 +227,77 @@ static func load_trained_line(track_id: String, ship_id: String) -> BakedRacingL
 		return null
 	return line
 
-static func save_trained_line(line: BakedRacingLine, profile: ShipProfile = null) -> Error:
+## v33: pass `driven_by`, the ship that drove the laps this line was measured
+## on. The handling hash is then stamped from what that ship ACTUALLY drove
+## with, and the save is refused if it disagrees with `profile`. Until v33 the
+## stamp came from `profile` alone, so lines trained with the ship scene's
+## embedded speed_demon physics were labelled default_racer and the stale-line
+## check in AIShipController passed silently.
+static func save_trained_line(line: BakedRacingLine, profile: ShipProfile = null,
+		driven_by: ShipController = null) -> Error:
+	if driven_by != null:
+		var driven := driven_profile(driven_by)
+		if driven == null:
+			return ERR_INVALID_DATA
+		if profile != null and driven.handling_hash() != profile.handling_hash():
+			push_error("AILineTrainer: refusing to save %s: it was driven with %s (%s), not %s (%s)" % [
+				trained_path(line.track_id, line.ship_id), driven.ship_id,
+				driven.handling_hash(), profile.ship_id, profile.handling_hash()])
+			return ERR_INVALID_DATA
+		profile = driven
 	if profile != null:
 		line.profile_hash = profile.handling_hash()
 	if not DirAccess.dir_exists_absolute(TRAINED_DIR):
 		DirAccess.make_dir_recursive_absolute(TRAINED_DIR)
 	var path := trained_path(line.track_id, line.ship_id)
 	return ResourceSaver.save(line, path)
+
+## Fallback ship scene for profiles that do not name their own.
+const DEFAULT_SHIP_SCENE := "res://scenes/ships/default_racer.tscn"
+
+## v33: a ship for the offline tools, with `profile` assigned BEFORE it enters
+## the tree. ShipController copies every handling value out of its profile in
+## _ready(), so a profile assigned after add_child() relabels the ship without
+## changing its physics. The caller adds the ship to the tree.
+static func spawn_ship(profile: ShipProfile) -> ShipController:
+	var scene: PackedScene = profile.ship_scene if profile.ship_scene else load(DEFAULT_SHIP_SCENE)
+	var ship := scene.instantiate() as ShipController
+	ship.profile = profile
+	return ship
+
+## Handling values ShipController copies from its profile in _ready(), as
+## [controller field, profile field]. Rates that _migrate_rate() may convert
+## are left out; these are enough to tell any two profiles in the project
+## apart (speed_demon differs from default_racer in all of them).
+const _APPLIED_FIELDS := [
+	["_max_speed", "max_speed"], ["_thrust_power", "thrust_power"],
+	["_grip", "grip"], ["_steer_speed", "steer_speed"],
+	["_steer_curve_power", "steer_curve_power"], ["_lateral_scrub", "lateral_scrub"],
+	["_airbrake_grip", "airbrake_grip"], ["_hover_height", "hover_height"],
+	["_hover_stiffness", "hover_stiffness"], ["_hover_damping", "hover_damping"],
+]
+
+## v33: the profile `ship` is really driving with, or null (with an error) when
+## its physics do not match `ship.profile` -- i.e. the profile was swapped after
+## _ready(), or the ship has none. Fails loud rather than vouching for a ship
+## it cannot check, so a renamed controller field breaks the tools, not the AI.
+static func driven_profile(ship: ShipController) -> ShipProfile:
+	if ship == null or ship.profile == null:
+		push_error("AILineTrainer: ship has no profile, so its handling is unknown")
+		return null
+	if not ship.is_node_ready():
+		push_error("AILineTrainer: ship %s has not applied its profile yet (not ready)" % ship.name)
+		return null
+	for f in _APPLIED_FIELDS:
+		var applied = ship.get(f[0])
+		if applied == null:
+			push_error("AILineTrainer: ShipController has no field %s - update _APPLIED_FIELDS" % f[0])
+			return null
+		if not is_equal_approx(float(applied), float(ship.profile.get(f[1]))):
+			push_error("AILineTrainer: ship drives with %s=%s but its profile %s says %s - the profile was assigned after _ready()" % [
+				f[1], str(applied), ship.profile.ship_id, str(ship.profile.get(f[1]))])
+			return null
+	return ship.profile
 
 # ============================================================================
 # ENTRY POINT
@@ -428,6 +492,9 @@ func _drive_lap() -> float:
 	return -1.0
 
 func _record(offset: float) -> void:
+	# v32: nothing to learn about speed or tracking in the air over a jump.
+	if not _helper.jump_spans.is_empty() and _helper.in_jump_span(offset * _helper.total_length):
+		return
 	var idx: int = wrapi(int(offset * float(_sample_count)), 0, _sample_count)
 	
 	var desired: float = _line.get_lateral_at(offset)

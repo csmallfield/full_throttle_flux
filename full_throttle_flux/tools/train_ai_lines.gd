@@ -17,13 +17,17 @@ const TRACKS: Array[String] = [
 	"res://scenes/tracks/test_circuit_6_live.tscn",
 	"res://scenes/tracks/test_circuit_7_live.tscn",
 	"res://scenes/tracks/loop_lab.tscn",
+	"res://scenes/tracks/fork_lab.tscn",
 ]
+
+## v32: tracks with forks train one line per ROUTE LAP (-1 = the main route,
+## r = through branch r), saved as <track>[__route<r>]. The AI follows one
+## route lap at a time (AIRouteFollower), so each needs its own line.
+const ROUTES := {"fork_lab": [-1, 0]}
 
 const SHIP_PROFILES: Array[String] = [
 	"res://resources/ships/default_racer.tres",
 ]
-
-const SHIP_SCENE := "res://scenes/ships/default_racer.tscn"
 
 ## Overridden by --max-iterations=N on the command line.
 @export var max_iterations: int = 14
@@ -34,6 +38,9 @@ const SHIP_SCENE := "res://scenes/ships/default_racer.tscn"
 ## v30: --track=<substring> trains only the matching scene(s), so one new track
 ## can be trained without overwriting the others' trained lines.
 var track_filter: String = ""
+
+## v33: --fresh ignores any saved trained line and starts from a fresh bake.
+var fresh: bool = false
 
 var _results: Array[Dictionary] = []
 
@@ -53,15 +60,22 @@ func _parse_args() -> void:
 			time_scale = float(arg.split("=")[1])
 		elif arg.begins_with("--track="):
 			track_filter = arg.split("=")[1]
+		elif arg == "--fresh":
+			fresh = true
 
 func _run_all() -> void:
 	for track_path in TRACKS:
 		if track_filter != "" and not track_filter in track_path:
 			continue
 		for profile_path in SHIP_PROFILES:
-			await _train_one(track_path, profile_path)
+			var tid := track_path.get_file().get_basename()
+			if ROUTES.has(tid):
+				for r in ROUTES[tid]:
+					await _train_one(track_path, profile_path, r)
+			else:
+				await _train_one(track_path, profile_path)
 
-func _train_one(track_path: String, profile_path: String) -> void:
+func _train_one(track_path: String, profile_path: String, route: int = -2) -> void:
 	var scene := load(track_path) as PackedScene
 	var profile := load(profile_path) as ShipProfile
 	if scene == null or profile == null:
@@ -79,9 +93,15 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	var track_id := AILineTrainer.track_id_for(track)
 	if track_id.is_empty():
 		track_id = track_path.get_file().get_basename()
-	print_rich("\n[b]%s[/b] / %s" % [track_id, profile.ship_id])
 	
 	var helper := TrackSplineHelper.new(track)
+	if route != -2 and helper.graph:
+		# v32: train along one route lap, with its jumps marked.
+		var g: TrackGraph = helper.graph
+		helper = TrackSplineHelper.for_path(g.route_path(route), track)
+		helper.set_jump_spans(g, route)
+		track_id = AIShipController.route_track_id(track_id, route)
+	print_rich("\n[b]%s[/b] / %s" % [track_id, profile.ship_id])
 	if not helper.is_valid:
 		push_error("trainer: no usable spline in %s" % track_id)
 		track.queue_free()
@@ -92,10 +112,11 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	# style search produces a much better starting point than a fresh bake,
 	# and its per-sample style gains ride along on the same resource -- the
 	# trainer only ever rewrites target_speeds, so they survive untouched.
-	var line: BakedRacingLine = AILineTrainer.load_trained_line(track_id, profile.ship_id)
+	var line: BakedRacingLine = null if fresh else AILineTrainer.load_trained_line(track_id, profile.ship_id)
 	if line != null:
-		print("  seeded from existing trained line%s" % [
-			" (with style gains)" if line.has_style_gains() else ""])
+		print("  seeded from existing trained line%s, measured %.3fs, handling %s" % [
+			" (with style gains)" if line.has_style_gains() else "",
+			line.trained_lap_time, line.profile_hash])
 	else:
 		var baker := AIRacingLineBaker.new()
 		baker.use_cache = false
@@ -108,7 +129,12 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	var analytic_speeds := line.target_speeds.duplicate()
 	
 	# --- ship + AI ---
-	var ship: ShipController = (load(SHIP_SCENE) as PackedScene).instantiate()
+	# v32 fix: drive the profile being trained. The scene's own profile was
+	# speed_demon (max 160, different grip/steer/hover), and before this every
+	# line was trained with that ship's physics under a default_racer label.
+	# v33: spawned through the shared helper (profile set before _ready), and
+	# the save below stamps the handling the ship actually drove with.
+	var ship := AILineTrainer.spawn_ship(profile)
 	add_child(ship)
 	var grid := _find(track, "StartingGrid")
 	if grid and grid.has_method("get_pole_position"):
@@ -121,6 +147,8 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	ai.avoidance_enabled = false
 	add_child(ai)
 	ai.prefer_trained_line = false  # test the line we pass, not the saved one
+	if route != -2:
+		ai.fixed_route = route
 	ai.initialize(track, line)
 	
 	if not ai.is_initialized:
@@ -143,7 +171,7 @@ func _train_one(track_path: String, profile_path: String) -> void:
 	# --- report + save ---
 	var mean_before := _mean(analytic_speeds)
 	var mean_after := _mean(trained.target_speeds)
-	var err := AILineTrainer.save_trained_line(trained, profile)
+	var err := AILineTrainer.save_trained_line(trained, profile, ship)
 	if err != OK:
 		push_error("trainer: failed to save %s (error %d)" % [track_id, err])
 	

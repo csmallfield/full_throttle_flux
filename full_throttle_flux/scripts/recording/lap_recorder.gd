@@ -36,6 +36,12 @@ var _accum: float = 0.0
 var _lap_clock: float = 0.0
 var _bins := PackedByteArray()
 var _rec: LapRecording
+## v32: on tracks with forks, laps that take a branch are not kept. Samples
+## are recorded against the MainSpline (offset + lateral), so a lap through a
+## branch would file the branch as huge laterals off the main route and
+## poison anything trained from recordings.
+var _branch_tracker: TrackGraph.Tracker = null
+var _took_branch := false
 
 const COVERAGE_BINS := 100
 
@@ -54,6 +60,9 @@ func _ready() -> void:
 		return
 	
 	_enabled = true
+	var g := _helper.graph
+	if g and g.has_branches():
+		_branch_tracker = g.make_tracker()
 	var rm := get_node_or_null("/root/RaceManager")
 	if rm:
 		rm.race_started.connect(_begin_lap)
@@ -78,6 +87,7 @@ func _begin_lap() -> void:
 	_bins.resize(COVERAGE_BINS)
 	_accum = 0.0
 	_lap_clock = 0.0
+	_took_branch = false
 	_active = true
 	_sample()   # the first sample sits on the line
 
@@ -92,6 +102,7 @@ func complete_lap(lap_number: int, lap_time: float) -> void:
 		return
 	
 	var rec := _rec
+	var took_branch := _took_branch
 	rec.track_id = _track_id()
 	rec.ship_id = ship.profile.ship_id
 	rec.profile_hash = ship.profile.handling_hash()
@@ -106,6 +117,13 @@ func complete_lap(lap_number: int, lap_time: float) -> void:
 	
 	# Start the next lap before any disk work, so no samples are lost.
 	_begin_lap()
+	
+	if took_branch:
+		var why_b := "took a branch (recordings are against the MainSpline)"
+		if verbose:
+			print("LapRecorder: rejected L%d %.3fs (%s)" % [lap_number, lap_time, why_b])
+		lap_rejected.emit(why_b)
+		return
 	
 	if rec.coverage < min_coverage:
 		var why := "coverage %.0f%% < %.0f%%" % [rec.coverage * 100.0, min_coverage * 100.0]
@@ -147,6 +165,10 @@ func _physics_process(delta: float) -> void:
 
 func _sample() -> void:
 	var pos := ship.global_position
+	if _branch_tracker:
+		_branch_tracker.update(pos)
+		if _branch_tracker.path >= 0:
+			_took_branch = true
 	var offset: float = _helper.world_to_spline_offset(pos)
 	_rec.t.append(_lap_clock)
 	_rec.spline_offset.append(offset)

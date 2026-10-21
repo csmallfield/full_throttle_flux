@@ -43,7 +43,9 @@ signal ship_collision(other_ship: ShipController, impact_speed: float)
 
 @export_group("Respawn")
 
-## Y position below which the ship will respawn
+## Y position below which the ship will respawn. v33: a backstop only; with a
+## respawn manager (every mode, every track) a ship that leaves the track is
+## caught much sooner by TrackRespawnManager.off_track_reason().
 @export var respawn_y_threshold: float = -100.0
 
 ## How often to save safe position while grounded (seconds)
@@ -119,6 +121,7 @@ var controls_locked := false
 var last_safe_position := Vector3.ZERO
 var last_safe_rotation := Basis.IDENTITY
 var _safe_position_timer := 0.0
+var _respawn_reason := ""  # v33: printed with the next respawn
 
 # AI control state
 var ai_controlled: bool = false
@@ -142,6 +145,21 @@ var magnet_weight := 0.0
 var magnet_strength := 0.0
 ## True when the ground this tick came from the spline, not the hover ray.
 var magnet_contact_recovered := false
+
+# ============================================================================
+# JUMP FLIGHT STATE (v31)
+# ============================================================================
+# Tracks with a TrackGraph can have designed jumps (TrackJump). A flight that
+# takes off from one gets that jump's air drag and landing spring until the
+# ship has settled after touchdown. Inert (jump == null) on tracks without
+# jumps and for any takeoff that isn't from a jump.
+
+var _graph: TrackGraph = null
+var _graph_lookup_done := false
+## The jump this ship is flying from (null = not on a designed jump).
+var jump: TrackJump = null
+## Seconds grounded since touchdown on the current jump.
+var jump_landed_time := 0.0
 
 # ============================================================================
 # SHIP COLLISION STATE (v7 - Impulse Exchange)
@@ -423,6 +441,10 @@ func settle_on_surface() -> void:
 	
 	global_position = surface + normal * _hover_height
 	velocity.y = 0.0
+	# v33: the hover spring reads ground_distance before the next ray update
+	# when this runs mid-tick (a respawn from _check_respawn_needed()); a stale
+	# airborne value there kicked the ship off its equilibrium.
+	ground_distance = _hover_height
 	
 	current_track_normal = normal
 	smoothed_track_normal = normal
@@ -463,7 +485,9 @@ func _physics_process(delta: float) -> void:
 	
 	_read_input()
 	_update_magnetic()
+	var was_grounded := is_grounded
 	_update_ground_detection()
+	_update_jump(was_grounded, delta)
 	_update_safe_position(delta)
 	_check_respawn_needed()
 	_apply_hover_force(delta)
@@ -542,6 +566,9 @@ func _update_safe_position(delta: float) -> void:
 	# v30: never remember a spot on a loop or roll (it may be upside down).
 	if magnet_weight > 0.0:
 		return
+	# v31: nor on a jump's ramps.
+	if jump:
+		return
 	
 	_safe_position_timer += delta
 	if _safe_position_timer >= safe_position_save_interval:
@@ -553,6 +580,13 @@ func _check_respawn_needed() -> void:
 	"""Check if ship has fallen below threshold and needs respawn."""
 	if global_position.y < respawn_y_threshold:
 		respawn()
+		return
+	# v33: off the track (fallen below the road it left, or airborne too long).
+	if respawn_manager and respawn_manager.is_initialized:
+		var why := respawn_manager.off_track_reason(self, get_physics_process_delta_time())
+		if why != "":
+			_respawn_reason = why
+			respawn()
 
 func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = Basis.IDENTITY) -> void:
 	"""Respawn the ship at the last safe position or a custom location."""
@@ -563,7 +597,13 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 		target_position = custom_position
 		target_rotation = custom_rotation if custom_rotation != Basis.IDENTITY else last_safe_rotation
 	elif respawn_manager and respawn_manager.is_initialized:
-		var respawn_data := respawn_manager.get_nearest_respawn_point(global_position)
+		# v32: on tracks with jumps, look up the respawn point from where the
+		# ship last had road under it, not from where it fell to: a ship
+		# knocked off the side can drop nearer another route (measured: one
+		# fell beside the branch's landing and came back on the main route,
+		# ahead of where it left). v33: on every track; a ship that fell
+		# hundreds of metres is nearest some unrelated part of the lap.
+		var respawn_data := respawn_manager.get_nearest_respawn_point(last_safe_position, get_rid())
 		if respawn_data.found:
 			target_position = respawn_data.position
 			target_rotation = respawn_data.rotation
@@ -609,6 +649,8 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 		_mag.reset()
 	magnet_weight = 0.0
 	magnet_contact_recovered = false
+	jump = null
+	jump_landed_time = 0.0
 	
 	# Stop any wall scraping audio
 	if _is_scraping_wall:
@@ -631,6 +673,9 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 	elif respawn_manager and respawn_manager.is_initialized:
 		source = "respawn_manager"
 	
+	if _respawn_reason != "":
+		source += ", " + _respawn_reason
+		_respawn_reason = ""
 	if ai_controlled:
 		print("AI Ship respawned at: %s (source: %s)" % [target_position, source])
 	else:
@@ -717,6 +762,39 @@ static func slerp_safe(a: Vector3, b: Vector3, weight: float) -> Vector3:
 	return a.slerp(b, weight)
 
 # ============================================================================
+# JUMP FLIGHT (v31)
+# ============================================================================
+
+func _update_jump(was_grounded: bool, delta: float) -> void:
+	if not _graph_lookup_done:
+		_graph_lookup_done = true
+		if is_inside_tree():
+			_graph = get_tree().get_first_node_in_group(TrackGraph.GROUP) as TrackGraph
+			if _graph and (_graph.jumps.is_empty() or not _graph.is_valid()):
+				_graph = null
+	if jump:
+		# Landed = grounded at (about) hover height for landing_settle_time.
+		if is_grounded and ground_distance <= _hover_height + 0.5:
+			jump_landed_time += delta
+			if jump_landed_time >= jump.landing_settle_time:
+				jump = null
+		return
+	if _graph and was_grounded and not is_grounded:
+		begin_jump_flight(_graph.jump_at(global_position))
+
+## Starts jump-flight physics for `j` (null clears it). Called on takeoff; the
+## jump simulator also calls it directly.
+func begin_jump_flight(j: TrackJump) -> void:
+	jump = j
+	jump_landed_time = 0.0
+
+## Air drag for this flight: the profile's, unless flying from a jump.
+func _flight_air_drag() -> float:
+	if jump == null:
+		return _air_drag
+	return _drag_coefficient if jump.air_drag < 0.0 else jump.air_drag
+
+# ============================================================================
 # GROUND DETECTION & HOVER
 # ============================================================================
 
@@ -774,11 +852,16 @@ func _apply_hover_force(delta: float) -> void:
 	var force_max: float = _hover_force_max
 	if w > 0.0 and _mag.zone:
 		force_max *= lerpf(1.0, _mag.zone.hover_force_scale, w)
+	var damping: float = _hover_damping
+	if jump:
+		# v31: landing from a jump (see TrackJump).
+		force_max *= jump.landing_force_scale
+		damping *= jump.landing_damping_scale
 	
 	var height_error = _hover_height - ground_distance
 	var vertical_velocity = velocity.dot(current_track_normal)
 	var spring_force = height_error * _hover_stiffness
-	var damping_force = -vertical_velocity * _hover_damping
+	var damping_force = -vertical_velocity * damping
 	var total_force = clampf(spring_force + damping_force, -force_max, force_max)
 	
 	# v30: anti-grav hover is repulsive. Outside zones the spring has always
@@ -787,6 +870,9 @@ func _apply_hover_force(delta: float) -> void:
 	# so at magnet 0 a ship that's too slow at the top of a loop can drop off.
 	if w > 0.0 and total_force < 0.0:
 		total_force *= lerpf(1.0, magnet_strength, w)
+	# v31: landing from a jump, the pull is capped at gravity (see TrackJump).
+	if jump and total_force < 0.0 and jump.landing_pull_limit_g >= 0.0:
+		total_force = maxf(total_force, -_gravity * jump.landing_pull_limit_g)
 	
 	velocity += current_track_normal * total_force * delta
 	
@@ -995,7 +1081,7 @@ func _apply_pitch(delta: float) -> void:
 # ============================================================================
 
 func _apply_drag(delta: float) -> void:
-	var retain: float = _decay(_drag_coefficient if is_grounded else _air_drag, delta)
+	var retain: float = _decay(_drag_coefficient if is_grounded else _flight_air_drag(), delta)
 	var axis: Vector3 = current_track_normal.normalized() if is_grounded else _air_up()
 	var split: Array = _split_on_axis(velocity, axis)
 	velocity = (split[0] as Vector3) * retain + axis * (split[1] as float)

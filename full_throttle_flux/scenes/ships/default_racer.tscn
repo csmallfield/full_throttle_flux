@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://2kqcowksrwrr"]
 
 [ext_resource type="Script" uid="uid://s3b8psg6to1c" path="res://scripts/ships/ship_controller.gd" id="1_lepve"]
-[ext_resource type="Resource" uid="uid://cwnf3retb6vwt" path="res://resources/ships/hidden/speed_demon.tres" id="2_lepve"]
 [ext_resource type="Script" uid="uid://d4f1mpwy8pny2" path="res://scripts/ship_audio_controller.gd" id="4_2x183"]
 [ext_resource type="PackedScene" uid="uid://cdpw804je2xae" path="res://scenes/red_yellowmodel.tscn" id="4_aqvae"]
 
@@ -13,7 +12,6 @@ height = 10.817657
 collision_layer = 2
 collision_mask = 5
 script = ExtResource("1_lepve")
-profile = ExtResource("2_lepve")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=107032330]
 transform = Transform3D(0.585, 0, 0, 0, -2.5571161e-08, -0.585, 0, 0.585, -2.5571161e-08, 0, 0.7376064, 0.50404227)

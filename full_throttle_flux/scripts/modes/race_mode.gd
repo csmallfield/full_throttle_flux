@@ -145,6 +145,14 @@ func setup_race() -> void:
 	# Load track (from parent)
 	await _load_track()
 	
+	# v32: races never created a respawn manager, so every ship respawned at
+	# its last grounded "safe" spot. On a track with jumps that is the kicker
+	# ramp, at zero speed: a ship that fell short fell again, forever
+	# (measured on Fork Lab). v33: every track gets one, as time trial and
+	# endless always had (branch- and jump-aware on tracks with a TrackGraph).
+	# It also decides when a ship has left the track (FTF_v33_RESPAWN.md).
+	await _setup_respawn_manager()
+	
 	# Bake the shared AI racing line (cached after first run per track+ship)
 	await _bake_racing_line()
 	
@@ -270,6 +278,7 @@ func _spawn_player_ship(grid_position: int = 0) -> void:
 	# Apply profile
 	if ship_instance is ShipController:
 		ship_instance.profile = ship_profile
+		ship_instance.respawn_manager = respawn_manager  # v33: every track
 	
 	# TEMPORARY: random model from the profile's visual pool (before add_child)
 	_apply_visual_variant(ship_instance, ship_profile)
