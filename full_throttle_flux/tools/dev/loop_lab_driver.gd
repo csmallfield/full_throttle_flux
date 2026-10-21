@@ -121,6 +121,12 @@ func _ready() -> void:
 	# RaceManager times laps with the wall clock, which is meaningless under
 	# --fixed-fps, so time them in simulated seconds here.
 	root.get_node("RaceManager").lap_completed.connect(_on_lap)
+	# v33: never file autopilot laps as player recordings. Under --fixed-fps
+	# their wall-clock lap times are a few seconds, so they would top every
+	# bucket and push real laps out of the KEEP=10 store (deleting them).
+	var recorder := root.find_child("LapRecorder", true, false)
+	if recorder:
+		recorder.set("_enabled", false)
 	
 	print("DRIVE track=%s magnet=%s%s speed=%s lat=%.0f length=%.0f" % [track_id,
 			str(mo) if mo >= 0.0 else "zone", (" on " + only) if only != "" and mo >= 0.0 else "", str(target_speed) if target_speed > 0 else "full",

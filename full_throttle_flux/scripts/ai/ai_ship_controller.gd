@@ -453,6 +453,10 @@ func _route_line(r: int, h: TrackSplineHelper) -> BakedRacingLine:
 	if ship and ship.profile and (prefer_trained_line or fixed_route != -2):
 		var trained := AILineTrainer.load_trained_line(tid, ship.profile.ship_id)
 		if trained:
+			# v33: the same stale-line warning initialize() gives the main line.
+			if not trained.profile_hash.is_empty() and trained.profile_hash != ship.profile.handling_hash():
+				push_warning("AIShipController: trained line for %s on %s was trained on handling %s, ship is now %s - retrain it" % [
+					ship.profile.ship_id, tid, trained.profile_hash, ship.profile.handling_hash()])
 			return trained
 	if ship and ship.profile and ship.get_world_3d():
 		return AIRacingLineBaker.new().bake(h, ship.profile, ship.get_world_3d(), tid)
