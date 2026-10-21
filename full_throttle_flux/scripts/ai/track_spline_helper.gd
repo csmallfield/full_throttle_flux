@@ -38,6 +38,12 @@ var cached_offsets: PackedFloat32Array  # Corresponding spline offsets (0-1)
 ## before.
 var magnetic: MagneticTrack = null
 
+## v31: the track's TrackGraph, if it has branches (forks). A position on a
+## branch is then given the MAIN-lap offset its branch distance maps to, so
+## lap progress, race positions and respawns keep working across the fork.
+## null on every track without branches (all queries exactly as before).
+var graph: TrackGraph = null
+
 # ============================================================================
 # INITIALIZATION
 # ============================================================================
@@ -61,10 +67,22 @@ func initialize(track_root: Node) -> bool:
 	_build_point_cache()
 	
 	magnetic = _find_magnetic(track_root)
+	graph = _find_graph(track_root)
+	if graph and not graph.has_branches():
+		graph = null
 	
 	is_valid = true
 	print("TrackSplineHelper: Initialized with spline '%s', length: %.1f units" % [track_path.name, total_length])
 	return true
+
+func _find_graph(node: Node) -> TrackGraph:
+	if node is TrackGraph:
+		return node
+	for child in node.get_children():
+		var found := _find_graph(child)
+		if found:
+			return found
+	return null
 
 func _find_magnetic(node: Node) -> MagneticTrack:
 	if node is MagneticTrack:
@@ -151,7 +169,16 @@ func world_to_spline_offset(world_position: Vector3) -> float:
 	"""Convert a world position to a spline offset (0.0 - 1.0)."""
 	if not is_valid:
 		return 0.0
-	
+	var main: Array = _main_closest(world_position)
+	if graph == null:
+		return main[0]
+	# v31: nearest of the main and branch centre lines; branch distance is
+	# mapped onto main distance (TrackBranch).
+	var loc := graph.locate(world_position, (main[0] as float) * total_length)
+	return (loc.main_distance as float) / total_length
+
+## [offset 0-1, squared distance] of the closest MainSpline point.
+func _main_closest(world_position: Vector3) -> Array:
 	# Find closest cached point
 	var closest_idx := 0
 	var closest_dist := INF
@@ -178,7 +205,7 @@ func world_to_spline_offset(world_position: Vector3) -> float:
 			best_dist = dist
 			best_offset = offset
 	
-	return best_offset
+	return [best_offset, best_dist]
 
 func spline_offset_to_world(offset: float) -> Vector3:
 	"""Convert a spline offset (0.0 - 1.0) to world position."""
