@@ -1,0 +1,135 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/track_builder/track_builder.gd" id="1_khnyd"]
+[ext_resource type="Script" path="res://tools/track_builder/bank_key.gd" id="2_v2pqp"]
+[ext_resource type="Script" path="res://tools/track_builder/width_key.gd" id="3_wp70f"]
+
+[sub_resource type="Curve3D" id="Curve3D_y6yuh"]
+closed = true
+bake_interval = 0.5
+_data = {
+"points": PackedVector3Array(1.425382, 0, 114.03056, -1.6798687, 0, -134.3895, 0, 0, 0, -7.7435694, -0.77435696, 150.9996, 4.8234315, 0.48234314, -94.05691, 0, 0, -420, -40.89144, -2.2018468, 92.79212, 43.64946, 2.3503556, -99.05069, 40, 4, -780, -96.79735, -3.1113434, 48.398674, 86.05304, 2.7659905, -43.02652, 260, 14, -1010, -105.73755, -0.6608597, -13.217194, 100.57916, 0.6286198, 12.572395, 600, 22, -1060, -93.34572, 2.7320697, -81.9621, 45.990807, -1.3460724, 40.382175, 900, 18, -930, -41.545597, 1.7805257, -54.89954, 46.50518, -1.9930793, 61.453278, 1010, 10, -700, -71.7456, 0.7756281, -11.634421, 61.6589, -0.6665827, 9.998741, 1180, 6, -560, -69.35392, -0.9907704, -34.67696, 54.44231, 0.7777473, 27.221155, 1380, 6, -640, 12.021401, -3.3058856, -69.12306, -15.828354, 4.3527975, 91.01304, 1460, 10, -420, 29.689404, -4.0485554, -78.272064, -40.38426, 5.5069447, 106.46759, 1300, 28, -180, -3.4531968, -0.34531966, -120.861885, 2.8447611, 0.28447613, 99.56665, 1240, 40, 160, 10.67985, 4.627935, -117.47834, -8.995375, -3.8979957, 98.94912, 1320, 30, 520, 73.82434, 3.8388658, -56.1065, -99.77865, -5.18849, 75.83178, 1180, 14, 820, 136.28769, 2.5105624, -7.1730366, -100.34784, -1.8485128, 5.2814655, 820, 4, 900, 119.55866, 0.70328623, 35.164314, -95.90815, -0.5641656, -28.20828, 420, 0, 860, 71.21398, 0, 83.372475, -62.81277, 0, -73.5369, 140, 0, 700, 20.321455, 0, 101.60728, -23.855978, 0, -119.27989, 10, 0, 380),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 18
+
+[node name="BuilderLab" type="Node3D" unique_id=972666024]
+
+[node name="TrackBuilder" type="Node3D" parent="." unique_id=494306537]
+script = ExtResource("1_khnyd")
+
+[node name="BaseSpline" type="Path3D" parent="TrackBuilder" unique_id=206419350]
+curve = SubResource("Curve3D_y6yuh")
+
+[node name="BankKeys" type="Node3D" parent="TrackBuilder" unique_id=233598972]
+
+[node name="Bank01" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=201213968]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6984835, 5.740643, -349.9575)
+script = ExtResource("2_v2pqp")
+bank_deg = 1.0
+distance = 350.0
+
+[node name="Bank02" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=93608290]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.39932, 8.532354, -699.11285)
+script = ExtResource("2_v2pqp")
+bank_deg = 5.5
+distance = 700.0
+
+[node name="Bank03" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=1011806680]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 297.71982, 21.19645, -1026.0519)
+script = ExtResource("2_v2pqp")
+bank_deg = 6.5
+distance = 1150.0
+
+[node name="Bank04" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=2117223747]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 642.77997, 28.12005, -1053.2583)
+script = ExtResource("2_v2pqp")
+bank_deg = 5.0
+distance = 1500.0
+
+[node name="Bank05" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=416423959]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 952.12177, 20.600922, -832.84753)
+script = ExtResource("2_v2pqp")
+bank_deg = 2.5
+distance = 1900.0
+
+[node name="Bank06" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=1030929069]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1250.9574, 11.450581, -589.2135)
+script = ExtResource("2_v2pqp")
+bank_deg = -9.5
+distance = 2350.0
+
+[node name="Bank07" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=1066370857]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1461.8855, 14.531106, -461.31003)
+script = ExtResource("2_v2pqp")
+bank_deg = 13.5
+distance = 2700.0
+
+[node name="Bank08" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=1948147182]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1278.4585, 37.24031, -117.123955)
+script = ExtResource("2_v2pqp")
+bank_deg = -3.0
+distance = 3100.0
+
+[node name="Bank09" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=1768882098]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1284.0997, 29.238834, 662.6303)
+script = ExtResource("2_v2pqp")
+bank_deg = 5.0
+distance = 3900.0
+
+[node name="Bank10" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=1073059650]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 886.13416, 11.234425, 896.8934)
+script = ExtResource("2_v2pqp")
+bank_deg = 0.5
+distance = 4400.0
+
+[node name="Bank11" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=588391838]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 391.0938, 5.8640547, 851.0204)
+script = ExtResource("2_v2pqp")
+bank_deg = 3.5
+distance = 4900.0
+
+[node name="Bank12" type="Node3D" parent="TrackBuilder/BankKeys" unique_id=397096349]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85.52126, 6, 612.44617)
+script = ExtResource("2_v2pqp")
+bank_deg = 4.5
+distance = 5300.0
+
+[node name="WidthKeys" type="Node3D" parent="TrackBuilder" unique_id=1341053624]
+
+[node name="Width01" type="Node3D" parent="TrackBuilder/WidthKeys" unique_id=1982244960]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 642.77997, 28.12005, -1053.2583)
+script = ExtResource("3_wp70f")
+distance = 1500.0
+
+[node name="Width02" type="Node3D" parent="TrackBuilder/WidthKeys" unique_id=473798007]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 907.85864, 23.728054, -921.9552)
+script = ExtResource("3_wp70f")
+linked = false
+half_width_left = 26.0
+distance = 1800.0
+
+[node name="Width03" type="Node3D" parent="TrackBuilder/WidthKeys" unique_id=1065093217]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1208.2108, 11.726492, -563.59656)
+script = ExtResource("3_wp70f")
+distance = 2300.0
+
+[node name="Width04" type="Node3D" parent="TrackBuilder/WidthKeys" unique_id=645615744]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1241.6459, 44.94154, 78.861626)
+script = ExtResource("3_wp70f")
+distance = 3300.0
+
+[node name="Width05" type="Node3D" parent="TrackBuilder/WidthKeys" unique_id=1804121199]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1281.6097, 43.158348, 322.96448)
+script = ExtResource("3_wp70f")
+half_width_left = 15.0
+half_width_right = 15.0
+distance = 3550.0
+
+[node name="Width06" type="Node3D" parent="TrackBuilder/WidthKeys" unique_id=420886962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1312.8245, 33.98501, 567.087)
+script = ExtResource("3_wp70f")
+distance = 3800.0
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1566683895]
+transform = Transform3D(0.8660254, -0.38302222, 0.32139382, 0, 0.64278764, 0.76604444, -0.5, -0.66341394, 0.5566704, 0, 0, 0)
