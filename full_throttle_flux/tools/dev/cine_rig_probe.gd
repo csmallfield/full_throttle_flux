@@ -305,15 +305,45 @@ func _maybe_shoot() -> void:
 		var gap: float = d - (sh[1] as float)
 		if gap >= 0.0 and gap < 40.0:
 			sh[2] = true
-			var i: int = rig.CAMERA_NAMES.find(sh[0])
-			if i < 0:
-				continue
-			rig.select_index(i)
+			var free_cam: Camera3D = null
+			if sh[0] == "overview" and gref:
+				# v32: a free camera high over the fork junction, looking on
+				# past the splitter nose: the field arriving and splitting.
+				free_cam = _fork_overview_camera()
+				if free_cam == null:
+					continue
+			else:
+				var i: int = rig.CAMERA_NAMES.find(sh[0])
+				if i < 0:
+					continue
+				rig.select_index(i)
 			await RenderingServer.frame_post_draw
 			await RenderingServer.frame_post_draw
 			var path: String = shot_dir.path_join("%s_%04d.png" % [sh[0], int(sh[1])])
 			get_viewport().get_texture().get_image().save_png(path)
 			print("SHOT %s @%.0f -> %s" % [sh[0], d, ProjectSettings.globalize_path(path)])
+			if free_cam:
+				free_cam.queue_free()
+				if rig.active_camera:
+					rig.active_camera.make_current()
+
+func _fork_overview_camera() -> Camera3D:
+	var jn: TrackJunction = null
+	for n in get_tree().root.find_children("*", "TrackJunction", true, false):
+		if (n as TrackJunction).nose != Vector3.ZERO and String(n.name).contains("Fork"):
+			jn = n
+			break
+	if jn == null or gref.branches.is_empty():
+		return null
+	var fork: Vector3 = gref.frame_at(-1, (gref.branches[0] as TrackBranch).fork_distance).origin
+	var dir := (jn.nose - fork).slide(Vector3.UP).normalized()
+	var cam := Camera3D.new()
+	cam.fov = 60.0
+	get_tree().root.add_child(cam)
+	cam.global_position = fork.lerp(jn.nose, 0.3) + Vector3.UP * 75.0
+	cam.look_at(jn.nose + dir * 110.0, Vector3.UP)
+	cam.make_current()
+	return cam
 
 func _report(track_id: String, seconds: float) -> void:
 	var keys := stats.keys()

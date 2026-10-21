@@ -338,6 +338,21 @@ the branch and the main route, also with 0 errors.
 29.83 s and shortcut 28.42 s. No other track was retrained. Their `.tres`
 files are untouched in git.
 
+### Stills
+
+Rendered with `CR_SHOTS` under xvfb (gl_compatibility, 960×540). They are
+not in the repo.
+
+- **The field splitting at the fork.** `CR_SHOTS=overview@1460` is a new
+  free camera high over the fork junction. Two ships take the main route to
+  the left, and four take the branch toward its kicker.
+- **An AI mid-air over the branch jump.** Orbit and side cameras.
+- **Witness jump shots.** Trackside and crane at the branch jump (one ship
+  launching, one in the air), and helilost over the shared jump's landing.
+  The measured witness spot is high, so these frames look down onto the dark
+  ground plane under the gap. A low, side-on spot would look more dramatic,
+  but it measured 41–67% occluded.
+
 ## Found along the way (not fixed beyond Fork Lab)
 
 1. **The trainer drove the wrong ship.** `train_ai_lines.gd` never set the
