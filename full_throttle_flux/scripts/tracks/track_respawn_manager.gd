@@ -52,6 +52,18 @@ var respawn_points: Array[RespawnPoint] = []
 var spline_helper: TrackSplineHelper
 var is_initialized: bool = false
 var track_root_node: Node = null  # Store reference for world access
+var _magnetic: MagneticTrack = null  # v30: set when the track has magnetic zones
+
+func _find_magnetic_track(node: Node) -> MagneticTrack:
+	if node == null:
+		return null
+	if node is MagneticTrack and (node as MagneticTrack).is_valid():
+		return node
+	for child in node.get_children():
+		var found := _find_magnetic_track(child)
+		if found:
+			return found
+	return null
 
 # Debug markers
 var debug_markers: Array[MeshInstance3D] = []
@@ -111,8 +123,15 @@ func _generate_respawn_points() -> void:
 	if debug_print:
 		print("TrackRespawnManager: Generating %d points for %.1fm track" % [num_points, track_length])
 	
+	# v30: on tracks with magnetic zones, never respawn inside one (the road
+	# may be vertical or upside down there) and orient by the banked/rolled
+	# surface frame, which a barrel roll leaves a full turn of tilt behind.
+	_magnetic = _find_magnetic_track(track_root_node)
+	
 	for i in range(num_points):
 		var spline_offset := float(i) / float(num_points)
+		if _magnetic and _magnetic.is_in_zone(spline_offset * track_length):
+			continue
 		var point := _create_respawn_point(spline_offset)
 		if point:
 			respawn_points.append(point)
@@ -127,7 +146,7 @@ func _create_respawn_point(spline_offset: float) -> RespawnPoint:
 	
 	# Get track orientation
 	var tangent := spline_helper.get_tangent_at_offset(spline_offset)
-	var up := spline_helper.get_up_at_offset(spline_offset)
+	var up := spline_helper.get_up_at_offset(spline_offset, _magnetic != null)
 	var right := tangent.cross(up).normalized()
 	
 	# Create rotation basis (forward = tangent, up = track up)
@@ -210,6 +229,19 @@ func get_respawn_point_at_offset(spline_offset: float) -> Dictionary:
 	spline_offset = fmod(spline_offset, 1.0)
 	if spline_offset < 0:
 		spline_offset += 1.0
+	
+	# v30: with magnetic zones, respawn at the last point BEHIND the ship.
+	# The nearest point to a ship that fell out of a roll may be past it.
+	if _magnetic:
+		var behind: RespawnPoint = null
+		var best_gap := INF
+		for point in respawn_points:
+			var gap := fmod(spline_offset - point.spline_offset + 1.0, 1.0)
+			if gap < best_gap:
+				best_gap = gap
+				behind = point
+		if behind:
+			return {"position": behind.position, "rotation": behind.rotation, "found": true}
 	
 	# Find nearest respawn point
 	var nearest_point: RespawnPoint = respawn_points[0]

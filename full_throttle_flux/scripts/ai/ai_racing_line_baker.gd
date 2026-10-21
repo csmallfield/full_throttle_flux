@@ -251,7 +251,7 @@ func bake(spline_helper: TrackSplineHelper, ship_profile: ShipProfile,
 	seg_lengths.resize(n)
 	for i in range(n):
 		seg_lengths[i] = points[i].distance_to(points[(i + 1) % n])
-	var kappas := _compute_curvatures(points, seg_lengths)
+	var kappas := _compute_curvatures(points, seg_lengths, ups, _zone_weights(spline_helper, n))
 
 	# --- 5. Two-pass speed profile ---
 	var speeds := _compute_speed_profile(kappas, seg_lengths, perf)
@@ -495,10 +495,22 @@ func _minimize_curvature(centers: PackedVector3Array, rights: PackedVector3Array
 # STEP 4: CURVATURE
 # ============================================================================
 
-func _compute_curvatures(points: PackedVector3Array, seg_lengths: PackedFloat32Array) -> PackedFloat32Array:
+## v30: `ups` and `zone_weights` (optional) make the curvature inside magnetic
+## zones the IN-ROAD-PLANE (geodesic) part only. The ship steers about the
+## road normal, so a loop's vertical curvature asks nothing of the steering,
+## but the full 3D angle counts it as a corner. Measured on Loop Lab: 3D
+## curvature 0.0135 through the loop (65 m top radius), which the speed model
+## happens to allow at ~117-120 u/s, so it cost little there; a 35 m loop
+## (0.03) would have been planned at ~60 u/s. Outside zones (weight 0) the 3D
+## angle is used exactly as before, so existing tracks' crests and dips keep
+## their speeds.
+func _compute_curvatures(points: PackedVector3Array, seg_lengths: PackedFloat32Array,
+		ups: PackedVector3Array = PackedVector3Array(),
+		zone_weights: PackedFloat32Array = PackedFloat32Array()) -> PackedFloat32Array:
 	var n := points.size()
 	var kappas := PackedFloat32Array()
 	kappas.resize(n)
+	var zoned: bool = zone_weights.size() == n and ups.size() == n
 
 	for i in range(n):
 		var p_prev := points[(i - 1 + n) % n]
@@ -509,6 +521,14 @@ func _compute_curvatures(points: PackedVector3Array, seg_lengths: PackedFloat32A
 			kappas[i] = 0.0
 			continue
 		var angle := a.angle_to(b)
+		if zoned and zone_weights[i] > 0.0:
+			var up: Vector3 = ups[i].normalized()
+			var a_r: Vector3 = a.slide(up)
+			var b_r: Vector3 = b.slide(up)
+			var road_angle := 0.0
+			if a_r.length_squared() > 0.0001 and b_r.length_squared() > 0.0001:
+				road_angle = a_r.angle_to(b_r)
+			angle = lerpf(angle, road_angle, zone_weights[i])
 		var mean_seg: float = (seg_lengths[(i - 1 + n) % n] + seg_lengths[i]) * 0.5
 		kappas[i] = angle / maxf(mean_seg, 0.1)
 
@@ -525,6 +545,17 @@ func _compute_curvatures(points: PackedVector3Array, seg_lengths: PackedFloat32A
 		kappas = smoothed
 
 	return kappas
+
+## v30: magnetic zone weight per line sample (empty when the track has none,
+## which keeps _compute_curvatures on its original path).
+func _zone_weights(spline_helper: TrackSplineHelper, n: int) -> PackedFloat32Array:
+	var w := PackedFloat32Array()
+	if spline_helper.magnetic == null:
+		return w
+	w.resize(n)
+	for i in range(n):
+		w[i] = spline_helper.zone_weight_at_offset(float(i) / float(n))
+	return w
 
 # ============================================================================
 # STEP 5: SPEED PROFILE
@@ -593,12 +624,15 @@ func rebuild_from_laterals(spline_helper: TrackSplineHelper,
 	perf.configure(ship_profile)
 	
 	var points := PackedVector3Array()
+	var ups := PackedVector3Array()
 	points.resize(n)
+	ups.resize(n)
 	for i in range(n):
 		var offset := float(i) / float(n)
 		var center: Vector3 = spline_helper.spline_offset_to_world(offset)
 		var tangent: Vector3 = spline_helper.get_tangent_at_offset(offset)
 		var up: Vector3 = spline_helper.get_up_at_offset(offset, true)
+		ups[i] = up
 		points[i] = center + tangent.cross(up).normalized() * laterals[i]
 	
 	var seg_lengths := PackedFloat32Array()
@@ -606,7 +640,7 @@ func rebuild_from_laterals(spline_helper: TrackSplineHelper,
 	for i in range(n):
 		seg_lengths[i] = points[i].distance_to(points[(i + 1) % n])
 	
-	var kappas := _compute_curvatures(points, seg_lengths)
+	var kappas := _compute_curvatures(points, seg_lengths, ups, _zone_weights(spline_helper, n))
 	var speeds := _compute_speed_profile(kappas, seg_lengths, perf)
 	
 	var result: BakedRacingLine = template.duplicate(true)
@@ -684,6 +718,12 @@ func _compute_source_hash(spline_helper: TrackSplineHelper, profile: ShipProfile
 	parts.append(line_margin)
 	parts.append(respect_profile_max_speed)
 	parts.append(BakedRacingLine.CURRENT_BAKE_VERSION)
+	# v30: zones change the curvature model, so they belong in the key. Only
+	# appended when present, so zone-less tracks keep their existing hashes.
+	if spline_helper.magnetic:
+		for z in spline_helper.magnetic.zones:
+			if z:
+				parts.append([z.enabled, z.start_distance, z.end_distance, z.ramp_in, z.ramp_out])
 	return parts.hash()
 
 func _cache_path(track_id: String, ship_id: String, source_hash: int) -> String:
