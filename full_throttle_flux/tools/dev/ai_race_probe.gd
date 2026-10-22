@@ -183,6 +183,12 @@ func _ready() -> void:
 			lp[s] = "laps=%d" % laps[s]
 		fm.report(lp)
 	_lap_report()
+	# v34: ship-to-ship contact counters from the central resolver.
+	var cr := ShipContactResolver.current()
+	if cr != null:
+		print("PROBECONTACT episodes=%d hits=%d max_hit=%.1f" % [cr.contacts_total, cr.hits_total, cr.max_hit_speed])
+	else:
+		print("PROBECONTACT legacy (FTF_CONTACT=legacy)")
 	print("PROBE track=%s seconds=%.0f ships=%d checksum=%d" % [track_id, seconds, ships.size(), str(h).hash()])
 	get_tree().quit(0)
 

@@ -134,6 +134,8 @@ func _run(name: String, seconds: float) -> void:
 	var ships: Array[ShipController] = [A, B]
 	for i in 6:
 		await get_tree().physics_frame
+	var resolver: ShipContactResolver = ShipContactResolver.current()
+	print("CS mode=%s" % ("legacy" if resolver == null else "resolver"))
 	for s in ships:
 		s.settle_on_surface()
 
@@ -196,12 +198,19 @@ func _run(name: String, seconds: float) -> void:
 			var st: Dictionary = stats[s]
 			var contact := false
 			var closing := 0.0
-			for i in s.get_slide_collision_count():
-				var c: KinematicCollision3D = s.get_slide_collision(i)
-				if c.get_collider() is ShipController:
-					contact = true
-					var other := c.get_collider() as ShipController
-					closing = (s.velocity - other.velocity).dot(c.get_normal())
+			var other: ShipController = B if s == A else A
+			if resolver != null:
+				contact = resolver.is_touching(A, B)
+				if contact:
+					var nrm: Vector3 = (s.global_position - other.global_position)
+					nrm.y = 0.0
+					closing = (s.velocity - other.velocity).dot(nrm.normalized())
+			else:
+				for i in s.get_slide_collision_count():
+					var c: KinematicCollision3D = s.get_slide_collision(i)
+					if c.get_collider() is ShipController:
+						contact = true
+						closing = (s.velocity - other.velocity).dot(c.get_normal())
 			var dv: float = (s.velocity - st["prev_vel"]).length()
 			var lat: float = s.velocity.x
 			var lat_sign: int = int(sign(lat)) if absf(lat) > 0.5 else 0
