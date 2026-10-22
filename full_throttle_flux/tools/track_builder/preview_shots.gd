@@ -87,17 +87,17 @@ func _run() -> void:
 				var top := s.frame_at(mid).origin
 				var base := s.frame_at(p.s0).origin
 				var side := TrackSampler.right_of(s.frame_at(p.s0).basis.z * -1.0, Vector3.UP)
-				var eye := (top + base) * 0.5 + side * -420.0 + Vector3.UP * 40.0
-				_cam.global_transform = Transform3D(Basis.looking_at(top + Vector3.DOWN * 60.0 - eye, Vector3.UP), eye)
+				var leye := (top + base) * 0.5 + side * -420.0 + Vector3.UP * 40.0
+				_cam.global_transform = Transform3D(Basis.looking_at(top + Vector3.DOWN * 60.0 - leye, Vector3.UP), leye)
 				await _shot("overview_" + n)
 			else:
 				await _shot("road_" + n)
 		for be in _tb.branches:
 			if be.ok:
-				var f := s.frame_at(be.s_fork - 120.0)
-				var ahead := s.frame_at(be.s_fork + 200.0)
-				var eye := f.origin + Vector3.UP * 40.0
-				_cam.global_transform = Transform3D(Basis.looking_at(ahead.origin - eye, Vector3.UP), eye)
+				var ff := s.frame_at(be.s_fork - 120.0)
+				var fahead := s.frame_at(be.s_fork + 200.0)
+				var feye := ff.origin + Vector3.UP * 40.0
+				_cam.global_transform = Transform3D(Basis.looking_at(fahead.origin - feye, Vector3.UP), feye)
 				await _shot("fork_split")
 				for p in be.composer.placed:
 					_chase(be.track, p.marks.kicker - 140.0, 150.0, "")
