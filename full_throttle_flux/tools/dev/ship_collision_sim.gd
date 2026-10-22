@@ -200,7 +200,7 @@ func _run(name: String, seconds: float) -> void:
 			var closing := 0.0
 			var other: ShipController = B if s == A else A
 			if resolver != null:
-				contact = resolver.is_touching(A, B)
+				contact = resolver.in_episode(A, B)
 				if contact:
 					var nrm: Vector3 = (s.global_position - other.global_position)
 					nrm.y = 0.0

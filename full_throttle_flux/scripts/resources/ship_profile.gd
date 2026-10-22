@@ -271,9 +271,9 @@ class_name ShipProfile
 
 ## Yaw kick from an off-centre hit: gain, effective radius of gyration (m)
 ## and the cap on the induced yaw rate (rad/s).
-@export var ship_collision_yaw_gain: float = 0.3
+@export var ship_collision_yaw_gain: float = 0.25
 @export var ship_collision_yaw_radius: float = 2.5
-@export var ship_collision_yaw_max: float = 1.2
+@export var ship_collision_yaw_max: float = 0.9
 
 ## Per-second decay rate of the induced yaw rate (the twitch dies out).
 @export var ship_collision_yaw_decay: float = 4.0

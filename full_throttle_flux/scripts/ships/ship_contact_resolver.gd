@@ -50,8 +50,20 @@ static func current() -> ShipContactResolver:
 
 ## Capsule per ship: [radius, half-segment length, local centre, local axis].
 var _capsules: Dictionary = {}
-## "idA:idB" -> true while the pair is touching.
+## "idA:idB" -> physics frame of the last tick the pair was touching. A pair
+## stays in its episode through EPISODE_GRACE ticks of separation, so two
+## ships leaning on each other (re-closing at 1-2 u/s every few ticks as the
+## separation pushes them apart) are one episode, one feedback event, one yaw
+## kick -- not a 10 Hz string of hits.
 var _touching: Dictionary = {}
+const EPISODE_GRACE := 12
+## Ships closer than this (metres between hulls) count as touching for the
+## lean rules, so a lean is continuous rather than flickering.
+const CONTACT_SKIN := 0.25
+## Hits (closing >= this) counted in hits_total; below it is a touch.
+const HIT_COUNT_SPEED := 3.0
+## Probes may set this to a Callable(a, b) -> String for extra big-hit context.
+var big_hit_context: Callable = Callable()
 ## Stats for probes.
 var contacts_total := 0
 var hits_total := 0
@@ -77,18 +89,31 @@ func _physics_process(delta: float) -> void:
 			var key := "%d:%d" % [a.get_instance_id(), b.get_instance_id()]
 			seen[key] = true
 			var c := _test_pair(a, b)
+			var frame := Engine.get_physics_frames()
 			if c.is_empty():
-				_touching.erase(key)
+				if _touching.has(key) and frame - int(_touching[key]) > EPISODE_GRACE:
+					_touching.erase(key)
 				continue
-			var was: bool = _touching.get(key, false)
-			_touching[key] = true
+			var was: bool = _touching.has(key) and frame - int(_touching[key]) <= EPISODE_GRACE
+			_touching[key] = frame
 			contacts_total += 1 if not was else 0
 			var hit: float = ShipContactRules.resolve(a, b, c.normal, c.point, c.depth, delta, not was)
 			if hit > 0.0:
 				max_hit_speed = maxf(max_hit_speed, hit)
 			# One feedback event per episode, on the first hit of the episode.
-			if hit > 0.0 and not was:
+			if hit >= HIT_COUNT_SPEED and not was:
 				hits_total += 1
+				if OS.get_environment("FTF_LOG_HITS") == "1":
+					print("CONTACT hit f%d %s<->%s closing=%.1f va=%.0f vb=%.0f" % [
+						Engine.get_physics_frames(), a.name, b.name, hit, a.velocity.length(), b.velocity.length()])
+				if hit >= 25.0:
+					var fa: Vector3 = -a.global_transform.basis.z
+					var fb: Vector3 = -b.global_transform.basis.z
+					print("CONTACT big hit f%d %s<->%s closing=%.1f va=%.0f vb=%.0f n=%s heading_gap=%.0fdeg slipA=%.0f slipB=%.0f wallA=%s wallB=%s yawA=%.2f yawB=%.2f %s" % [
+						Engine.get_physics_frames(), a.name, b.name, hit, a.velocity.length(), b.velocity.length(),
+						c.normal, rad_to_deg(fa.angle_to(fb)), rad_to_deg(a.slip_angle), rad_to_deg(b.slip_angle),
+						a._is_scraping_wall, b._is_scraping_wall, a.contact_yaw_rate, b.contact_yaw_rate,
+						big_hit_context.call(a, b) if big_hit_context.is_valid() else ""])
 				var min_fb: float = minf(a.profile.ship_collision_feedback_min_speed,
 						b.profile.ship_collision_feedback_min_speed)
 				if hit >= min_fb:
@@ -99,10 +124,21 @@ func _physics_process(delta: float) -> void:
 		if not seen.has(key):
 			_touching.erase(key)
 
+## True while the pair's contact episode is open.
+func in_episode(a: ShipController, b: ShipController) -> bool:
+	var frame := Engine.get_physics_frames()
+	for key in ["%d:%d" % [a.get_instance_id(), b.get_instance_id()], "%d:%d" % [b.get_instance_id(), a.get_instance_id()]]:
+		if _touching.has(key) and frame - int(_touching[key]) <= EPISODE_GRACE:
+			return true
+	return false
+
 ## True while the pair was touching at the last resolve.
 func is_touching(a: ShipController, b: ShipController) -> bool:
-	return _touching.get("%d:%d" % [a.get_instance_id(), b.get_instance_id()], false) \
-			or _touching.get("%d:%d" % [b.get_instance_id(), a.get_instance_id()], false)
+	var frame := Engine.get_physics_frames()
+	for key in ["%d:%d" % [a.get_instance_id(), b.get_instance_id()], "%d:%d" % [b.get_instance_id(), a.get_instance_id()]]:
+		if _touching.has(key) and int(_touching[key]) == frame:
+			return true
+	return false
 
 func _capsule(s: ShipController) -> Array:
 	var id := s.get_instance_id()
@@ -147,7 +183,7 @@ func _test_pair(a: ShipController, b: ShipController) -> Dictionary:
 	var qb: Vector3 = cp[1]
 	var d: Vector3 = qa - qb
 	var rsum: float = ca[0] + cb[0]
-	if d.length_squared() >= rsum * rsum:
+	if d.length_squared() >= (rsum + CONTACT_SKIN) * (rsum + CONTACT_SKIN):
 		return {}
 	var up: Vector3 = (ta.basis.y + tb.basis.y).normalized()
 	var dp: Vector3 = d - up * d.dot(up)
@@ -161,7 +197,7 @@ func _test_pair(a: ShipController, b: ShipController) -> Dictionary:
 			n = -n
 	else:
 		n = dp.normalized()
-	var depth: float = rsum - dp.length()
+	var depth: float = rsum - dp.length()   # negative inside the skin: touching, not penetrating
 	var point: Vector3 = qb + d * (cb[0] / rsum)
 	return {"normal": n, "point": point, "depth": depth}
 

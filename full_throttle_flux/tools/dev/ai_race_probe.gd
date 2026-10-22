@@ -58,6 +58,7 @@ var took_off := {}           # ship -> [frame, position, velocity] when it last 
 ## ship's scrape state) and ticks spent on a wall. Read-only: the checksum is
 ## unaffected.
 var lap_frames := {}
+var _intent_hist := {}   # v34: ship name -> [[frame, intent name], ...] last few
 var walls := {}
 var wall_ticks := {}
 var scraping := {}
@@ -136,9 +137,32 @@ func _ready() -> void:
 	
 	# The player ship gets no input and sits on the grid; the AI field races.
 	var frames := int(seconds * 60.0)
+	# v34: intent history for big-hit context.
+	var ai_by_ship := {}
+	for s in ships:
+		var ai := _ai_of(s)
+		if ai != null and ai.contact_strategy != null:
+			ai_by_ship[s] = ai
+	var cr0 := ShipContactResolver.current()
+	if cr0 != null:
+		cr0.big_hit_context = func(a: ShipController, b: ShipController) -> String:
+			var out := ""
+			for x in [a, b]:
+				var hist: Array = _intent_hist.get(x.name, [])
+				out += " %s:[%s]" % [x.name, ", ".join(hist.map(func(e): return "%s@%d" % [e[1], e[0]]))]
+			return out
 	for f in frames:
 		frame_now = f + 1
 		await get_tree().physics_frame
+		if f % 15 == 0:
+			for s in ai_by_ship:
+				var cs: AIContactStrategy = ai_by_ship[s].contact_strategy
+				var hist: Array = _intent_hist.get(s.name, [])
+				if hist.is_empty() or hist[-1][1] != cs.intent_name():
+					hist.append([f, cs.intent_name()])
+					if hist.size() > 6:
+						hist.pop_front()
+					_intent_hist[s.name] = hist
 		for s in ships:
 			var scr: bool = s.get("_is_scraping_wall") == true
 			if scr:
@@ -183,6 +207,23 @@ func _ready() -> void:
 			lp[s] = "laps=%d" % laps[s]
 		fm.report(lp)
 	_lap_report()
+	# v34: per-AI contact strategy stats.
+	for s in ships:
+		var ai := _ai_of(s)
+		if ai == null or ai.contact_strategy == null:
+			continue
+		var cs: AIContactStrategy = ai.contact_strategy
+		var secs := ""
+		for i in cs.intent_seconds.size():
+			if cs.intent_seconds[i] > 0.05:
+				secs += " %s=%.1f" % [AIContactStrategy.NAMES[i].to_lower(), cs.intent_seconds[i]]
+		var hits := ""
+		for i in cs.hits_by_intent.size():
+			if cs.hits_by_intent[i][0] > 0:
+				hits += " %s=%d(max %.0f)" % [AIContactStrategy.NAMES[i].to_lower(), cs.hits_by_intent[i][0], cs.hits_by_intent[i][1]]
+		print("PROBESTRAT %-12s aggr=%.2f risk=%.2f overtakes=%d/%d defends=%d shoves=%d yields=%d recovers=%d |%s | hits:%s" % [
+			s.name, cs.aggression, cs.risk, cs.stats.overtakes_done, cs.stats.overtakes, cs.stats.defends,
+			cs.stats.shoves, cs.stats.yields, cs.stats.recovers, secs, hits])
 	# v34: ship-to-ship contact counters from the central resolver.
 	var cr := ShipContactResolver.current()
 	if cr != null:

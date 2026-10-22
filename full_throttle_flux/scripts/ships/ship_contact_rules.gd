@@ -78,9 +78,10 @@ static func resolve(a: ShipController, b: ShipController, n: Vector3, point: Vec
 		a.contact_yaw_rate = clampf(a.contact_yaw_rate, -pa.ship_collision_yaw_max, pa.ship_collision_yaw_max)
 		b.contact_yaw_rate = clampf(b.contact_yaw_rate, -pb.ship_collision_yaw_max, pb.ship_collision_yaw_max)
 
-	# --- While touching: damp relative TANGENTIAL velocity in the track plane,
-	# so side-by-side ships lean on each other instead of bouncing, ...
-	if depth > 0.0:
+	# --- While touching (including inside the contact skin): damp relative
+	# TANGENTIAL velocity in the track plane, so side-by-side ships lean on
+	# each other instead of bouncing, ...
+	if true:
 		var up: Vector3 = (a.global_transform.basis.y + b.global_transform.basis.y).normalized()
 		var vt: Vector3 = rel - n * closing
 		vt -= up * vt.dot(up)
