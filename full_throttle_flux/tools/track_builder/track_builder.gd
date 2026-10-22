@@ -4,8 +4,9 @@ class_name TrackBuilder
 ## Track Builder (v34): authoring node for new tracks.
 ##
 ## Draw the base curve by hand (the BaseSpline child, a closed Path3D), then
-## drop BankKey, WidthKey and StartKey nodes anywhere near it, and features
-## (RollFeature, LoopFeature, JumpFeature) where you want them. The preview
+## drop BankKey, WidthKey and StartKey nodes anywhere near it, features
+## (RollFeature, LoopFeature, JumpFeature, BranchFeature) where you want them,
+## and BoostPadKeys where you want boost pads. The preview
 ## ribbon follows every edit within a fraction of a second, coloured by the
 ## overlay you pick. Build writes the track the game runs on (TrackBuild);
 ## Validate checks it (TrackValidator) and marks problems where they are.
@@ -237,7 +238,33 @@ func evaluate() -> bool:
 	for be in branches:
 		if be.errors.is_empty():
 			be.evaluate(sampler)
+	# Boost pads sit on the finished track (features included), so they're
+	# projected onto it rather than onto the base.
+	_project_on(keys_of("BoostPadKey"), sampler)
+	for be in branches:
+		if be.ok:
+			_project_on(be.keys_of("BoostPadKey"), be.track)
 	return true
+
+
+## Every boost pad: {key, branch (-1 = main, else index into `branches`),
+## track (its TrackSampler), s (distance along it), x (+ = right), i (index in
+## the key's row)}. Pads under a branch that didn't evaluate are left out.
+func pad_placements() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var sets: Array = [[-1, sampler, keys_of("BoostPadKey")]]
+	for bi in branches.size():
+		if branches[bi].ok:
+			sets.append([bi, branches[bi].track, branches[bi].keys_of("BoostPadKey")])
+	for st: Array in sets:
+		var ts: TrackSampler = st[1]
+		for k: ProfileKey in st[2]:
+			var pk := k as BoostPadKey
+			var j := ts.index_at(pk.distance)
+			var xs := pk.pad_offsets(ts.width_l[j], ts.width_r[j])
+			for i in xs.size():
+				out.append({key = pk, branch = st[0], track = ts, s = pk.distance, x = xs[i], i = i})
+	return out
 
 
 ## All errors that stop a build: the main composer's and every branch's.
@@ -276,6 +303,11 @@ static func s_for_base(s: TrackSampler, base_len: float, u: float) -> float:
 
 
 func _key_frame(k: ProfileKey) -> Transform3D:
+	if k is BoostPadKey:
+		var kt := _key_track(k)
+		if kt.size() < 2:
+			return Transform3D(Basis(), k.global_position)   # its branch didn't evaluate
+		return kt.frame_at(k.distance)
 	for be in branches:
 		if be.node.is_ancestor_of(k):
 			return be.track.frame_at(s_for_base(be.track, be.base.length, k.distance))
@@ -295,6 +327,14 @@ func all_keys_of(type: String) -> Array[ProfileKey]:
 	for be in branches:
 		out.append_array(be.keys_of(type))
 	return out
+
+
+## Projects keys straight onto a finished track `ts` (boost pads).
+static func _project_on(keys: Array[ProfileKey], ts: TrackSampler) -> void:
+	for k in keys:
+		var r := ts.project(k.global_position, k.distance)
+		k.distance = r[0]
+		k.distance_to_track = r[1]
 
 
 ## Projects keys onto the track (writing their derived distances) and returns
@@ -468,6 +508,24 @@ func _draw_lines(root: Node3D) -> void:
 		_line(im, l, l + f.basis.y * 10.0, col)
 		_line(im, r, r + f.basis.y * 10.0, col)
 		_line(im, l + f.basis.y * 10.0, r + f.basis.y * 10.0, col)
+	# Boost pads: each pad's outline on the road with a chevron, a leader to
+	# the node.
+	var pad_col := Color(1.0, 0.45, 0.0)
+	for k in all_keys_of("BoostPadKey"):
+		var f := _key_frame(k)
+		_line(im, k.global_position, f.origin + f.basis.y * 2.0,
+				pad_col if k.distance_to_track <= KEY_FAR else Color(1, 0, 0))
+	for p in pad_placements():
+		var f: Transform3D = (p.track as TrackSampler).frame_at(p.s)
+		var c: Vector3 = f.origin + f.basis.x * float(p.x) + f.basis.y * 0.3
+		var rx := f.basis.x * BoostPadKey.PAD_HALF_WIDTH
+		var fz := -f.basis.z * BoostPadKey.PAD_HALF_LENGTH
+		_line(im, c - rx - fz, c + rx - fz, pad_col)
+		_line(im, c + rx - fz, c + rx + fz, pad_col)
+		_line(im, c + rx + fz, c - rx + fz, pad_col)
+		_line(im, c - rx + fz, c - rx - fz, pad_col)
+		_line(im, c - rx * 0.6 - fz * 0.2, c + fz * 0.6, pad_col)   # a chevron pointing forward
+		_line(im, c + rx * 0.6 - fz * 0.2, c + fz * 0.6, pad_col)
 	# Features: footprint ends (base curve) as tall gates, a leader to the node.
 	var tracks: Array = [[sampler, composer]]
 	for be in branches:
@@ -531,6 +589,9 @@ func _draw_labels(root: Node3D) -> void:
 	for k in keys_of("StartKey"):
 		var f := _key_frame(k)
 		_label(root, f.origin + f.basis.y * 14.0, k.label_text(), Color(0.3, 1.0, 0.4), 3000.0)
+	for k in all_keys_of("BoostPadKey"):
+		var f := _key_frame(k)
+		_label(root, f.origin + f.basis.y * 8.0, k.label_text(), Color(1.0, 0.55, 0.1), 1500.0)
 	for p in composer.placed:
 		var f := s.frame_at(p.s0)
 		_label(root, f.origin + f.basis.y * 18.0, "%s ▸ %.0f m" % [p.node.label_text(), p.s1 - p.s0],
@@ -685,13 +746,16 @@ func input_hash() -> int:
 		parts.append(c.closed)
 		for i in c.point_count:
 			parts.append([c.get_point_position(i), c.get_point_in(i), c.get_point_out(i), c.get_point_tilt(i)])
-	for t: String in ["BankKey", "WidthKey", "StartKey"]:
+	for t: String in ["BankKey", "WidthKey", "StartKey", "BoostPadKey"]:
 		for k in keys_of(t):
 			var vals := [t, k.global_position, k.ease]
 			if k is BankKey:
 				vals.append((k as BankKey).bank_deg)
 			elif k is WidthKey:
 				vals.append_array([(k as WidthKey).half_width_left, (k as WidthKey).half_width_right])
+			elif k is BoostPadKey:
+				var pk := k as BoostPadKey
+				vals.append_array([pk.anchor, pk.offset, pk.count, pk.spacing, pk.strength])
 			parts.append(vals)
 	for f in features():
 		var vals := [f.get_script().get_global_name(), f.global_position]
@@ -817,7 +881,7 @@ func _make_report() -> String:
 	lines.append("Max grade %.1f %% (outside features)" % max_grade)
 	lines.append("Half width %.1f – %.1f m, max taper %.3f m/m%s"
 			% [min_w, max_w, max_taper, "  ← over 0.1" if max_taper > TAPER_LIMIT else ""])
-	for k in keys_of("BankKey") + keys_of("WidthKey") + keys_of("StartKey"):
+	for k in keys_of("BankKey") + keys_of("WidthKey") + keys_of("StartKey") + all_keys_of("BoostPadKey"):
 		if k.distance_to_track > KEY_FAR:
 			lines.append("⚠ %s is %.0f m from the track (limit 30)" % [k.name, k.distance_to_track])
 	for w in _offset_rule_problems():

@@ -13,6 +13,8 @@ class_name TrackBuild
 ##   MagneticTrack                one zone per roll / loop (only if there are any)
 ##   TrackGraph                   the branches and jumps (only if there are any)
 ##   GapTrigger_1, _2 ...         respawn triggers under each jump's gap
+##   BoostPads                    one BoostPad (scenes/boost_pad.tscn) per pad
+##                                of every BoostPadKey, on the road surface
 ##   per branch (split track):
 ##     BranchSpline (_2 ...)      the branch, tilts solved; Road / WallL / WallR
 ##     RouteSpline_Branch (_2 ...)  a whole lap through the branch (AI, rig)
@@ -35,6 +37,7 @@ const META_HASH := "track_builder_input_hash"
 const ROAD_MAT := "res://shaders/resources/grid_material.tres"
 const LINE_SCENE := "res://scenes/start_finish_line.tscn"
 const GAP_TRIGGER_SCRIPT := "res://scripts/respawn_trigger.gd"
+const PAD_SCENE := "res://scenes/boost_pad.tscn"
 
 # Control point spacing of the generated MainSpline: a new point when the
 # tangent or the up vector has turned MAX_TURN_DEG since the last one, or
@@ -237,10 +240,13 @@ func _run(b: TrackBuilder) -> void:
 			var j: Dictionary = all_jumps[i]
 			_gap_trigger("GapTrigger_%d" % (i + 1), j.curve if j.has("curve") else curve, j.lip, j.landing)
 
+	# --- boost pads ------------------------------------------------------------
+	var pads := _pads(b, built_branches)
+
 	_remove_stale()
 	var ms := (Time.get_ticks_usec() - t0) / 1000.0
-	log.insert(0, "Built %.0f m lap: %d control points, tilt solve %.3f° max, %d features, %d branches, %.0f ms"
-			% [length, curve.point_count, tilt_error_deg, b.composer.placed.size(), built_branches.size(), ms])
+	log.insert(0, "Built %.0f m lap: %d control points, tilt solve %.3f° max, %d features, %d branches, %d boost pads, %.0f ms"
+			% [length, curve.point_count, tilt_error_deg, b.composer.placed.size(), built_branches.size(), pads, ms])
 	for bb in built_branches:
 		log.append("  %s: %.0f m, fork %.0f, rejoin %.0f (main), junctions to %.0f / from %.0f (branch), route lap %.0f m"
 				% [bb.name, bb.length, bb.fork, bb.rejoin, bb.jf_b, bb.jr_b, bb.route_length])
@@ -398,7 +404,7 @@ func _branch(be: TrackBranchEval, bi: int, main_map: DistMap, mat: Material) -> 
 	return {name = "BranchSpline" + sfx, route_name = "RouteSpline_Branch" + sfx, label = be.node.branch_name,
 			length = blen, fork = fork, rejoin = rejoin, jf_b = jf_b, jr_b = jr_b, jf_m = jf_m, jr_m = jr_m,
 			side = be.side, jumps = jumps, route_fork = route.fork, route_rejoin = route.rejoin,
-			route_length = rpath.curve.get_baked_length()}
+			route_length = rpath.curve.get_baked_length(), curve = path.curve, map = bmap}
 
 
 ## A whole lap through the branch as one curve (the AI, its trainer and the
@@ -680,6 +686,41 @@ func _graph(jumps: Array[Dictionary], branches: Array[Dictionary]) -> void:
 		j.clean_speed = jf.clean_speed if jf.clean_speed_valid() else 0.0
 		list.append(j)
 	g.jumps = list
+
+
+## The BoostPads: each pad on the built road (the MainSpline's or its branch's
+## frame), so it sits exactly on the surface the ship hovers over. Returns
+## how many.
+func _pads(b: TrackBuilder, built_branches: Array[Dictionary]) -> int:
+	var placements := b.pad_placements()
+	if placements.is_empty():
+		return 0
+	var holder := _ensure(root, "BoostPads", "Node3D") as Node3D
+	holder.transform = Transform3D.IDENTITY
+	var scene: PackedScene = load(PAD_SCENE)
+	var used := {}
+	for p in placements:
+		var key: BoostPadKey = p.key
+		var c := curve
+		var d := 0.0
+		if p.branch < 0:
+			d = to_main(p.s)
+		else:
+			var bb: Dictionary = built_branches[p.branch]
+			c = bb.curve
+			d = (bb.map as DistMap).at(p.s)
+		var f := TrackRoadSegment.frame_at(c, d)
+		var n := String(key.name) if key.count == 1 else "%s_%d" % [key.name, p.i + 1]
+		while used.has(n):
+			n += "_"     # same key name in two folders
+		used[n] = true
+		var pad := _ensure(holder, n, scene) as Node3D
+		# The pad scene's chevrons point down its +Z (as the hand-placed pads
+		# on the old circuits face): +Z along the direction of travel.
+		var pb := Basis(-f.basis.x, f.basis.y, -f.basis.z)
+		pad.transform = Transform3D(pb, f.origin + f.basis.x * float(p.x))
+		pad.set("boost_strength", key.strength)
+	return placements.size()
 
 
 ## A respawn trigger below the gap, as on Fork Lab: a ship that clears the gap

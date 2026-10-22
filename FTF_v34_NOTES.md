@@ -26,7 +26,7 @@ Done so far:
   circuits: cornering, kinks, grade, crests, jump speeds, clearance overhead,
   start and grid, junction width, branch ends, respawn coverage. A
   self-test breaks Builder Lab on purpose eleven ways and checks each fault
-  is caught (11/11).
+  is caught (11/11; 16/16 with the boost pad cases added later).
 - **Builder Lab** (`scenes/tracks/builder_lab.tscn`, in the manifest): an
   8.9 km test lap made with the tools: a jump, a loop, a roll, and a
   corner-cut shortcut over a bigger jump. All validator checks pass.
@@ -37,6 +37,12 @@ Done so far:
 - **Step 6: the authoring guide**, `full_throttle_flux/docs/TRACK_AUTHORING.md`:
   the rules, the workflow, each feature with its limits and why, what every
   validator message means, adding a track to the game, training its AI.
+- **Follow-up (after Chris's review): boost pads, AI jumps without a fork, a
+  faster preview.** `BoostPadKey` puts the game's boost pads on the road
+  (centre / left / right, offset, several across); the validator checks
+  where they are and what the boost does next. The AI's jump handling no
+  longer needs a fork. The preview of Builder Lab went from ~1.7 s to
+  ~0.5 s. Details below.
 
 ## Decisions taken with Chris (step 1)
 
@@ -388,6 +394,138 @@ camera flips show up where they belong, in the loop and the roll (113 / 141
 per camera, as on Loop Lab), and nowhere else except the `kamikaze` camera
 (17, as on the other tracks).
 
+## Follow-up: boost pads, AI jumps without a fork, a faster preview
+
+Chris's review of steps 5 and 6: keep the junction levelling; leave the AI's
+respawn acceleration model alone (the validator's measured 250 m rule
+stands); the AI's jump handling shouldn't depend on a fork; and add boost
+pads to the builder.
+
+### Boost pads (`BoostPadKey`)
+
+A key like the others: drop it near the road and the pads go on the road
+surface at the nearest point of the finished track (features included, so
+on a loop or in a roll too), facing the direction of travel. Under a
+BranchFeature they go on the branch. Settings: `anchor` (centre / left edge /
+right edge of the flat road, so an edge pad follows WidthKeys), `offset`
+(+ = right), `count` side by side, `spacing` centre to centre, `strength`.
+The preview draws each pad's outline with a chevron; Build instances the
+game's `scenes/boost_pad.tscn` under a generated `BoostPads` node, on the
+built road's frame (the MainSpline's, or the branch's), updated in place
+(rebuilds stay byte-identical).
+
+The pad scene's chevrons point down its +Z, as the hand-placed pads on the
+old circuits face (checked on test_circuit_3b / 4: +Z along the direction of
+travel), so the builder turns each pad that way. The trigger box is
+symmetric, so which way a pad faces doesn't change what it does.
+
+**What a pad does, measured** (`measure_boost`: the real default_racer over
+a pad on a straight lane, speed every 10 m after it), against the model the
+validator uses (`TrackSpeedProfile.boosted`: speed + strength, then full
+throttle with the limit at max_speed + an extra that decays at the profile's
+`overspeed_damping`, 2.5/s):
+
+| Arrive / strength | At the pad | 40 m | 80 m | 160 m | 240 m | Model, worst difference |
+|---|---|---|---|---|---|---|
+| 116 / 150 | 266 | 215 | 178 | 136 | 123 | 4 u/s |
+| 87 / 150 | 237 | 215 | 175 | 135 | 123 | 6 u/s |
+| 58 / 150 | 208 | 196 | 173 | 133 | 123 | 6 u/s |
+| 116 / 80 | 196 | 165 | 143 | 125 | 121 | 0 |
+| 116 / 250 | 366 | 299 | 243 | 165 | 132 | 0 |
+
+(The worst differences are where the speed changes fastest: 10 m samples at
+~4.4 m per frame.) So +150 is gone in about 300 m; a pad wants ~250 m clear
+before anything tight.
+
+**Validator checks.** Before Build: each pad on the flat road at both ends
+and the middle (error), no overlaps (error), not over a jump's gap (error),
+not on a kicker (warning: `clean_speed` is measured without a pad), not on
+the grid (warning). After Build: a ray at each corner and the centre of every
+built pad: road under all of them (error), and the pad within 0.2 m of it (a
+flat 12 m pad on a tight crest or in a dip; warning). Then the boost: from
+each key, the boosted speed (from the racing-speed estimate at the pad, no
+braking) against
+
+- the bends ahead: over what default_racer can hold there warns. The AI's
+  `corner_speed()` caps at top speed, so this uses the same yaw-rate and grip
+  model without the cap (`_corner_speed_uncapped`). Above 120 u/s that model
+  is an extrapolation: nothing measured it there. In the three races below
+  (63 laps, each with a boost), boosted ships made 1 wall contact;
+- crests ahead (the crest thresholds, 110 / 200 u/s², at the boosted speed);
+- jump lips ahead: over 120 u/s warns, because `measure_jumps` only flies
+  40-120 u/s.
+
+The self-test gained five cases (16/16 pass): a pad over the road edge,
+over the main jump's gap, two overlapping, +300 thirty metres before the
+tightest bend, and a pad 200 m before the main jump (~127 u/s at its lip).
+
+**Builder Lab's pads:** `BoostRow`, three across the centre of the bottom
+straight (6,999 m); `BoostNE`, one against the right edge after the
+north-east corner (1,499 m); `BoostShortcut`, one against the left edge of
+the shortcut after its jump's outrun. Validate 0 / 0.
+
+**Races** (270 s, seed 1234, the trained lines; the pads don't change the
+road, so the lines stay valid):
+
+| Difficulty | Best / mean flying lap | Respawns | Wall contacts (while boosted) | Shortcut | Jump falls | Top speed |
+|---|---|---|---|---|---|---|
+| Easy | 78.6 / 80.7 s (78.9 without pads) | 0 | 8 (0) | 43% | 0 | 257-261 |
+| Medium | 75.6 / 77.4 s (76.3) | 0 | 0 (0) | 57% | 0 | 262-266 |
+| Hard | 72.9 / 74.2 s (73.2) | 0 | 1 (1) | 71% | 0 | 267-270 |
+
+Every AI ship hit 3 pads in 3 laps: the centre row, every lap. None ever hit
+the edge pads. **The AI doesn't aim for pads;** it only gets the ones on its
+racing line. Teaching it to would be AI work of its own (the line baker and
+trainer don't know pads exist).
+
+The rig probe (90 s): no NaNs; camera flips only in the loop and the roll
+(and `kamikaze`'s usual 17), as before.
+
+`scripts/boost_pad.gd` printed five lines per trigger; they're now behind a
+`debug_log` export (off). Nothing else in it changed. The race probe prints a
+`BOOST` line per ship (pad hits, wall contacts that began while boosted) on
+tracks where any ship hit a pad.
+
+### AI jump handling without a fork
+
+The jump handling (full throttle from 60 m before a kicker to the lip, no
+avoidance swerves there, holding the nose on the velocity in flight, and the
+jump spans the line baker and trainer skip) was written in v32 as part of
+the route-lap code for Fork Lab, so it only switched on when the track had a
+fork. There was no reason for that beyond history. Now:
+
+- `TrackSplineHelper` keeps a TrackGraph that has jumps but no branches as
+  `jump_graph` (still no branch mapping: `graph` stays null) and sets the
+  main lap's jump spans;
+- `AIShipController` fills `route_jumps[-1]` from it, and the jump controls
+  and the no-swerve rule run whenever there are route jumps, on the main lap
+  (route -1) when there's no route follower.
+
+Fork Lab and Builder Lab (forks) take the same code paths as before; the
+circuits and Loop Lab have no TrackGraph. So no existing track changes (all
+checksums below are unchanged; Builder Lab's Medium race gave the same
+checksum before and after the change). Tested on Builder Lab with its shortcut
+disabled (a lone jump), Medium and Hard, 270 s:
+
+| | Takeoff speed, Medium | Takeoff speed, Hard | Falls |
+|---|---|---|---|
+| Before | 112-113 | 116-118 | 0 |
+| After | 120 every time | 120 every time | 0 |
+
+Before, the AI eased off up the kicker; now it holds full throttle as it
+does on Fork Lab. This jump clears from 72, so it didn't matter here; on a
+jump nearer the AI's speed it would. A short training run on the same
+variant (no ROUTES entry, the generic path) trained normally (the result
+was thrown away; Builder Lab's real lines are unchanged).
+
+### The preview is faster
+
+Builder Lab's preview took ~1.7 s headless: the fork's junction walks
+projected each branch point onto the whole 8.9 km lap (about 1,400
+whole-lap projections per preview). They now search ±60 m around the previous answer
+(`TrackSampler.project_near`). Evaluate went from ~1.4 s to ~0.33 s, the
+whole preview to ~0.5 s. Build output is byte-identical.
+
 ## Regressions
 
 Before any change, all 11 handoff baselines matched exactly. After steps 2,
@@ -402,10 +540,13 @@ profile and seam weld in `TrackRoadSegment`):
 | test_circuit_7_live | 133359682 ✓ | 2300779685 ✓ |
 | loop_lab | 3860760227 ✓ (140 s) | 3358873327 ✓ (75 s) |
 | fork_lab | 3551594432 ✓ (150 s) | — |
-| builder_lab (new) | 3382735449 (270 s, Medium) | 3940470676 (90 s) |
+| builder_lab (new) | 3416591037 (270 s, Medium) | 2816354120 (90 s) |
 
-The Builder Lab numbers are for the final build with trained lines (Easy
-3682742997, Hard 435312279, both 270 s). Earlier builds' numbers are in the
+After the follow-up (boost pads, AI jumps without a fork, the faster
+preview) all 11 are unchanged again. The Builder Lab numbers are for the
+final build with its boost pads and trained lines (Easy 3036415311, Hard
+1987363982, both 270 s; before the pads: Medium 3382735449, Easy
+3682742997, Hard 435312279, rig 3940470676). Earlier builds' numbers are in the
 step sections; the race results were the same throughout. Its
 race, 240 s, seed 1234, 7 AI on the untrained shared bake: 2–3 laps each,
 76.3–80.6 s, **0 respawns, 0 wall contacts**, longest flight 1.17 s; the
@@ -418,20 +559,15 @@ jumps and the main route as their own segments, no NaNs.
 
 - `TrackBuilder` has no undo for Build (Ctrl+Z won't revert it); rebuilding
   from the inputs is the recovery.
-- Lateral-g and grade limits for the validator: to be measured from the four
-  circuits (step 4).
 - `fork_lab_turtle.gd` is still in `tools/fork_lab/`; the builder preloads it
   from there (unchanged, so Fork Lab's build output can't move).
-- **AI jump control needs a fork.** The AI's run-up speed control and its
-  "no swerving on a kicker" rule only switch on when the track has a route
-  (`has_routes()`), and `TrackSplineHelper` drops a TrackGraph without
-  branches. A jump on a track with no fork gets no special AI handling. On
-  Builder Lab before the fork went in, 7 AI cleared the main jump at racing
-  speed with no respawns, so it matters only for jumps near the AI's
-  limits. Widening it touches AI code paths; left for a decision.
-- Width under a junction: TrackJunction is fixed at the standard 21.5 m; the
-  snap blends a branch's width to standard at its ends, but WidthKeys on the
-  main track inside a junction aren't checked yet (step 4).
+- **The AI doesn't aim for boost pads**: it gets the ones on its racing line
+  (see the follow-up).
+- The boosted-corner check extrapolates the AI's cornering model above
+  120 u/s, where nothing has measured it.
+- The AI's acceleration model says a respawned ship reaches jump speed in
+  ~60 m; Fork Lab measured 150-220 m. Chris: leave the model; the
+  validator's 250 m rule covers it.
 - The Report field shows the last Build/Validate until the next one, even
   after inputs change; Validate's "out of date" warning is the reliable signal.
 - Respawn coverage is only checked headless (the respawn manager isn't a
@@ -459,7 +595,9 @@ TB_OUT=/tmp/shots xvfb-run -a -s "-screen 0 1600x1000x24" godot --rendering-driv
 TB_EDITOR_SELFTEST=1 godot --headless -e --path full_throttle_flux res://scenes/tracks/builder_lab.tscn
 # measure every jump's clean_speed (flies the real ship), then rebuild and save
 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_builder/measure_jumps_boot.gd -- --scene=res://scenes/tracks/builder_lab.tscn
-# validator self-test (breaks Builder Lab 11 ways, checks each is caught)
+# what a boost pad does to default_racer, against the validator's model
+godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_builder/measure_boost_boot.gd
+# validator self-test (breaks Builder Lab 16 ways, checks each is caught)
 godot --headless --path full_throttle_flux -s res://tools/track_builder/validator_selftest_boot.gd
 # the circuits' measured limits (cornering, kinks, grade, crests)
 godot --headless --path full_throttle_flux -s res://tools/track_builder/measure_circuits_boot.gd

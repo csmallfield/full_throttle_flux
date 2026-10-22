@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://tools/track_builder/width_key.gd" id="3_d0uak"]
 [ext_resource type="Script" path="res://tools/track_builder/start_key.gd" id="4_m4uxp"]
 [ext_resource type="Script" path="res://tools/track_builder/jump_feature.gd" id="5_dnn82"]
+[ext_resource type="Script" path="res://tools/track_builder/boost_pad_key.gd" id="5_ox1j4"]
 [ext_resource type="Script" path="res://tools/track_builder/loop_feature.gd" id="6_5bws2"]
 [ext_resource type="Script" path="res://tools/track_builder/roll_feature.gd" id="7_0s7df"]
 [ext_resource type="Script" path="res://tools/track_builder/branch_feature.gd" id="8_bgun2"]
@@ -21,6 +22,8 @@
 [ext_resource type="Script" path="res://scripts/tracks/track_branch.gd" id="19_punj6"]
 [ext_resource type="Script" path="res://scripts/tracks/track_jump.gd" id="20_qsuhs"]
 [ext_resource type="Script" path="res://scripts/respawn_trigger.gd" id="21_cw7oq"]
+[ext_resource type="PackedScene" path="res://scenes/boost_pad.tscn" id="23_q7cp5"]
+[ext_resource type="Script" path="res://scripts/boost_pad.gd" id="24_jubuv"]
 
 [sub_resource type="Curve3D" id="Curve3D_5obu3"]
 closed = true
@@ -267,6 +270,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, -150)
 script = ExtResource("4_m4uxp")
 distance = 150.01158
 
+[node name="BoostPadKeys" type="Node3D" parent="TrackBuilder" unique_id=999940469]
+
+[node name="BoostRow" type="Node3D" parent="TrackBuilder/BoostPadKeys" unique_id=453300203]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1256, 6, 804)
+script = ExtResource("5_ox1j4")
+count = 3
+distance = 6999.569093346596
+
+[node name="BoostNE" type="Node3D" parent="TrackBuilder/BoostPadKeys" unique_id=1431166596]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 443, 15, -1349)
+script = ExtResource("5_ox1j4")
+anchor = 2
+distance = 1499.4086643457413
+
 [node name="Features" type="Node3D" parent="TrackBuilder" unique_id=101147806]
 
 [node name="Jump" type="Node3D" parent="TrackBuilder/Features" unique_id=1449952305]
@@ -303,6 +320,12 @@ clean_speed = 86.0
 clean_speed_hash = 92885762
 distance = 631.0997299551964
 
+[node name="BoostShortcut" type="Node3D" parent="TrackBuilder/Features/Shortcut" unique_id=1033718551]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1832, 6, 721)
+script = ExtResource("5_ox1j4")
+anchor = 1
+distance = 944.642850279808
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=827759218]
 environment = SubResource("Environment_r5qea")
 compositor = SubResource("Compositor_ox1j4")
@@ -325,7 +348,7 @@ mesh = SubResource("PlaneMesh_jubuv")
 
 [node name="MainSpline" type="Path3D" parent="." unique_id=370711041 groups=["track_builder_generated"]]
 curve = SubResource("Curve3D_dw33r")
-metadata/track_builder_input_hash = 3871140047
+metadata/track_builder_input_hash = 2349744532
 
 [node name="Road" type="Node3D" parent="MainSpline" unique_id=25586776 groups=["track_builder_generated"]]
 script = ExtResource("10_qnoji")
@@ -596,3 +619,35 @@ script = ExtResource("21_cw7oq")
 
 [node name="Shape" type="CollisionShape3D" parent="GapTrigger_2" unique_id=480498067 groups=["track_builder_generated"]]
 shape = SubResource("BoxShape3D_tmwcj")
+
+[node name="BoostPads" type="Node3D" parent="." unique_id=1832517159 groups=["track_builder_generated"]]
+
+[node name="BoostRow_1" type="Area3D" parent="BoostPads" unique_id=1304867481 groups=["track_builder_generated"] instance=ExtResource("23_q7cp5")]
+transform = Transform3D(-0.003036017, 0.0002785235, -0.9999954, 0.09135614, 0.9958184, 0, 0.99581367, -0.09135572, -0.0030487664, 1255.9702, 0.91356146, 813.9363)
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("24_jubuv")
+
+[node name="BoostRow_2" type="Area3D" parent="BoostPads" unique_id=867998048 groups=["track_builder_generated"] instance=ExtResource("23_q7cp5")]
+transform = Transform3D(-0.003036017, 0.0002785235, -0.9999954, 0.09135614, 0.9958184, 0, 0.99581367, -0.09135572, -0.0030487664, 1256.0006, 0, 803.97815)
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("24_jubuv")
+
+[node name="BoostRow_3" type="Area3D" parent="BoostPads" unique_id=2112831661 groups=["track_builder_generated"] instance=ExtResource("23_q7cp5")]
+transform = Transform3D(-0.003036017, 0.0002785235, -0.9999954, 0.09135614, 0.9958184, 0, 0.99581367, -0.09135572, -0.0030487664, 1256.031, -0.91356146, 794.02)
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("24_jubuv")
+
+[node name="BoostNE" type="Area3D" parent="BoostPads" unique_id=1155841324 groups=["track_builder_generated"] instance=ExtResource("23_q7cp5")]
+transform = Transform3D(-0.11480707, 0.0013852811, 0.9933868, 0.07146003, 0.99741983, 0.0068678265, -0.9908142, 0.07177593, -0.11460983, 444.6707, 8.239565, -1334.9258)
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("24_jubuv")
+
+[node name="BoostShortcut" type="Area3D" parent="BoostPads" unique_id=1390571698 groups=["track_builder_generated"] instance=ExtResource("23_q7cp5")]
+transform = Transform3D(0.37296882, -3.3818626e-08, -0.92784387, 9.0674135e-08, 1, 0, 0.92784387, -8.413144e-08, 0.37296882, 1837.4783, 1.314775e-06, 734.6283)
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("24_jubuv")

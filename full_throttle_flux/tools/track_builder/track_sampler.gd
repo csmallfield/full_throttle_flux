@@ -327,7 +327,35 @@ func project(p: Vector3, hint: float) -> Array:
 				chosen = i
 				chosen_gap = gap
 		best = chosen
-	# Refine on the segment either side.
+	return _refine(p, best)
+
+
+## project() for walks that move a little each step: only the samples within
+## `window` metres of `hint` (along the track) are searched. Much cheaper on a
+## long lap, and it can't jump to another stretch of track.
+func project_near(p: Vector3, hint: float, window: float) -> Array:
+	var n := P.size()
+	var c := index_at(hint)
+	var k := int(ceil(window / step()))
+	var best := c
+	var best_d2 := INF
+	for o in range(-k, k + 1):
+		var i := c + o
+		if closed:
+			i = posmod(i, n)
+		elif i < 0 or i >= n:
+			continue
+		var d2 := P[i].distance_squared_to(p)
+		if d2 < best_d2:
+			best_d2 = d2
+			best = i
+	return _refine(p, best)
+
+
+## [d, distance] of the nearest point to `p` on the segments either side of
+## sample `best`.
+func _refine(p: Vector3, best: int) -> Array:
+	var n := P.size()
 	var d := S[best]
 	var bestp := P[best]
 	for j: int in [best - 1, best]:

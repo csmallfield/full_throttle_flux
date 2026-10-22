@@ -27,8 +27,10 @@ func _ready() -> void:
 		print("curvature step: max |Δ lateral g| per metre %.3f, at %.0f m"
 				% _jerk(tb))
 	print("keys:")
-	for k in tb.keys_of("BankKey") + tb.keys_of("WidthKey"):
+	for k in tb.keys_of("BankKey") + tb.keys_of("WidthKey") + tb.all_keys_of("BoostPadKey"):
 		print("  %s d=%.1f off=%.1f %s" % [k.name, k.distance, k.distance_to_track, k.label_text()])
+	for p in tb.pad_placements():
+		print("  pad %s #%d at %.1f m, %+.1f m sideways" % [p.key.name, p.i + 1, p.s, p.x])
 	var prev := tb.get_node_or_null(TrackBuilder.PREVIEW_NAME)
 	print("preview children: %d (owner %s)" % [prev.get_child_count() if prev else -1,
 			str(prev.owner) if prev else "-"])

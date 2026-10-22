@@ -1,8 +1,8 @@
 # Making a track with the Track Builder
 
 How to make a new Full Throttle Flux track in the Godot editor: draw the
-curve, key the banks and widths, drop in loops, rolls, jumps and forks,
-Build, Validate, drive it, train the AI. Builder Lab
+curve, key the banks and widths, drop in loops, rolls, jumps, forks and boost
+pads, Build, Validate, drive it, train the AI. Builder Lab
 (`scenes/tracks/builder_lab.tscn`) is a worked example of everything here.
 
 The four circuits (Utopia, Swoopy, Hairpin Alley, The Drop) were made the old
@@ -50,7 +50,8 @@ by following four rules. The validator checks every one.
 4. **Place the start.** A `StartKey` where the start line goes, on a straight.
    The grid forms up behind it.
 5. **Add features** (section 3): `RollFeature`, `LoopFeature`,
-   `JumpFeature`, `BranchFeature`. Drop each where you want it.
+   `JumpFeature`, `BranchFeature`. Drop each where you want it. Boost pads
+   (`BoostPadKey`, section 3.5) go in the same way.
 6. **Build.** The Build button on the TrackBuilder writes the track the game
    runs on. Change anything and Build again: it updates the generated nodes
    in place, and building unchanged inputs leaves the scene file
@@ -75,7 +76,7 @@ The TrackBuilder's Inspector:
 | `ribbon` | The coloured ribbon on or off (Build turns it off so you see the real road) |
 
 Purple gates mark each feature's footprint, with its length; cyan posts mark
-where a fork's junctions end.
+where a fork's junctions end; orange outlines with a chevron are boost pads.
 
 ---
 
@@ -148,7 +149,10 @@ value goes stale (the validator says so). Builder Lab's two jumps: 72 u/s
 (the default shape) and 86 u/s (8°, 80 m gap, 5 m drop).
 
 Put jumps on straight, level stretches (warnings past 10° / 3%). On a branch,
-a jump is a risky shortcut: the AI judges it from `clean_speed`.
+a jump is a risky shortcut: the AI judges it from `clean_speed`. On any track
+with jumps, fork or not, the AI holds full throttle from 60 m before the
+kicker to the lip, doesn't swerve for traffic there, and keeps its nose on
+its velocity in the air.
 
 ### 3.4 Split track (`BranchFeature`)
 
@@ -172,6 +176,33 @@ The builder:
 
 Draw the branch well clear of the main road (it has to get 62 m away), and
 make it leave and rejoin on the same side.
+
+### 3.5 Boost pads (`BoostPadKey`)
+
+Not a feature (it doesn't change the road): a `BoostPadKey` puts the game's
+boost pad (`scenes/boost_pad.tscn`, 8 m wide, 12 m long) on the road. Drop
+the node anywhere near the track, under the TrackBuilder (a `BoostPadKeys`
+folder, say) or under a BranchFeature for that branch's road. The pads sit on
+the road surface at the nearest point of the finished track (loops and rolls
+included), facing the direction of travel, banked with the road.
+
+| Setting | Default | What it does |
+|---|---|---|
+| `anchor` | centre | What `offset` is measured from: the centre line, or the left / right edge of the flat road. An edge-anchored pad stays against that edge where WidthKeys change the width |
+| `offset` | 0 m | Sideways, + = right. From an edge, + / − moves the row in |
+| `count` | 1 | Pads side by side (up to 5). Five need a wide road |
+| `spacing` | 10 m | Centre to centre across the road (a pad is 8 m wide) |
+| `strength` | 150 u/s | Added on top of the ship's speed |
+
+What a pad does, measured on default_racer (`measure_boost`): +150 at full
+speed takes a ship from ~116 to ~266 u/s, 178 u/s 80 m on, 136 u/s 160 m on,
+back to normal by about 300 m. So a pad needs about 250 m of road after it
+before anything tight. The validator follows that speed into the corners,
+crests and jumps ahead (section 4).
+
+The AI doesn't aim for pads: it gets the ones that are on its racing line.
+On Builder Lab the field hits the centre row every lap and never the pads
+against the edges.
 
 ---
 
@@ -208,6 +239,14 @@ and Fork Lab.
 | *The grid is on a bend / slope* | Over 1 g at 110 u/s or 3% grade | Move the StartKey to a straight |
 | *Grid slot isn't over the road* | The road is too narrow there | Widen it, or move the start |
 | *Respawn point with no road under it* (headless only) | | Report it |
+| *Pad over the edge of the road* | Part of a pad is past the flat road (onto the lip) | Move it in, or fewer pads / less spacing |
+| *Pads overlap* | | Move them apart |
+| *Pad over a jump's gap* / *on a kicker* | Nothing under it / it changes the take-off (`clean_speed` is measured without a pad) | Move it off the jump |
+| *Pad on the starting grid* | Ships start on or just behind it | Move it |
+| *Pad: no road under part of it* / *an end sits off the road* | Seen on the built road: off the edge, or a 12 m flat pad on a tight crest or dip | Move it |
+| *The boost carries X u/s into the bend* | A ship that takes the pad and doesn't brake is over what default_racer can steer there | Move the pad further from the bend, or lower `strength` |
+| *Boosted, the crest needs X u/s²* | The extra speed turns a crest into a launch (thresholds as above) | Move the pad or soften the crest |
+| *The boost carries X u/s to a jump's lip* | Landings are only measured up to 120 u/s | Move the pad, or measure the jump faster (`MJ_SPEEDS`) and check the landing |
 
 ---
 
@@ -234,8 +273,9 @@ On **default_racer**, from a fresh bake:
    ```
    PROBE_TRACK=<id> PROBE_SECONDS=240 PROBE_SEED=1234 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/dev/ai_race_probe_boot.gd
    ```
-   Look for 0 respawns, wall contacts, and (with a fork) the shortcut's take
-   rate.
+   Look for 0 respawns, wall contacts, (with a fork) the shortcut's take
+   rate, and (with boost pads) the `BOOST` lines: pad hits per ship and wall
+   contacts that began while boosted.
 
 Retrain whenever you rebuild after changing the geometry: the trained line
 is tied to the road it was driven on.
@@ -263,6 +303,8 @@ godot --headless --path full_throttle_flux -s res://tools/track_builder/validate
 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_builder/measure_jumps_boot.gd -- --scene=res://scenes/tracks/<id>.tscn
 # the validator's own self-test (on Builder Lab)
 godot --headless --path full_throttle_flux -s res://tools/track_builder/validator_selftest_boot.gd
+# what a boost pad does to default_racer, against the validator's model
+godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_builder/measure_boost_boot.gd
 ```
 
 The full detail and the measurements behind every number are in

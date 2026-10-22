@@ -62,6 +62,14 @@ func _run() -> void:
 	var eye := f.origin - f.basis.z * -260.0 + f.basis.x * -180.0 + Vector3.UP * 140.0
 	_cam.global_transform = Transform3D(Basis.looking_at(f.origin + (-f.basis.z) * 150.0 - eye, Vector3.UP), eye)
 	await _shot("oblique_keys")
+	# Boost pads in the preview: from behind and above each pad key.
+	for k in _tb.all_keys_of("BoostPadKey"):
+		var kt := _tb._key_track(k)
+		var pf := kt.frame_at(k.distance - 50.0)
+		var peye := pf.origin + pf.basis.y * 35.0 - (-pf.basis.z) * 10.0
+		var pto := kt.frame_at(k.distance + 10.0).origin
+		_cam.global_transform = Transform3D(Basis.looking_at(pto - peye, Vector3.UP), peye)
+		await _shot("preview_pad_" + String(k.name).to_lower())
 	# The built road (if the scene has been built), ribbon off: chase-height
 	# views at each feature, plus an overview of the loop.
 	if get_tree().root.find_child("MainSpline", true, false):
@@ -92,6 +100,9 @@ func _run() -> void:
 				await _shot("overview_" + n)
 			else:
 				await _shot("road_" + n)
+		for k in _tb.all_keys_of("BoostPadKey"):
+			_chase(_tb._key_track(k), k.distance - 70.0, 90.0, "")
+			await _shot("road_pad_" + String(k.name).to_lower())
 		for be in _tb.branches:
 			if be.ok:
 				var ff := s.frame_at(be.s_fork - 120.0)

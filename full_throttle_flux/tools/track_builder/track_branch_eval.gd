@@ -15,6 +15,9 @@ const KEY_FAR := 30.0
 ## Junction ends where the centre lines are this far apart (inner walls clear
 ## of each other; as on Fork Lab).
 const JUNCTION_SEPARATION := 62.0
+## The walks out of the junctions project each branch point onto the main
+## track near the last answer (it moves about a metre per step).
+const WALK_WINDOW := 60.0
 
 var node: BranchFeature
 var base := TrackSampler.new()
@@ -105,7 +108,7 @@ func place_on_base(main_base: TrackSampler, fairing_m: float) -> bool:
 	est_jf_bu = -1.0
 	var hint := fork_u
 	for i in base.size():
-		var pr := main_base.project(base.P[i], hint)
+		var pr := main_base.project_near(base.P[i], hint, WALK_WINDOW)
 		hint = pr[0]
 		if pr[1] >= JUNCTION_SEPARATION:
 			est_jf_bu = base.S[i]
@@ -114,7 +117,7 @@ func place_on_base(main_base: TrackSampler, fairing_m: float) -> bool:
 	est_jr_bu = -1.0
 	hint = rejoin_u
 	for i in range(base.size() - 1, -1, -1):
-		var pr := main_base.project(base.P[i], hint)
+		var pr := main_base.project_near(base.P[i], hint, WALK_WINDOW)
 		hint = pr[0]
 		if pr[1] >= JUNCTION_SEPARATION:
 			est_jr_bu = base.S[i]
@@ -235,7 +238,7 @@ func _junctions(main: TrackSampler) -> void:
 	var hint := s_fork
 	jf_b = -1.0
 	for i in track.size():
-		var pr := main.project(track.P[i], hint)
+		var pr := main.project_near(track.P[i], hint, WALK_WINDOW)
 		hint = pr[0]
 		if pr[1] >= JUNCTION_SEPARATION:
 			jf_b = track.S[i]
@@ -246,7 +249,7 @@ func _junctions(main: TrackSampler) -> void:
 	hint = s_rejoin
 	jr_b = -1.0
 	for i in range(track.size() - 1, -1, -1):
-		var pr := main.project(track.P[i], hint)
+		var pr := main.project_near(track.P[i], hint, WALK_WINDOW)
 		hint = pr[0]
 		if pr[1] >= JUNCTION_SEPARATION:
 			jr_b = track.S[i]

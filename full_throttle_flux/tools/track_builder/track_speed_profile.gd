@@ -22,8 +22,11 @@ var model: ShipPerformanceModel
 
 
 static func default_model() -> ShipPerformanceModel:
-	var profile := load("res://resources/ships/default_racer.tres") as ShipProfile
-	return ShipPerformanceModel.new(profile)
+	return ShipPerformanceModel.new(default_profile())
+
+
+static func default_profile() -> ShipProfile:
+	return load("res://resources/ships/default_racer.tres") as ShipProfile
 
 
 ## A closed lap (or an open path from standstill).
@@ -43,6 +46,33 @@ func compute_open(s: TrackSampler, m: ShipPerformanceModel, skip: PackedByteArra
 ## Speed after `distance` metres of full throttle from standstill (a respawn).
 func standing_start(distance: float) -> float:
 	return model.speed_after_full_throttle(0.0, distance)
+
+
+## Speed every `step` metres after a boost pad (v34), `count` values: the ship
+## arrives at `v0` and gains `strength`, then holds full throttle. The speed
+## limit is max_speed + an extra that starts at `strength` and decays at
+## `damping` per second (ShipController.apply_boost / _apply_speed_limit);
+## thrust and drag as in the performance model. Checked against the real
+## default_racer by measure_boost.gd.
+func boosted(v0: float, strength: float, damping: float, step: float, count: int) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	var dt := model.dt
+	var lam := -log(clampf(model.drag_coefficient, 0.0001, 0.9999))
+	var v := v0 + strength
+	var extra := strength
+	var d := 0.0
+	var next := 0.0
+	var guard := 0
+	while out.size() < count and guard < 200000:
+		while d >= next and out.size() < count:
+			out.append(v)
+			next += step
+		v += (model.thrust_power - lam * v) * dt
+		extra *= exp(-damping * dt)
+		v = minf(v, model.max_speed_ref + extra)
+		d += v * dt
+		guard += 1
+	return out
 
 
 func _limits(s: TrackSampler, m: ShipPerformanceModel, skip: PackedByteArray) -> void:

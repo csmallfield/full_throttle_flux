@@ -21,6 +21,11 @@ var cases := [
 	["roll too short", "Roll rate", Callable(self, "_short_roll")],
 	["sharp crest", "Crest", Callable(self, "_crest")],
 	["moved geometry (the offset)", "non-identity transform", Callable(self, "_moved")],
+	["boost pad over the road edge", "over the edge of the road", Callable(self, "_pad_edge")],
+	["boost pad over a jump's gap", "over Jump's gap", Callable(self, "_pad_gap")],
+	["boost pads overlapping", "overlap", Callable(self, "_pad_overlap")],
+	["boost into the tightest bend", "the boost carries", Callable(self, "_pad_bend")],
+	["boost into a jump", "to Jump's lip", Callable(self, "_pad_jump")],
 ]
 
 
@@ -156,3 +161,36 @@ func _crest(tb: TrackBuilder, _scene: Node) -> void:
 
 func _moved(_tb: TrackBuilder, _scene: Node) -> void:
 	pass    # done after the build (_after_build)
+
+
+## A pad key on the main track `at` metres round, under the BoostPadKeys folder.
+func _pad(tb: TrackBuilder, n: String, at: float) -> BoostPadKey:
+	tb.evaluate()
+	var k := BoostPadKey.new()
+	k.name = n
+	tb.get_node("BoostPadKeys").add_child(k)
+	k.global_position = tb.sampler.P[tb.sampler.index_at(at)] + Vector3.UP * 6.0
+	return k
+
+
+func _pad_edge(tb: TrackBuilder, _scene: Node) -> void:
+	_pad(tb, "PadEdge", 6500.0).offset = 18.0
+
+
+func _pad_gap(tb: TrackBuilder, _scene: Node) -> void:
+	_pad(tb, "PadGap", 530.0)
+
+
+func _pad_overlap(tb: TrackBuilder, _scene: Node) -> void:
+	_pad(tb, "PadA", 6600.0)
+	_pad(tb, "PadB", 6605.0).offset = 5.0
+
+
+func _pad_bend(tb: TrackBuilder, _scene: Node) -> void:
+	# 30 m before the apex of the tightest corner (2.9 g at 110 u/s).
+	_pad(tb, "PadBend", 1050.0).strength = 300.0
+
+
+func _pad_jump(tb: TrackBuilder, _scene: Node) -> void:
+	# 200 m before the main jump's lip: ~127 u/s there.
+	_pad(tb, "PadJump", 300.0)

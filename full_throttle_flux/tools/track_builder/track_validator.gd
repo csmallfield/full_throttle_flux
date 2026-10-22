@@ -46,6 +46,17 @@ class_name TrackValidator
 ##   junctions        standard width; no feature inside one
 ##   branch ends      on the main spline within 0.05 m and 0.5°
 ##   respawns         (headless) every point over road; the largest gap
+##
+## Boost pads (BoostPadKey):
+##   placement        on the flat road (errors), no overlaps (errors), not over
+##                    a jump's gap (error) or on its kicker, not on the grid
+##   built            ray-cast each pad's corners: road under every one, the
+##                    pad within 0.2 m of it (a tight crest or dip buries an end)
+##   boost            the speed a ship carries away from the pad (measured on
+##                    default_racer: TrackSpeedProfile.boosted) into the next
+##                    corner (over the AI's limit warns), crest (the crest
+##                    thresholds above) and jump lip (faster than the jumps
+##                    are measured warns)
 
 enum Sev { INFO, WARNING, ERROR }
 
@@ -117,6 +128,7 @@ func _run(b: TrackBuilder, space: PhysicsDirectSpaceState3D) -> void:
 	_check_profiles(b)
 	_check_keys(b)
 	_check_features(b)
+	_check_pads(b)
 	var main := root.get_node_or_null("MainSpline") as Path3D if root else null
 	if main == null or main.curve == null:
 		_add(Sev.WARNING, b.global_position, -1.0, "Not built yet (press Build)")
@@ -137,6 +149,7 @@ func _run(b: TrackBuilder, space: PhysicsDirectSpaceState3D) -> void:
 	else:
 		_add(Sev.WARNING, main.global_position, -1.0, "No physics space: surface not checked")
 	_check_branches(b, root, space)
+	_check_pads_built(b, root, space)
 	_check_race(b, root, space)
 
 
@@ -276,7 +289,7 @@ func _check_features(b: TrackBuilder) -> void:
 
 
 func _check_keys(b: TrackBuilder) -> void:
-	for k in b.keys_of("BankKey") + b.keys_of("WidthKey") + b.keys_of("StartKey"):
+	for k in b.keys_of("BankKey") + b.keys_of("WidthKey") + b.keys_of("StartKey") + b.all_keys_of("BoostPadKey"):
 		if k.distance_to_track > KEY_FAR:
 			_add(Sev.ERROR, k.global_position, -1.0,
 					"%s is %.0f m from the track (limit 30): move it closer or it may attach to the wrong stretch"
@@ -557,6 +570,7 @@ func _check_race(b: TrackBuilder, root: Node, space: PhysicsDirectSpaceState3D) 
 			_max(lat), s.S[_argmax(lat)], _max(jolt), s.S[_argmax(jolt)], _max(grade), s.S[_argmax(grade)],
 			_max(crest), s.S[_argmax(crest)]]
 	_check_jumps(b, s, profile, root)
+	_check_pad_boosts(b, s, profile)
 	_check_start(b, root, s)
 	_check_junction_widths(b)
 	_check_branch_ends(b, root)
@@ -829,3 +843,216 @@ static func _gap_explained(path: int, a: float, b: float, graph: TrackGraph, mt:
 			if j and j.branch == path and mid > j.kicker_start - j.respawn_runup - 60.0 and mid < j.landing_end + 60.0:
 				return true
 	return false
+
+
+# =============================================================================
+# BOOST PADS (v34)
+# =============================================================================
+
+## A pad's ends may sit this far off the road (a flat 12 m pad on a crest or
+## in a dip): beyond it the pad is visibly buried or floating.
+const PAD_SURFACE_TOL := 0.2
+## measure_jumps' default sweep tops out at 120 u/s (default_racer's top
+## speed): landings faster than that haven't been flown.
+const JUMP_MEASURED_TO := 120.0
+## How far after a pad the boost is followed (it's gone in ~300 m at +150).
+const PAD_REACH := 400.0
+
+func _check_pads(b: TrackBuilder) -> void:
+	var pads := b.pad_placements()
+	if pads.is_empty():
+		return
+	var hl := BoostPadKey.PAD_HALF_LENGTH
+	var hw := BoostPadKey.PAD_HALF_WIDTH
+	var strongest := 0.0
+	for p in pads:
+		var ts: TrackSampler = p.track
+		var key: BoostPadKey = p.key
+		var sd: float = p.s
+		var x: float = p.x
+		var at := _pad_pos(p)
+		strongest = maxf(strongest, key.strength)
+		# On the flat road (inside the lip), at both ends and the middle.
+		var over := -INF
+		for e: float in [-hl, 0.0, hl]:
+			var j := ts.index_at(clampf(sd + e, 0.0, ts.length) if not ts.closed else sd + e)
+			over = maxf(over, maxf((x + hw) - (ts.width_r[j] - BoostPadKey.LIP),
+					-(x - hw) - (ts.width_l[j] - BoostPadKey.LIP)))
+		if over > 0.01:
+			_add(Sev.ERROR, at, _pad_d(b, p), "%s: %.1f m over the edge of the road: move it in, or fewer pads or less spacing"
+					% [_pad_name(p), over])
+		# Jumps on the same road.
+		for q in _placed_of(b, p.branch):
+			if not q.node is JumpFeature:
+				continue
+			var m: Dictionary = q.marks
+			if sd + hl > m.lip and sd - hl < m.landing:
+				_add(Sev.ERROR, at, _pad_d(b, p), "%s is over %s's gap" % [_pad_name(p), q.node.name])
+			elif sd + hl > m.kicker and sd - hl < m.lip:
+				_add(Sev.WARNING, at, _pad_d(b, p), "%s is on %s's kicker: it changes the take-off (clean_speed is measured without a pad)"
+						% [_pad_name(p), q.node.name])
+		# The grid: about GRID_REACH behind the line.
+		if p.branch < 0:
+			var rel := ts.delta(b.start_lead, sd)
+			if rel > -(GRID_REACH + hl) and rel < hl:
+				_add(Sev.WARNING, at, _pad_d(b, p), "%s is on the starting grid: ships start on or just behind it" % _pad_name(p))
+	# Overlaps (same road).
+	for i in pads.size():
+		for k in range(i + 1, pads.size()):
+			var a: Dictionary = pads[i]
+			var c: Dictionary = pads[k]
+			if a.branch != c.branch:
+				continue
+			if absf((a.track as TrackSampler).delta(a.s, c.s)) < 2.0 * hl and absf(float(a.x) - float(c.x)) < 2.0 * hw - 0.01:
+				_add(Sev.ERROR, _pad_pos(a), _pad_d(b, a), "%s and %s overlap" % [_pad_name(a), _pad_name(c)])
+	stats["boost pads"] = "%d, strongest +%.0f u/s" % [pads.size(), strongest]
+
+
+## The built pads: road under every corner, and the pad lying on it.
+func _check_pads_built(b: TrackBuilder, root: Node, space: PhysicsDirectSpaceState3D) -> void:
+	var pads := b.pad_placements()
+	if pads.is_empty() or space == null or root == null:
+		return
+	var holder := root.get_node_or_null("BoostPads")
+	var built := 0
+	if holder:
+		for c in holder.get_children():
+			if c.is_in_group(TrackBuild.GROUP):
+				built += 1
+	if built != pads.size():
+		_add(Sev.WARNING, b.global_position, -1.0, "%d boost pads placed but %d built: press Build" % [pads.size(), built])
+		return
+	var hl := BoostPadKey.PAD_HALF_LENGTH
+	var hw := BoostPadKey.PAD_HALF_WIDTH
+	var worst := 0.0
+	for c in holder.get_children():
+		if not c is Node3D or not c.is_in_group(TrackBuild.GROUP):
+			continue
+		var t := (c as Node3D).global_transform
+		var up := t.basis.y.normalized()
+		var off_road := false
+		var dev := 0.0
+		for corner: Vector3 in [Vector3(-hw, 0, -hl), Vector3(hw, 0, -hl), Vector3(hw, 0, hl), Vector3(-hw, 0, hl), Vector3.ZERO]:
+			var q := t * corner
+			var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(q + up * 3.0, q - up * 3.0, GROUND_MASK))
+			if hit.is_empty():
+				off_road = true
+				continue
+			dev = maxf(dev, absf((q - (hit.position as Vector3)).dot(up)))
+		worst = maxf(worst, dev)
+		if off_road:
+			_add(Sev.ERROR, t.origin, -1.0, "%s: no road under part of it" % c.name)
+		elif dev > PAD_SURFACE_TOL:
+			_add(Sev.WARNING, t.origin, -1.0, "%s: an end sits %.2f m off the road (a tight crest or dip): move it to flatter road"
+					% [c.name, dev])
+	stats["boost pads on the road"] = "within %.2f m" % worst
+
+
+## What the boost does next: the speed a ship carries away from each pad at
+## full throttle (no braking) against the corners, crests and jump lips ahead.
+func _check_pad_boosts(b: TrackBuilder, s: TrackSampler, sp: TrackSpeedProfile) -> void:
+	var pads := b.pad_placements()
+	if pads.is_empty():
+		return
+	var damping := TrackSpeedProfile.default_profile().overspeed_damping
+	var branch_sp := {}
+	var seen := {}
+	var main_skip := _skip_mask(b, s)
+	for p in pads:
+		var key: BoostPadKey = p.key
+		# One check per key (its pads are side by side: the same speeds).
+		var id := key.get_instance_id()
+		if seen.has(id):
+			continue
+		seen[id] = true
+		var ts: TrackSampler = p.track
+		var prof := sp
+		var skip := main_skip
+		if p.branch >= 0:
+			var be: TrackBranchEval = b.branches[p.branch]
+			if not branch_sp.has(p.branch):
+				var bsp := TrackSpeedProfile.new()
+				bsp.compute_open(be.track, sp.model, _skip_mask_branch(be), sp.v[s.index_at(be.s_fork)])
+				branch_sp[p.branch] = bsp
+			prof = branch_sp[p.branch]
+			skip = _skip_mask_branch(be)
+		var sd: float = p.s
+		var step := ts.step()
+		var n := int(PAD_REACH / step)
+		var v0 := prof.v[ts.index_at(sd)]
+		var vb := prof.boosted(v0, key.strength, damping, step, n)
+		var label: String = String(key.name) if key.count == 1 else "%s (%d pads)" % [key.name, key.count]
+		var corner_done := false
+		var crest_done := false
+		for k in n:
+			var d := sd + k * step
+			if not ts.closed and d > ts.length:
+				break
+			var j := ts.index_at(d)
+			if vb[k] <= prof.v[j] + 1.0:
+				break      # the boost is spent
+			if skip[j] == 1:
+				continue   # loops, rolls, jumps: checked below / by design
+			if not corner_done and absf(prof.kg[j]) > 1e-4:
+				var hold := _corner_speed_uncapped(prof.model, absf(prof.kg[j]))
+				if vb[k] > hold + 2.0:
+					corner_done = true
+					_add(Sev.WARNING, ts.P[j], _track_d(b, p.branch, d), "%s: the boost carries ~%.0f u/s into the bend %.0f m on, where default_racer can hold ~%.0f: ships brake it away or run wide"
+							% [label, vb[k], k * step, hold])
+			var crest := vb[k] * vb[k] * maxf(-prof.kn[j], 0.0)
+			if not crest_done and crest > CREST_WARN:
+				crest_done = true
+				var sev := Sev.ERROR if crest > CREST_ERROR else Sev.WARNING
+				_add(sev, ts.P[j], _track_d(b, p.branch, d), "%s: boosted to ~%.0f u/s, the crest %.0f m on needs %.0f u/s² to hold the road (%s)"
+						% [label, vb[k], k * step, crest, "a launch" if sev == Sev.ERROR else "more than any circuit asks"])
+		for q in _placed_of(b, p.branch):
+			if not q.node is JumpFeature:
+				continue
+			var ahead := ts.delta(sd, q.marks.lip) if ts.closed else float(q.marks.lip) - sd
+			if ahead <= 0.0 or ahead >= n * step:
+				continue
+			var v_lip := vb[int(ahead / step)]
+			if v_lip > JUMP_MEASURED_TO + 1.0 and v_lip > prof.v[ts.index_at(q.marks.lip)] + 1.0:
+				_add(Sev.WARNING, ts.P[ts.index_at(q.marks.lip)], _track_d(b, p.branch, q.marks.lip),
+						"%s: the boost carries ~%.0f u/s to %s's lip; landings are only measured up to %.0f"
+						% [label, v_lip, q.node.name, JUMP_MEASURED_TO])
+
+
+## The fastest default_racer can hold a curvature `kappa`, without the cap at
+## its top speed that ShipPerformanceModel.corner_speed() applies (a boosted
+## ship is over it): where speed x curvature = the yaw rate it can make
+## (steering + cornering airbrake), and the grip bound, as corner_speed().
+static func _corner_speed_uncapped(m: ShipPerformanceModel, kappa: float) -> float:
+	var lo := 5.0
+	var hi := 2000.0
+	for i in 40:
+		var mid := (lo + hi) * 0.5
+		if mid * kappa < m.max_yaw_rate(mid):
+			lo = mid
+		else:
+			hi = mid
+	var v_grip := m.grip * ShipPerformanceModel.GRIP_ROTATION_MARGIN / kappa
+	return minf(lo, v_grip) * m.cornering_confidence
+
+
+func _placed_of(b: TrackBuilder, branch: int) -> Array:
+	return b.composer.placed if branch < 0 else b.branches[branch].composer.placed
+
+
+func _pad_pos(p: Dictionary) -> Vector3:
+	var f: Transform3D = (p.track as TrackSampler).frame_at(p.s)
+	return f.origin + f.basis.x * float(p.x)
+
+
+func _pad_name(p: Dictionary) -> String:
+	var key: BoostPadKey = p.key
+	return String(key.name) if key.count == 1 else "%s pad %d" % [key.name, int(p.i) + 1]
+
+
+func _pad_d(b: TrackBuilder, p: Dictionary) -> float:
+	return _track_d(b, p.branch, p.s)
+
+
+## Distance shown in messages: main lap metres, or -1 on a branch (its own).
+func _track_d(_b: TrackBuilder, branch: int, d: float) -> float:
+	return d if branch < 0 else -1.0
