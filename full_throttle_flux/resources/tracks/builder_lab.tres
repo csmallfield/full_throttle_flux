@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_builderlab"]
+
+[resource]
+script = ExtResource("1_builderlab")
+track_id = "builder_lab"
+display_name = "Builder Lab"
+description = "Test track made with the Track Builder: hand-drawn base curve, keyed banks and widths. Features (loop, roll, jump, fork) come in later steps."
+author = "Flux Industries"
+supports_race = true

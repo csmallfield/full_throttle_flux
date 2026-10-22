@@ -40,6 +40,8 @@ const HANDLE_SCALE := [0.30, 0.36, 0.28, 0.34, 0.31, 0.38, 0.27, 0.33, 0.36, 0.3
 # is plausible rather than tuned. (Width keys: metres along, half width L, R.)
 const BANK_AT := [350.0, 700.0, 1150.0, 1500.0, 1900.0, 2350.0, 2700.0, 3100.0,
 		3900.0, 4400.0, 4900.0, 5300.0]
+const START_AT := 120.0
+const MB_SCRIPT := "res://scripts/rendering/motion_blur_effect.gd"
 const WIDTHS := [[1500.0, 21.5, 21.5], [1800.0, 26.0, 21.5], [2300.0, 21.5, 21.5],
 		[3300.0, 21.5, 21.5], [3550.0, 15.0, 15.0], [3800.0, 21.5, 21.5]]
 
@@ -106,11 +108,14 @@ func _init() -> void:
 		k.position = s.frame_at(w[0]).origin + Vector3.UP * 6.0
 		k.distance = w[0]
 
-	var sun := DirectionalLight3D.new()
-	sun.name = "Sun"
-	sun.rotation_degrees = Vector3(-50, 30, 0)
-	root.add_child(sun)
-	sun.owner = root
+	var sk := StartKey.new()
+	sk.name = "StartKey"
+	tb.add_child(sk)
+	sk.owner = root
+	sk.position = s.frame_at(START_AT).origin + Vector3.UP * 6.0
+	sk.distance = START_AT
+
+	_add_environment(root)
 
 	var ps := PackedScene.new()
 	var err := ps.pack(root)
@@ -133,3 +138,62 @@ func _lean(s: TrackSampler, d: float) -> float:
 		x += 5.0
 	var g := 110.0 * 110.0 * (k / count) / 25.0
 	return clampf(snappedf(g * 6.0, 0.5), -22.0, 22.0)
+
+
+## Same look as Fork Lab: sky, sun, the shadowless upward fill, and a visual
+## floor well below the track (no collision: falls go to the respawn rules).
+func _add_environment(root: Node3D) -> void:
+	var sky_mat := ProceduralSkyMaterial.new()
+	sky_mat.sky_top_color = Color(0.10, 0.14, 0.30)
+	sky_mat.sky_horizon_color = Color(0.45, 0.50, 0.62)
+	sky_mat.ground_bottom_color = Color(0.20, 0.22, 0.28)
+	sky_mat.ground_horizon_color = Color(0.36, 0.39, 0.48)
+	var sky := Sky.new()
+	sky.sky_material = sky_mat
+	var env := Environment.new()
+	env.background_mode = Environment.BG_SKY
+	env.sky = sky
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.ambient_light_energy = 0.6
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.glow_enabled = true
+	env.glow_intensity = 0.6
+	env.glow_bloom = 0.2
+	var we := WorldEnvironment.new()
+	we.name = "WorldEnvironment"
+	we.environment = env
+	if ResourceLoader.exists(MB_SCRIPT):
+		var mb: CompositorEffect = load(MB_SCRIPT).new()
+		var comp := Compositor.new()
+		comp.compositor_effects = [mb] as Array[CompositorEffect]
+		we.compositor = comp
+	root.add_child(we)
+	we.owner = root
+	var sun := DirectionalLight3D.new()
+	sun.name = "Sun"
+	sun.transform = Transform3D(Basis.from_euler(Vector3(deg_to_rad(-50), deg_to_rad(210), 0)), Vector3(0, 80, 0))
+	sun.light_color = Color(1.0, 0.95, 0.9)
+	sun.shadow_enabled = true
+	sun.directional_shadow_max_distance = 600.0
+	root.add_child(sun)
+	sun.owner = root
+	var fill := DirectionalLight3D.new()
+	fill.name = "GroundFill"
+	fill.rotation_degrees = Vector3(90, 0, 0)
+	fill.light_color = Color(0.75, 0.82, 1.0)
+	fill.light_energy = 0.35
+	fill.shadow_enabled = false
+	root.add_child(fill)
+	fill.owner = root
+	var mi := MeshInstance3D.new()
+	mi.name = "FloorVisual"
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(6000, 6000)
+	mi.mesh = pm
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.07, 0.08, 0.11)
+	mat.roughness = 1.0
+	mi.material_override = mat
+	mi.position = Vector3(700, -40, -100)
+	root.add_child(mi)
+	mi.owner = root

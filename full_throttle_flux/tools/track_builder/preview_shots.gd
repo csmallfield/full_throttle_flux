@@ -39,6 +39,7 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	_tb.ribbon = true
 	_tb.preview()
 	var bounds := _bounds()
 	var centre := bounds.get_center()
@@ -61,6 +62,25 @@ func _run() -> void:
 	var eye := f.origin - f.basis.z * -260.0 + f.basis.x * -180.0 + Vector3.UP * 140.0
 	_cam.global_transform = Transform3D(Basis.looking_at(f.origin + (-f.basis.z) * 150.0 - eye, Vector3.UP), eye)
 	await _shot("oblique_keys")
+	# The built road (if the scene has been built), ribbon off: a chase-height
+	# view into the widened corner and one into the narrow chicane.
+	if get_tree().root.find_child("MainSpline", true, false):
+		_tb.ribbon = false
+		_tb.label_every = 0.0
+		_tb.preview()
+		var sun := DirectionalLight3D.new()
+		sun.rotation_degrees = Vector3(-50, 210, 0)
+		sun.shadow_enabled = true
+		add_child(sun)
+		var we := get_tree().root.find_child("WorldEnvironment", true, false) as WorldEnvironment
+		if we:
+			we.compositor = null    # motion blur needs Forward+; this is OpenGL
+		for at: Array in [[1640.0, "road_widened"], [3420.0, "road_narrow"], [2520.0, "road_banked"]]:
+			var fr := _tb.sampler.frame_at(at[0])
+			var ahead := _tb.sampler.frame_at(at[0] + 160.0)
+			var cam_pos := fr.origin + fr.basis.y * 14.0
+			_cam.global_transform = Transform3D(Basis.looking_at(ahead.origin + ahead.basis.y * 2.0 - cam_pos, fr.basis.y), cam_pos)
+			await _shot(at[1])
 	print("shots written to %s" % ProjectSettings.globalize_path(_out))
 	get_tree().quit()
 

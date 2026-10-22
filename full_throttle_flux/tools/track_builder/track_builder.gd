@@ -3,16 +3,18 @@ extends Node3D
 class_name TrackBuilder
 ## Track Builder (v34): authoring node for new tracks.
 ##
-## Draw the base curve by hand (the BaseSpline child, a Path3D), then drop
-## BankKey and WidthKey nodes anywhere near it. The preview ribbon follows
-## every edit within a fraction of a second, coloured by the overlay you pick.
+## Draw the base curve by hand (the BaseSpline child, a closed Path3D), then
+## drop BankKey, WidthKey and StartKey nodes anywhere near it. The preview
+## ribbon follows every edit within a fraction of a second, coloured by the
+## overlay you pick. Build writes the track the game runs on (TrackBuild);
+## Validate checks it (TrackValidator) and marks problems where they are.
 ##
 ## Rules (see docs/TRACK_AUTHORING.md):
 ##   * identity transforms on the track root, this node and BaseSpline;
 ##   * bank comes from BankKeys only, never typed tilts;
-##   * width comes from WidthKeys; the walls follow the road edge.
+##   * width comes from WidthKeys; the walls follow the road edge;
+##   * never edit the generated nodes: change the inputs and Build again.
 ##
-## Step 1 of the plan: preview only. Build and Validate come next.
 ## At runtime this node removes itself (it's authoring data).
 
 enum Overlay {
@@ -25,6 +27,7 @@ enum Overlay {
 }
 
 const PREVIEW_NAME := "_Preview"
+const ISSUES_NAME := "_Issues"
 const DEBOUNCE_S := 0.2
 const ROLL_LIMIT := 0.7          # °/m, design limit outside roll features
 const TAPER_LIMIT := 0.1         # m of half width per m of track
@@ -40,6 +43,15 @@ const KEY_FAR := 30.0            # m from the track: validator error
 	set(v):
 		fairing_m = v
 		mark_dirty()
+## The generated MainSpline starts this far before the start line.
+@export_range(0.0, 200.0, 1.0, "suffix:m") var start_lead: float = 30.0:
+	set(v):
+		start_lead = v
+		mark_dirty()
+
+@export_group("Build")
+@export_tool_button("Build", "Play") var _btn_build := build
+@export_tool_button("Validate", "StatusSuccess") var _btn_validate := validate
 
 @export_group("Preview")
 @export var auto_preview: bool = true:
@@ -47,6 +59,12 @@ const KEY_FAR := 30.0            # m from the track: validator error
 		auto_preview = v
 		if v:
 			mark_dirty()
+## The coloured road-width ribbon. Build turns it off so you see the real
+## road; the centre line, edges, ticks and keys stay.
+@export var ribbon: bool = true:
+	set(v):
+		ribbon = v
+		mark_dirty()
 @export var overlay: Overlay = Overlay.BANK:
 	set(v):
 		overlay = v
@@ -96,6 +114,8 @@ func _ready() -> void:
 		return
 	set_process(true)
 	mark_dirty()
+	if OS.get_environment("TB_EDITOR_SELFTEST") == "1":
+		_editor_selftest.call_deferred()
 
 
 func _process(_delta: float) -> void:
@@ -143,6 +163,7 @@ func evaluate() -> bool:
 		return false
 	var bank_keys := _project(keys_of("BankKey"))
 	var width_keys := _project(keys_of("WidthKey"))
+	_project(keys_of("StartKey"))
 	var bk: Array = []
 	for k in bank_keys:
 		bk.append({d = k.distance, bank = (k as BankKey).bank_deg, ease = k.ease})
@@ -180,7 +201,8 @@ func preview() -> void:
 	var root := _preview_root()
 	for c in root.get_children():
 		c.free()
-	_draw_ribbon(root)
+	if ribbon:
+		_draw_ribbon(root)
 	_draw_lines(root)
 	_draw_labels(root)
 	_last_ms = (Time.get_ticks_usec() - t0) / 1000.0
@@ -309,6 +331,17 @@ func _draw_lines(root: Node3D) -> void:
 		_line(im, l, l + f.basis.y * 6.0, col)
 		_line(im, r, r + f.basis.y * 6.0, col)
 		_line(im, l + f.basis.y * 6.0, r + f.basis.y * 6.0, col)
+	for k in keys_of("StartKey"):
+		var f := s.frame_at(k.distance)
+		var i := s.index_at(k.distance)
+		var col := Color(0.3, 1.0, 0.4) if k.distance_to_track <= KEY_FAR else Color(1, 0, 0)
+		_line(im, k.global_position, f.origin + f.basis.y * 2.0, col)
+		var l := f.origin - f.basis.x * s.width_l[i]
+		var r := f.origin + f.basis.x * s.width_r[i]
+		_line(im, l + f.basis.y * 0.3, r + f.basis.y * 0.3, col)
+		_line(im, l, l + f.basis.y * 10.0, col)
+		_line(im, r, r + f.basis.y * 10.0, col)
+		_line(im, l + f.basis.y * 10.0, r + f.basis.y * 10.0, col)
 	im.surface_end()
 	var mi := MeshInstance3D.new()
 	mi.name = "Lines"
@@ -336,6 +369,9 @@ func _draw_labels(root: Node3D) -> void:
 	for k in keys_of("WidthKey"):
 		var f := s.frame_at(k.distance)
 		_label(root, f.origin + f.basis.y * 13.0, k.label_text(), Color(0.4, 0.9, 1.0), 1500.0)
+	for k in keys_of("StartKey"):
+		var f := s.frame_at(k.distance)
+		_label(root, f.origin + f.basis.y * 14.0, k.label_text(), Color(0.3, 1.0, 0.4), 3000.0)
 
 
 func _label(root: Node3D, pos: Vector3, txt: String, col: Color, visible_to: float) -> void:
@@ -427,6 +463,111 @@ static func _ramp(x: float) -> Color:
 
 
 # =============================================================================
+# BUILD AND VALIDATE
+# =============================================================================
+
+var _last_build := ""
+var _last_validate := ""
+
+func build() -> void:
+	var r := TrackBuild.run(self)
+	_last_build = "\n".join(r.log)
+	print(_last_build)
+	if r.ok:
+		ribbon = false
+		_mark_unsaved()
+	_last_validate = ""
+	_clear_issues()
+	preview()
+
+
+## Validates and marks problems in the viewport. The physics space needs a
+## frame to pick up freshly built road; if it hasn't, Validate says so.
+func validate() -> TrackValidator:
+	var space := get_world_3d().direct_space_state if is_inside_tree() else null
+	var v := TrackValidator.run(self, space)
+	_last_validate = v.summary()
+	print(_last_validate)
+	_draw_issues(v)
+	report = _make_report()
+	return v
+
+
+func input_hash() -> int:
+	var parts := []
+	var path := base_path()
+	if path and path.curve:
+		var c := path.curve
+		parts.append(c.closed)
+		for i in c.point_count:
+			parts.append([c.get_point_position(i), c.get_point_in(i), c.get_point_out(i), c.get_point_tilt(i)])
+	for t: String in ["BankKey", "WidthKey", "StartKey"]:
+		for k in keys_of(t):
+			var vals := [t, k.global_position, k.ease]
+			if k is BankKey:
+				vals.append((k as BankKey).bank_deg)
+			elif k is WidthKey:
+				vals.append_array([(k as WidthKey).half_width_left, (k as WidthKey).half_width_right])
+			parts.append(vals)
+	parts.append([fairing_m, start_lead])
+	return hash(var_to_bytes(parts))
+
+
+func _clear_issues() -> void:
+	var n := get_node_or_null(ISSUES_NAME)
+	if n:
+		n.free()
+
+
+func _draw_issues(v: TrackValidator) -> void:
+	_clear_issues()
+	if v.issues.is_empty() or not Engine.is_editor_hint():
+		return
+	var root := Node3D.new()
+	root.name = ISSUES_NAME
+	root.top_level = true
+	add_child(root)      # no owner: never saved
+	root.global_transform = Transform3D.IDENTITY
+	var im := ImmediateMesh.new()
+	im.surface_begin(Mesh.PRIMITIVE_LINES)
+	for i in v.issues:
+		var col := Color(1, 0.15, 0.1) if i.sev == TrackValidator.Sev.ERROR else Color(1, 0.75, 0.1)
+		var p: Vector3 = i.pos
+		_line(im, p, p + Vector3.UP * 40.0, col)
+		_line(im, p + Vector3(-6, 0, 0), p + Vector3(6, 0, 0), col)
+		_line(im, p + Vector3(0, 0, -6), p + Vector3(0, 0, 6), col)
+		_label(root, p + Vector3.UP * 42.0, i.msg, col, 4000.0)
+	im.surface_end()
+	var mi := MeshInstance3D.new()
+	mi.mesh = im
+	mi.material_override = _vertex_material(true, 1.0)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+
+
+func _mark_unsaved() -> void:
+	if not Engine.is_editor_hint():
+		return
+	var ei := Engine.get_singleton("EditorInterface")
+	if ei:
+		ei.mark_scene_as_unsaved()
+
+
+## TB_EDITOR_SELFTEST=1: exercises Build and Validate inside a running editor
+## (headless), then quits without saving. For checking the editor code path.
+func _editor_selftest() -> void:
+	await get_tree().create_timer(1.0).timeout
+	print("SELFTEST build")
+	build()
+	for i in 3:
+		await get_tree().process_frame
+	print("SELFTEST validate (after 3 frames)")
+	var v := validate()
+	print("SELFTEST done: %d errors, %d warnings" % [v.errors(), v.warnings()])
+	get_tree().quit(0 if v.errors() == 0 else 1)
+
+
+# =============================================================================
 # REPORT
 # =============================================================================
 
@@ -446,6 +587,10 @@ func _make_report() -> String:
 		min_w = minf(min_w, minf(s.width_l[i], s.width_r[i]))
 		max_w = maxf(max_w, maxf(s.width_l[i], s.width_r[i]))
 	var lines: PackedStringArray = []
+	if not _last_build.is_empty():
+		lines.append(_last_build)
+	if not _last_validate.is_empty():
+		lines.append(_last_validate)
 	lines.append("Length %.0f m (%s), %d samples, preview %.0f ms"
 			% [s.length, "closed" if s.closed else "open", s.size(), _last_ms])
 	lines.append("Fairing moved the curve at most %.2f m" % s.fair_deviation)
@@ -454,7 +599,7 @@ func _make_report() -> String:
 	lines.append("Max grade %.1f %%" % max_grade)
 	lines.append("Half width %.1f – %.1f m, max taper %.3f m/m%s"
 			% [min_w, max_w, max_taper, "  ← over 0.1" if max_taper > TAPER_LIMIT else ""])
-	for k in keys_of("BankKey") + keys_of("WidthKey"):
+	for k in keys_of("BankKey") + keys_of("WidthKey") + keys_of("StartKey"):
 		if k.distance_to_track > KEY_FAR:
 			lines.append("⚠ %s is %.0f m from the track (limit 30)" % [k.name, k.distance_to_track])
 	for w in _offset_rule_problems():

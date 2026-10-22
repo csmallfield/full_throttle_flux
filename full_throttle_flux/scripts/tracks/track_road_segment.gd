@@ -38,6 +38,24 @@ class_name TrackRoadSegment
 @export var caps: bool = true
 @export var cast_shadows: bool = true
 
+@export_group("Width profile (v34)")
+## Optional road width along the segment: x = distance along the path (same
+## metres as start/end_distance), y = left half width, z = right half width,
+## sorted by x, linearly interpolated (held beyond the ends). Empty = the
+## polygon as drawn (the exact pre-v34 code path).
+##
+## The polygon is drawn for `width_reference` on both sides. Points within
+## `width_stretch_limit` of the centre are scaled (the road surface stretches);
+## points beyond it are moved sideways by the width change (lips and walls
+## keep their shape). Walls use a stretch limit of 0: they only move.
+@export var width_profile: PackedVector3Array = PackedVector3Array()
+@export var width_reference: float = 21.5
+@export var width_stretch_limit: float = 19.5
+## v34: for a segment that runs the whole lap (0 to the end) of a curve whose
+## ends coincide: the last ring reuses the first ring's frame exactly, so the
+## lap seam has no hairline crack for a ray to slip through.
+@export var weld_lap_seam: bool = false
+
 var _mi: MeshInstance3D
 var _body: StaticBody3D
 
@@ -92,7 +110,14 @@ func build() -> void:
 	var frames: Array[Transform3D] = []
 	for d in ds:
 		frames.append(to_local * frame_at(curve, d))
-	
+	if weld_lap_seam and d0 <= 0.0 and d1 >= length and frames.size() > 1:
+		frames[frames.size() - 1] = frames[0]
+
+	if not width_profile.is_empty():
+		_build_widened(poly, ccw, per, ds, frames, d0, d1, verts, norms, uvs, idx, faces)
+		_finish(verts, norms, uvs, idx, faces)
+		return
+
 	# One pair of vertex columns per polygon edge: flat across, smooth along.
 	for e in m:
 		var p0 := poly[e]
@@ -128,7 +153,12 @@ func build() -> void:
 	if caps:
 		_cap(poly, frames[0], -1.0, d0, d0, d1, verts, norms, uvs, idx, faces)
 		_cap(poly, frames[frames.size() - 1], 1.0, d1, d0, d1, verts, norms, uvs, idx, faces)
-	
+
+	_finish(verts, norms, uvs, idx, faces)
+
+
+func _finish(verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVector2Array,
+		idx: PackedInt32Array, faces: PackedVector3Array) -> void:
 	var arr := []
 	arr.resize(Mesh.ARRAY_MAX)
 	arr[Mesh.ARRAY_VERTEX] = verts
@@ -173,6 +203,92 @@ static func frame_at(curve: Curve3D, d: float) -> Transform3D:
 	var up := curve.sample_baked_up_vector(clampf(d, 0.0, length), true).slide(f).normalized()
 	var r := f.cross(up).normalized()
 	return Transform3D(Basis(r, up, -f), curve.sample_baked(clampf(d, 0.0, length), true))
+
+
+## v34: the extrusion with a width profile. Same layout as the plain path, but
+## each ring's section is re-shaped for the width there, and normals come from
+## the re-shaped section.
+func _build_widened(poly: PackedVector2Array, ccw: bool, per: PackedFloat32Array,
+		ds: PackedFloat32Array, frames: Array[Transform3D], d0: float, d1: float,
+		verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVector2Array,
+		idx: PackedInt32Array, faces: PackedVector3Array) -> void:
+	var m := poly.size()
+	var sections: Array[PackedVector2Array] = []
+	for k in ds.size():
+		var w := width_at(ds[k])
+		var sc := _lip_scale(ds[k], d0, d1)
+		var sec := PackedVector2Array()
+		sec.resize(m)
+		for i in m:
+			var p := poly[i]
+			sec[i] = Vector2(_widen_x(p.x, w), p.y * sc if p.y > 0.0 else p.y)
+		sections.append(sec)
+	for e in m:
+		var base := verts.size()
+		for k in ds.size():
+			var fr: Transform3D = frames[k]
+			var q0: Vector2 = sections[k][e]
+			var q1: Vector2 = sections[k][(e + 1) % m]
+			var ed := q1 - q0
+			var n2 := Vector2(ed.y, -ed.x) if ccw else Vector2(-ed.y, ed.x)
+			n2 = n2.normalized()
+			var nn := (fr.basis.x * n2.x + fr.basis.y * n2.y).normalized()
+			verts.append(fr.origin + fr.basis.x * q0.x + fr.basis.y * q0.y)
+			verts.append(fr.origin + fr.basis.x * q1.x + fr.basis.y * q1.y)
+			norms.append(nn)
+			norms.append(nn)
+			var u := ds[k] / u_distance
+			uvs.append(Vector2(u, per[e] / u_distance))
+			uvs.append(Vector2(u, per[e + 1] / u_distance))
+		for k in ds.size() - 1:
+			var a := base + k * 2
+			_tri(verts, idx, faces, a, a + 1, a + 3, norms[a])
+			_tri(verts, idx, faces, a, a + 3, a + 2, norms[a])
+	if caps:
+		# _cap applies the lip fade itself: hand it the widened, unfaded section.
+		_cap(_widened(poly, width_at(d0)), frames[0], -1.0, d0, d0, d1, verts, norms, uvs, idx, faces)
+		_cap(_widened(poly, width_at(d1)), frames[frames.size() - 1], 1.0, d1, d0, d1,
+				verts, norms, uvs, idx, faces)
+
+
+func _widened(poly: PackedVector2Array, w: Vector2) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for p in poly:
+		out.append(Vector2(_widen_x(p.x, w), p.y))
+	return out
+
+
+## Half widths (left, right) at distance `d`.
+func width_at(d: float) -> Vector2:
+	var n := width_profile.size()
+	if n == 0:
+		return Vector2(width_reference, width_reference)
+	if d <= width_profile[0].x:
+		return Vector2(width_profile[0].y, width_profile[0].z)
+	if d >= width_profile[n - 1].x:
+		return Vector2(width_profile[n - 1].y, width_profile[n - 1].z)
+	var lo := 0
+	var hi := n - 1
+	while hi - lo > 1:
+		var mid := (lo + hi) >> 1
+		if width_profile[mid].x <= d:
+			lo = mid
+		else:
+			hi = mid
+	var a := width_profile[lo]
+	var b := width_profile[hi]
+	var t := (d - a.x) / (b.x - a.x) if b.x > a.x else 1.0
+	return Vector2(lerpf(a.y, b.y, t), lerpf(a.z, b.z, t))
+
+
+## Polygon x re-shaped for half widths `w` (x = left, y = right).
+func _widen_x(x: float, w: Vector2) -> float:
+	var side := w.y if x > 0.0 else w.x
+	var delta := side - width_reference
+	var lim := width_stretch_limit
+	if lim > 0.0 and absf(x) <= lim:
+		return x * (lim + delta) / lim
+	return x + signf(x) * delta
 
 
 func _lip_scale(d: float, d0: float, d1: float) -> float:
