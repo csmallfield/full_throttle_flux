@@ -9,17 +9,34 @@ class_name TrackValidator
 ##   built            a MainSpline exists and matches the current inputs
 ##   surface          ray-cast the built road every 5 m (centre and 60% out):
 ##                    height within 0.05 m of the spline frame, normal within
-##                    0.5° of the ideal extruded surface there
+##                    0.5° (+ 4.5 m x roll rate, the strips' facets) of the
+##                    ideal extruded surface there
 ##   bank delivered   the spline's up vs the bank you keyed, within 0.5°
 ##   roll rate        over 0.7°/m warns, over 0.75°/m is an error
 ##   width            taper over 0.1 m/m warns; half width under 10 m warns
 ##   keys             more than 30 m from the track is an error
+##
+## Step 3 adds the features:
+##   placement        overlaps / across the lap origin (errors); right after
+##                    the start line or over the grid (warnings)
+##   footprint bend   how far the base turns or climbs under a feature
+##   keys in features bank keys inside a loop's or jump's footprint
+##   roll rate        roll features may use up to 0.75°/m (no 0.7 warning)
+##   jumps            clean_speed measured for the current shape
+##   surface          no rays over jump gaps
 
 enum Sev { INFO, WARNING, ERROR }
 
 const SURFACE_EVERY := 5.0
 const SURFACE_HEIGHT_TOL := 0.05
 const SURFACE_NORMAL_TOL := 0.5
+## Where the road twists (banks changing, rolls) its 3 m strips and 1 m rings
+## triangulate a curved surface into flat facets: a slight washboard. Measured
+## on Builder Lab: about 0.5° on the centre line and isolated spikes to ~4.5 m
+## x the roll rate at the strip edges (~2-2.6° in an 800 m roll; Loop Lab's
+## roll measured ~2° and drives fine). Finer strips everywhere would double the
+## road's triangles for this.
+const SURFACE_FACET_M := 4.5
 const BANK_TOL := 0.5
 const ROLL_WARN := 0.7
 const ROLL_ERROR := 0.75
@@ -73,8 +90,11 @@ func _run(b: TrackBuilder, space: PhysicsDirectSpaceState3D) -> void:
 	if not b.evaluate():
 		_add(Sev.ERROR, b.global_position, -1.0, "No BaseSpline curve")
 		return
+	for e in b.errors():
+		_add(Sev.ERROR, b.global_position, -1.0, e)
 	_check_profiles(b)
 	_check_keys(b)
+	_check_features(b)
 	var main := root.get_node_or_null("MainSpline") as Path3D if root else null
 	if main == null or main.curve == null:
 		_add(Sev.WARNING, b.global_position, -1.0, "Not built yet (press Build)")
@@ -94,6 +114,7 @@ func _run(b: TrackBuilder, space: PhysicsDirectSpaceState3D) -> void:
 		_check_surface(b, main.curve, space)
 	else:
 		_add(Sev.WARNING, main.global_position, -1.0, "No physics space: surface not checked")
+	_check_branches(b, root, space)
 
 
 # =============================================================================
@@ -130,8 +151,12 @@ func _check_profiles(b: TrackBuilder) -> void:
 		taper[i] = s.taper_rate(i)
 		width[i] = minf(s.width_l[i], s.width_r[i])
 	for j in _worst_of_runs(roll, ROLL_WARN, true):
+		var in_roll := s.feat[j] >= 0 and b.composer.placed[s.feat[j]].node is RollFeature
+		if in_roll and roll[j] <= ROLL_ERROR:
+			continue
 		_add(Sev.ERROR if roll[j] > ROLL_ERROR else Sev.WARNING, s.P[j], _main_d(b, j),
-				"Roll rate %.2f °/m (limit 0.7): spread the bank change over more track" % roll[j])
+				"Roll rate %.2f °/m (limit %s): spread the change over more track"
+				% [roll[j], "0.75 in a roll" if in_roll else "0.7"])
 	for j in _worst_of_runs(taper, TAPER_WARN, true):
 		_add(Sev.WARNING, s.P[j], _main_d(b, j),
 				"Width changes %.2f m per m (limit 0.1): the wall cuts across the racing line" % taper[j])
@@ -175,6 +200,50 @@ static func _neg(v: PackedFloat32Array) -> PackedFloat32Array:
 	return o
 
 
+const BEND_LIMIT := {"Loop": 15.0, "Jump": 10.0, "Roll": 60.0}
+const GRADE_LIMIT := {"Loop": 3.0, "Jump": 3.0, "Roll": 8.0}
+const GRID_REACH := 200.0
+
+func _check_features(b: TrackBuilder) -> void:
+	var s := b.sampler
+	var base := b.base
+	for p in b.composer.placed:
+		var f: TrackFeature = p.node
+		var at := s.frame_at(p.s0).origin
+		# How much the base turns and climbs under the footprint.
+		var i0 := base.index_at(p.d0)
+		var i1 := base.index_at(p.d1)
+		var h0 := Vector2(base.T[i0].x, base.T[i0].z).normalized()
+		var h1 := Vector2(base.T[i1].x, base.T[i1].z).normalized()
+		var bend := rad_to_deg(absf(h0.angle_to(h1)))
+		var grade := 0.0
+		var u: float = p.d0
+		while u <= p.d1:
+			grade = maxf(grade, absf(base.grade(base.index_at(u))))
+			u += 5.0
+		var kind := f.kind()
+		if bend > BEND_LIMIT.get(kind, 30.0):
+			_add(Sev.WARNING, at, p.s0, "%s: the base turns %.0f° under it (limit %.0f): it will be bent with the curve"
+					% [f.name, bend, BEND_LIMIT[kind]])
+		if grade > GRADE_LIMIT.get(kind, 5.0):
+			_add(Sev.WARNING, at, p.s0, "%s: the base climbs %.1f%% under it (limit %.0f%%)" % [f.name, grade, GRADE_LIMIT[kind]])
+		# Next to the start.
+		if p.s0 < b.start_lead + 50.0:
+			_add(Sev.WARNING, at, p.s0, "%s starts right after the start line" % f.name)
+		if p.s1 > s.length - GRID_REACH:
+			_add(Sev.WARNING, at, p.s0, "%s runs into the starting grid" % f.name)
+		# Bank keys inside a loop or jump do nothing there (the feature owns
+		# the frame); inside a roll they add to it.
+		if not f is RollFeature:
+			for k in b.keys_of("BankKey"):
+				var rel := fposmod(k.distance - p.d0, base.length)
+				if rel < p.d1 - p.d0:
+					_add(Sev.WARNING, k.global_position, -1.0,
+							"%s is inside %s: the feature fades the keyed bank out there" % [k.name, f.name])
+		if f is JumpFeature and not (f as JumpFeature).clean_speed_valid():
+			_add(Sev.WARNING, at, p.s0, "%s: clean_speed not measured for this shape (run measure_jumps_boot.gd)" % f.name)
+
+
 func _check_keys(b: TrackBuilder) -> void:
 	for k in b.keys_of("BankKey") + b.keys_of("WidthKey") + b.keys_of("StartKey"):
 		if k.distance_to_track > KEY_FAR:
@@ -188,7 +257,10 @@ func _check_keys(b: TrackBuilder) -> void:
 
 ## The bank the game will use (the spline's tilted up) against the bank keyed.
 func _check_bank_delivered(b: TrackBuilder, c: Curve3D) -> void:
-	var s := b.sampler
+	_check_bank_delivered_on(b.sampler, c, "")
+
+
+func _check_bank_delivered_on(s: TrackSampler, c: Curve3D, label: String) -> void:
 	var length := c.get_baked_length()
 	var worst := 0.0
 	var worst_d := 0.0
@@ -204,25 +276,127 @@ func _check_bank_delivered(b: TrackBuilder, c: Curve3D) -> void:
 			worst = err
 			worst_d = d
 		d += SURFACE_EVERY
-	stats["bank delivered"] = "max error %.3f° (limit %.1f)" % [worst, BANK_TOL]
+	var pre := label + ": " if not label.is_empty() else ""
+	stats[pre + "bank delivered"] = "max error %.3f° (limit %.1f)" % [worst, BANK_TOL]
 	if worst > BANK_TOL:
 		_add(Sev.ERROR, c.sample_baked(worst_d, true), worst_d,
-				"Built bank is %.2f° off the keyed bank (tilt solve problem)" % worst)
+				pre + "Built bank is %.2f° off the keyed bank (tilt solve problem)" % worst)
+
+
+const JUNCTION_HEIGHT_TOL := 0.15
+const JUNCTION_LEVEL_TOL := 1.0
+
+## Split tracks: the junctions flat and level on both paths, and the branch's
+## own road checked like the main one.
+func _check_branches(b: TrackBuilder, root: Node, space: PhysicsDirectSpaceState3D) -> void:
+	var graph := root.get_node_or_null("TrackGraph") as TrackGraph
+	var main := root.get_node_or_null("MainSpline") as Path3D
+	for bi in b.branches.size():
+		var be: TrackBranchEval = b.branches[bi]
+		if not be.ok:
+			continue
+		var sfx := "" if bi == 0 else "_%d" % (bi + 1)
+		var bp := root.get_node_or_null("BranchSpline" + sfx) as Path3D
+		if bp == null or bp.curve == null:
+			_add(Sev.WARNING, be.node.global_position, -1.0, "%s: not built yet (press Build)" % be.node.name)
+			continue
+		var segs: Array[Node] = [bp]
+		for c in bp.get_children():
+			segs.append(c)
+		for jn: String in ["ForkJunction" + sfx, "RejoinJunction" + sfx]:
+			var j := root.get_node_or_null(jn)
+			if j:
+				segs.append(j)
+		_check_offset_rule(root, segs)
+		# Junctions flat and level, on both paths.
+		for jn: String in ["ForkJunction" + sfx, "RejoinJunction" + sfx]:
+			var j := root.get_node_or_null(jn) as TrackJunction
+			if j == null or main == null:
+				continue
+			var y0 := main.curve.sample_baked(j.a_start if j.point_at_start else j.a_end, true).y
+			var worst_h := 0.0
+			var worst_a := 0.0
+			var at := Vector3.ZERO
+			for pair: Array in [[main.curve, j.a_start, j.a_end], [bp.curve, j.b_start, j.b_end]]:
+				var c: Curve3D = pair[0]
+				var d: float = pair[1]
+				while d <= pair[2]:
+					var f := TrackRoadSegment.frame_at(c, d)
+					var h := absf(f.origin.y - y0)
+					var a := rad_to_deg(f.basis.y.angle_to(Vector3.UP))
+					if h > worst_h:
+						worst_h = h
+						at = f.origin
+					worst_a = maxf(worst_a, a)
+					d += 5.0
+			stats["%s" % jn] = "height within %.2f m, tilt within %.2f°" % [worst_h, worst_a]
+			if worst_h > JUNCTION_HEIGHT_TOL:
+				_add(Sev.ERROR, at, -1.0, "%s isn't flat: the roads are %.2f m off its level (limit 0.15): make the curves level there"
+						% [jn, worst_h])
+			if worst_a > JUNCTION_LEVEL_TOL:
+				_add(Sev.ERROR, at, -1.0, "%s isn't level: %.1f° of bank or grade (limit 1)" % [jn, worst_a])
+		for p in be.composer.placed:
+			if p.node is JumpFeature and not (p.node as JumpFeature).clean_speed_valid():
+				_add(Sev.WARNING, be.track.frame_at(p.s0).origin, -1.0,
+						"%s: clean_speed not measured for this shape (run measure_jumps_boot.gd)" % p.node.name)
+		# The branch's own road.
+		_check_bank_delivered_on(be.track, bp.curve, be.node.name)
+		if space:
+			var skip: Array[Vector2] = []
+			var j1 := root.get_node_or_null("ForkJunction" + sfx) as TrackJunction
+			var j2 := root.get_node_or_null("RejoinJunction" + sfx) as TrackJunction
+			if j1:
+				skip.append(Vector2(-1.0, j1.b_end + 1.0))
+			if j2:
+				skip.append(Vector2(j2.b_start - 1.0, INF))
+			if graph:
+				for jp in graph.jumps:
+					if jp and jp.branch == bi:
+						skip.append(Vector2(jp.lip - 0.5, jp.landing + 0.5))
+			_surface_rays(bp.curve, bp.get_node_or_null("Road") as TrackRoadSegment, space, skip,
+					be.track, be.node.name)
 
 
 ## Ray-casts the road under the spline: centre and 60% out to each side.
 func _check_surface(b: TrackBuilder, c: Curve3D, space: PhysicsDirectSpaceState3D) -> void:
-	var length := c.get_baked_length()
 	var main := b.owner.get_node("MainSpline") as Path3D if b.owner else null
 	var road := main.get_node_or_null("Road") as TrackRoadSegment if main else null
+	var skip: Array[Vector2] = []
+	var graph := main.get_parent().get_node_or_null("TrackGraph") as TrackGraph if main else null
+	if graph:
+		for j in graph.jumps:
+			if j and j.branch < 0:
+				skip.append(Vector2(j.lip - 0.5, j.landing + 0.5))
+	var root := main.get_parent() if main else null
+	if root:
+		for jn in root.get_children():
+			if jn is TrackJunction:
+				var tj := jn as TrackJunction
+				skip.append(Vector2(tj.a_start - 0.5, tj.a_end + 0.5))
+	_surface_rays(c, road, space, skip, b.sampler, "")
+
+
+func _surface_rays(c: Curve3D, road: TrackRoadSegment, space: PhysicsDirectSpaceState3D,
+		skip: Array[Vector2], track: TrackSampler, label: String) -> void:
+	var length := c.get_baked_length()
 	var worst_h := 0.0
 	var worst_n := 0.0
 	var misses := 0
 	var rays := 0
 	var bad_h := -1.0
 	var bad_n := -1.0
+	var bad_n_ratio := 0.0
+	var bad_n_val := 0.0
+	var worst_n_ratio := 0.0
 	var d := 0.0
 	while d < length:
+		var in_gap := false
+		for g in skip:
+			if d > g.x and d < g.y:
+				in_gap = true
+		if in_gap:
+			d += SURFACE_EVERY
+			continue
 		var f := TrackRoadSegment.frame_at(c, d)
 		var w := road.width_at(d) if road else Vector2(21.5, 21.5)
 		for lat: float in [0.0, -0.6 * (w.x - 2.0), 0.6 * (w.y - 2.0)]:
@@ -234,7 +408,7 @@ func _check_surface(b: TrackBuilder, c: Curve3D, space: PhysicsDirectSpaceState3
 			if hit.is_empty():
 				misses += 1
 				if misses <= 5:
-					_add(Sev.ERROR, o, d, "No road under the spline (%.0f m across)" % lat)
+					_add(Sev.ERROR, o, d, "%sNo road under the spline (%.0f m across)" % [label + ": " if not label.is_empty() else "", lat])
 				continue
 			var h := absf((hit.position - o).dot(f.basis.y))
 			var nerr := rad_to_deg((hit.normal as Vector3).angle_to(_surface_normal(c, d, lat, f)))
@@ -242,23 +416,29 @@ func _check_surface(b: TrackBuilder, c: Curve3D, space: PhysicsDirectSpaceState3
 				worst_h = h
 				if h > SURFACE_HEIGHT_TOL:
 					bad_h = d
+			var tol := SURFACE_NORMAL_TOL + SURFACE_FACET_M * track.roll_rate(track.index_at(d))
+			if nerr / tol > worst_n_ratio:
+				worst_n_ratio = nerr / tol
 			if nerr > worst_n:
 				worst_n = nerr
-				if nerr > SURFACE_NORMAL_TOL:
-					bad_n = d
+			if nerr > tol and (bad_n < 0.0 or nerr / tol >= bad_n_ratio):
+				bad_n = d
+				bad_n_ratio = nerr / tol
+				bad_n_val = nerr
 		d += SURFACE_EVERY
+	var pre := label + ": " if not label.is_empty() else ""
 	if rays > 0 and misses == rays:
-		issues = issues.filter(func(i: Dictionary) -> bool: return not (i.msg as String).begins_with("No road under"))
+		issues = issues.filter(func(i: Dictionary) -> bool: return not (i.msg as String).contains("No road under"))
 		_add(Sev.WARNING, c.sample_baked(0.0, true), -1.0,
 				"No road found at all: the physics space isn't ready yet (press Validate again)")
 		return
-	stats["surface"] = "%d rays, max height error %.3f m, max normal error %.2f°, %d misses" % [rays, worst_h, worst_n, misses]
+	stats[pre + "surface"] = "%d rays, max height error %.3f m, max normal error %.2f° (%.0f%% of its limit), %d misses" % [rays, worst_h, worst_n, worst_n_ratio * 100.0, misses]
 	if bad_h >= 0.0:
 		_add(Sev.ERROR, c.sample_baked(bad_h, true), bad_h,
-				"Road surface %.3f m off the spline (limit 0.05): something moved the geometry" % worst_h)
+				pre + "Road surface %.3f m off the spline (limit 0.05): something moved the geometry" % worst_h)
 	if bad_n >= 0.0:
 		_add(Sev.ERROR, c.sample_baked(bad_n, true), bad_n,
-				"Road normal %.2f° off the spline's up (limit 0.5)" % worst_n)
+				pre + "Road normal %.2f° off the ideal surface (limit 0.5° + 4.5 m x roll rate)" % bad_n_val)
 
 
 ## Normal of the ideal extruded road at `lat` metres across. Off the centre
@@ -273,13 +453,7 @@ static func _surface_normal(c: Curve3D, d: float, lat: float, f: Transform3D) ->
 	return n if n.dot(f.basis.y) > 0.0 else -n
 
 
-## Sample index -> MainSpline distance (approximate: the sampler's arc length
-## from the lap origin; within a metre or two of the baked distance).
+## Sample index -> MainSpline distance (the composite's distance; within a
+## metre or two of the baked one).
 func _main_d(b: TrackBuilder, i: int) -> float:
-	var s := b.sampler
-	var origin := 0.0
-	var starts := b.keys_of("StartKey")
-	if starts.size() > 0:
-		origin = starts[0].distance
-	origin = fposmod(origin - b.start_lead, s.length)
-	return fposmod(s.S[i] - origin, s.length)
+	return b.sampler.S[i]

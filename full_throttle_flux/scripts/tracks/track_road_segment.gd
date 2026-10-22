@@ -51,9 +51,10 @@ class_name TrackRoadSegment
 @export var width_profile: PackedVector3Array = PackedVector3Array()
 @export var width_reference: float = 21.5
 @export var width_stretch_limit: float = 19.5
-## v34: for a segment that runs the whole lap (0 to the end) of a curve whose
-## ends coincide: the last ring reuses the first ring's frame exactly, so the
-## lap seam has no hairline crack for a ray to slip through.
+## v34: for a curve whose ends coincide (a lap): a segment that runs to the
+## end of the curve finishes on exactly the frame at distance 0, so the lap
+## seam has no hairline crack for a ray to slip through (whether one segment
+## runs the whole lap or two meet at the seam).
 @export var weld_lap_seam: bool = false
 
 var _mi: MeshInstance3D
@@ -110,8 +111,8 @@ func build() -> void:
 	var frames: Array[Transform3D] = []
 	for d in ds:
 		frames.append(to_local * frame_at(curve, d))
-	if weld_lap_seam and d0 <= 0.0 and d1 >= length and frames.size() > 1:
-		frames[frames.size() - 1] = frames[0]
+	if weld_lap_seam and d1 >= length and frames.size() > 1:
+		frames[frames.size() - 1] = to_local * frame_at(curve, 0.0)
 
 	if not width_profile.is_empty():
 		_build_widened(poly, ccw, per, ds, frames, d0, d1, verts, norms, uvs, idx, faces)

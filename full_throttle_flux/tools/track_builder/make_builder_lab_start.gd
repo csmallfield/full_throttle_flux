@@ -1,49 +1,75 @@
 extends SceneTree
-## One-off (v34 step 1): writes the starting Builder Lab scene, a plain
-## hand-drawn-style base with a few bank and width keys, for trying the
-## preview. From here on the scene is edited by hand in the editor, the way a
-## real track is; this script is kept only as a record of the starting point.
+## Writes the starting Builder Lab scene: a hand-drawn-style base with bank,
+## width and start keys, and the features (v34 step 3: a jump, a loop, a
+## roll, and a fork whose shortcut has a bigger jump). From here on the scene is edited by hand in the editor, the way a
+## real track is; this script is kept as a record of the starting point.
 ##
 ##   godot --headless --path . -s res://tools/track_builder/make_builder_lab_start.gd
 
 const OUT := "res://scenes/tracks/builder_lab.tscn"
 
-# Control points (x, y, z) as you'd click them in: about 5.5 km, a long back
-# straight (room for a loop later), a fast sweeper, a hairpin, a hill, and a
-# chicane. Handles are set from the neighbours with uneven lengths, like
-# hand-dragged ones, so fairing has something to do.
+# Control points (x, y, z) as you'd click them in: about 8 km, roughly a
+# rectangle with a straight for each feature. North straight: the start and
+# the jump. East straight: the loop. South straight (gently downhill): the
+# roll. The fork leaves the south straight and cuts across the inside of the
+# south-west corner, over a jump, to the bottom straight. Handles are
+# set from the neighbours with uneven lengths, like hand-dragged ones, so
+# fairing has something to do.
 const PTS := [
 	Vector3(0, 0, 0),
-	Vector3(0, 0, -420),
-	Vector3(40, 4, -780),
-	Vector3(260, 14, -1010),
-	Vector3(600, 22, -1060),
-	Vector3(900, 18, -930),
-	Vector3(1010, 10, -700),
-	Vector3(1180, 6, -560),
-	Vector3(1380, 6, -640),
-	Vector3(1460, 10, -420),
-	Vector3(1300, 28, -180),
-	Vector3(1240, 40, 160),
-	Vector3(1320, 30, 520),
-	Vector3(1180, 14, 820),
-	Vector3(820, 4, 900),
-	Vector3(420, 0, 860),
-	Vector3(140, 0, 700),
-	Vector3(10, 0, 380),
+	Vector3(0, 0, -450),
+	Vector3(0, 0, -900),
+	Vector3(60, 4, -1180),
+	Vector3(300, 8, -1320),
+	Vector3(600, 10, -1360),
+	Vector3(1300, 10, -1360),
+	Vector3(2000, 10, -1360),
+	Vector3(2300, 6, -1300),
+	Vector3(2460, 0, -1080),
+	Vector3(2480, -4, -800),
+	Vector3(2480, -10, -200),
+	Vector3(2470, -10, 300),
+	Vector3(2380, -6, 600),
+	Vector3(2150, 0, 760),
+	Vector3(1600, 0, 800),
+	Vector3(900, 0, 800),
+	Vector3(400, 0, 780),
+	Vector3(150, 0, 640),
+	Vector3(20, 0, 380),
 ]
-const HANDLE_SCALE := [0.30, 0.36, 0.28, 0.34, 0.31, 0.38, 0.27, 0.33, 0.36, 0.30,
-		0.29, 0.35, 0.32, 0.28, 0.37, 0.31, 0.34, 0.30]
+const HANDLE_SCALE := [0.30, 0.31, 0.30, 0.34, 0.31, 0.33, 0.31, 0.30, 0.36, 0.30,
+		0.31, 0.31, 0.32, 0.28, 0.34, 0.31, 0.31, 0.30, 0.36, 0.30]
 
-# Bank key positions (metres along). Each key's bank leans into the local
-# corner: 6° per g of cornering load at 110 u/s, capped at 22°, so the start
-# is plausible rather than tuned. (Width keys: metres along, half width L, R.)
-const BANK_AT := [350.0, 700.0, 1150.0, 1500.0, 1900.0, 2350.0, 2700.0, 3100.0,
-		3900.0, 4400.0, 4900.0, 5300.0]
-const START_AT := 120.0
+# Bank keys go on every control point where the corner asks for 2° or more
+# (6° per g of cornering load at 110 u/s, capped at 22°): plausible rather
+# than tuned. Width keys and features are placed at world points, the way
+# you'd drop them in the viewport.
+const START_AT := Vector3(0, 0, -150)
+const WIDTHS := [
+	[Vector3(0, 0, -900), 21.5, 21.5],      # the north-east corner's exit
+	[Vector3(300, 8, -1320), 27.0, 21.5],   #   widens on the outside (left)
+	[Vector3(700, 10, -1360), 21.5, 21.5],
+	[Vector3(900, 0, 800), 21.5, 21.5],     # the end of the bottom straight
+	[Vector3(600, 0, 790), 16.0, 16.0],     #   narrows into the last corner
+	[Vector3(330, 0, 750), 16.0, 16.0],
+	[Vector3(130, 0, 610), 21.5, 21.5],
+]
+const JUMP_AT := Vector3(0, 0, -560)
+const LOOP_AT := Vector3(1300, 10, -1360)
+const ROLL_AT := Vector3(2480, -8, -350)
+# The shortcut, as you'd click it in: from the south straight across the
+# inside of the corner to the bottom straight. Its jump is bigger than the
+# main one (8° kicker, 80 m gap).
+const BRANCH_PTS := [
+	Vector3(2478, -10, 150),
+	Vector3(2440, -9, 380),
+	Vector3(2260, -6, 540),
+	Vector3(2000, -3, 650),
+	Vector3(1720, 0, 760),
+	Vector3(1450, 0, 800),
+]
+const BRANCH_JUMP_AT := Vector3(2120, -4, 600)
 const MB_SCRIPT := "res://scripts/rendering/motion_blur_effect.gd"
-const WIDTHS := [[1500.0, 21.5, 21.5], [1800.0, 26.0, 21.5], [2300.0, 21.5, 21.5],
-		[3300.0, 21.5, 21.5], [3550.0, 15.0, 15.0], [3800.0, 21.5, 21.5]]
 
 
 func _init() -> void:
@@ -80,11 +106,15 @@ func _init() -> void:
 	tb.add_child(banks)
 	banks.owner = root
 	var bi := 0
-	for d: float in BANK_AT:
+	for p: Vector3 in PTS:
+		var d: float = s.project(p, -1.0)[0]
+		var lean := _lean(s, d)
+		if absf(lean) < 2.0:
+			continue
 		var k := BankKey.new()
 		bi += 1
 		k.name = "Bank%02d" % bi
-		k.bank_deg = _lean(s, d)
+		k.bank_deg = lean
 		banks.add_child(k)
 		k.owner = root
 		# Hovering 6 m above the centre line, like a dropped node.
@@ -105,15 +135,55 @@ func _init() -> void:
 		k.half_width_right = w[2]
 		widths.add_child(k)
 		k.owner = root
-		k.position = s.frame_at(w[0]).origin + Vector3.UP * 6.0
-		k.distance = w[0]
+		var d: float = s.project(w[0], -1.0)[0]
+		k.position = s.frame_at(d).origin + Vector3.UP * 6.0
+		k.distance = d
 
 	var sk := StartKey.new()
 	sk.name = "StartKey"
 	tb.add_child(sk)
 	sk.owner = root
-	sk.position = s.frame_at(START_AT).origin + Vector3.UP * 6.0
-	sk.distance = START_AT
+	sk.position = START_AT + Vector3.UP * 6.0
+
+	var feats := Node3D.new()
+	feats.name = "Features"
+	tb.add_child(feats)
+	feats.owner = root
+	for f: Array in [[JumpFeature.new(), "Jump", JUMP_AT], [LoopFeature.new(), "Loop", LOOP_AT],
+			[RollFeature.new(), "Roll", ROLL_AT]]:
+		var node: TrackFeature = f[0]
+		node.name = f[1]
+		feats.add_child(node)
+		node.owner = root
+		node.position = f[2] + Vector3.UP * 10.0
+
+	var br := BranchFeature.new()
+	br.name = "Shortcut"
+	br.branch_name = "Corner cut"
+	feats.add_child(br)
+	br.owner = root
+	var bpath := Path3D.new()
+	bpath.name = "BranchBase"
+	var bc := Curve3D.new()
+	bc.bake_interval = 0.5
+	var m := BRANCH_PTS.size()
+	for i in m:
+		var p: Vector3 = BRANCH_PTS[i]
+		var prev: Vector3 = BRANCH_PTS[maxi(i - 1, 0)]
+		var next: Vector3 = BRANCH_PTS[mini(i + 1, m - 1)]
+		var dir := (next - prev).normalized()
+		bc.add_point(p, -dir * p.distance_to(prev) * 0.32, dir * p.distance_to(next) * 0.32)
+	bpath.curve = bc
+	br.add_child(bpath)
+	bpath.owner = root
+	var bj := JumpFeature.new()
+	bj.name = "BranchJump"
+	bj.kicker_deg = 8.0
+	bj.gap = 80.0
+	bj.drop = 5.0
+	br.add_child(bj)
+	bj.owner = root
+	bj.position = BRANCH_JUMP_AT + Vector3.UP * 10.0
 
 	_add_environment(root)
 
@@ -121,7 +191,7 @@ func _init() -> void:
 	var err := ps.pack(root)
 	if err == OK:
 		err = ResourceSaver.save(ps, OUT)
-	print("builder_lab start scene: length %.0f m, save %s" % [s.length, error_string(err)])
+	print("builder_lab start scene: base %.0f m, %d bank keys, save %s" % [s.length, bi, error_string(err)])
 	root.free()
 	quit()
 
@@ -188,12 +258,12 @@ func _add_environment(root: Node3D) -> void:
 	var mi := MeshInstance3D.new()
 	mi.name = "FloorVisual"
 	var pm := PlaneMesh.new()
-	pm.size = Vector2(6000, 6000)
+	pm.size = Vector2(7000, 7000)
 	mi.mesh = pm
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.07, 0.08, 0.11)
 	mat.roughness = 1.0
 	mi.material_override = mat
-	mi.position = Vector3(700, -40, -100)
+	mi.position = Vector3(1200, -50, -300)
 	root.add_child(mi)
 	mi.owner = root

@@ -4,7 +4,8 @@ class_name TrackBuilder
 ## Track Builder (v34): authoring node for new tracks.
 ##
 ## Draw the base curve by hand (the BaseSpline child, a closed Path3D), then
-## drop BankKey, WidthKey and StartKey nodes anywhere near it. The preview
+## drop BankKey, WidthKey and StartKey nodes anywhere near it, and features
+## (RollFeature, LoopFeature, JumpFeature) where you want them. The preview
 ## ribbon follows every edit within a fraction of a second, coloured by the
 ## overlay you pick. Build writes the track the game runs on (TrackBuild);
 ## Validate checks it (TrackValidator) and marks problems where they are.
@@ -52,6 +53,9 @@ const KEY_FAR := 30.0            # m from the track: validator error
 @export_group("Build")
 @export_tool_button("Build", "Play") var _btn_build := build
 @export_tool_button("Validate", "StatusSuccess") var _btn_validate := validate
+## Removes everything Build made (MainSpline, road, walls, start, zones,
+## jumps), leaving your inputs and anything hand-made.
+@export_tool_button("Clear build", "Clear") var _btn_clear_build := clear_build
 
 @export_group("Preview")
 @export var auto_preview: bool = true:
@@ -99,7 +103,17 @@ const KEY_FAR := 30.0            # m from the track: validator error
 ## outside the editor.
 static var keep_at_runtime := false
 
+## The base curve as drawn (faired), with the bank and width profiles, in
+## base distances. Keys and features are placed on this.
+var base := TrackSampler.new()
+## The whole track the build emits: base plus spliced features, resampled
+## every metre, distance 0 at the lap origin (start line - start_lead).
 var sampler := TrackSampler.new()
+var composer := TrackComposer.new()
+## One per enabled BranchFeature (split tracks), evaluated against `sampler`.
+var branches: Array[TrackBranchEval] = []
+## Base distance of the lap origin.
+var origin_d := 0.0
 var _dirty := false
 var _dirty_at := 0.0
 var _watched: Curve3D = null
@@ -149,6 +163,31 @@ func keys_of(type: String) -> Array[ProfileKey]:
 	return out
 
 
+## Every BranchFeature under this builder.
+func branch_nodes() -> Array[BranchFeature]:
+	var out: Array[BranchFeature] = []
+	_collect_branches(self, out)
+	return out
+
+
+func _collect_branches(n: Node, out: Array[BranchFeature]) -> void:
+	for c in n.get_children():
+		if c is BranchFeature:
+			out.append(c)
+		elif not c.name in [PREVIEW_NAME, ISSUES_NAME]:
+			_collect_branches(c, out)
+
+
+## Every feature on the main track (enabled or not; not those under a
+## BranchFeature, which belong to that branch).
+func features() -> Array[TrackFeature]:
+	var out: Array[TrackFeature] = []
+	for k in keys_of(""):
+		if k is TrackFeature:
+			out.append(k)
+	return out
+
+
 # =============================================================================
 # EVALUATION (shared by preview, build and validate)
 # =============================================================================
@@ -159,11 +198,15 @@ func evaluate() -> bool:
 	var path := base_path()
 	if path == null or path.curve == null:
 		return false
-	if not sampler.sample(path.curve, fairing_m):
+	if not base.sample(path.curve, fairing_m):
 		return false
 	var bank_keys := _project(keys_of("BankKey"))
 	var width_keys := _project(keys_of("WidthKey"))
-	_project(keys_of("StartKey"))
+	var starts := _project(keys_of("StartKey"))
+	var feats: Array[ProfileKey] = []
+	for f in features():
+		feats.append(f)
+	_project(feats)
 	var bk: Array = []
 	for k in bank_keys:
 		bk.append({d = k.distance, bank = (k as BankKey).bank_deg, ease = k.ease})
@@ -171,16 +214,94 @@ func evaluate() -> bool:
 	for k in width_keys:
 		var w := k as WidthKey
 		wk.append({d = k.distance, left = w.half_width_left, right = w.half_width_right, ease = k.ease})
-	sampler.apply_bank_profile(bk)
-	sampler.apply_width_profile(wk)
+	base.apply_bank_profile(bk)
+	base.apply_width_profile(wk)
+	# Lap origin: start_lead before the start line (StartKey, or the base's
+	# first point).
+	var line_d := starts[0].distance if starts.size() > 0 else 0.0
+	origin_d = fposmod(line_d - start_lead, base.length)
+	composer = TrackComposer.new()
+	if not base.closed:
+		composer.errors.append("BaseSpline must be a closed loop (tick Closed on its Curve3D)")
+	# Branches first find their ends on the base: the main track is levelled
+	# across their junctions.
+	branches.clear()
+	for bf in branch_nodes():
+		if not bf.enabled:
+			continue
+		var be := TrackBranchEval.new(bf)
+		if be.place_on_base(base, fairing_m):
+			composer.level_spans.append_array(be.level_spans(base))
+		branches.append(be)
+	composer.compose(base, features(), origin_d, sampler)
+	for be in branches:
+		if be.errors.is_empty():
+			be.evaluate(sampler)
 	return true
+
+
+## All errors that stop a build: the main composer's and every branch's.
+func errors() -> PackedStringArray:
+	var out := composer.errors.duplicate()
+	for be in branches:
+		out.append_array(be.errors)
+	return out
+
+
+## Composite distance of base distance `u` (for drawing keys on the track):
+## the nearest sample outside features if there is one within 2 m, else the
+## nearest sample at all.
+func track_s_for_base(u: float) -> float:
+	return s_for_base(sampler, base.length, u)
+
+
+## Same, on any composite `s` built from a base of length `base_len`.
+static func s_for_base(s: TrackSampler, base_len: float, u: float) -> float:
+	var best := -1
+	var best_d := INF
+	var best_free := -1
+	var best_free_d := INF
+	for i in s.size():
+		var d := absf(wrapf(s.base_u[i] - u, -base_len * 0.5, base_len * 0.5)) if s.closed \
+				else absf(s.base_u[i] - u)
+		if d < best_d:
+			best_d = d
+			best = i
+		if s.feat[i] < 0 and d < best_free_d:
+			best_free_d = d
+			best_free = i
+	if best_free >= 0 and best_free_d <= 2.0:
+		return s.S[best_free]
+	return s.S[maxi(best, 0)]
+
+
+func _key_frame(k: ProfileKey) -> Transform3D:
+	for be in branches:
+		if be.node.is_ancestor_of(k):
+			return be.track.frame_at(s_for_base(be.track, be.base.length, k.distance))
+	return sampler.frame_at(track_s_for_base(k.distance))
+
+
+func _key_track(k: ProfileKey) -> TrackSampler:
+	for be in branches:
+		if be.node.is_ancestor_of(k):
+			return be.track
+	return sampler
+
+
+## Every key of a type, on the main track and on every branch (for drawing).
+func all_keys_of(type: String) -> Array[ProfileKey]:
+	var out := keys_of(type)
+	for be in branches:
+		out.append_array(be.keys_of(type))
+	return out
 
 
 ## Projects keys onto the track (writing their derived distances) and returns
 ## them sorted by distance.
 func _project(keys: Array[ProfileKey]) -> Array[ProfileKey]:
 	for k in keys:
-		var r := sampler.project(k.global_position, k.distance)
+		var r := base.project(k.global_position, k.distance)
 		k.distance = r[0]
 		k.distance_to_track = r[1]
 	keys.sort_custom(func(a: ProfileKey, b: ProfileKey) -> bool: return a.distance < b.distance)
@@ -202,7 +323,10 @@ func preview() -> void:
 	for c in root.get_children():
 		c.free()
 	if ribbon:
-		_draw_ribbon(root)
+		_draw_ribbon(root, sampler)
+		for be in branches:
+			if be.track.size() > 1:
+				_draw_ribbon(root, be.track)
 	_draw_lines(root)
 	_draw_labels(root)
 	_last_ms = (Time.get_ticks_usec() - t0) / 1000.0
@@ -226,30 +350,31 @@ func _preview_root() -> Node3D:
 	return p
 
 
-func _preview_indices() -> PackedInt32Array:
+func _preview_indices(sm: TrackSampler = null) -> PackedInt32Array:
+	if sm == null:
+		sm = sampler
 	var out := PackedInt32Array()
-	var n := sampler.size()
-	var every := maxi(1, int(round(preview_step / sampler.step())))
+	var n := sm.size()
+	var every := maxi(1, int(round(preview_step / sm.step())))
 	var i := 0
 	while i < n:
 		out.append(i)
 		i += every
-	if sampler.closed:
+	if sm.closed:
 		out.append(0)            # close the ribbon
 	elif out[out.size() - 1] != n - 1:
 		out.append(n - 1)
 	return out
 
 
-func _draw_ribbon(root: Node3D) -> void:
-	var s := sampler
-	var idx := _preview_indices()
+func _draw_ribbon(root: Node3D, s: TrackSampler) -> void:
+	var idx := _preview_indices(s)
 	var verts := PackedVector3Array()
 	var cols := PackedColorArray()
 	var norms := PackedVector3Array()
 	for i in idx:
 		var r := TrackSampler.right_of(s.T[i], s.U[i])
-		var c := _overlay_color(i)
+		var c := _overlay_color(i, s) if s.road[i] == 1 else Color(0.9, 0.1, 0.1, 0.25)
 		var lift := s.U[i] * 0.05
 		verts.append(s.P[i] - r * s.width_l[i] + lift)
 		verts.append(s.P[i] + lift)
@@ -283,18 +408,18 @@ func _draw_lines(root: Node3D) -> void:
 	var s := sampler
 	var im := ImmediateMesh.new()
 	im.surface_begin(Mesh.PRIMITIVE_LINES)
-	var idx := _preview_indices()
-	# Centre line and road edges.
-	for e in idx.size() - 1:
-		var i := idx[e]
-		var j := idx[e + 1]
-		var ri := TrackSampler.right_of(s.T[i], s.U[i])
-		var rj := TrackSampler.right_of(s.T[j], s.U[j])
-		var up_i := s.U[i] * 0.15
-		var up_j := s.U[j] * 0.15
-		_line(im, s.P[i] + up_i, s.P[j] + up_j, Color(1, 1, 1, 0.9))
-		_line(im, s.P[i] - ri * s.width_l[i] + up_i, s.P[j] - rj * s.width_l[j] + up_j, Color(0.1, 0.1, 0.1))
-		_line(im, s.P[i] + ri * s.width_r[i] + up_i, s.P[j] + rj * s.width_r[j] + up_j, Color(0.1, 0.1, 0.1))
+	_track_lines(im, s)
+	for be in branches:
+		if be.track.size() > 1:
+			_track_lines(im, be.track)
+			# Junction ends: where the inner walls take over.
+			if be.ok:
+				for sd: float in [be.jf_b, be.jr_b]:
+					var f := be.track.frame_at(sd)
+					_line(im, f.origin, f.origin + f.basis.y * 20.0, Color(0.3, 0.9, 1.0))
+				for sd: float in [be.jf_m, be.jr_m]:
+					var f := s.frame_at(sd)
+					_line(im, f.origin, f.origin + f.basis.y * 20.0, Color(0.3, 0.9, 1.0))
 	# Distance ticks across the road.
 	if label_every > 0.0:
 		var d := 0.0
@@ -306,8 +431,8 @@ func _draw_lines(root: Node3D) -> void:
 					f.origin + f.basis.x * s.width_r[i] + f.basis.y * 0.2, c)
 			d += label_every
 	# Keys: leader line from the node to its track point, plus a marker.
-	for k in keys_of("BankKey"):
-		var f := s.frame_at(k.distance)
+	for k in all_keys_of("BankKey"):
+		var f := _key_frame(k)
 		var col := Color(1.0, 0.55, 0.1) if k.distance_to_track <= KEY_FAR else Color(1, 0, 0)
 		_line(im, k.global_position, f.origin + f.basis.y * 2.0, col)
 		# A tilted plank across the road, raised 2 m, showing the bank.
@@ -320,20 +445,21 @@ func _draw_lines(root: Node3D) -> void:
 		_line(im, b + fw, a + fw, col)
 		_line(im, a + fw, a - fw, col)
 		_line(im, f.origin + f.basis.y * 2.0, f.origin + f.basis.y * 8.0, col)  # the up it sets
-	for k in keys_of("WidthKey"):
-		var f := s.frame_at(k.distance)
-		var i := s.index_at(k.distance)
+	for k in all_keys_of("WidthKey"):
+		var f := _key_frame(k)
+		var kt := _key_track(k)
+		var i := kt.index_at(kt.project(f.origin, -1.0)[0])
 		var col := Color(0.2, 0.85, 1.0) if k.distance_to_track <= KEY_FAR else Color(1, 0, 0)
 		_line(im, k.global_position, f.origin + f.basis.y * 2.0, col)
-		var l := f.origin - f.basis.x * s.width_l[i]
-		var r := f.origin + f.basis.x * s.width_r[i]
+		var l := f.origin - f.basis.x * kt.width_l[i]
+		var r := f.origin + f.basis.x * kt.width_r[i]
 		# Uprights at both edges, joined across.
 		_line(im, l, l + f.basis.y * 6.0, col)
 		_line(im, r, r + f.basis.y * 6.0, col)
 		_line(im, l + f.basis.y * 6.0, r + f.basis.y * 6.0, col)
 	for k in keys_of("StartKey"):
-		var f := s.frame_at(k.distance)
-		var i := s.index_at(k.distance)
+		var f := _key_frame(k)
+		var i := s.index_at(track_s_for_base(k.distance))
 		var col := Color(0.3, 1.0, 0.4) if k.distance_to_track <= KEY_FAR else Color(1, 0, 0)
 		_line(im, k.global_position, f.origin + f.basis.y * 2.0, col)
 		var l := f.origin - f.basis.x * s.width_l[i]
@@ -342,6 +468,24 @@ func _draw_lines(root: Node3D) -> void:
 		_line(im, l, l + f.basis.y * 10.0, col)
 		_line(im, r, r + f.basis.y * 10.0, col)
 		_line(im, l + f.basis.y * 10.0, r + f.basis.y * 10.0, col)
+	# Features: footprint ends (base curve) as tall gates, a leader to the node.
+	var tracks: Array = [[sampler, composer]]
+	for be in branches:
+		tracks.append([be.track, be.composer])
+	for tc: Array in tracks:
+		var ts: TrackSampler = tc[0]
+		for p in (tc[1] as TrackComposer).placed:
+			var col := Color(0.85, 0.4, 1.0)
+			for sd: float in [p.s0, p.s1]:
+				var f := ts.frame_at(sd)
+				var i := ts.index_at(sd)
+				var l := f.origin - f.basis.x * ts.width_l[i]
+				var r := f.origin + f.basis.x * ts.width_r[i]
+				_line(im, l, l + f.basis.y * 16.0, col)
+				_line(im, r, r + f.basis.y * 16.0, col)
+				_line(im, l + f.basis.y * 16.0, r + f.basis.y * 16.0, col)
+			var mid := ts.frame_at((p.s0 + p.s1) * 0.5)
+			_line(im, (p.node as Node3D).global_position, mid.origin + mid.basis.y * 2.0, col)
 	im.surface_end()
 	var mi := MeshInstance3D.new()
 	mi.name = "Lines"
@@ -349,6 +493,21 @@ func _draw_lines(root: Node3D) -> void:
 	mi.material_override = _vertex_material(true, 1.0)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
+
+
+## Centre line and road edges of one track.
+func _track_lines(im: ImmediateMesh, s: TrackSampler) -> void:
+	var idx := _preview_indices(s)
+	for e in idx.size() - 1:
+		var i := idx[e]
+		var j := idx[e + 1]
+		var ri := TrackSampler.right_of(s.T[i], s.U[i])
+		var rj := TrackSampler.right_of(s.T[j], s.U[j])
+		var up_i := s.U[i] * 0.15
+		var up_j := s.U[j] * 0.15
+		_line(im, s.P[i] + up_i, s.P[j] + up_j, Color(1, 1, 1, 0.9))
+		_line(im, s.P[i] - ri * s.width_l[i] + up_i, s.P[j] - rj * s.width_l[j] + up_j, Color(0.1, 0.1, 0.1))
+		_line(im, s.P[i] + ri * s.width_r[i] + up_i, s.P[j] + rj * s.width_r[j] + up_j, Color(0.1, 0.1, 0.1))
 
 
 func _draw_labels(root: Node3D) -> void:
@@ -363,15 +522,28 @@ func _draw_labels(root: Node3D) -> void:
 			_label(root, f.origin + f.basis.y * 5.0, txt,
 					Color(1, 0.9, 0.3) if km else Color(1, 1, 1), 3000.0 if km else 600.0)
 			d += label_every
-	for k in keys_of("BankKey"):
-		var f := s.frame_at(k.distance)
+	for k in all_keys_of("BankKey"):
+		var f := _key_frame(k)
 		_label(root, f.origin + f.basis.y * 10.0, k.label_text(), Color(1.0, 0.65, 0.2), 1500.0)
-	for k in keys_of("WidthKey"):
-		var f := s.frame_at(k.distance)
+	for k in all_keys_of("WidthKey"):
+		var f := _key_frame(k)
 		_label(root, f.origin + f.basis.y * 13.0, k.label_text(), Color(0.4, 0.9, 1.0), 1500.0)
 	for k in keys_of("StartKey"):
-		var f := s.frame_at(k.distance)
+		var f := _key_frame(k)
 		_label(root, f.origin + f.basis.y * 14.0, k.label_text(), Color(0.3, 1.0, 0.4), 3000.0)
+	for p in composer.placed:
+		var f := s.frame_at(p.s0)
+		_label(root, f.origin + f.basis.y * 18.0, "%s ▸ %.0f m" % [p.node.label_text(), p.s1 - p.s0],
+				Color(0.85, 0.5, 1.0), 4000.0)
+	for be in branches:
+		for p in be.composer.placed:
+			var f := be.track.frame_at(p.s0)
+			_label(root, f.origin + f.basis.y * 18.0, "%s ▸ %.0f m" % [p.node.label_text(), p.s1 - p.s0],
+					Color(0.85, 0.5, 1.0), 4000.0)
+		if be.track.size() > 1:
+			var f := be.track.frame_at(be.track.length * 0.5)
+			_label(root, f.origin + f.basis.y * 18.0, "%s (%.0f m)" % [be.node.branch_name, be.track.length],
+					Color(0.3, 0.9, 1.0), 6000.0)
 
 
 func _label(root: Node3D, pos: Vector3, txt: String, col: Color, visible_to: float) -> void:
@@ -415,12 +587,13 @@ func _vertex_material(no_depth: bool, alpha: float) -> StandardMaterial3D:
 # OVERLAYS
 # =============================================================================
 
-func lateral_g(i: int) -> float:
-	return ref_speed * ref_speed * sampler.curvature_h(i) / game_gravity
+func lateral_g(i: int, s: TrackSampler = null) -> float:
+	if s == null:
+		s = sampler
+	return ref_speed * ref_speed * s.curvature_h(i) / game_gravity
 
 
-func _overlay_color(i: int) -> Color:
-	var s := sampler
+func _overlay_color(i: int, s: TrackSampler) -> Color:
 	match overlay:
 		Overlay.BANK:
 			return _diverging(s.bank[i] / 30.0)
@@ -430,7 +603,7 @@ func _overlay_color(i: int) -> Color:
 				return Color(0.95, 0.1, 0.1)
 			return _ramp(r / ROLL_LIMIT)
 		Overlay.LATERAL_G:
-			return _ramp(absf(lateral_g(i)) / 4.0)
+			return _ramp(absf(lateral_g(i, s)) / 4.0)
 		Overlay.GRADE:
 			return _diverging(s.grade(i) / 15.0)
 		Overlay.WIDTH:
@@ -468,6 +641,17 @@ static func _ramp(x: float) -> Color:
 
 var _last_build := ""
 var _last_validate := ""
+
+func clear_build() -> void:
+	var n := TrackBuild.clear(self)
+	_last_build = "Cleared %d generated nodes" % n
+	_last_validate = ""
+	_clear_issues()
+	if n > 0:
+		ribbon = true
+		_mark_unsaved()
+	preview()
+
 
 func build() -> void:
 	var r := TrackBuild.run(self)
@@ -509,6 +693,28 @@ func input_hash() -> int:
 			elif k is WidthKey:
 				vals.append_array([(k as WidthKey).half_width_left, (k as WidthKey).half_width_right])
 			parts.append(vals)
+	for f in features():
+		var vals := [f.get_script().get_global_name(), f.global_position]
+		for prop in f.get_property_list():
+			if prop.usage & PROPERTY_USAGE_SCRIPT_VARIABLE and prop.usage & PROPERTY_USAGE_STORAGE \
+					and not prop.name in ["distance", "distance_to_track"]:
+				vals.append([prop.name, f.get(prop.name)])
+		parts.append(vals)
+	for bf in branch_nodes():
+		var bp := bf.base_path()
+		var vals := [bf.name, bf.branch_name, bf.junction_blend, bf.enabled]
+		if bp and bp.curve:
+			for i in bp.curve.point_count:
+				vals.append([bp.curve.get_point_position(i), bp.curve.get_point_in(i), bp.curve.get_point_out(i)])
+		var be := TrackBranchEval.new(bf)
+		for k in be.keys_of(""):
+			var kv := [k.get_script().get_global_name(), k.global_position]
+			for prop in k.get_property_list():
+				if prop.usage & PROPERTY_USAGE_SCRIPT_VARIABLE and prop.usage & PROPERTY_USAGE_STORAGE \
+						and not prop.name in ["distance", "distance_to_track"]:
+					kv.append([prop.name, k.get(prop.name)])
+			vals.append(kv)
+		parts.append(vals)
 	parts.append([fairing_m, start_lead])
 	return hash(var_to_bytes(parts))
 
@@ -581,6 +787,8 @@ func _make_report() -> String:
 	var max_w := 0.0
 	for i in s.size():
 		max_roll = maxf(max_roll, s.roll_rate(i))
+		if s.feat.size() == s.size() and s.feat[i] >= 0:
+			continue    # lateral g and grade mean nothing in a loop or on a kicker
 		max_g = maxf(max_g, absf(lateral_g(i)))
 		max_grade = maxf(max_grade, absf(s.grade(i)))
 		max_taper = maxf(max_taper, s.taper_rate(i))
@@ -591,12 +799,22 @@ func _make_report() -> String:
 		lines.append(_last_build)
 	if not _last_validate.is_empty():
 		lines.append(_last_validate)
+	for e in errors():
+		lines.append("✗ " + e)
+	for be in branches:
+		if be.ok:
+			lines.append("%s: %.0f m, leaves at %.0f m, rejoins at %.0f m (main route %.0f m), junctions end %.0f / %.0f m along it"
+					% [be.node.name, be.track.length, be.s_fork, be.s_rejoin, be.s_rejoin - be.s_fork, be.jf_b, be.jr_b])
+			lines.append("  junctions levelled: main moved up to %.2f m, branch up to %.2f m"
+					% [composer.levelled_max, be.levelled_max])
+	for p in composer.placed:
+		lines.append("%s: %.0f m of base -> %.0f m of track" % [p.node.name, p.d1 - p.d0, p.s1 - p.s0])
 	lines.append("Length %.0f m (%s), %d samples, preview %.0f ms"
 			% [s.length, "closed" if s.closed else "open", s.size(), _last_ms])
 	lines.append("Fairing moved the curve at most %.2f m" % s.fair_deviation)
 	lines.append("Max roll rate %.2f °/m%s" % [max_roll, "  ← over 0.7" if max_roll > ROLL_LIMIT else ""])
-	lines.append("Max lateral load %.2f g at %.0f u/s" % [max_g, ref_speed])
-	lines.append("Max grade %.1f %%" % max_grade)
+	lines.append("Max lateral load %.2f g at %.0f u/s (outside features)" % [max_g, ref_speed])
+	lines.append("Max grade %.1f %% (outside features)" % max_grade)
 	lines.append("Half width %.1f – %.1f m, max taper %.3f m/m%s"
 			% [min_w, max_w, max_taper, "  ← over 0.1" if max_taper > TAPER_LIMIT else ""])
 	for k in keys_of("BankKey") + keys_of("WidthKey") + keys_of("StartKey"):
@@ -640,9 +858,9 @@ func _watch_curve() -> void:
 
 func _collect(n: Node, type: String, out: Array[ProfileKey]) -> void:
 	for c in n.get_children():
-		if c.name == PREVIEW_NAME:
+		if c.name == PREVIEW_NAME or c.name == ISSUES_NAME or c is BranchFeature:
 			continue
-		if c is ProfileKey and (c as Object).get_script().get_global_name() == type:
+		if c is ProfileKey and (type.is_empty() or (c as Object).get_script().get_global_name() == type):
 			out.append(c)
 		_collect(c, type, out)
 

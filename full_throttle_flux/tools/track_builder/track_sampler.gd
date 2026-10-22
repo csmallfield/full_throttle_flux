@@ -28,6 +28,11 @@ var S: PackedFloat32Array = PackedFloat32Array()     # arc length
 var bank: PackedFloat32Array = PackedFloat32Array()  # degrees, + = leans right (right edge low)
 var width_l: PackedFloat32Array = PackedFloat32Array()  # road half width, left of travel (m)
 var width_r: PackedFloat32Array = PackedFloat32Array()  # road half width, right of travel (m)
+## Composite tracks only (TrackComposer): base distance behind each sample,
+## the feature it belongs to (-1 = none), and 1 = road / 0 = a jump's gap.
+var base_u: PackedFloat32Array = PackedFloat32Array()
+var feat: PackedInt32Array = PackedInt32Array()
+var road: PackedByteArray = PackedByteArray()
 ## Largest distance (m) any sample moved because of fairing, and per sample.
 var fair_deviation := 0.0
 var fair_dev: PackedFloat32Array = PackedFloat32Array()
@@ -206,14 +211,22 @@ static func ease_weight(t: float, mode: int) -> float:
 # METRICS (per sample)
 # =============================================================================
 
-## Roll rate in degrees per metre (how fast the bank changes).
+## Roll rate in degrees per metre: how fast the road twists about the
+## direction of travel (the up vector's turn after the tangent's own turn is
+## taken out). Works for banks, rolls and loops alike.
 func roll_rate(i: int) -> float:
 	var a := _wrap_index(i - 1)
 	var b := _wrap_index(i + 1)
 	var ds := absf(delta(S[a], S[b]))
 	if ds <= 0.0:
 		return 0.0
-	return absf(bank[b] - bank[a]) / ds
+	var ua := U[a]
+	var ta := T[a]
+	var tb := T[b]
+	var axis := ta.cross(tb)
+	if axis.length() > 1e-9:
+		ua = ua.rotated(axis.normalized(), ta.angle_to(tb))
+	return rad_to_deg(ua.angle_to(U[b])) / ds
 
 
 ## Signed horizontal curvature (1/m), + = turning right.
@@ -314,8 +327,8 @@ func frame_at(d: float) -> Transform3D:
 	if j != i:
 		t = clampf((fposmod(d, length) if closed else d) - S[i], 0.0, step()) / step()
 	var pos := P[i].lerp(P[j], t)
-	var fwd := T[i].slerp(T[j], t) if T[i].dot(T[j]) < 0.9999 else T[i]
-	var up := U[i].slerp(U[j], t) if U[i].dot(U[j]) < 0.9999 else U[i]
+	var fwd := T[i].lerp(T[j], t).normalized()
+	var up := U[i].lerp(U[j], t).normalized()
 	up = up.slide(fwd).normalized()
 	var x := right_of(fwd, up)
 	return Transform3D(Basis(x, up, -fwd), pos)
