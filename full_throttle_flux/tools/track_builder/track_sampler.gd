@@ -96,6 +96,34 @@ func _control_distances(c: Curve3D) -> PackedFloat32Array:
 	return out
 
 
+## Samples an existing (built or hand-made) curve every metre: positions, and
+## the curve's own TILTED up vectors (what the game uses). `closed`: treat as
+## a lap (an open curve with coincident ends drops its duplicate end).
+func from_curve(c: Curve3D, as_lap: bool) -> void:
+	var L := c.get_baked_length()
+	closed = as_lap
+	var n := int(round(L / STEP))
+	var count := n if as_lap else n + 1
+	var step_m := L / n
+	P.resize(count)
+	U.resize(count)
+	S.resize(count)
+	bank.resize(count)
+	width_l.resize(count)
+	width_r.resize(count)
+	for i in count:
+		S[i] = i * step_m
+		P[i] = c.sample_baked(S[i], true)
+		U[i] = c.sample_baked_up_vector(S[i], true)
+		bank[i] = 0.0
+		width_l[i] = DEFAULT_HALF_WIDTH
+		width_r[i] = DEFAULT_HALF_WIDTH
+	length = L
+	_tangents()
+	for i in count:
+		U[i] = U[i].slide(T[i]).normalized()
+
+
 func size() -> int:
 	return P.size()
 

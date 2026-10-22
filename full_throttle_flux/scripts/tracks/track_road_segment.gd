@@ -54,7 +54,9 @@ class_name TrackRoadSegment
 ## v34: for a curve whose ends coincide (a lap): a segment that runs to the
 ## end of the curve finishes on exactly the frame at distance 0, so the lap
 ## seam has no hairline crack for a ray to slip through (whether one segment
-## runs the whole lap or two meet at the seam).
+## runs the whole lap or two meet at the seam). Ends that meet at the seam get
+## no cap (two caps back to back are vertical faces flush with the road, which
+## a ray landing exactly on the seam can hit).
 @export var weld_lap_seam: bool = false
 
 var _mi: MeshInstance3D
@@ -152,8 +154,10 @@ func build() -> void:
 			_tri(verts, idx, faces, a, c, dd, out)
 	
 	if caps:
-		_cap(poly, frames[0], -1.0, d0, d0, d1, verts, norms, uvs, idx, faces)
-		_cap(poly, frames[frames.size() - 1], 1.0, d1, d0, d1, verts, norms, uvs, idx, faces)
+		if not (weld_lap_seam and d0 <= 0.0):
+			_cap(poly, frames[0], -1.0, d0, d0, d1, verts, norms, uvs, idx, faces)
+		if not (weld_lap_seam and d1 >= length):
+			_cap(poly, frames[frames.size() - 1], 1.0, d1, d0, d1, verts, norms, uvs, idx, faces)
 
 	_finish(verts, norms, uvs, idx, faces)
 
@@ -247,9 +251,12 @@ func _build_widened(poly: PackedVector2Array, ccw: bool, per: PackedFloat32Array
 			_tri(verts, idx, faces, a, a + 3, a + 2, norms[a])
 	if caps:
 		# _cap applies the lip fade itself: hand it the widened, unfaded section.
-		_cap(_widened(poly, width_at(d0)), frames[0], -1.0, d0, d0, d1, verts, norms, uvs, idx, faces)
-		_cap(_widened(poly, width_at(d1)), frames[frames.size() - 1], 1.0, d1, d0, d1,
-				verts, norms, uvs, idx, faces)
+		var length := (get_node_or_null(path_node) as Path3D).curve.get_baked_length()
+		if not (weld_lap_seam and d0 <= 0.0):
+			_cap(_widened(poly, width_at(d0)), frames[0], -1.0, d0, d0, d1, verts, norms, uvs, idx, faces)
+		if not (weld_lap_seam and d1 >= length):
+			_cap(_widened(poly, width_at(d1)), frames[frames.size() - 1], 1.0, d1, d0, d1,
+					verts, norms, uvs, idx, faces)
 
 
 func _widened(poly: PackedVector2Array, w: Vector2) -> PackedVector2Array:

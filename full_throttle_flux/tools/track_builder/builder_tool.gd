@@ -48,6 +48,7 @@ func _ready() -> void:
 	for i in 3:
 		await get_tree().physics_frame
 	var v := TrackValidator.run(tb, scene.get_viewport().world_3d.direct_space_state)
+	await v.check_respawns(scene)
 	print(v.summary())
 	print("VALIDATE %s errors=%d warnings=%d" % [path, v.errors(), v.warnings()])
 	if v.errors() > 0:

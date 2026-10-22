@@ -47,6 +47,9 @@ const MIN_SPACING := 2.0
 ## let Godot's interpolated frame drift ~0.85° off the shape (measured on a
 ## loop); 1 m keeps it under 0.5°.
 const MIN_SPACING_FEATURE := 1.0
+## Inside features a point also every 0.5° of turn (a roll twists 0.68°/m:
+## at 1° the bank between points drifted up to ~0.5° off the shape).
+const MAX_TURN_DEG_FEATURE := 0.5
 const MAX_TURN_DEG := 1.0
 
 # Cross-sections: the circuits' (as on Loop Lab / Fork Lab).
@@ -287,8 +290,10 @@ func _emit_points(s: TrackSampler, t: Turtle, src: PackedInt32Array, must: Packe
 		if remaining < MIN_SPACING:
 			break
 		var turned := rad_to_deg(s.T[last].angle_to(s.T[k]) + s.U[last].angle_to(s.U[k]))
-		var min_sp := MIN_SPACING_FEATURE if s.feat[k] >= 0 else MIN_SPACING
-		if need.has(k) or since >= MAX_SPACING or (turned >= MAX_TURN_DEG and since >= min_sp - 0.001):
+		var in_feat := s.feat[k] >= 0
+		var min_sp := MIN_SPACING_FEATURE if in_feat else MIN_SPACING
+		var max_turn := MAX_TURN_DEG_FEATURE if in_feat else MAX_TURN_DEG
+		if need.has(k) or since >= MAX_SPACING or (turned >= max_turn and since >= min_sp - 0.001):
 			_add(t, s, k, s.S[k], src)
 			last = k
 			since = 0.0
@@ -445,6 +450,12 @@ func _take(rs: TrackSampler, st: Dictionary, src_s: TrackSampler, i: int) -> voi
 	st.prev = p
 
 
+## The route lap is logic only (AI steering and the rig on that route; no road
+## is built from it), so its points are sparser: every 2° of turn, at most
+## 20 m apart. Keeps the scene file about half the size.
+const ROUTE_MAX_TURN_DEG := 2.0
+const ROUTE_MAX_SPACING := 20.0
+
 ## _emit_points for a closed sample list whose spacing isn't uniform (the
 ## route lap): uses the samples' own S.
 func _emit_points_arc(s: TrackSampler, t: Turtle, src: PackedInt32Array, must: PackedFloat32Array) -> void:
@@ -463,8 +474,7 @@ func _emit_points_arc(s: TrackSampler, t: Turtle, src: PackedInt32Array, must: P
 		if s.length - s.S[k] < MIN_SPACING:
 			break
 		var turned := rad_to_deg(s.T[last].angle_to(s.T[k]) + s.U[last].angle_to(s.U[k]))
-		var min_sp := MIN_SPACING_FEATURE if s.feat[k] >= 0 else MIN_SPACING
-		if need.has(k) or since >= MAX_SPACING or (turned >= MAX_TURN_DEG and since >= min_sp - 0.001):
+		if need.has(k) or since >= ROUTE_MAX_SPACING or (turned >= ROUTE_MAX_TURN_DEG and since >= MIN_SPACING - 0.001):
 			_add(t, s, k, s.S[k], src)
 			last = k
 	_add(t, s, 0, s.length, src)

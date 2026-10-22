@@ -24,6 +24,28 @@ class_name TrackValidator
 ##   roll rate        roll features may use up to 0.75°/m (no 0.7 warning)
 ##   jumps            clean_speed measured for the current shape
 ##   surface          no rays over jump gaps
+##
+## Step 4, the race checks, from an estimated racing speed along the lap
+## (TrackSpeedProfile: the AI's own ShipPerformanceModel) and limits measured
+## on the four gameworthy circuits (tools/track_builder/measure_circuits.gd):
+##   cornering        over 15 g at 110 u/s warns (tighter than 99% of the
+##                    circuits' corners)
+##   kinks            curvature stepping more than 1.0 g per metre (circuits:
+##                    p99 0.75; a faired builder track: ~0.1)
+##   grade            over 50% warns (The Drop reaches 110%, others 16-48%)
+##   crests           the road curving away under a ship at its estimated
+##                    speed: over 110 u/s² warns (more than any circuit asks;
+##                    Swoopy's worst is 101), over 200 is an error (close to
+##                    gravity + the hover spring's pull, ~225: a launch)
+##   jumps            racing speed at the lip vs clean_speed (main route: an
+##                    error; a branch: a warning, it's a choice), and the speed
+##                    a ship reaches from a respawn before the jump
+##   clearance        nothing of this track within 10 m above its road
+##   start and grid   straight (under 1 g at 110 u/s, radius ~480 m) and level
+##                    (under 3%); every grid slot over the road
+##   junctions        standard width; no feature inside one
+##   branch ends      on the main spline within 0.05 m and 0.5°
+##   respawns         (headless) every point over road; the largest gap
 
 enum Sev { INFO, WARNING, ERROR }
 
@@ -115,6 +137,7 @@ func _run(b: TrackBuilder, space: PhysicsDirectSpaceState3D) -> void:
 	else:
 		_add(Sev.WARNING, main.global_position, -1.0, "No physics space: surface not checked")
 	_check_branches(b, root, space)
+	_check_race(b, root, space)
 
 
 # =============================================================================
@@ -184,6 +207,14 @@ static func _worst_of_runs(v: PackedFloat32Array, limit: float, high: bool) -> P
 	if best >= 0:
 		out.append(best)
 	return out
+
+
+static func _argmax(v: PackedFloat32Array) -> int:
+	var b := 0
+	for i in v.size():
+		if v[i] > v[b]:
+			b = i
+	return b
 
 
 static func _max(v: PackedFloat32Array) -> float:
@@ -457,3 +488,344 @@ static func _surface_normal(c: Curve3D, d: float, lat: float, f: Transform3D) ->
 ## metre or two of the baked one).
 func _main_d(b: TrackBuilder, i: int) -> float:
 	return b.sampler.S[i]
+
+
+# =============================================================================
+# STEP 4: RACE CHECKS
+# =============================================================================
+
+const LAT_G_WARN := 15.0
+const JOLT_WARN := 1.0
+const GRADE_WARN := 50.0
+const CREST_WARN := 110.0
+const CREST_ERROR := 200.0
+const REF_SPEED := 110.0
+const GAME_G := 25.0
+const CLEARANCE := 10.0
+const TRACK_MASK := 1 | 4
+const JUMP_MARGIN := 5.0
+const START_GRADE_WARN := 3.0
+const START_LAT_G_WARN := 1.0
+## Fork Lab measured that a respawned ship needs 150-220 m of run-up for its
+## jumps (the respawn settle and throttle response aren't in the AI's
+## acceleration model, which would say ~60 m); the handoff's rule is 250 m.
+const RESPAWN_RUNUP_MIN := 250.0
+const BRANCH_END_POS_TOL := 0.05
+const BRANCH_END_ANGLE_TOL := 0.5
+
+var profile: TrackSpeedProfile
+
+
+func _check_race(b: TrackBuilder, root: Node, space: PhysicsDirectSpaceState3D) -> void:
+	var s := b.sampler
+	var skip := _skip_mask(b, s)
+	profile = TrackSpeedProfile.new()
+	profile.compute(s, TrackSpeedProfile.default_model(), skip)
+	var n := s.size()
+	var lat := PackedFloat32Array()
+	var jolt := PackedFloat32Array()
+	var grade := PackedFloat32Array()
+	var crest := PackedFloat32Array()
+	lat.resize(n)
+	jolt.resize(n)
+	grade.resize(n)
+	crest.resize(n)
+	var vsum := 0.0
+	for i in n:
+		vsum += profile.v[i]
+		if skip[i] == 1:
+			continue
+		var j := (i + 1) % n
+		lat[i] = REF_SPEED * REF_SPEED * absf(profile.kg[i]) / GAME_G
+		jolt[i] = REF_SPEED * REF_SPEED * absf(profile.kg[j] - profile.kg[i]) / GAME_G / s.step()
+		grade[i] = absf(s.grade(i))
+		crest[i] = profile.v[i] * profile.v[i] * maxf(-profile.kn[i], 0.0)
+	for j in _worst_of_runs(lat, LAT_G_WARN, true):
+		_add(Sev.WARNING, s.P[j], s.S[j], "Corner of %.1f g at 110 u/s (radius %.0f m): tighter than 99%% of the circuits' corners"
+				% [lat[j], 1.0 / maxf(absf(profile.kg[j]), 1e-6)])
+	for j in _worst_of_runs(jolt, JOLT_WARN, true):
+		_add(Sev.WARNING, s.P[j], s.S[j], "Kink: the curvature jumps %.2f g per metre (limit 1.0): smooth the handles or raise fairing_m" % jolt[j])
+	for j in _worst_of_runs(grade, GRADE_WARN, true):
+		_add(Sev.WARNING, s.P[j], s.S[j], "Grade %.0f%% (limit 50)" % grade[j])
+	for j in _worst_of_runs(crest, CREST_WARN, true):
+		var sev := Sev.ERROR if crest[j] > CREST_ERROR else Sev.WARNING
+		_add(sev, s.P[j], s.S[j], "Crest: at ~%.0f u/s it needs %.0f u/s² to hold the road (%s): %s"
+				% [profile.v[j], crest[j], "a launch" if sev == Sev.ERROR else "more than any circuit asks",
+				"soften it or make it a jump" if sev == Sev.ERROR else "drive it"])
+	stats["estimated lap"] = "%.1f s at %.0f u/s mean (default_racer, AI limits)" % [s.length / (vsum / n), vsum / n]
+	stats["race limits"] = "max %.1f g at 110 (@%.0f m), kinks %.2f g/m (@%.0f m), grade %.0f%% (@%.0f m), crest %.0f u/s² (@%.0f m)" % [
+			_max(lat), s.S[_argmax(lat)], _max(jolt), s.S[_argmax(jolt)], _max(grade), s.S[_argmax(grade)],
+			_max(crest), s.S[_argmax(crest)]]
+	_check_jumps(b, s, profile, root)
+	_check_start(b, root, s)
+	_check_junction_widths(b)
+	_check_branch_ends(b, root)
+	if space:
+		var skip_gaps: Array[Vector2] = []
+		var graph := root.get_node_or_null("TrackGraph") as TrackGraph
+		var main := root.get_node_or_null("MainSpline") as Path3D
+		if graph:
+			for jp in graph.jumps:
+				if jp and jp.branch < 0:
+					skip_gaps.append(Vector2(jp.lip - 1.0, jp.landing + 1.0))
+		if main:
+			_clearance(main.curve, main.get_node_or_null("Road") as TrackRoadSegment, space, skip_gaps, "")
+		for bi in b.branches.size():
+			var sfx := "" if bi == 0 else "_%d" % (bi + 1)
+			var bp := root.get_node_or_null("BranchSpline" + sfx) as Path3D
+			if bp == null:
+				continue
+			var gaps: Array[Vector2] = []
+			if graph:
+				for jp in graph.jumps:
+					if jp and jp.branch == bi:
+						gaps.append(Vector2(jp.lip - 1.0, jp.landing + 1.0))
+			_clearance(bp.curve, bp.get_node_or_null("Road") as TrackRoadSegment, space, gaps, b.branches[bi].node.name)
+
+
+## 1 where the race limits don't apply: magnetic zones (loops, rolls) and
+## jumps (the kicker's and landing's bend is designed).
+func _skip_mask(b: TrackBuilder, s: TrackSampler) -> PackedByteArray:
+	var m := PackedByteArray()
+	m.resize(s.size())
+	for i in s.size():
+		var f := s.feat[i]
+		if f >= 0:
+			m[i] = 1
+	return m
+
+
+func _check_jumps(b: TrackBuilder, s: TrackSampler, sp: TrackSpeedProfile, root: Node) -> void:
+	var jobs: Array = []    # [JumpFeature, marks, speed at lip, on branch]
+	for p in b.composer.placed:
+		if p.node is JumpFeature:
+			jobs.append([p.node, p.marks, sp.v[s.index_at(p.marks.lip)], false, s.frame_at(p.marks.lip).origin])
+	for be in b.branches:
+		if not be.ok:
+			continue
+		var bsp := TrackSpeedProfile.new()
+		bsp.compute_open(be.track, sp.model, _skip_mask_branch(be), sp.v[s.index_at(be.s_fork)])
+		for p in be.composer.placed:
+			if p.node is JumpFeature:
+				jobs.append([p.node, p.marks, bsp.v[be.track.index_at(p.marks.lip)], true,
+						be.track.frame_at(p.marks.lip).origin])
+	for jb in jobs:
+		var jf: JumpFeature = jb[0]
+		var marks: Dictionary = jb[1]
+		var v_lip: float = jb[2]
+		var branch: bool = jb[3]
+		var at: Vector3 = jb[4]
+		if jf.clean_speed <= 0.0:
+			continue
+		stats[jf.name] = "racing speed at the lip ~%.0f u/s, clean from %.0f" % [v_lip, jf.clean_speed]
+		if v_lip < jf.clean_speed + JUMP_MARGIN:
+			_add(Sev.WARNING if branch else Sev.ERROR, at, marks.lip,
+					"%s: racing speed at the lip is only ~%.0f u/s, it needs %.0f (+%.0f margin)%s"
+					% [jf.name, v_lip, jf.clean_speed, JUMP_MARGIN, ": the AI will avoid the route" if branch else ""])
+		if jf.respawn_runup < RESPAWN_RUNUP_MIN:
+			_add(Sev.WARNING, at, marks.lip, "%s: respawn_runup %.0f m is under %.0f m (measured on Fork Lab: a respawned ship needs 150-220 m)"
+					% [jf.name, jf.respawn_runup, RESPAWN_RUNUP_MIN])
+		# From a respawn: the run-up with no respawn points, plus the kicker.
+		var run: float = jf.respawn_runup + (marks.lip - marks.kicker)
+		var v_ss := sp.standing_start(run)
+		if v_ss < jf.clean_speed:
+			var need := run
+			while sp.standing_start(need) < jf.clean_speed and need < 3000.0:
+				need += 10.0
+			_add(Sev.ERROR, at, marks.lip, "%s: after a respawn a ship only reaches %.0f u/s by the lip (needs %.0f): set respawn_runup to %.0f m or more"
+					% [jf.name, v_ss, jf.clean_speed, need - (marks.lip - marks.kicker)])
+
+
+func _skip_mask_branch(be: TrackBranchEval) -> PackedByteArray:
+	var m := PackedByteArray()
+	m.resize(be.track.size())
+	for i in be.track.size():
+		m[i] = 1 if be.track.feat[i] >= 0 else 0
+	return m
+
+
+func _check_start(b: TrackBuilder, root: Node, s: TrackSampler) -> void:
+	# The grid reaches about 200 m behind the line; check to 50 m past it.
+	var worst_grade := 0.0
+	var worst_g := 0.0
+	var d := -GRID_REACH
+	while d <= 50.0:
+		var i := s.index_at(fposmod(b.start_lead + d, s.length))
+		worst_grade = maxf(worst_grade, absf(s.grade(i)))
+		worst_g = maxf(worst_g, REF_SPEED * REF_SPEED * absf(profile.kg[i]) / GAME_G)
+		if s.feat[i] >= 0:
+			_add(Sev.WARNING, s.P[i], s.S[i], "The start line or grid is on a feature")
+			break
+		d += 5.0
+	var line_at := s.frame_at(b.start_lead).origin
+	stats["start"] = "grid area grade %.1f%%, %.1f g at 110" % [worst_grade, worst_g]
+	if worst_grade > START_GRADE_WARN:
+		_add(Sev.WARNING, line_at, b.start_lead, "The grid is on a %.1f%% slope (limit 3): ships roll on the start" % worst_grade)
+	if worst_g > START_LAT_G_WARN:
+		_add(Sev.WARNING, line_at, b.start_lead, "The grid is on a bend (%.1f g at 110): put the StartKey on a straight" % worst_g)
+	var grid := root.find_child("StartingGrid", true, false)
+	if grid == null:
+		return
+	var space := (root as Node3D).get_world_3d().direct_space_state if root is Node3D and root.is_inside_tree() else null
+	for slot in grid.get_children():
+		if not slot is Node3D:
+			continue
+		var p := (slot as Node3D).global_position
+		var up := (slot as Node3D).global_basis.y.normalized()
+		if space:
+			var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(p, p - up * 8.0, GROUND_MASK))
+			if hit.is_empty():
+				_add(Sev.ERROR, p, -1.0, "Grid %s isn't over the road (the road is too narrow there?)" % slot.name)
+
+
+func _check_junction_widths(b: TrackBuilder) -> void:
+	var s := b.sampler
+	for be in b.branches:
+		if not be.ok:
+			continue
+		for span: Vector2 in [Vector2(be.s_fork, be.jf_m), Vector2(be.jr_m, be.s_rejoin)]:
+			var d := span.x
+			while d <= span.y:
+				var i := s.index_at(d)
+				if absf(s.width_l[i] - TrackSampler.DEFAULT_HALF_WIDTH) > 0.1 or absf(s.width_r[i] - TrackSampler.DEFAULT_HALF_WIDTH) > 0.1:
+					_add(Sev.ERROR, s.P[i], d, "%s: the main road isn't the standard width in a junction (WidthKeys there)" % be.node.name)
+					break
+				d += 5.0
+		for p in b.composer.placed:
+			for span: Vector2 in [Vector2(be.s_fork - 60.0, be.jf_m + 60.0), Vector2(be.jr_m - 60.0, be.s_rejoin + 60.0)]:
+				if p.s0 < span.y and p.s1 > span.x:
+					_add(Sev.WARNING, s.frame_at(p.s0).origin, p.s0,
+							"%s overlaps %s's junction: the junction levels the road under it" % [p.node.name, be.node.name])
+
+
+func _check_branch_ends(b: TrackBuilder, root: Node) -> void:
+	var graph := root.get_node_or_null("TrackGraph") as TrackGraph
+	var main := root.get_node_or_null("MainSpline") as Path3D
+	if graph == null or main == null:
+		return
+	for bi in graph.branches.size():
+		var tb: TrackBranch = graph.branches[bi]
+		var bp := graph.get_node_or_null(tb.path) as Path3D
+		if bp == null:
+			continue
+		var bl := bp.curve.get_baked_length()
+		for end: Array in [[tb.fork_distance, 0.0, "fork"], [tb.rejoin_distance, bl, "rejoin"]]:
+			var fm := TrackRoadSegment.frame_at(main.curve, end[0])
+			var fb := TrackRoadSegment.frame_at(bp.curve, end[1])
+			var dp := fm.origin.distance_to(fb.origin)
+			var da := rad_to_deg(fm.basis.z.angle_to(fb.basis.z))
+			stats["%s %s" % [tb.branch_name, end[2]]] = "%.3f m, %.2f°" % [dp, da]
+			if dp > BRANCH_END_POS_TOL or da > BRANCH_END_ANGLE_TOL:
+				_add(Sev.ERROR, fb.origin, -1.0, "%s: the branch's %s end is %.2f m / %.1f° off the main spline (limit 0.05 m / 0.5°)"
+						% [tb.branch_name, end[2], dp, da])
+
+
+## Nothing of this track within CLEARANCE above its road (overhangs, the loop
+## exit over its entry, crossings).
+func _clearance(c: Curve3D, road: TrackRoadSegment, space: PhysicsDirectSpaceState3D,
+		skip: Array[Vector2], label: String) -> void:
+	var length := c.get_baked_length()
+	var pre := label + ": " if not label.is_empty() else ""
+	var worst := INF
+	var worst_at := -1.0
+	var d := 0.0
+	while d < length:
+		var in_gap := false
+		for g in skip:
+			if d > g.x and d < g.y:
+				in_gap = true
+		if not in_gap:
+			var f := TrackRoadSegment.frame_at(c, d)
+			var w := road.width_at(d) if road else Vector2(21.5, 21.5)
+			for lat: float in [0.0, -0.6 * (w.x - 2.0), 0.6 * (w.y - 2.0)]:
+				var o := f.origin + f.basis.x * lat + f.basis.y * 0.5
+				var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(o, o + f.basis.y * CLEARANCE, TRACK_MASK))
+				if hit.is_empty() or not _is_track_geometry(hit.collider):
+					continue
+				var h: float = ((hit.position as Vector3) - o).length() + 0.5
+				if h < worst:
+					worst = h
+					worst_at = d
+		d += SURFACE_EVERY
+	if worst_at >= 0.0:
+		_add(Sev.ERROR, c.sample_baked(worst_at, true), worst_at,
+				pre + "Only %.1f m of clearance above the road (limit %.0f): another part of the track is overhead" % [worst, CLEARANCE])
+	stats[pre + "clearance"] = "nothing within %.0f m overhead" % CLEARANCE if worst_at < 0.0 else "min %.1f m" % worst
+
+
+static func _is_track_geometry(o: Object) -> bool:
+	var n := o as Node
+	while n:
+		if n is TrackRoadSegment or n is TrackJunction:
+			return true
+		n = n.get_parent()
+	return false
+
+
+# =============================================================================
+# RESPAWNS (headless: the respawn manager isn't a tool script)
+# =============================================================================
+
+## Builds the real TrackRespawnManager on the scene and checks its points:
+## every point over road, and the largest gap between points that isn't a
+## designed exclusion (magnetic zones, jump run-ups and flights).
+func check_respawns(scene: Node) -> void:
+	var rm := TrackRespawnManager.new()
+	rm.debug_print = false
+	scene.add_child(rm)
+	var ok: bool = await rm.initialize(scene)
+	if not ok:
+		_add(Sev.WARNING, Vector3.ZERO, -1.0, "Respawn manager didn't initialise: respawns not checked")
+		rm.queue_free()
+		return
+	var space := (scene as Node3D).get_world_3d().direct_space_state
+	var by_path := {}
+	var bad := 0
+	for p in rm.respawn_points:
+		var up := p.rotation.y.normalized()
+		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(p.position + up * 1.0, p.position - up * 10.0, GROUND_MASK))
+		if hit.is_empty():
+			bad += 1
+			if bad <= 5:
+				_add(Sev.ERROR, p.position, p.path_distance, "Respawn point with no road under it (path %d)" % p.path)
+		var key: int = p.path
+		if not by_path.has(key):
+			by_path[key] = PackedFloat32Array()
+		var arr: PackedFloat32Array = by_path[key]
+		arr.append(p.path_distance)
+		by_path[key] = arr
+	var graph := scene.get_node_or_null("TrackGraph") as TrackGraph
+	var mt := scene.get_node_or_null("MagneticTrack") as MagneticTrack
+	var worst := 0.0
+	var worst_txt := ""
+	for key in by_path:
+		var arr: PackedFloat32Array = by_path[key]
+		arr.sort()
+		for i in range(1, arr.size()):
+			var a := arr[i - 1]
+			var bb := arr[i]
+			if bb - a <= rm.respawn_point_spacing * 2.0 + 1.0:
+				continue
+			if _gap_explained(key, a, bb, graph, mt):
+				continue
+			if bb - a > worst:
+				worst = bb - a
+				worst_txt = "path %d, %.0f-%.0f m" % [key, a, bb]
+	stats["respawns"] = "%d points, %d over no road, largest unexplained gap %s" % [rm.respawn_points.size(), bad,
+			"none" if worst == 0.0 else "%.0f m (%s)" % [worst, worst_txt]]
+	if worst > 0.0:
+		_add(Sev.WARNING, Vector3.ZERO, -1.0, "A %.0f m stretch with no respawn points (%s)" % [worst, worst_txt])
+	rm.queue_free()
+
+
+static func _gap_explained(path: int, a: float, b: float, graph: TrackGraph, mt: MagneticTrack) -> bool:
+	var mid := (a + b) * 0.5
+	if path < 0 and mt:
+		for z in mt.zones:
+			if z and mid > z.start_distance - z.ramp_in - 60.0 and mid < z.end_distance + z.ramp_out + 60.0:
+				return true
+	if graph:
+		for j in graph.jumps:
+			if j and j.branch == path and mid > j.kicker_start - j.respawn_runup - 60.0 and mid < j.landing_end + 60.0:
+				return true
+	return false

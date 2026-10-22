@@ -144,17 +144,26 @@ func _emit_base(raw: _Raw, base: TrackSampler, origin_d: float, from: float, to:
 
 func _push_base(raw: _Raw, base: TrackSampler, u: float) -> void:
 	var b := _base_at(base, u)
+	_level(b, u, base.length)
+	_push(raw, b.p, b.lup, b.bank, b.level_bw, b.wl, b.wr, b.fair, u, -1, 1)
+
+
+## Junction levelling, applied to a base sample (b.p's height, and the bank
+## weight b.level_bw). Features use it too, so a feature inside a levelling
+## ramp moves with the road under it (otherwise its ends step).
+func _level(b: Dictionary, u: float, L: float) -> void:
 	var bw := 1.0
 	var p: Vector3 = b.p
 	for sp in level_spans:
-		var d := _outside(sp, u, base.length)
+		var d := _outside(sp, u, L)
 		bw = minf(bw, TrackFeature.smoothstep01(d / LEVEL_RAMP))
 		var hw := 1.0 - TrackFeature.smootherstep01(d / float(sp.ramp))
 		if hw > 0.0:
 			var y := lerpf(p.y, sp.y, hw)
 			levelled_max = maxf(levelled_max, absf(y - p.y))
 			p.y = y
-	_push(raw, p, b.lup, b.bank, bw, b.wl, b.wr, b.fair, u, -1, 1)
+	b.p = p
+	b.level_bw = bw
 
 
 ## Metres from base distance `u` to the span (0 inside it).
@@ -175,11 +184,12 @@ func _emit_feature(raw: _Raw, base: TrackSampler, origin_d: float, it: Dictionar
 	for k in sh.size():
 		var u: float = origin_d + it.rel0 + sh.x[k]
 		var b := _base_at(base, u)
+		_level(b, u, base.length)
 		var right := TrackSampler.right_of(b.t, b.lup)
 		var pos: Vector3 = b.p + right * sh.y[k] + b.lup * sh.h[k]
 		var c := sh.up[k]
 		var up: Vector3 = right * c.x + b.lup * c.y + b.t * c.z
-		var idx := _push(raw, pos, up, b.bank, sh.bank_w[k], b.wl, b.wr, 0.0, u, fi, sh.road[k])
+		var idx := _push(raw, pos, up, b.bank, sh.bank_w[k] * b.level_bw, b.wl, b.wr, 0.0, u, fi, sh.road[k])
 		if k == 0:
 			it.raw0 = idx
 		if k == sh.size() - 1:

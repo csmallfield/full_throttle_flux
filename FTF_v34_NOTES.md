@@ -21,12 +21,18 @@ Done so far:
   Features are placed like keys and the builder fits them onto the curve you
   drew. A **Clear build** button removes everything the builder generated.
   `measure_jumps` flies the real ship off each jump to set its `clean_speed`.
+- **Step 4: the race checks.** An estimated racing speed along the lap (the
+  AI's own performance model) and limits measured on the four gameworthy
+  circuits: cornering, kinks, grade, crests, jump speeds, clearance overhead,
+  start and grid, junction width, branch ends, respawn coverage. A
+  self-test breaks Builder Lab on purpose eleven ways and checks each fault
+  is caught (11/11).
 - **Builder Lab** (`scenes/tracks/builder_lab.tscn`, in the manifest): an
   8.9 km test lap made with the tools: a jump, a loop, a roll, and a
   corner-cut shortcut over a bigger jump. All validator checks pass.
 
-Coming: the rest of the validator (step 4), AI training and the full
-acceptance run on Builder Lab (step 5), `docs/TRACK_AUTHORING.md` (step 6).
+Coming: AI training and the full acceptance run on Builder Lab (step 5),
+`docs/TRACK_AUTHORING.md` (step 6).
 
 ## Decisions taken with Chris (step 1)
 
@@ -259,10 +265,86 @@ point), then built with the tools.
 | Surface | 4,923 rays main + 333 branch, max height error 0.014 m |
 | Bank delivered | max 0.38° main, 0.05° branch |
 
+## Step 4: the race checks
+
+### Limits measured on the circuits
+
+`tools/track_builder/measure_circuits.gd` samples each circuit's MainSpline
+(the offset is a rigid rotation, so curvature is unaffected) and an
+estimated racing speed (below):
+
+| | Utopia | Swoopy | Hairpin Alley | The Drop | Builder Lab |
+|---|---|---|---|---|---|
+| Cornering at 110 u/s, p99 / max | 11.7 / 18.2 g | 12.3 / 19.8 g | 14.2 / 34.7 g | 12.2 / 21.6 g | 2.1 / 2.9 g |
+| Curvature step ("kink"), p99 / max | 0.75 / 3.6 g/m | 0.75 / 3.1 | 0.75 / 5.8 | 0.46 / 2.9 | 0.06 / 0.1 |
+| Grade, p99 / max | 37 / 45% | 43 / 48% | 16 / 33% | 111 / 113% | 5 / 6% |
+| Crest demand at racing speed, max | 34 u/s² | 101 | 85 | 82 | 5 |
+
+The raw maxima are spline kinks: the circuits' sparse control points give
+radii down to 14 m and grades to 113%, which no ship feels. So the limits use
+the percentiles, and kinks get their own check. The Drop really is steep.
+
+Swoopy's organic exits (v33: ~6,350 m at 90–110 u/s, ~7,645 m climbing at
+33–65 u/s) are **not** crest launches: the worst crest near 6,350 needs ~7 u/s²
+beyond gravity at the estimated speed, and ~108 u/s² at 100 u/s, well inside
+gravity + the hover spring's pull (~225 u/s², "the crest glue" in v31). v33's
+own description (ships go over the outside wall) is a lateral problem. The
+crest check catches real launches; it won't explain Swoopy.
+
+### The checks
+
+| Check | Rule | Why |
+|---|---|---|
+| Cornering | over 15 g at 110 u/s (radius ~32 m) warns | tighter than 99% of the circuits' corners |
+| Kinks | curvature stepping over 1.0 g/m warns | circuits' p99 is 0.75; a faired builder track ~0.1 |
+| Grade | over 50% warns | only The Drop goes steeper |
+| Crests | demand over 110 u/s² warns, over 200 errors | beyond any circuit / close to gravity + hover pull (a launch) |
+| Jumps | racing speed at the lip under clean_speed + 5: main route error, branch warning | a must-make jump vs a choice (the AI judges a branch jump itself) |
+| Jump run-up | respawn_runup under 250 m warns; the AI model's standing start under clean_speed errors | Fork Lab measured 150–220 m; the AI's acceleration model says ~60 m (it leaves out the respawn settle and throttle response), so the measured rule leads |
+| Clearance | anything of this track within 10 m above its road (centre, ±60%) errors | loop exits, over/unders, overhangs |
+| Start and grid | grid area over 3% grade or 1 g at 110 (radius ~480 m) warns; a slot with no road under it errors | the handoff's "straight, level stretch" |
+| Junctions | main road not standard width inside one errors; a feature within 60 m of one warns | TrackJunction is fixed at 21.5 m; the junction levels the road |
+| Branch ends | more than 0.05 m / 0.5° off the main spline errors | the handoff's numbers |
+| Respawns (headless) | a point with no road under it errors; a gap over 2 × spacing not explained by a zone or a jump warns | uses the real TrackRespawnManager (not a tool script, so not in the editor) |
+
+The speed estimate (`TrackSpeedProfile`): each sample's limit is
+`ShipPerformanceModel.corner_speed()` of the curvature the ship must steer in
+the road's own plane, then a forward pass (full throttle) and a backward pass
+(braking), twice round the lap. Zones and jumps are left at top speed. Builder
+Lab: 74.5 s estimated vs 76.3–80.6 s raced by the untrained AI.
+
+### What the self-test found
+
+`tools/track_builder/validator_selftest.gd` loads Builder Lab, breaks it one
+way at a time (kink, grid on a bend, short respawn run-up, narrow junction,
+geometry overhead, feature in a junction, branch drawn off the road, roll
+too short, sharp crest, moved geometry), rebuilds in memory and checks the
+validator says so. 11/11 after these fixes:
+
+- **A step at a feature's end inside a junction's levelling ramp.** The
+  fork's levelling reached back over the roll's exit, but only base samples
+  were levelled, not the feature's mapped samples: a 5.7 cm step, read as a
+  103 u/s² "crest". Features are now levelled with the road under them
+  (crest on the clean track: 5 u/s²).
+- **Cap faces at the lap seam.** With the road in pieces (jumps), the two
+  pieces meeting at the seam each had an end cap: vertical faces flush with
+  the road, which a ray landing exactly on the seam hit (a 90° "normal"). A
+  ship's hover ray could too. Welded seam ends now get no cap.
+- **The roll's bank between control points** came within 0.01° of the 0.5°
+  limit on some rebuilds. Inside features a point now goes in every 0.5° of
+  turn (was 1°): max 0.26°.
+- **Test harness:** `load()` returns the cached PackedScene, whose curves the
+  build writes into, so one case's damage carried into the next. The
+  self-test loads uncached. (The editor isn't affected: the open scene owns
+  its resources.)
+
+The route lap is now sparser (2° / 20 m; it's logic only): Builder Lab's
+scene is 460 KB (was 618).
+
 ## Regressions
 
-Before any change, all 11 handoff baselines matched exactly. After steps 2
-and 3, all 11 are unchanged (the only runtime change is the opt-in width
+Before any change, all 11 handoff baselines matched exactly. After steps 2,
+3 and 4, all 11 are unchanged (the only runtime change is the opt-in width
 profile and seam weld in `TrackRoadSegment`):
 
 | Track | AI race checksum | Rig checksum |
@@ -273,9 +355,11 @@ profile and seam weld in `TrackRoadSegment`):
 | test_circuit_7_live | 133359682 ✓ | 2300779685 ✓ |
 | loop_lab | 3860760227 ✓ (140 s) | 3358873327 ✓ (75 s) |
 | fork_lab | 3551594432 ✓ (150 s) | — |
-| builder_lab (new) | 3536941873 (240 s) | 4274104507 (90 s) |
+| builder_lab (new) | 2868088022 (240 s) | 1277970501 (90 s) |
 
-The Builder Lab numbers are for the step 3 track (features and fork). Its
+The Builder Lab numbers are for the step 4 build (features levelled with the
+road, no seam caps, denser points in rolls, sparser route lap); after step 3
+they were 3536941873 / 4274104507, with the same race result. Its
 race, 240 s, seed 1234, 7 AI on the untrained shared bake: 2–3 laps each,
 76.3–80.6 s, **0 respawns, 0 wall contacts**, longest flight 1.17 s; the
 shortcut taken on 13 of 21 passes (62%); 38 jump attempts (25 main, 13
@@ -303,9 +387,8 @@ jumps and the main route as their own segments, no NaNs.
   main track inside a junction aren't checked yet (step 4).
 - The Report field shows the last Build/Validate until the next one, even
   after inputs change; Validate's "out of date" warning is the reliable signal.
-- Builder Lab's scene is 478 KB, about half of it the route-lap curve (a
-  whole second lap of control points, logic only). It could be emitted
-  sparser. Rebuilds are still byte-identical, so it doesn't churn.
+- Respawn coverage is only checked headless (the respawn manager isn't a
+  tool script, so it can't run inside the editor).
 - The race and rig probes run in parallel share `user://baked_lines/`; when
   both bake the same new line at once, one reads a half-written cache file
   (a parse error, then it re-bakes). Harmless, but run one probe first on a
@@ -329,6 +412,10 @@ TB_OUT=/tmp/shots xvfb-run -a -s "-screen 0 1600x1000x24" godot --rendering-driv
 TB_EDITOR_SELFTEST=1 godot --headless -e --path full_throttle_flux res://scenes/tracks/builder_lab.tscn
 # measure every jump's clean_speed (flies the real ship), then rebuild and save
 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_builder/measure_jumps_boot.gd -- --scene=res://scenes/tracks/builder_lab.tscn
+# validator self-test (breaks Builder Lab 11 ways, checks each is caught)
+godot --headless --path full_throttle_flux -s res://tools/track_builder/validator_selftest_boot.gd
+# the circuits' measured limits (cornering, kinks, grade, crests)
+godot --headless --path full_throttle_flux -s res://tools/track_builder/measure_circuits_boot.gd
 # race it
 PROBE_TRACK=builder_lab PROBE_SECONDS=240 PROBE_SEED=1234 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/dev/ai_race_probe_boot.gd
 ```
