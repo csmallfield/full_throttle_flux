@@ -8,8 +8,9 @@
 [ext_resource type="Resource" uid="uid://gp4xnq86c5ko" path="res://resources/tracks/test_circuit_7_live.tres" id="6_atc04"]
 [ext_resource type="Resource" path="res://resources/tracks/loop_lab.tres" id="7_looplab"]
 [ext_resource type="Resource" path="res://resources/tracks/fork_lab.tres" id="8_forklab"]
+[ext_resource type="Resource" path="res://resources/tracks/builder_lab.tres" id="9_builderlab"]
 
 [resource]
 script = ExtResource("1_hpy4w")
-tracks = Array[ExtResource("2_01lol")]([ExtResource("3_2so11"), ExtResource("4_352ji"), ExtResource("5_4y0dv"), ExtResource("6_atc04"), ExtResource("7_looplab"), ExtResource("8_forklab")])
+tracks = Array[ExtResource("2_01lol")]([ExtResource("3_2so11"), ExtResource("4_352ji"), ExtResource("5_4y0dv"), ExtResource("6_atc04"), ExtResource("7_looplab"), ExtResource("8_forklab"), ExtResource("9_builderlab")])
 metadata/_custom_type_script = "uid://xkwdxftnktqx"

@@ -15,6 +15,9 @@ class_name BoostPad
 ## Prevents rapid re-triggering if ship lingers on pad edge.
 @export var cooldown_time := 0.5
 
+## Print every trigger to the output (off: a race with pads would flood it).
+@export var debug_log := false
+
 @export_group("Visuals")
 
 ## Base color of the boost pad glow and chevrons.
@@ -90,7 +93,8 @@ func _process(delta: float) -> void:
 		glow_light.light_energy = _base_light_energy * pulse
 
 func _on_body_entered(body: Node3D) -> void:
-	print("BoostPad: body_entered triggered with: ", body.name)
+	if debug_log:
+		print("BoostPad: body_entered triggered with: ", body.name)
 	
 	# Check if it's a ship
 	if body is ShipController:
@@ -99,16 +103,19 @@ func _on_body_entered(body: Node3D) -> void:
 		
 		# Check cooldown
 		if ship_id in _cooldown_timers:
-			print("BoostPad: Ship on cooldown, ignoring")
+			if debug_log:
+				print("BoostPad: Ship on cooldown, ignoring")
 			return
 		
-		print("BoostPad: Applying boost of ", boost_strength, " to ship")
-		print("BoostPad: Ship velocity BEFORE: ", ship.velocity, " (", ship.velocity.length(), ")")
+		if debug_log:
+			print("BoostPad: Applying boost of ", boost_strength, " to ship")
+			print("BoostPad: Ship velocity BEFORE: ", ship.velocity, " (", ship.velocity.length(), ")")
 		
 		# Apply boost (this also triggers the ship's audio controller boost effect)
 		ship.apply_boost(boost_strength)
 		
-		print("BoostPad: Ship velocity AFTER: ", ship.velocity, " (", ship.velocity.length(), ")")
+		if debug_log:
+			print("BoostPad: Ship velocity AFTER: ", ship.velocity, " (", ship.velocity.length(), ")")
 		
 		# Start cooldown
 		if cooldown_time > 0:
@@ -119,8 +126,8 @@ func _on_body_entered(body: Node3D) -> void:
 		
 		# Play boost pad's own surge sound (positional at the pad location)
 		_play_boost_sound()
-	else:
-		print("BoostPad: Body is not AGShip2097, it's: ", body.get_class())
+	elif debug_log:
+		print("BoostPad: Body is not a ShipController, it's: ", body.get_class())
 
 func _play_boost_sound() -> void:
 	if _audio_player and _audio_player.stream:

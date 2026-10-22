@@ -18,12 +18,13 @@ const TRACKS: Array[String] = [
 	"res://scenes/tracks/test_circuit_7_live.tscn",
 	"res://scenes/tracks/loop_lab.tscn",
 	"res://scenes/tracks/fork_lab.tscn",
+	"res://scenes/tracks/builder_lab.tscn",
 ]
 
 ## v32: tracks with forks train one line per ROUTE LAP (-1 = the main route,
 ## r = through branch r), saved as <track>[__route<r>]. The AI follows one
 ## route lap at a time (AIRouteFollower), so each needs its own line.
-const ROUTES := {"fork_lab": [-1, 0]}
+const ROUTES := {"fork_lab": [-1, 0], "builder_lab": [-1, 0]}
 
 const SHIP_PROFILES: Array[String] = [
 	"res://resources/ships/default_racer.tres",

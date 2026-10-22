@@ -217,6 +217,10 @@ func initialize(p_track_root: Node, p_baked_line: BakedRacingLine = null) -> voi
 	# v32: forks -- one follower per route lap (main, and through each branch).
 	if spline_helper.graph and spline_helper.graph.has_routes():
 		_setup_routes()
+	elif spline_helper.jump_graph:
+		# v34: jumps without a fork: the main lap is the only route, and the
+		# jump handling below works on it the same way.
+		route_jumps[-1] = spline_helper.jump_graph.route_jumps(-1)
 	
 	# Create control decider
 	control_decider = AIControlDecider.new()
@@ -331,12 +335,13 @@ func _physics_process(delta: float) -> void:
 	# v32: never on a kicker run-up or in the air: a swerve at the lip is a
 	# heading error the ship carries through the whole flight (measured: 17
 	# degrees off avoiding the ship ahead, flew over the landing's wall).
-	if ship_avoidance and avoidance_enabled and not (route_follower and _on_jump()):
+	if ship_avoidance and avoidance_enabled and not ((route_follower or not route_jumps.is_empty()) and _on_jump()):
 		ship_avoidance.update(delta)
 		controls = ship_avoidance.adjust_controls(controls)
 	
-	# v32: kicker run-ups and flight (tracks with jumps only).
-	if route_follower and not route_jumps.is_empty():
+	# v32: kicker run-ups and flight (tracks with jumps only; v34: with or
+	# without a fork).
+	if not route_jumps.is_empty():
 		controls = _jump_controls(controls)
 	
 	# Apply controls to ship
@@ -364,7 +369,9 @@ func _apply_controls(controls: Dictionary) -> void:
 # ROUTES: FORKS AND JUMPS (v32)
 # ============================================================================
 # Only on tracks whose TrackGraph has route laps (Fork Lab). Everywhere else
-# route_follower stays null and none of this runs.
+# route_follower stays null and none of this runs. v34: the jump handling
+# (_jump_controls, no avoidance swerves on a run-up) also runs on tracks with
+# jumps but no fork, on the main lap (route -1).
 #
 # The AI follows one ROUTE LAP at a time (main, or through a branch), each with
 # its own spline, racing line and speed profile (AIRouteFollower). Per lap it
@@ -601,9 +608,9 @@ func _jump_controls(controls: Dictionary) -> Dictionary:
 				"airbrake_left": 0.0, "airbrake_right": 0.0}
 		control_decider.hold(held)
 		return held
-	var route := route_follower.active_route()
-	var length: float = route_follower.spline_helper.total_length
-	var dr: float = route_follower.current_spline_offset * length
+	var route := _active_route()
+	var length: float = line_follower.spline_helper.total_length
+	var dr: float = line_follower.current_spline_offset * length
 	for e in route_jumps.get(route, []):
 		if _between(dr, float(e.kicker) - kicker_runup, float(e.lip) + 3.0):
 			controls.throttle = 1.0
@@ -620,12 +627,16 @@ func _on_jump() -> bool:
 		return true
 	if route_jumps.is_empty():
 		return false
-	var length: float = route_follower.spline_helper.total_length
-	var dr: float = route_follower.current_spline_offset * length
-	for e in route_jumps.get(route_follower.active_route(), []):
+	var length: float = line_follower.spline_helper.total_length
+	var dr: float = line_follower.current_spline_offset * length
+	for e in route_jumps.get(_active_route(), []):
 		if _between(dr, float(e.kicker) - kicker_runup, float(e.lip) + 3.0):
 			return true
 	return false
+
+## The route lap being followed: -1 (main) on tracks without a fork.
+func _active_route() -> int:
+	return route_follower.active_route() if route_follower else -1
 
 ## Metres from `from` forward to `d` on the main lap.
 func _ahead(d: float, from: float) -> float:
