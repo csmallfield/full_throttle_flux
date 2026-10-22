@@ -99,7 +99,7 @@ point_count = 898
 
 [sub_resource type="Resource" id="Resource_g7d43"]
 script = ExtResource("17_q2n3k")
-zone_name = "Loop (Loop)"
+zone_name = "Loop"
 start_distance = 2181.789238276879
 end_distance = 3008.6057140131334
 ramp_in = 60.0
@@ -107,7 +107,7 @@ ramp_out = 60.0
 
 [sub_resource type="Resource" id="Resource_h7qmn"]
 script = ExtResource("17_q2n3k")
-zone_name = "Roll (Roll)"
+zone_name = "Roll"
 start_distance = 4450.512
 end_distance = 5250.499171767557
 ramp_in = 50.0

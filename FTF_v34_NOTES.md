@@ -1,4 +1,4 @@
-# FTF v34: the Track Builder (in progress)
+# FTF v34: the Track Builder
 
 A way to make new tracks without the road/spline offset, with loops, barrel
 rolls, jumps and split tracks to come. Chris draws the base curve and the
@@ -31,8 +31,12 @@ Done so far:
   8.9 km test lap made with the tools: a jump, a loop, a roll, and a
   corner-cut shortcut over a bigger jump. All validator checks pass.
 
-Coming: AI training and the full acceptance run on Builder Lab (step 5),
-`docs/TRACK_AUTHORING.md` (step 6).
+- **Step 5: AI lines and acceptance.** Builder Lab's main route and shortcut
+  lines are trained on default_racer. Full 3-lap races at Easy, Medium and
+  Hard, a pushed run and the rig probe all pass (below).
+- **Step 6: the authoring guide**, `full_throttle_flux/docs/TRACK_AUTHORING.md`:
+  the rules, the workflow, each feature with its limits and why, what every
+  validator message means, adding a track to the game, training its AI.
 
 ## Decisions taken with Chris (step 1)
 
@@ -126,7 +130,7 @@ The MainSpline stays a direct child of the track root: `MagneticTrack`,
   build error, so the surface check compares the hit normal against the ideal
   extruded surface at that lateral position, not the centre-line up vector.
 
-### Builder Lab numbers
+### Builder Lab numbers (step 2: the first, 5.9 km version)
 
 | Check | Result |
 |---|---|
@@ -341,6 +345,49 @@ validator says so. 11/11 after these fixes:
 The route lap is now sparser (2° / 20 m; it's logic only): Builder Lab's
 scene is 460 KB (was 618).
 
+## Step 5: AI lines and acceptance
+
+`train_ai_lines.gd` now lists Builder Lab, with both route laps
+(`ROUTES["builder_lab"] = [-1, 0]`). Trained from a fresh bake on
+default_racer:
+
+| Line | Lap | Mean target speed |
+|---|---|---|
+| `builder_lab` (main route) | 74.15 s | 120 u/s |
+| `builder_lab__route0` (via the shortcut) | 73.22 s | 120 u/s |
+
+Both converged after one iteration: Builder Lab is flat out everywhere (its
+corners top out at 2.9 g at 110 u/s), so there's nothing for the trainer
+(or the style search, which has no route support anyway) to find. Builder
+Lab tests the features, not race craft. The shortcut is worth ~0.9 s a lap.
+
+### Acceptance runs (seed 1234; 7 AI + the parked player ship)
+
+The race probe fills the 8-ship grid with 7 AI and the player's ship
+(parked). Full 3-lap races at each difficulty:
+
+| Difficulty | Laps (best / mean flying) | Respawns | Wall contacts | Shortcut taken | Jumps (main / branch), falls |
+|---|---|---|---|---|---|
+| Easy | 78.9 / 81.1 s | 0 | 9 | 9/21 (43%) | 28 / 9, 0 |
+| Medium | 76.3 / 77.7 s | 0 | 0 | 13/21 (62%) | 28 / 13, 0 |
+| Hard | 73.2 / 74.5 s | 0 | 0 | 15/21 (71%) | 28 / 15, 0 |
+
+Fork Lab's v32 take rates were 21% / 46–60% / 76%. Longest flight 1.17 s
+(the main jump) in every race; takeoff speeds 116–120 u/s against clean
+speeds of 72 and 86.
+
+A pushed run (`PROBE_PUSH`, 70 u/s sideways + 35 up at ~140 u/s) at 1,300 m,
+the loop's exit (3,000 m), the roll's end (5,200 m) and the main route
+inside the fork (6,000 m): eight ships pushed, **none left the track**, 0
+respawns.
+
+The rig probe (90 s): no NaNs on any camera. The probe now labels magnetic
+zones before fork/jump sections (labels only; the checksum is over the
+camera transforms and every rig checksum is unchanged), so Builder Lab's
+camera flips show up where they belong, in the loop and the roll (113 / 141
+per camera, as on Loop Lab), and nowhere else except the `kamikaze` camera
+(17, as on the other tracks).
+
 ## Regressions
 
 Before any change, all 11 handoff baselines matched exactly. After steps 2,
@@ -355,11 +402,11 @@ profile and seam weld in `TrackRoadSegment`):
 | test_circuit_7_live | 133359682 ✓ | 2300779685 ✓ |
 | loop_lab | 3860760227 ✓ (140 s) | 3358873327 ✓ (75 s) |
 | fork_lab | 3551594432 ✓ (150 s) | — |
-| builder_lab (new) | 2868088022 (240 s) | 1277970501 (90 s) |
+| builder_lab (new) | 3382735449 (270 s, Medium) | 3940470676 (90 s) |
 
-The Builder Lab numbers are for the step 4 build (features levelled with the
-road, no seam caps, denser points in rolls, sparser route lap); after step 3
-they were 3536941873 / 4274104507, with the same race result. Its
+The Builder Lab numbers are for the final build with trained lines (Easy
+3682742997, Hard 435312279, both 270 s). Earlier builds' numbers are in the
+step sections; the race results were the same throughout. Its
 race, 240 s, seed 1234, 7 AI on the untrained shared bake: 2–3 laps each,
 76.3–80.6 s, **0 respawns, 0 wall contacts**, longest flight 1.17 s; the
 shortcut taken on 13 of 21 passes (62%); 38 jump attempts (25 main, 13
@@ -416,6 +463,8 @@ godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_b
 godot --headless --path full_throttle_flux -s res://tools/track_builder/validator_selftest_boot.gd
 # the circuits' measured limits (cornering, kinks, grade, crests)
 godot --headless --path full_throttle_flux -s res://tools/track_builder/measure_circuits_boot.gd
+# train its AI lines (both routes)
+godot --headless --path full_throttle_flux res://tools/train_ai_lines.tscn -- --track=builder_lab --fresh
 # race it
-PROBE_TRACK=builder_lab PROBE_SECONDS=240 PROBE_SEED=1234 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/dev/ai_race_probe_boot.gd
+PROBE_TRACK=builder_lab PROBE_SECONDS=270 PROBE_SEED=1234 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/dev/ai_race_probe_boot.gd
 ```

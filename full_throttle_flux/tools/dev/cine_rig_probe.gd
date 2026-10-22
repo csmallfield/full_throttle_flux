@@ -141,14 +141,16 @@ var gref: TrackGraph
 var gtrk: TrackGraph.Tracker
 
 func _section() -> String:
+	# v34: magnetic zones first, so a track with both zones and a TrackGraph
+	# (Builder Lab) reports its loop and roll by name. Labels only: the
+	# checksum is over the camera transforms.
+	if mt != null:
+		var d := mt.closest_distance(ship.global_position)
+		var zr := mt.zone_at(d)
+		if (zr[0] as float) >= 1.0 and zr[1] != null:
+			return (zr[1] as MagneticZone).zone_name
 	if gtrk:
 		return _graph_section()
-	if mt == null:
-		return "open"
-	var d := mt.closest_distance(ship.global_position)
-	var zr := mt.zone_at(d)
-	if (zr[0] as float) >= 1.0 and zr[1] != null:
-		return (zr[1] as MagneticZone).zone_name
 	return "open"
 
 func _measure() -> void:

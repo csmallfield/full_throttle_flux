@@ -9,7 +9,7 @@ class_name RollFeature
 ## Length sets the peak roll rate: 1.5 x 360 / length degrees per metre.
 ## 800 m gives 0.68°/m, tested on Loop Lab. 460 m (1.2°/m) was tested and
 ## rejected: the road 15 m off centre pitched about 24° and threw ships into
-## the wall. Under 772 m the validator warns (over 0.7°/m).
+## the wall. Under 720 m the validator reports an error (over 0.75°/m).
 
 enum RollDirection { RIGHT, LEFT }
 

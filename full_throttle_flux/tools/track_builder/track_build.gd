@@ -220,7 +220,7 @@ func _run(b: TrackBuilder) -> void:
 	var zones: Array[Dictionary] = []
 	for p in b.composer.placed:
 		if not p.zone.is_empty():
-			zones.append({name = "%s (%s)" % [p.node.name, p.zone.name],
+			zones.append({name = String(p.node.name),
 					from = to_main(p.marks[p.zone.from]), to = to_main(p.marks[p.zone.to]),
 					ramp_in = p.zone.ramp_in, ramp_out = p.zone.ramp_out, magnet = p.zone.magnet})
 	if not zones.is_empty():
