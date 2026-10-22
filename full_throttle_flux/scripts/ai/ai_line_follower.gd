@@ -141,6 +141,11 @@ var respect_profile_max_speed: bool = false
 # STATE
 # ============================================================================
 
+## v34: set each tick by AIContactStrategy. The lateral bias is added to the
+## aimed lateral (metres, +right); the speed cap bounds the suggested speed.
+var lateral_bias: float = 0.0
+var speed_cap: float = INF
+
 var spline_helper: TrackSplineHelper
 var baked_line: BakedRacingLine  # May be null if not baked
 var perf_model: ShipPerformanceModel  # May be null (legacy heuristics used)
@@ -494,12 +499,12 @@ func _get_baked_target(lookahead: float, ship_speed: float, _max_speed: float) -
 	var target_offset: float = spline_helper.get_lookahead_offset(current_spline_offset, lookahead)
 
 	var line_factor: float = lerpf(skill_line_factor_min, 1.0, skill_level)
-	var lateral: float = baked_line.get_lateral_at(target_offset) * line_factor
+	var lateral: float = baked_line.get_lateral_at(target_offset) * line_factor + lateral_bias
 
 	# Crosstrack feedback: cancel pure-pursuit corner-cutting by shifting the
 	# aim point opposite the current lateral tracking error.
 	if crosstrack_gain > 0.0:
-		var desired_now: float = baked_line.get_lateral_at(current_spline_offset) * line_factor
+		var desired_now: float = baked_line.get_lateral_at(current_spline_offset) * line_factor + lateral_bias
 		var actual_now: float = spline_helper.calculate_lateral_offset(
 			current_world_position, current_spline_offset, true)
 		var correction: float = clampf((desired_now - actual_now) * crosstrack_gain,
@@ -513,7 +518,7 @@ func _get_baked_target(lookahead: float, ship_speed: float, _max_speed: float) -
 	var anticipation: float = clampf(ship_speed * anticipation_t, 10.0, 90.0)
 	var raw_speed: float = baked_line.get_min_speed_ahead(current_spline_offset, anticipation)
 	var speed_margin: float = lerpf(skill_speed_margin_min, 1.0, skill_level)
-	var target_speed: float = raw_speed * speed_margin
+	var target_speed: float = minf(raw_speed * speed_margin, speed_cap)
 
 	var tangent: Vector3 = spline_helper.get_tangent_at_offset(target_offset)
 
@@ -603,8 +608,9 @@ func _get_centerline_target(lookahead: float, max_speed: float, _speed_ratio: fl
 	var centerline_pos: Vector3 = spline_helper.spline_offset_to_world(target_offset)
 
 	var world_pos: Vector3
-	if abs(cached_target_lateral_offset) > 0.1:
-		world_pos = spline_helper.spline_offset_to_world_with_lateral(target_offset, cached_target_lateral_offset)
+	var aimed_lateral: float = cached_target_lateral_offset + lateral_bias
+	if abs(aimed_lateral) > 0.1:
+		world_pos = spline_helper.spline_offset_to_world_with_lateral(target_offset, aimed_lateral)
 	else:
 		world_pos = centerline_pos
 
@@ -612,7 +618,7 @@ func _get_centerline_target(lookahead: float, max_speed: float, _speed_ratio: fl
 	var suggested_speed: float = _calculate_target_speed(max_speed)
 
 	# Honest skill margin (replaces the old flat 0.70-1.0 governor)
-	suggested_speed *= lerpf(skill_speed_margin_min, 1.0, skill_level)
+	suggested_speed = minf(suggested_speed * lerpf(skill_speed_margin_min, 1.0, skill_level), speed_cap)
 
 	return {
 		"world_position": world_pos,
