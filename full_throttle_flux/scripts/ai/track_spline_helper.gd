@@ -43,6 +43,9 @@ var magnetic: MagneticTrack = null
 ## lap progress, race positions and respawns keep working across the fork.
 ## null on every track without branches (all queries exactly as before).
 var graph: TrackGraph = null
+## v34: the TrackGraph of a track with jumps but no branches (graph stays null
+## there: nothing to map). null everywhere else.
+var jump_graph: TrackGraph = null
 
 ## v32: [start, end] distances (metres along this helper's spline) of designed
 ## jumps, kicker to landing end. Set by whoever builds a route-lap helper for
@@ -87,6 +90,11 @@ func initialize(track_root: Node) -> bool:
 	magnetic = _find_magnetic(track_root)
 	graph = _find_graph(track_root)
 	if graph and not graph.has_branches():
+		# v34: jumps on a track without a fork: no branch mapping, but the
+		# baker, trainer and AI still need to know where the jumps are.
+		if not graph.jumps.is_empty() and graph.is_valid():
+			jump_graph = graph
+			set_jump_spans(graph, -1)
 		graph = null
 	
 	is_valid = true
