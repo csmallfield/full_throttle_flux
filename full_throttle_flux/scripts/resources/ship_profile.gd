@@ -250,6 +250,43 @@ class_name ShipProfile
 ## Below this, contact is resolved silently (gentle nudges while pack racing).
 @export var ship_collision_feedback_min_speed: float = 5.0
 
+## --- v34: central contact resolver (ShipContactRules). None of these can
+## change a solo lap time, so they are excluded from the handling hash. ---
+
+## Relative mass. Only ratios matter: a 1.5 ship displaces a 1.0 ship more
+## than it is displaced, and takes less of the velocity exchange.
+@export var mass: float = 1.0
+
+## Fraction of the closing speed exchanged in a hit (1 = full equal-mass
+## billiard exchange, which measured as a 35 u/s shunt). ~0.45.
+@export var ship_collision_exchange: float = 0.35
+
+## Closing speed (u/s) below which a contact has zero restitution (a brush
+## settles instead of bouncing) and above which restitution is fully applied.
+@export var ship_collision_bounce_from: float = 8.0
+@export var ship_collision_bounce_full: float = 30.0
+
+## Fraction of the penetration removed per tick (1 = instant, lower = softer).
+@export var ship_collision_separation: float = 0.8
+
+## Yaw kick from an off-centre hit: gain, effective radius of gyration (m)
+## and the cap on the induced yaw rate (rad/s).
+@export var ship_collision_yaw_gain: float = 0.25
+@export var ship_collision_yaw_radius: float = 2.5
+@export var ship_collision_yaw_max: float = 0.9
+
+## Per-second decay rate of the induced yaw rate (the twitch dies out).
+@export var ship_collision_yaw_decay: float = 4.0
+
+## While touching: damping rate (per second) of relative tangential velocity,
+## so ships lean on each other instead of chattering apart.
+@export var ship_collision_tangent_damping: float = 6.0
+
+## While a ship on the throttle leans into another: fraction of its thrust
+## handed to the other ship, and its own speed loss (u/s per second) for it.
+@export var ship_collision_push_gain: float = 0.12
+@export var ship_collision_push_drag: float = 4.0
+
 ## Downward force when ship is airborne.
 @export var gravity: float = 25.0
 
@@ -336,6 +373,12 @@ const NON_HANDLING_PROPERTIES := [
 	"rumble_position_intensity", "rumble_rotation_intensity", "rumble_frequency",
 	# audio and feedback thresholds
 	"wall_scrape_min_speed", "ship_collision_feedback_min_speed",
+	# v34 ship-to-ship contact (never touched on a solo lap)
+	"mass", "ship_collision_exchange", "ship_collision_bounce_from",
+	"ship_collision_bounce_full", "ship_collision_separation",
+	"ship_collision_yaw_gain", "ship_collision_yaw_radius", "ship_collision_yaw_max",
+	"ship_collision_yaw_decay", "ship_collision_tangent_damping",
+	"ship_collision_push_gain", "ship_collision_push_drag",
 ]
 
 ## Short, stable fingerprint of everything about this profile that can change

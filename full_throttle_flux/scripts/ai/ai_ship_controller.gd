@@ -75,6 +75,9 @@ var spline_helper: TrackSplineHelper
 var line_follower: AILineFollower
 var control_decider: AIControlDecider
 var ship_avoidance: AIShipAvoidance  # NEW: Avoidance component
+## v34: contact strategy (intent-based traffic), replaces ship_avoidance
+## unless FTF_AI_CONTACT=legacy.
+var contact_strategy: AIContactStrategy = null
 var baked_line: BakedRacingLine  # v4: optimized line + speed profile
 var perf_model: ShipPerformanceModel  # v4: honest ship limits
 
@@ -229,8 +232,12 @@ func initialize(p_track_root: Node, p_baked_line: BakedRacingLine = null) -> voi
 	
 	# Create avoidance component (NEW)
 	if avoidance_enabled:
-		ship_avoidance = AIShipAvoidance.new()
-		ship_avoidance.initialize(ship, skill_level)
+		if OS.get_environment("FTF_AI_CONTACT") == "legacy":
+			ship_avoidance = AIShipAvoidance.new()
+			ship_avoidance.initialize(ship, skill_level)
+		else:
+			contact_strategy = AIContactStrategy.new()
+			contact_strategy.initialize(ship, spline_helper, line_follower, skill_level, track_root)
 	
 	# Setup debug visualization
 	if debug_draw_enabled:
@@ -243,7 +250,7 @@ func initialize(p_track_root: Node, p_baked_line: BakedRacingLine = null) -> voi
 	is_initialized = true
 	
 	# Print initialization summary
-	var avoidance_status := "enabled" if avoidance_enabled else "disabled"
+	var avoidance_status := ("strategy" if contact_strategy else "enabled") if avoidance_enabled else "disabled"
 	var ship_id: String = ship.profile.ship_id if ship and ship.profile else "?"
 	print("AIShipController: %s on %s -> line: %s (skill %.2f, avoidance %s)" % [
 		ship_id, _guess_track_id(), line_source, skill_level, avoidance_status])
@@ -295,6 +302,8 @@ func set_race_ships(ships: Array[ShipController]) -> void:
 	_race_ships = ships
 	if ship_avoidance:
 		ship_avoidance.set_race_ships(ships)
+	if contact_strategy:
+		contact_strategy.set_race_ships(ships)
 	total_race_ships = ships.size()
 
 func update_race_position(position: int, total: int = -1) -> void:
@@ -308,6 +317,8 @@ func update_race_position(position: int, total: int = -1) -> void:
 	
 	if ship_avoidance:
 		ship_avoidance.update_race_position(position, total_race_ships)
+	if contact_strategy:
+		contact_strategy.update_race_position(position, total_race_ships)
 
 # ============================================================================
 # MAIN UPDATE LOOP
@@ -327,6 +338,15 @@ func _physics_process(delta: float) -> void:
 	# Apply per-sample style gains before deciding, so the controller uses
 	# the technique that measured fastest for THIS part of the track.
 	_apply_style_gains()
+	
+	# v34: contact strategy biases the follower's lateral target and speed cap
+	# BEFORE the decider runs, so the decider stays the only steering law.
+	if contact_strategy and avoidance_enabled and not (route_follower and _on_jump()):
+		contact_strategy.update(delta)
+	elif contact_strategy:
+		contact_strategy.lateral_bias = 0.0
+		line_follower.lateral_bias = 0.0
+		line_follower.speed_cap = INF
 	
 	# Get base control decisions (racing line following)
 	var controls := control_decider.decide_controls(delta)
@@ -681,6 +701,8 @@ func set_skill(new_skill: float) -> void:
 		control_decider.set_skill(skill_level)
 	if ship_avoidance:
 		ship_avoidance.set_skill(skill_level)
+	if contact_strategy:
+		contact_strategy.set_skill(skill_level)
 	
 	# Print current hint weight for debugging
 	if control_decider:
@@ -690,9 +712,14 @@ func set_avoidance_enabled(enabled: bool) -> void:
 	"""Enable or disable ship avoidance at runtime."""
 	avoidance_enabled = enabled
 	
-	if enabled and not ship_avoidance and ship:
-		ship_avoidance = AIShipAvoidance.new()
-		ship_avoidance.initialize(ship, skill_level)
+	if enabled and not ship_avoidance and not contact_strategy and ship:
+		if OS.get_environment("FTF_AI_CONTACT") == "legacy":
+			ship_avoidance = AIShipAvoidance.new()
+			ship_avoidance.initialize(ship, skill_level)
+		elif spline_helper and line_follower:
+			contact_strategy = AIContactStrategy.new()
+			contact_strategy.initialize(ship, spline_helper, line_follower, skill_level, track_root)
+			contact_strategy.set_race_ships(ship_avoidance.all_race_ships if ship_avoidance else [])
 
 func get_current_spline_offset() -> float:
 	"""Get the AI's current position on the track (0-1)."""

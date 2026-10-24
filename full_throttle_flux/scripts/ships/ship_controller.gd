@@ -176,6 +176,10 @@ const SHIP_COLLISION_FEEDBACK_INTERVAL := 0.25
 # Debug collision system (set to true to see collision details)
 var debug_collisions: bool = false
 
+## v34: yaw rate (rad/s, + = left) induced by ship-to-ship hits. Set by
+## ShipContactRules, integrated in _apply_contact_yaw(), decays per profile.
+var contact_yaw_rate: float = 0.0
+
 # ============================================================================
 # CACHED PROFILE VALUES (for performance)
 # ============================================================================
@@ -222,6 +226,7 @@ var _wall_rotation_force: float
 var _ship_collision_restitution: float
 var _ship_collision_max_impulse: float
 var _ship_collision_feedback_min_speed: float
+var _contact_yaw_decay: float
 var _gravity: float
 var _slope_gravity_factor: float
 var _collision_shake_enabled: bool
@@ -252,6 +257,8 @@ func _ready() -> void:
 	_setup_hover_ray()
 	_setup_audio_controller()
 	_setup_ship_collision_layer()
+	add_to_group(ShipContactResolver.GROUP)
+	ShipContactResolver.ensure(get_tree())
 	
 	# Initialize safe position to starting position
 	last_safe_position = global_position
@@ -317,6 +324,7 @@ func _apply_profile() -> void:
 	_ship_collision_restitution = profile.ship_collision_restitution
 	_ship_collision_max_impulse = profile.ship_collision_max_impulse
 	_ship_collision_feedback_min_speed = profile.ship_collision_feedback_min_speed
+	_contact_yaw_decay = profile.ship_collision_yaw_decay
 	_gravity = profile.gravity
 	_slope_gravity_factor = profile.slope_gravity_factor
 	_collision_shake_enabled = profile.collision_shake_enabled
@@ -396,6 +404,7 @@ func _set_default_values() -> void:
 	_ship_collision_restitution = 0.35
 	_ship_collision_max_impulse = 40.0
 	_ship_collision_feedback_min_speed = 5.0
+	_contact_yaw_decay = 4.0
 	_gravity = 25.0
 	_slope_gravity_factor = 0.8
 	_collision_shake_enabled = true
@@ -459,6 +468,8 @@ func _setup_hover_ray() -> void:
 		# Detect both ground (Layer 1) and ships (Layer 2)
 		# Prevents hovering on top of another ship
 		hover_ray.collision_mask = 3  # 1 (ground) + 2 (ships)
+		if not ShipContactResolver.legacy_mode():
+			hover_ray.collision_mask = 1  # v34: ships never block the hover ray
 
 func _setup_audio_controller() -> void:
 	if not audio_controller:
@@ -471,8 +482,13 @@ func _setup_ship_collision_layer() -> void:
 	"""Enable ship-to-ship collisions via CharacterBody3D."""
 	# Ships are on layer 2, walls on layer 4
 	# Mask needs ground (1) + ships (2) + walls (4) = 7
-	if collision_mask & 2 == 0:
-		collision_mask = collision_mask | 2
+	if ShipContactResolver.legacy_mode():
+		if collision_mask & 2 == 0:
+			collision_mask = collision_mask | 2
+	else:
+		# v34: ship-to-ship contact is resolved centrally by ShipContactResolver;
+		# move_and_slide() must not see other ships at all.
+		collision_mask = collision_mask & ~2
 
 # ============================================================================
 # MAIN PHYSICS LOOP
@@ -493,6 +509,7 @@ func _physics_process(delta: float) -> void:
 	_apply_hover_force(delta)
 	_apply_thrust(delta)
 	_apply_steering(delta)
+	_apply_contact_yaw(delta)
 	_apply_airbrakes(delta)
 	_apply_grip(delta)          # v8: every frame, not only while steering
 	_apply_pitch(delta)
@@ -630,6 +647,7 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 	_prev_forward = -global_transform.basis.z
 	_prev_forward_speed = 0.0
 	_boost_overspeed = 0.0
+	contact_yaw_rate = 0.0
 	hover_time_accumulator = 0.0
 	hover_yaw_accumulator = 0.0
 	hover_roll_accumulator = 0.0
@@ -962,6 +980,14 @@ func _apply_steering(delta: float) -> void:
 	
 	rotate_object_local(Vector3.UP, steer_torque)
 
+## v34: integrate and decay the yaw induced by ship-to-ship hits.
+func _apply_contact_yaw(delta: float) -> void:
+	if absf(contact_yaw_rate) < 0.001:
+		contact_yaw_rate = 0.0
+		return
+	rotate_object_local(Vector3.UP, contact_yaw_rate * delta)
+	contact_yaw_rate *= _decay(exp(-_contact_yaw_decay), delta)
+
 ## v8 rewrite. Two separate jobs that v1 conflated into one lerp:
 ##   grip  -- ROTATES the velocity toward the ship's facing, magnitude
 ##            preserving. This is the ship "biting".
@@ -1279,6 +1305,11 @@ func _resolve_ship_contact(other_ship: ShipController, normal: Vector3) -> void:
 			closing_speed, impulse_mag, normal
 		])
 
+## v34: called by ShipContactResolver once per contact episode on a hit.
+func notify_ship_contact(other_ship: ShipController, impact_speed: float) -> void:
+	_play_ship_collision_feedback(impact_speed)
+	ship_collision.emit(other_ship, impact_speed)
+
 func _play_ship_collision_feedback(impact_speed: float) -> void:
 	"""Play audio and camera shake for ship collision (rate-limited)."""
 	if _ship_collision_feedback_cooldown > 0.0:
@@ -1450,6 +1481,12 @@ func get_speed_ratio_raw() -> float:
 ## How far above max_speed the ship is currently allowed to run (boost).
 func get_boost_overspeed() -> float:
 	return _boost_overspeed
+
+func set_boost_overspeed(v: float) -> void:
+	_boost_overspeed = maxf(v, 0.0)
+
+func get_thrust_power() -> float:
+	return _thrust_power
 
 func get_max_speed() -> float:
 	return _max_speed
