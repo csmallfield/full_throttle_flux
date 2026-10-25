@@ -33,12 +33,14 @@ var thrust: Array[TrailRibbon] = []
 var air_left: TrailRibbon
 var air_right: TrailRibbon
 var dust: ShipDust
+var impacts: ShipImpacts
 
 var _thrust_level: float = 0.0
 var _boost_level: float = 0.0
 var _air_l_level: float = 0.0
 var _air_r_level: float = 0.0
 var _bind_timer: float = 0.0
+var _layer_timer: float = 0.0
 
 ## Profiling: microseconds spent in ShipFx._process (dust emission + driving)
 ## by ALL ships this frame. Ribbons add TrailRibbon.frame_usec on top.
@@ -76,6 +78,8 @@ func clear() -> void:
 		r.clear()
 	if dust:
 		dust.reset()
+	if impacts:
+		impacts.reset()
 
 
 func _process(delta: float) -> void:
@@ -97,6 +101,11 @@ func _process(delta: float) -> void:
 	_drive_air(delta)
 	if dust:
 		dust.update(delta, _dust_lod() * float(FxSettings.active().pick(0.4, 0.7, 1.0)))
+	if impacts:
+		impacts.sparks_enabled = lod != FxSettings.Lod.OFF
+	_layer_timer -= delta
+	if _layer_timer <= 0.0:
+		_tag_ship_layers()
 	frame_usec += Time.get_ticks_usec() - t0
 
 
@@ -118,6 +127,9 @@ func _unbind() -> void:
 		r.queue_free()
 	thrust.clear()
 	dust = null
+	if impacts:
+		impacts.disconnect_ship()
+	impacts = null
 	air_left = null
 	air_right = null
 
@@ -206,6 +218,8 @@ func _build() -> void:
 			_socket("FX_Belly", p.fallback_belly),
 			_socket("FX_Airbrake_L", p.fallback_airbrake_l),
 			_socket("FX_Airbrake_R", p.fallback_airbrake_r))
+		impacts = ShipImpacts.new(ship, probe, env, p, dust)
+	_tag_ship_layers()
 
 
 func _air_ribbon(n: String, s: Node3D, mat: Material) -> TrailRibbon:
@@ -264,6 +278,22 @@ func _make_socket(socket_name: String, offset: Vector3) -> Node3D:
 	m.position = Vector3(offset.x / sc.x, offset.y / sc.y, offset.z / sc.z)
 	parent.add_child(m)
 	return m
+
+
+## Ship meshes live on their own render layer so wall scrape marks (Decals,
+## see FxImpacts) never paint the ship that made them. Re-run now and then:
+## the visual pool can swap the mesh in mid-race.
+func _tag_ship_layers() -> void:
+	_layer_timer = 1.0
+	_tag_layers(ship)
+
+
+func _tag_layers(n: Node) -> void:
+	for c in n.get_children():
+		if c is VisualInstance3D and not c is Decal and not c is Light3D \
+				and not c is GPUParticles3D:
+			(c as VisualInstance3D).layers = FxImpacts.SHIP_RENDER_LAYER
+		_tag_layers(c)
 
 
 ## Dust strength per LOD: the camera ship gets it all, distant ships a hint.

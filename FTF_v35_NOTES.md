@@ -419,3 +419,61 @@ ship at full dust, for ~5 script calls per frame.
 turbulence, erosion), `default_ship_fx.tres` (carrier rates, inherit,
 spread), `FxPools.CARRIER_HZ`, re-bake the atlas for a different puff
 character.
+
+# Phase 3: wall hits (sparks, wall dust, scrape marks, flash)
+
+## What's new
+
+| | |
+| --- | --- |
+| `scripts/fx/fx_impacts.gd` | **new** — race-wide, under the EnvironmentState: one spark emitter (prewarmed GPUParticles3D, velocity-aligned streaks, white-hot → orange → dull red, gravity), a ring of 96 scrape-mark Decals (25 s life, last 6 s fading; glow when fresh, cools in 1.2 s), 6 pooled OmniLights for hit flashes (0.16 s). Own RNG |
+| `scripts/fx/ship_impacts.gd` | **new** — per ship, listens to `wall_hit` / `wall_scrape`. Hit: sparks 10–80 by closing speed (40 u/s = full), flash above 25 %, a puff of the current surface kind (dust / spray / powder), a mark. Scrape: 4 sparks/s per u/s of speed carrying 80 % of the ship's velocity (they trail behind), wall dust 60 carriers/s, marks |
+| `shaders/fx/spark.gdshader` | **new** — camera-facing streak along the particle's velocity, additive HDR |
+| `tools/env/bake_scuff.py` → `assets/fx/scuff_albedo.png`, `scuff_emission.png` | **new** — scorch + bare-metal scratch lines, emission for the hot glow (seed 35) |
+| `ship_fx.gd` | builds ShipImpacts; ship meshes moved to their own render layer (19) so marks never paint the ship; re-tagged every second (the visual pool can swap meshes) |
+| `ship_fx_profile.gd` | "Wall hits (Phase 3)" group |
+| `ship_dust.gd` | `surface_amount()` public (wall puffs use it) |
+| `env_debug_overlay.gd` | impacts line (sparks / marks / flashes totals) |
+| `tools/env/render_impacts.gd` | stills: hit, scrape, scrape_side, marks_hot, marks_cold, scrape_wet. `IMPACT_CLEAN=1` = no dust, `IMPACT_LOG=1` = path + mark placement log |
+
+## How it behaves
+
+- Sparks are quenched on wet surfaces (−60 % at full wetness). At LOD OFF a
+  ship makes no sparks but still leaves marks.
+- **Continuous contact = one unbroken line.** Riding a wall really produces a
+  stream of small glancing `wall_hit`s with few `wall_scrape`s in between; at
+  first each laid a 1.4 m mark, 5–6 m apart (dotted). Now any contact within
+  0.3 s of the last (physics ticks, not wall time) bridges from the previous
+  mark to the new point; marks are laid every max(1.4 m, speed × 0.07 s), so
+  96 decals cover a long slide.
+- Marks project onto whatever is inside their 0.6 m-deep box: pillars and
+  rails at the wall get scuffed too (reads fine).
+
+## Verified
+
+- Self-test PASS: sparks on contact, marks laid and on the wall, marks skip
+  the ship layer, all 5 ship meshes on layer 19, hard hit flashes, wall
+  contact kicks up surface particles, prewarm stash 16/16. All ship FX
+  1.5–1.7 ms/frame (8 ships, 2 vCPUs).
+- Mark placement: centred within 2 cm of the wall, normal matches the wall.
+- Race checksums equal main (Utopia 3950927593, Loop Lab 3042917252).
+- Renders: hit = spray of streaks + orange flash; scrape = glowing line along
+  the wall behind the ship with sparks trailing; marks cool from an orange
+  line to faint grey scratches.
+
+## For your eye
+
+- On Utopia's near-black walls a cold mark is subtle (bright scratches only;
+  the scorch is invisible on black). Lighter walls will show the scorch.
+- With heavy dust, wall dust plus ship dust can bury the sparks at scrape
+  speed; wall dust was cut from 150 to 60 carriers/s for that. Tune
+  `scrape_dust_rate` / `hit_dust_carriers` if it's still too much.
+- Spark size (`streak_width` 0.045 m, `streak_length` 0.7 m in
+  `spark.gdshader`) was judged on a 720p software render; at 1440p+ they
+  may want to be thinner.
+
+## Knobs
+
+`default_ship_fx.tres` → Wall hits group; `FxImpacts` constants (MARKS,
+MARK_LIFE, MARK_COOL, MARK_GLOW); `spark.gdshader` uniforms; re-bake the
+scuff for a different mark look.

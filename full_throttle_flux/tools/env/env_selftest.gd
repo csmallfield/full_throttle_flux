@@ -260,6 +260,11 @@ func _test_track(track_path: String) -> void:
 	# --- into the wall ---------------------------------------------------------
 	_hits = 0
 	_scrapes = 0
+	var imp := FxImpacts.for_env(env)
+	var sparks0 := imp.sparks_total
+	var marks0 := imp.marks_total
+	var pools := FxPools.for_env(env)
+	var wall_dust0: int = pools.emitted_total[0] + pools.emitted_total[1] + pools.emitted_total[2]
 	t = 0.0
 	while t < 2.5 and _scrapes < 5:
 		_steer(ship, kit, probe.spline_distance, 1.0, 45.0)
@@ -270,6 +275,28 @@ func _test_track(track_path: String) -> void:
 	_check(_scrapes >= 1, "wall_scrape fired while sliding (%d)" % _scrapes)
 	_check(probe.seconds_since_hit() < 3.0 and probe.last_hit_point != Vector3.ZERO,
 		"probe recorded the hit point")
+	print("ENVTEST impacts")
+	_check(imp.sparks_total - sparks0 > 10, "wall contact throws sparks (%d)" % (imp.sparks_total - sparks0))
+	_check(imp.marks_total - marks0 >= 1, "scrape marks laid (%d)" % (imp.marks_total - marks0))
+	var vis_marks := 0
+	for d in imp.decals:
+		if d.visible:
+			vis_marks += 1
+			_check(d.cull_mask & FxImpacts.SHIP_RENDER_LAYER == 0, "marks skip the ship layer")
+			break
+	_check(vis_marks > 0, "a mark is on the wall")
+	var wall_dust: int = pools.emitted_total[0] + pools.emitted_total[1] + pools.emitted_total[2] - wall_dust0
+	_check(wall_dust > 0, "wall contact kicks up surface particles too (%d carriers)" % wall_dust)
+	var bad_layers := 0
+	var meshes := ship.find_children("*", "MeshInstance3D", true, false)
+	for m in meshes:
+		if (m as MeshInstance3D).layers != FxImpacts.SHIP_RENDER_LAYER:
+			bad_layers += 1
+	_check(meshes.size() > 0 and bad_layers == 0,
+		"ship meshes on their own render layer (%d meshes, %d not)" % [meshes.size(), bad_layers])
+	var hard0 := imp.flashes_total
+	ship.wall_hit.emit(ship.global_position, Vector3.RIGHT, 80.0, 60.0)
+	_check(imp.flashes_total == hard0 + 1, "hard hit flashes")
 	if fx and fx.active:
 		await _perf_pack(kit, env)
 

@@ -157,6 +157,10 @@ func _text(p: ShipEnvProbe) -> String:
 	if since < 30.0:
 		s += "wall hit  %.1f s ago  closing %.0f u/s%s\n" % [
 			since, p.last_hit_closing, "   SCRAPING" if p.scraping else ""]
+	var imp := env.get_node_or_null(FxImpacts.NODE_NAME) as FxImpacts
+	if imp:
+		s += "impacts   sparks %d  marks %d  flashes %d (race totals)\n" % [
+			imp.sparks_total, imp.marks_total, imp.flashes_total]
 	return s
 
 

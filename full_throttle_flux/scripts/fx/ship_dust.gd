@@ -64,7 +64,7 @@ func update(delta: float, lod_mult: float) -> void:
 	if probe == null or not probe.active or pools == null:
 		return
 	var p := profile
-	var amount := _surface_amount()
+	var amount := surface_amount()
 	var speed := ship.get_speed()
 	var speed_t := smoothstep(p.dust_speed_start, maxf(p.dust_speed_full, p.dust_speed_start + 1.0), speed)
 	var base := amount * speed_t * lod_mult
@@ -92,8 +92,9 @@ func update(delta: float, lod_mult: float) -> void:
 		_run(side[0], p.dust_airbrake_rate * base * g * input, delta, origin, side[3])
 
 
-## Strength of the CURRENT kind's surface, picking the kind first.
-func _surface_amount() -> float:
+## Strength of the CURRENT kind's surface, picking the kind first (also used
+## by ShipImpacts for wall puffs).
+func surface_amount() -> float:
 	var p := profile
 	if probe.frost > p.dust_frost_switch:
 		kind = FxPools.Kind.POWDER

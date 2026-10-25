@@ -81,6 +81,35 @@ class_name ShipFxProfile
 @export var spray_strength: float = 1.2
 @export var powder_strength: float = 1.0
 
+@export_group("Wall hits (Phase 3)")
+## Closing speed into the wall (u/s) that counts as a full-force hit.
+@export var hit_full_closing: float = 40.0
+## Sparks per hit, from a glancing touch to a full-force hit.
+@export var hit_sparks_min: float = 10.0
+@export var hit_sparks_max: float = 80.0
+## Fraction of ship velocity sparks keep (hit / scrape): high = they trail
+## behind the ship instead of stopping dead at the wall.
+@export_range(0.0, 1.0) var hit_spark_inherit: float = 0.5
+@export_range(0.0, 1.0) var scrape_spark_inherit: float = 0.8
+## Spark kick off the wall and random scatter, m/s.
+@export var hit_spark_kick: float = 8.0
+@export var hit_spark_scatter: float = 5.0
+## Spark stream while scraping: sparks per second per u/s of speed.
+@export var scrape_sparks_per_speed: float = 4.0
+## Sparks lost on a soaked surface (0 = none, 1 = all).
+@export_range(0.0, 1.0) var spark_wet_quench: float = 0.6
+## Flash on hits at least this hard (0..1), and its light energy at full force.
+@export_range(0.0, 1.0) var flash_min_heat: float = 0.25
+@export var flash_energy: float = 6.0
+## Dust / spray / powder carriers per hit (at full surface), and per second
+## while scraping.
+@export var hit_dust_carriers: float = 25.0
+@export var scrape_dust_rate: float = 60.0
+## Scrape marks: shortest mark (m), and seconds of travel between marks while
+## scraping (so spacing grows with speed and the decal ring lasts).
+@export var mark_min_length: float = 1.4
+@export var mark_spacing_time: float = 0.07
+
 @export_group("Fallback sockets (ship space, metres)")
 @export var fallback_thrust: PackedVector3Array = PackedVector3Array([Vector3(-0.45, -0.3, 3.7), Vector3(0.45, -0.3, 3.7)])
 @export var fallback_wingtip_l := Vector3(-1.9, -0.78, 2.1)
