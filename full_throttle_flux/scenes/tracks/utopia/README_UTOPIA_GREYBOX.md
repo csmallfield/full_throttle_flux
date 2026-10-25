@@ -95,7 +95,7 @@ The dressing is data-driven and has three levels:
 |---|---|---|
 | **Zone** | `UtopiaGreebleZone` | A stretch of the lap (`from_d`, `to_d` in Road-rail distance; it can wrap past the start), one style, `mirror` (swaps left/right rules) and `density` |
 | **Style** | `UtopiaGreebleStyle`, saved as a .tres | `bay_length`, a list of rules, and an optional `threshold_mesh` placed overhead at the start of every zone that uses the style |
-| **Rule** | `UtopiaGreebleRule` | Layer, mesh (plus an optional right-hand mesh), rhythm, side, offsets, jitter, scale, stretch and shadows |
+| **Rule** | `UtopiaGreebleRule` | Layer, mesh (plus an optional right-hand mesh), rhythm, side, offsets, jitter, scale, stretch, shadows, and (v36) upright and surface offset: see `docs/TRACK_AUTHORING.md` §3.6. They default to off, so the existing dressings rebuild unchanged |
 
 **Layers.** Each rule sits on one of five layers, and each layer uses its own rail:
 

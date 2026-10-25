@@ -41,6 +41,27 @@ class_name UtopiaGreebleRule
 ## > 0: the mesh is authored this long along Z and gets stretched to fill
 ## its slot exactly (pipes, railings, continuous trims). 0 = never stretch.
 @export var mesh_length := 0.0
+@export_group("Upright and surface")
+## How far the piece turns from the road's up toward world up, 0..1
+## (GreebleUpright). 0 = leans with the bank and slope like the road (walls,
+## panels, anything fixed to a surface); 1 = stands vertical (light poles,
+## masts, antennas: nobody builds a leaning pole). Turns about the piece's
+## attachment point. Overhead pieces ignore it: their legs stand on both walls.
+@export_range(0.0, 1.0, 0.05) var upright := 0.0
+## What upright straightens: bank and slope, the bank only (still leans
+## along hills), or the slope only (still leans with the bank).
+@export_enum("bank_and_slope", "bank", "slope") var upright_axes := "bank_and_slope"
+## Where the road tilts further than this from what upright aims for, the
+## piece is left out (an upright pole makes no sense on a loop's wall or
+## upside down). Only applies when upright > 0.
+@export_range(0.0, 90.0, 1.0, "suffix:°") var upright_limit_deg := 45.0
+## Metres along the surface's normal: + = away from the surface, - = into it
+## (to hide edges). The surface is the road for ground pieces, the wall top,
+## the inner wall face (+ = toward the track) or the outer face (+ = outward).
+@export var surface_offset := 0.0
+## When upright tilts a piece standing on a surface (ground, wall top), sink
+## it just enough that no corner of its base floats above that surface.
+@export var auto_embed := true
 @export_group("Rendering")
 @export var cast_shadows := true
 ## Leave out inside tunnels (tall or overhead pieces).

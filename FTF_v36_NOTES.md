@@ -58,9 +58,7 @@ therefore mean the same thing here.
 ## Known limits / possible next steps
 - **Live refresh re-scatters the whole track** (~0.2 s after you stop
   editing). Per-zone caching would make it instant.
-- **Outside-layer pieces in rolls.** Tall pieces (pylons, masts) turn with
-  the road and fan out around a roll. Add `skip_layers: Outside` on that
-  zone if you don't like it.
+- **Outside-layer pieces in rolls**: fixed by `upright` (below).
 - **Junction areas on the main road get no ground pieces**, because the
   junction road isn't a Road segment. The walls on the far side are still
   dressed.
@@ -68,3 +66,30 @@ therefore mean the same thing here.
   the width changes.
 - **No builder-specific presets yet.** Save-as-preset makes adding them
   quick, e.g. a cheap "speed lines" set for long straights.
+
+## Upright and surface offset (added after the first push)
+Six new fields on `UtopiaGreebleRule`, applied by `GreebleUpright`
+(`tools/utopia/greeble_upright.gd`). Both TrackGreebles and
+UtopiaZoneDresser use it, so a rule means the same in both:
+- `upright` (0..1): turns the piece from the road's up toward world up, about
+  its attachment point.
+- `upright_axes`: bank and slope, bank only, or slope only.
+- `upright_limit_deg`: past this the piece is left out (Chris's call: off
+  where world up stops making sense), and always when upside down.
+- `surface_offset`: along the layer's surface normal (road, wall top, inner
+  face, outer face); + = away, − = in.
+- `auto_embed`: sinks a tilted standing piece just enough that no base
+  corner floats.
+- Overhead pieces ignore upright.
+
+The defaults are off. Builder Lab with the old presets produced the same
+9,298 instances, and the Utopia dresser draws its random numbers in the same
+order, so the circuits' dressings rebuild unchanged.
+
+Presets now stand lamp poles and antennas upright. Masts and tall pylons
+outside the wall are upright too, with a 30° limit and a 1.5 m surface
+offset: at 45° on a 35° test bank, two pylons near the roll entry swung into
+the track and the validator caught them. On Builder Lab, 60 pieces are left
+out, all in the loop and the roll; that replaces the fan-out. Checked
+headless with `greeble_stats_boot.gd` (counts, left-out pieces, intrusions,
+and a checksum to compare code versions).

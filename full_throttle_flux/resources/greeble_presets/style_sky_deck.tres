@@ -68,6 +68,7 @@ mesh_length = 6.0
 script = ExtResource("1_o1k4d")
 layer = "wall_top"
 mesh = ExtResource("9_tefcf")
+upright = 1.0
 pattern = "x-"
 side = "left"
 
@@ -75,6 +76,7 @@ side = "left"
 script = ExtResource("1_o1k4d")
 layer = "wall_top"
 mesh = ExtResource("9_tefcf")
+upright = 1.0
 pattern = "-x"
 side = "right"
 

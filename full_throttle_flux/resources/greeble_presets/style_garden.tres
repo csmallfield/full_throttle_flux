@@ -51,6 +51,7 @@ slot_phase = 0.5
 script = ExtResource("1_xyedf")
 layer = "wall_top"
 mesh = ExtResource("7_nb0lx")
+upright = 1.0
 pattern = "x--"
 side = "left"
 
@@ -58,6 +59,7 @@ side = "left"
 script = ExtResource("1_xyedf")
 layer = "wall_top"
 mesh = ExtResource("7_nb0lx")
+upright = 1.0
 pattern = "-x-"
 slot_phase = 0.5
 side = "right"

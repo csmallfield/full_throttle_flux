@@ -1110,7 +1110,8 @@ func _check_greebles(b: TrackBuilder, root: Node) -> void:
 		_add(Sev.WARNING, node.global_position, -1.0,
 				"Greebles are out of date: the GreebleZoneKeys changed since they were written (press Build or Refresh greebles)")
 	var pl := node.placements()
-	stats["greebles"] = "%d zones, %d instances" % [node.zones.size(), pl.size()]
+	stats["greebles"] = "%d zones, %d instances, %d left out past their upright limit" % [
+			node.zones.size(), pl.size(), node.skipped_upright]
 	for it in node.intrusions(pl):
 		var z: TrackGreebleZone = node.zones[it.zi]
 		var piece := "threshold" if it.ri < 0 else _rule_label(z.style.rules[it.ri])

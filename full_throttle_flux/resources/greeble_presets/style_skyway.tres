@@ -59,6 +59,7 @@ slot_phase = 0.5
 script = ExtResource("1_2qebi")
 layer = "wall_top"
 mesh = ExtResource("8_cwuv8")
+upright = 1.0
 pattern = "x--"
 side = "left"
 
@@ -66,6 +67,7 @@ side = "left"
 script = ExtResource("1_2qebi")
 layer = "wall_top"
 mesh = ExtResource("8_cwuv8")
+upright = 1.0
 pattern = "--x"
 side = "right"
 
@@ -73,6 +75,9 @@ side = "right"
 script = ExtResource("1_2qebi")
 layer = "outside"
 mesh = ExtResource("9_ly8eo")
+upright = 1.0
+upright_limit_deg = 30.0
+surface_offset = 1.5
 
 [resource]
 script = ExtResource("10_7lik0")

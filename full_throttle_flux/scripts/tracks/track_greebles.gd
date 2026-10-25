@@ -32,7 +32,9 @@ class_name TrackGreebles
 ##
 ## Instance frame (as every Utopia greeble): -Z = direction of travel,
 ## +Y = road normal, +X = toward the track centre (right-hand pieces are
-## turned 180° about Y). Nothing collides.
+## turned 180° about Y). Nothing collides. A rule's `upright` turns its pieces
+## toward world up, `surface_offset` moves them off or into their surface
+## (GreebleUpright); pieces past a rule's upright limit are left out.
 ##
 ## Headless runs (probes, the validator) skip the scatter unless FTF_GREEBLES=1;
 ## placements() works either way.
@@ -85,6 +87,9 @@ const GROUND_MAX := 0.3
 ## Set by rebuild().
 var instance_total := 0
 var last_ms := 0.0
+## Set by placements(): pieces left out where the road tilts past their
+## rule's upright_limit_deg.
+var skipped_upright := 0
 
 var _made: Array[Node] = []
 var _style_hash := 0
@@ -172,6 +177,7 @@ func rebuild() -> void:
 ## pi, d, layer, side}.
 func placements() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
+	skipped_upright = 0
 	_infos = _path_infos()
 	for zi in zones.size():
 		var z := zones[zi]
@@ -224,7 +230,11 @@ func placements() -> Array[Dictionary]:
 					var hl := _half_length(aabb, rule, slot_len)
 					if not _available(info, z.path_index, rule.layer, side, d, hl):
 						continue
-					var xf := _place(info, rule, side, d, slot_len, aabb, rnd, si * 4)
+					var xfv: Variant = _place(info, rule, side, d, slot_len, aabb, rnd, si * 4)
+					if xfv == null:
+						skipped_upright += 1    # past the rule's upright limit
+						continue
+					var xf: Transform3D = xfv
 					if rule.layer == "ground" and _excluded(info, z.path_index, d, xf, aabb):
 						continue
 					var right := side == "R" and rule.mesh_right != null
@@ -239,7 +249,7 @@ func placements() -> Array[Dictionary]:
 				var tr := UtopiaGreebleRule.new()
 				tr.layer = "overhead"
 				tr.mesh = tm
-				var xf := _place(info, tr, "C", d0, 1.0, tm.get_aabb(), PackedFloat32Array([0.5, 0.5, 0.5, 0.5]), 0)
+				var xf: Transform3D = _place(info, tr, "C", d0, 1.0, tm.get_aabb(), PackedFloat32Array([0.5, 0.5, 0.5, 0.5]), 0)
 				out.append({zi = zi, ri = -1, variant = 0, mesh = tm, shadows = true,
 						xf = xf, pi = z.path_index, d = d0, layer = "overhead", side = "C"})
 	return out
@@ -458,17 +468,22 @@ func _rail(info: Dictionary, layer: String, side: String, d: float, lateral: flo
 ## Instance transform for a rule at distance d. rnd[o..o+3] = jitter x/y/z
 ## and scale, in 0..1.
 func _place(info: Dictionary, rule: UtopiaGreebleRule, side: String, d: float, slot_len: float,
-		aabb: AABB, rnd: PackedFloat32Array, o: int) -> Transform3D:
+		aabb: AABB, rnd: PackedFloat32Array, o: int) -> Variant:
 	var F := _frame(info, d)
 	var r := _rail(info, rule.layer, side, d, rule.lateral, aabb)
 	var p: Vector3 = r[0]
 	var inward := F.basis
 	if side == "R":
 		inward = F.basis * Basis(Vector3.UP, PI)
+	# Upright: turn toward world up about the attachment point, or leave the
+	# piece out where the road tilts past the rule's limit.
+	var ori := GreebleUpright.orient(rule, inward)
+	if not ori[0]:
+		return null
 	var j := rule.jitter
 	var off := rule.offset + Vector3((rnd[o] * 2.0 - 1.0) * j.x, (rnd[o + 1] * 2.0 - 1.0) * j.y,
 			(rnd[o + 2] * 2.0 - 1.0) * j.z)
-	var b := inward * Basis.from_euler(rule.rotation_deg * (PI / 180.0))
+	var b := (ori[1] as Basis) * Basis.from_euler(rule.rotation_deg * (PI / 180.0))
 	var s := lerpf(rule.scale_min, rule.scale_max, rnd[o + 3])
 	var sc := Vector3(s * float(r[1]), s, s)
 	if rule.mesh_length > 0.0:
@@ -485,7 +500,14 @@ func _place(info: Dictionary, rule: UtopiaGreebleRule, side: String, d: float, s
 		var pa: Vector3 = Fa.origin + Fa.basis * (_rail(info, rule.layer, side, da, rule.lateral, aabb)[0] as Vector3)
 		var pb: Vector3 = Fb.origin + Fb.basis * (_rail(info, rule.layer, side, db, rule.lateral, aabb)[0] as Vector3)
 		sc.z = pa.distance_to(pb) / rule.mesh_length
-	return Transform3D(b.scaled_local(sc), F.origin + F.basis * p + inward * off)
+	var bs := b.scaled_local(sc)
+	var origin := F.origin + F.basis * p + inward * off \
+			+ GreebleUpright.surface_normal(rule.layer, inward) * rule.surface_offset
+	# (Only pieces standing on a surface: ground and wall top. Wall-mounted
+	# pieces hang off a vertical face; use surface_offset for those.)
+	if rule.auto_embed and ori[1] != inward and rule.layer in ["ground", "wall_top"]:
+		origin -= bs.y.normalized() * GreebleUpright.embed_depth(bs, aabb, inward.y.normalized())
+	return Transform3D(bs, origin)
 
 
 static func _overlaps(b: AABB, lo: Vector3, hi: Vector3) -> bool:

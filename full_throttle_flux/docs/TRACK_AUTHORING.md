@@ -262,6 +262,27 @@ gantries, trusses, portals) are stretched to span the road where WidthKeys
 narrow or widen it. Stretched rules (`mesh_length`) fill their slot as
 measured along their own rail: longer on the outside of a bend.
 
+**Upright and surface offset.** Each rule also has these settings, in the
+rule's *Upright and surface* group:
+
+| Setting | Default | What it does |
+|---|---|---|
+| `upright` | 0 | 0 = the piece leans with the road (anything fixed to a surface). 1 = it stands vertical (light poles, masts, antennas). In between = part way. It turns about its attachment point. Overhead pieces ignore it, since their legs stand on both walls |
+| `upright_axes` | bank and slope | What it straightens: both, the bank only (still leans along hills) or the slope only (still leans with the bank) |
+| `upright_limit_deg` | 45° | Where the road tilts further than this from what `upright` aims for, the piece is left out. That covers loop walls, rolls and upside-down road. Only applies when `upright` is above 0 |
+| `surface_offset` | 0 m | Along the surface's normal: + = away from it, − = into it, to hide edges. The surface is the road, the wall top, the inner face (+ = toward the track) or the outer face (+ = outward) |
+| `auto_embed` | on | When `upright` tilts a piece standing on the road or a wall top, it's sunk just enough that no corner of its base floats |
+
+The presets use it for the tall freestanding pieces:
+
+- Lamp poles and antennas: `upright` 1.
+- Masts and tall pylons outside the wall: `upright` 1 with a 30° limit and
+  `surface_offset` 1.5 m. Upright, they'd otherwise clip the leaning wall
+  above or below their attachment point on a steep bank.
+
+The validator reports how many pieces the limits left out, and it flags
+anything that `upright` swings into the track.
+
 **Where pieces are left out:**
 
 - Each piece only goes where its surface exists: ground on the road, wall
@@ -390,6 +411,8 @@ godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_b
 godot --headless --path full_throttle_flux -s res://tools/track_builder/validator_selftest_boot.gd
 # what a boost pad does to default_racer, against the validator's model
 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_builder/measure_boost_boot.gd
+# greebles headless: counts, pieces left out by upright limits, intrusions, a checksum
+godot --headless --path full_throttle_flux -s res://tools/track_builder/greeble_stats_boot.gd -- --scene=res://scenes/tracks/<id>.tscn
 # greebles: chase-camera shots at every zone, plus scatter stats (needs a display)
 TB_SCENE=res://scenes/tracks/<id>.tscn TB_OUT=/tmp/shots xvfb-run -s "-screen 0 1600x900x24" \
   godot --rendering-driver opengl3 --path full_throttle_flux -s res://tools/track_builder/greeble_shots_boot.gd

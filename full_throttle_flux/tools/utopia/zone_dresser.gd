@@ -86,7 +86,10 @@ func rebuild() -> void:
 				if rule.avoid_tunnels and _in_tunnel(road_d):
 					continue
 				for side in _sides(rule, z):
-					var xf := _place(rule, side, road_d, slot_len, rng)
+					var xfv: Variant = _place(rule, side, road_d, slot_len, rng)
+					if xfv == null:
+						continue    # past the rule's upright limit
+					var xf: Transform3D = xfv
 					var key := int(road_d / chunk_length)
 					var target: Dictionary = chunks_r if (split_r and side == "R") else chunks
 					if not target.has(key):
@@ -130,7 +133,9 @@ func _sides(rule: UtopiaGreebleRule, z: UtopiaGreebleZone) -> Array:
 	return ["L", "R"]
 
 ## Instance transform for a rule at a road distance.
-func _place(rule: UtopiaGreebleRule, side: String, road_d: float, slot_len: float, rng: RandomNumberGenerator) -> Transform3D:
+## Instance transform for a rule at a road distance, or null where the road
+## tilts past the rule's upright limit (GreebleUpright).
+func _place(rule: UtopiaGreebleRule, side: String, road_d: float, slot_len: float, rng: RandomNumberGenerator) -> Variant:
 	var rail := "Road"
 	if LAYER_RAIL.has(rule.layer):
 		rail = LAYER_RAIL[rule.layer] + side
@@ -141,12 +146,19 @@ func _place(rule: UtopiaGreebleRule, side: String, road_d: float, slot_len: floa
 	var o := rule.offset + Vector3(rng.randf_range(-1, 1) * rule.jitter.x, rng.randf_range(-1, 1) * rule.jitter.y, rng.randf_range(-1, 1) * rule.jitter.z)
 	if side != "C" and rule.layer == "ground":
 		o.x -= rule.lateral
-	var b := f.basis * Basis.from_euler(rule.rotation_deg * (PI / 180.0))
 	var s := rng.randf_range(rule.scale_min, rule.scale_max)
+	var ori := GreebleUpright.orient(rule, f.basis)
+	if not ori[0]:
+		return null
+	var b := (ori[1] as Basis) * Basis.from_euler(rule.rotation_deg * (PI / 180.0))
 	var sc := Vector3.ONE * s
 	if rule.mesh_length > 0.0:
 		sc.z = slot_len / rule.mesh_length
-	return Transform3D(b.scaled_local(sc), f.origin + f.basis * o)
+	var bs := b.scaled_local(sc)
+	var origin := f.origin + f.basis * o + GreebleUpright.surface_normal(rule.layer, f.basis) * rule.surface_offset
+	if rule.auto_embed and ori[1] != f.basis and rule.layer in ["ground", "wall_top"]:
+		origin -= bs.y.normalized() * GreebleUpright.embed_depth(bs, rule.mesh.get_aabb(), f.basis.y.normalized())
+	return Transform3D(bs, origin)
 
 ## Clean rail frame at rail distance d: -Z travel, +Y road normal, +X right.
 func _frame(rail: String, d: float) -> Transform3D:
