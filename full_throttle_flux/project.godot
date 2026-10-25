@@ -27,6 +27,7 @@ GameManager="*res://scripts/autoload/game_manager.gd"
 RaceManager="*res://scripts/race_manager.gd"
 AudioManager="*res://scripts/audio_manager.gd"
 MusicPlaylistManager="*res://scripts/music_playlist_manager.gd"
+GraphicsSettings="*res://scripts/rendering/graphics_settings.gd"
 
 [display]
 
@@ -138,5 +139,7 @@ pitch_down={
 textures/canvas_textures/default_texture_filter=2
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_2d=1
-anti_aliasing/quality/msaa_3d=1
+anti_aliasing/quality/msaa_3d=2
 anti_aliasing/quality/screen_space_aa=2
+lights_and_shadows/directional_shadow/size=8192
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
