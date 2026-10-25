@@ -310,11 +310,12 @@ func _dust_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
 	if fx.dust == null:
 		return
 	var pools := FxPools.for_env(env)
-	_check(pools != null and pools.emitters.size() == 3, "three race pools (dust, spray, powder)")
+	_check(pools != null and pools.carriers.size() == 3 and pools.puffs.size() == 3, "three looks, each carriers + puffs")
+	_check(str(pools.carriers[0].sub_emitter) != "", "carriers feed the puff emitter (sub-emitter set)")
 	env.apply_weather(null, true)   # clear; the test TrackEnvironment has dust 0.3
 	var counts := await _drive_count(ship, kit, probe, pools, 2.0, 0.0, 0.0)
-	_check(fx.dust.kind == FxPools.Kind.DUST and counts[0] > 20 and counts[1] < 10,
-		"dry: dust %d, spray %d (2 s; first tick may still see rain)" % [counts[0], counts[1]])
+	_check(fx.dust.kind == FxPools.Kind.DUST and counts[0] > 5 and counts[1] <= 2,
+		"dry: dust carriers %d, spray %d (2 s; first tick may still see rain)" % [counts[0], counts[1]])
 	var dry_ground: float = fx.dust.rates["ground"]
 	_check(dry_ground > 1.0, "ground rate %.0f/s at speed" % dry_ground)
 	counts = await _drive_count(ship, kit, probe, pools, 1.0, 1.0, 0.0)
@@ -322,11 +323,11 @@ func _dust_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
 		"left airbrake throws dust on the left only (L %.0f, R %.0f /s)" % [fx.dust.rates["brake_l"], fx.dust.rates["brake_r"]])
 	env.apply_weather(load("res://resources/weather/rain_medium.tres"), true)
 	counts = await _drive_count(ship, kit, probe, pools, 1.5, 0.0, 0.0)
-	_check(fx.dust.kind == FxPools.Kind.SPRAY and counts[1] > 20,
+	_check(fx.dust.kind == FxPools.Kind.SPRAY and counts[1] > 5,
 		"rain: spray instead of dust (spray %d, dust %d)" % [counts[1], counts[0]])
 	env.apply_weather(load("res://resources/weather/snow_medium.tres"), true)
 	counts = await _drive_count(ship, kit, probe, pools, 1.5, 0.0, 0.0)
-	_check(fx.dust.kind == FxPools.Kind.POWDER and counts[2] > 20,
+	_check(fx.dust.kind == FxPools.Kind.POWDER and counts[2] > 5,
 		"snow: powder (powder %d)" % counts[2])
 	env.apply_weather(load("res://resources/weather/dust_storm_medium.tres"), true)
 	counts = await _drive_count(ship, kit, probe, pools, 1.0, 0.0, 0.0)

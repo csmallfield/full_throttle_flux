@@ -13,14 +13,37 @@ extends Node
 ## FxPools (and later the spark and weather systems) call take() / give_back().
 ## Running out falls back to building one on the spot, with a warning.
 
-const COUNT := 12
+## Phase 2 uses 6 (carriers + puffs per look); the rest is for sparks and weather.
+const COUNT := 16
 
 static var _stash: Array[GPUParticles3D] = []
 static var _built: bool = false
+## Set once the autoload is going away (quit): nodes handed back after that are
+## freed instead of stashed, so nothing leaks at exit.
+static var _closed: bool = false
 
 
 func _ready() -> void:
 	build()
+
+
+func _exit_tree() -> void:
+	_release()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_release()
+
+
+## Nodes still in the stash were never in the tree: free them ourselves so the
+## engine doesn't report them as leaked at exit.
+static func _release() -> void:
+	_closed = true
+	for p in _stash:
+		if is_instance_valid(p):
+			p.free()
+	_stash.clear()
 
 
 ## Safe to call more than once; only the first call builds.
@@ -49,6 +72,9 @@ static func give_back(p: GPUParticles3D) -> void:
 	var parent := p.get_parent()
 	if parent:
 		parent.remove_child(p)
+	if _closed:
+		p.free()
+		return
 	p.emitting = false
 	p.process_material = null
 	p.draw_pass_1 = null

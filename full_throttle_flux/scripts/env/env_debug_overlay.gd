@@ -151,7 +151,7 @@ func _text(p: ShipEnvProbe) -> String:
 				FxPools.Kind.keys()[fx.dust.kind], rt["ground"], rt["wall_l"], rt["wall_r"],
 				rt["brake_l"], rt["brake_r"]]
 			var pools := FxPools.for_env(env)
-			s += "pools     dust %d  spray %d  powder %d emitted this frame\n" % [
+			s += "carriers  dust %d  spray %d  powder %d this frame (~30 puffs each)\n" % [
 				pools.frame_count(0), pools.frame_count(1), pools.frame_count(2)]
 	var since := p.seconds_since_hit()
 	if since < 30.0:

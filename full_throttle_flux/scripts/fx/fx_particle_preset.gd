@@ -2,42 +2,66 @@
 extends Resource
 class_name FxParticlePreset
 ## One look of ship-kicked particles (v35 Phase 2): dust, spray or snow powder.
-## FxPools builds one GPUParticles3D per preset per race from this; ships feed
-## it with emit_particle(), so the whole grid costs one draw call per look.
+##
+## Two GPU particle systems per look, per race (FxPools):
+##   CARRIERS  invisible, emitted by ships from script (emit_particle) with the
+##             ship's wake velocity; they decelerate hard and, while alive,
+##   PUFFS     spawn small textured puffs on the GPU (sub-emitter), so one
+##             script call becomes `puff_rate * carrier_lifetime` puffs.
+## Tens of thousands of small particles for the cost of a few hundred script
+## calls a second.
 
 @export var display_name: String = "Dust"
 
-@export_group("Budget")
-## Max live particles per quality tier (LOW, MEDIUM, HIGH).
-@export var amount_low: int = 1800
-@export var amount_medium: int = 3500
-@export var amount_high: int = 6000
+@export_group("Carriers")
+## Max live carriers per quality tier.
+@export var carrier_amount: int = 800
+## Seconds a carrier lives (and spawns puffs).
+@export var carrier_lifetime: float = 0.6
+## Deceleration, m/s per second: high = the plume stops close behind the ship.
+@export var carrier_damping: float = 110.0
+## Puffs each carrier spawns per second.
+@export var puff_rate: float = 50.0
 
-@export_group("Motion")
-@export var lifetime: float = 1.2
+@export_group("Puff budget")
+## Max live puffs per quality tier (LOW, MEDIUM, HIGH).
+@export var amount_low: int = 6000
+@export var amount_medium: int = 12000
+@export var amount_high: int = 24000
+
+@export_group("Puff motion")
+@export var lifetime: float = 1.8
+@export_range(0.0, 1.0) var lifetime_randomness: float = 0.4
 ## Downward pull, m/s^2 (negative = rises).
-@export var gravity: float = 0.6
-## How much the race wind (EnvironmentState) pushes the particles, m/s^2 per m/s.
+@export var gravity: float = -0.15
+## How much the race wind (EnvironmentState) pushes the puffs, m/s^2 per m/s.
 @export var wind_influence: float = 0.35
-## Drag on the inherited velocity, m/s per second.
-@export var damping: float = 9.0
-@export var turbulence_strength: float = 1.2
-@export var turbulence_scale: float = 6.0
-@export var spin: float = 40.0                  # degrees per second, random sign
+## Drag, m/s per second.
+@export var damping: float = 5.0
+## Random burst speed of a new puff around its carrier, m/s.
+@export var burst_min: float = 0.3
+@export var burst_max: float = 1.6
+@export var turbulence_strength: float = 1.5
+@export var turbulence_scale: float = 4.0
+@export var spin: float = 45.0                  # degrees per second, random sign
 
-@export_group("Size")
-@export var scale_min: float = 1.0
-@export var scale_max: float = 2.2
-## Size at the end of life, relative to the start.
-@export var grow: float = 2.6
+@export_group("Puff size")
+## Quad size at birth, metres (the drawn puff fills roughly 60 % of it).
+@export var scale_min: float = 0.5
+@export var scale_max: float = 1.1
+## Size at the end of life, relative to birth (most growth early).
+@export var grow: float = 3.2
 
 @export_group("Look")
 @export var color := Color(0.62, 0.52, 0.38)
 ## Use the track's dust colour (TrackEnvironment.dust_color) instead of `color`.
 @export var use_track_dust_color: bool = true
-@export_range(0.0, 1.0) var opacity: float = 0.55
+## Per-puff brightness spread: each puff is lit between this and 1.
+@export_range(0.0, 1.0) var brightness_min: float = 0.78
+@export_range(0.0, 2.0) var opacity: float = 0.9
 ## Fraction of life spent fading in.
-@export_range(0.0, 0.5) var fade_in: float = 0.1
-@export_range(0.05, 1.0) var softness: float = 0.85
-@export_range(0.0, 1.0) var erosion: float = 0.7
+@export_range(0.0, 0.5) var fade_in: float = 0.06
+@export_range(0.0, 1.0) var erosion: float = 0.6
+@export_range(0.0, 1.0) var core_darken: float = 0.3
+@export_range(0.0, 2.0) var backlight: float = 0.5
 @export var emission_boost: float = 0.0
