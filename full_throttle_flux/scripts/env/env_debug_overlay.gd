@@ -121,8 +121,9 @@ func _text(p: ShipEnvProbe) -> String:
 	s += "wind      %3.0f deg  %.1f m/s\n" % [wind_deg, env.wind_speed]
 	s += "track     %d zones  spline %.0f m  sky %s\n" % [
 		env.zones.size(), env.spline_length, "yes" if env.sky else "no"]
-	s += "humidity  %.2f   fx cpu %.2f ms (trail ribbons, all ships)\n" % [
-		env.humidity, TrailRibbon.frame_usec / 1000.0]
+	s += "humidity  %.2f   fx cpu %.2f ms (ribbons %.2f + driving/dust %.2f, all ships)\n" % [
+		env.humidity, (TrailRibbon.frame_usec + ShipFx.frame_usec) / 1000.0,
+		TrailRibbon.frame_usec / 1000.0, ShipFx.frame_usec / 1000.0]
 	if p == null:
 		return s + "\n(no probe on the camera target)"
 	if not p.active:
@@ -144,6 +145,14 @@ func _text(p: ShipEnvProbe) -> String:
 			fx.thrust[0].point_count() if not fx.thrust.is_empty() else 0,
 			fx.air_left.point_count() if fx.air_left else 0,
 			fx.air_right.point_count() if fx.air_right else 0]
+		if fx.dust:
+			var rt := fx.dust.rates
+			s += "dust      %s  ground %.0f  wall L %.0f R %.0f  brake L %.0f R %.0f /s\n" % [
+				FxPools.Kind.keys()[fx.dust.kind], rt["ground"], rt["wall_l"], rt["wall_r"],
+				rt["brake_l"], rt["brake_r"]]
+			var pools := FxPools.for_env(env)
+			s += "pools     dust %d  spray %d  powder %d emitted this frame\n" % [
+				pools.frame_count(0), pools.frame_count(1), pools.frame_count(2)]
 	var since := p.seconds_since_hit()
 	if since < 30.0:
 		s += "wall hit  %.1f s ago  closing %.0f u/s%s\n" % [

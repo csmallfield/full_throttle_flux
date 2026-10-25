@@ -255,6 +255,7 @@ func _test_track(track_path: String) -> void:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		_check(fx.thrust[0].point_count() <= 3, "respawn clears the trails (%d points left)" % fx.thrust[0].point_count())
+		await _dust_checks(ship, kit, probe, env, fx)
 
 	# --- into the wall ---------------------------------------------------------
 	_hits = 0
@@ -299,6 +300,58 @@ func _test_track(track_path: String) -> void:
 	await get_tree().process_frame
 
 
+## Phase 2: which pool, how much, from where.
+func _dust_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
+		env: EnvironmentState, fx: ShipFx) -> void:
+	print("ENVTEST dust")
+	_check(fx.dust != null, "ShipDust built")
+	if fx.dust == null:
+		return
+	var pools := FxPools.for_env(env)
+	_check(pools != null and pools.emitters.size() == 3, "three race pools (dust, spray, powder)")
+	env.apply_weather(null, true)   # clear; the test TrackEnvironment has dust 0.3
+	var counts := await _drive_count(ship, kit, probe, pools, 2.0, 0.0, 0.0)
+	_check(fx.dust.kind == FxPools.Kind.DUST and counts[0] > 20 and counts[1] <= 2,
+		"dry: dust %d, spray %d (2 s; first tick may still see rain)" % [counts[0], counts[1]])
+	var dry_ground: float = fx.dust.rates["ground"]
+	_check(dry_ground > 1.0, "ground rate %.0f/s at speed" % dry_ground)
+	counts = await _drive_count(ship, kit, probe, pools, 1.0, 1.0, 0.0)
+	_check(fx.dust.rates["brake_l"] > 1.0 and fx.dust.rates["brake_r"] == 0.0,
+		"left airbrake throws dust on the left only (L %.0f, R %.0f /s)" % [fx.dust.rates["brake_l"], fx.dust.rates["brake_r"]])
+	env.apply_weather(load("res://resources/weather/rain_medium.tres"), true)
+	counts = await _drive_count(ship, kit, probe, pools, 1.5, 0.0, 0.0)
+	_check(fx.dust.kind == FxPools.Kind.SPRAY and counts[1] > 20,
+		"rain: spray instead of dust (spray %d, dust %d)" % [counts[1], counts[0]])
+	env.apply_weather(load("res://resources/weather/snow_medium.tres"), true)
+	counts = await _drive_count(ship, kit, probe, pools, 1.5, 0.0, 0.0)
+	_check(fx.dust.kind == FxPools.Kind.POWDER and counts[2] > 20,
+		"snow: powder (powder %d)" % counts[2])
+	env.apply_weather(load("res://resources/weather/dust_storm_medium.tres"), true)
+	counts = await _drive_count(ship, kit, probe, pools, 1.0, 0.0, 0.0)
+	_check(fx.dust.rates["ground"] > dry_ground * 1.5,
+		"dust storm raises dust (ground %.0f/s vs %.0f dry)" % [fx.dust.rates["ground"], dry_ground])
+	env.apply_weather(load("res://resources/weather/rain_medium.tres"), true)
+
+
+## Drives `seconds`, returns particles emitted per pool meanwhile.
+func _drive_count(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe, pools: FxPools,
+		seconds: float, brake_l: float, brake_r: float) -> PackedInt64Array:
+	var before := pools.emitted_total.duplicate()
+	var t := 0.0
+	while t < seconds:
+		_steer(ship, kit, probe.spline_distance, 1.0, 0.0)
+		ship.airbrake_left = brake_l
+		ship.airbrake_right = brake_r
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+	ship.airbrake_left = 0.0
+	ship.airbrake_right = 0.0
+	var out := PackedInt64Array([0, 0, 0])
+	for k in 3:
+		out[k] = pools.emitted_total[k] - before[k]
+	return out
+
+
 func _trail_length(r: TrailRibbon) -> float:
 	var total := 0.0
 	for i in range(1, r._pts.size()):
@@ -326,6 +379,7 @@ func _perf_pack(kit: UtopiaKit, env: EnvironmentState) -> void:
 	for s in ships:
 		probes.append(ShipEnvProbe.of(s))
 	var samples := PackedInt32Array()
+	var fx_samples := PackedInt32Array()
 	var t := 0.0
 	while t < 4.0:
 		for i in ships.size():
@@ -334,15 +388,22 @@ func _perf_pack(kit: UtopiaKit, env: EnvironmentState) -> void:
 		t += get_physics_process_delta_time()
 		if t > 1.0:
 			samples.append(TrailRibbon.frame_usec)
+			fx_samples.append(TrailRibbon.frame_usec + ShipFx.frame_usec)
 	var total := 0
 	var worst := 0
 	for v in samples:
 		total += v
 		worst = maxi(worst, v)
 	var avg := float(total) / maxi(samples.size(), 1) / 1000.0
-	print("  --    8 ships, %d ribbons: trail CPU avg %.2f ms, worst %.2f ms per frame" % [
-		ships.size() * 4 + 4, avg, worst / 1000.0])
-	_check(avg < 2.0, "trail CPU for a full grid under 2 ms/frame (avg %.2f ms)" % avg)
+	var fx_total := 0
+	for v in fx_samples:
+		fx_total += v
+	var fx_avg := float(fx_total) / maxi(fx_samples.size(), 1) / 1000.0
+	print("  --    8 ships, %d ribbons: trail CPU avg %.2f ms (worst %.2f); all ship FX incl. dust avg %.2f ms" % [
+		ships.size() * 4 + 4, avg, worst / 1000.0, fx_avg])
+	# Budget on the slowest machine we test on (2 vCPU cloud box); a desktop
+	# is several times faster.
+	_check(fx_avg < 3.0, "all ship FX for a full grid under 3 ms/frame here (avg %.2f ms)" % fx_avg)
 	for s in ships:
 		s.queue_free()
 

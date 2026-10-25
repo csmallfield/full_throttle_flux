@@ -200,27 +200,37 @@ func _build() -> void:
 	_uv.resize(vc)
 	_uv2.resize(vc)
 	var along := 0.0
+	var inv_life := 1.0 / life
+	var inv_len := 1.0 / max_len
+	var dw := width_tail - width_head
+	var alpha_scale := tint.a * intensity
+	var use_head_fade := live and head_fade > 0.0
+	var prev_p := _pts[0]
 	for j in m:
+		var pj := _pts[j]
 		if j > 0:
-			along += _pts[j].distance_to(_pts[j - 1])
-		var a := _pts[j - 1] if j > 0 else _pts[j]
-		var b := _pts[j + 1] if j + 1 < m else _pts[j]
-		var tang := a - b
+			along += pj.distance_to(prev_p)
+		prev_p = pj
+		var tang := (_pts[j - 1] if j > 0 else pj) - (_pts[j + 1] if j + 1 < m else pj)
 		if tang.length_squared() < 1e-10:
 			tang = Vector3.FORWARD
-		var life01 := clampf(maxf(_ages[j] / life, along / max_len), 0.0, 1.0)
+		var life01 := clampf(maxf(_ages[j] * inv_life, along * inv_len), 0.0, 1.0)
 		var fade := pow(1.0 - life01, fade_power)
-		if live and head_fade > 0.0:
+		if use_head_fade and along < head_fade:
 			fade *= smoothstep(0.0, head_fade, along)
-		var col := Color(tint.r, tint.g, tint.b, tint.a * intensity * fade)
-		var w := lerpf(width_head, width_tail, life01) * width_scale
+		var col := Color(tint.r, tint.g, tint.b, alpha_scale * fade)
+		var uv2 := Vector2((width_head + dw * life01) * width_scale, life01)
 		var k := j * 2
-		for e in 2:
-			_v[k + e] = _pts[j]
-			_n[k + e] = tang
-			_c[k + e] = col
-			_uv[k + e] = Vector2(along, -1.0 if e == 0 else 1.0)
-			_uv2[k + e] = Vector2(w, life01)
+		_v[k] = pj
+		_v[k + 1] = pj
+		_n[k] = tang
+		_n[k + 1] = tang
+		_c[k] = col
+		_c[k + 1] = col
+		_uv[k] = Vector2(along, -1.0)
+		_uv[k + 1] = Vector2(along, 1.0)
+		_uv2[k] = uv2
+		_uv2[k + 1] = uv2
 	_arrays[Mesh.ARRAY_VERTEX] = _v
 	_arrays[Mesh.ARRAY_NORMAL] = _n
 	_arrays[Mesh.ARRAY_COLOR] = _c

@@ -1,6 +1,7 @@
 extends Node
 class_name ShipFx
-## Visual FX of one ship (v35): Phase 1 = thrust trails + wingtip air streams.
+## Visual FX of one ship (v35): Phase 1 = thrust trails + wingtip air streams,
+## Phase 2 = dust / spray / snow powder (ShipDust, into the race's FxPools).
 ##
 ## ShipController attaches one in _ready. Like ShipEnvProbe it stays idle
 ## until the race has an EnvironmentState (no trainer / sim cost). On bind it
@@ -31,12 +32,18 @@ var lod: FxSettings.Lod = FxSettings.Lod.NEAR
 var thrust: Array[TrailRibbon] = []
 var air_left: TrailRibbon
 var air_right: TrailRibbon
+var dust: ShipDust
 
 var _thrust_level: float = 0.0
 var _boost_level: float = 0.0
 var _air_l_level: float = 0.0
 var _air_r_level: float = 0.0
 var _bind_timer: float = 0.0
+
+## Profiling: microseconds spent in ShipFx._process (dust emission + driving)
+## by ALL ships this frame. Ribbons add TrailRibbon.frame_usec on top.
+static var frame_usec: int = 0
+static var _frame_usec_frame: int = -1
 
 
 static func attach(p_ship: ShipController) -> ShipFx:
@@ -67,6 +74,8 @@ func _ready() -> void:
 func clear() -> void:
 	for r in _all():
 		r.clear()
+	if dust:
+		dust.reset()
 
 
 func _process(delta: float) -> void:
@@ -78,9 +87,17 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(env):
 		_unbind()
 		return
+	var t0 := Time.get_ticks_usec()
+	var fr := Engine.get_process_frames()
+	if fr != _frame_usec_frame:
+		_frame_usec_frame = fr
+		frame_usec = 0
 	lod = FxSettings.active().lod_for(ship, get_viewport().get_camera_3d())
 	_drive_thrust(delta)
 	_drive_air(delta)
+	if dust:
+		dust.update(delta, _dust_lod() * float(FxSettings.active().pick(0.4, 0.7, 1.0)))
+	frame_usec += Time.get_ticks_usec() - t0
 
 
 func _try_bind() -> void:
@@ -100,6 +117,7 @@ func _unbind() -> void:
 	for r in _all():
 		r.queue_free()
 	thrust.clear()
+	dust = null
 	air_left = null
 	air_right = null
 
@@ -183,6 +201,11 @@ func _build() -> void:
 		thrust.append(r)
 	air_left = _air_ribbon("AirL", _socket("FX_Wingtip_L", p.fallback_wingtip_l), air_mat)
 	air_right = _air_ribbon("AirR", _socket("FX_Wingtip_R", p.fallback_wingtip_r), air_mat)
+	if probe:
+		dust = ShipDust.new(ship, probe, env, p,
+			_socket("FX_Belly", p.fallback_belly),
+			_socket("FX_Airbrake_L", p.fallback_airbrake_l),
+			_socket("FX_Airbrake_R", p.fallback_airbrake_r))
 
 
 func _air_ribbon(n: String, s: Node3D, mat: Material) -> TrailRibbon:
@@ -241,6 +264,18 @@ func _make_socket(socket_name: String, offset: Vector3) -> Node3D:
 	m.position = Vector3(offset.x / sc.x, offset.y / sc.y, offset.z / sc.z)
 	parent.add_child(m)
 	return m
+
+
+## Dust strength per LOD: the camera ship gets it all, distant ships a hint.
+func _dust_lod() -> float:
+	match lod:
+		FxSettings.Lod.FULL:
+			return 1.0
+		FxSettings.Lod.NEAR:
+			return 0.6
+		FxSettings.Lod.FAR:
+			return 0.2
+	return 0.0
 
 
 func _all() -> Array[TrailRibbon]:
