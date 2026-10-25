@@ -118,7 +118,11 @@ func _load_track() -> void:
 			return
 	
 	add_child(track_instance)
-	
+
+	# v35: weather / surface state for the environment FX. Before the ships
+	# spawn, so their ShipEnvProbes find it in _ready.
+	EnvironmentState.install(self, track_instance, track_profile)
+
 	# Find starting grid
 	starting_grid = _find_starting_grid(track_instance)
 	if not starting_grid:

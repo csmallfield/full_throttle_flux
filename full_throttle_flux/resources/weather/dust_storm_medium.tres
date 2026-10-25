@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeatherPreset" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/weather_preset.gd" id="1_weather"]
+
+[resource]
+script = ExtResource("1_weather")
+display_name = "Dust storm"
+kind = 4
+intensity = 0.6
+dust_add = 0.8
+precipitation = 0.5
+ground_wind = 14.0
+sky_preset = "storm_light"
+fog_density = 0.0015
+volumetric_density = 0.05

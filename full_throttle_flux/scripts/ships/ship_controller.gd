@@ -20,6 +20,15 @@ class_name ShipController
 signal ship_respawned()
 signal ship_collision(other_ship: ShipController, impact_speed: float)
 
+## v35 (environment FX): first tick of a wall contact. `point` is the contact
+## point, `normal` the wall normal (pointing back at the ship), `speed` the
+## ship's speed at the hit and `closing_speed` how fast it was moving INTO the
+## wall just before it (what a spark burst should scale with). Emitted after
+## the wall response; no effect on handling.
+signal wall_hit(point: Vector3, normal: Vector3, speed: float, closing_speed: float)
+## v35: every following tick of the same contact (a scrape), same arguments.
+signal wall_scrape(point: Vector3, normal: Vector3, speed: float, closing_speed: float)
+
 # ============================================================================
 # PROFILE
 # ============================================================================
@@ -112,6 +121,11 @@ var rumble_time := 0.0
 # Wall scraping state for audio
 var _is_scraping_wall := false
 var _scrape_timer := 0.0
+## v35: seconds since the last wall contact; a gap shorter than
+## WALL_CONTACT_GRACE still counts as the same contact (move_and_slide does not
+## report a sliding contact on every tick).
+var _wall_contact_age := INF
+const WALL_CONTACT_GRACE := 0.1
 const SCRAPE_TIMEOUT := 0.1
 
 # Control lock state (for race end)
@@ -259,7 +273,10 @@ func _ready() -> void:
 	_setup_ship_collision_layer()
 	add_to_group(ShipContactResolver.GROUP)
 	ShipContactResolver.ensure(get_tree())
-	
+	# v35: environment FX probe (idle when there is no EnvironmentState, e.g.
+	# in the AI trainer and the dev sims).
+	ShipEnvProbe.attach(self)
+
 	# Initialize safe position to starting position
 	last_safe_position = global_position
 	last_safe_rotation = global_transform.basis
@@ -1188,17 +1205,27 @@ func _handle_collisions() -> void:
 			_resolve_ship_contact(other, collision.get_normal())
 	
 	# --- Pass 2: walls ---
+	var fx_point := Vector3.ZERO     # v35: strongest wall contact, for the FX signals
+	var fx_normal := Vector3.ZERO
+	var fx_closing := -1.0
 	for i in get_slide_collision_count():
 		var collision = get_slide_collision(i)
 		var collider = collision.get_collider()
 		var normal = collision.get_normal()
-		
+
 		if collider is ShipController:
 			continue  # handled in pass 1
 		elif absf(normal.dot(_wall_reference_up())) < 0.5:
+			var closing: float = maxf(0.0, -_pre_collision_velocity.dot(normal))
+			if closing > fx_closing:
+				fx_closing = closing
+				fx_point = collision.get_position()
+				fx_normal = normal
 			_handle_wall_collision(normal)
 			had_wall_collision = true
-	
+
+	_emit_wall_fx(had_wall_collision, fx_point, fx_normal, current_speed, fx_closing)
+
 	if had_wall_collision and current_speed >= _wall_scrape_min_speed:
 		_is_scraping_wall = true
 		_scrape_timer = SCRAPE_TIMEOUT
@@ -1218,6 +1245,17 @@ func _update_scrape_audio(delta: float) -> void:
 			_is_scraping_wall = false
 			if audio_controller:
 				audio_controller.stop_wall_scrape()
+
+## v35: wall_hit on the first tick of a contact, wall_scrape on the ticks after.
+func _emit_wall_fx(contact: bool, point: Vector3, normal: Vector3, speed: float, closing: float) -> void:
+	if not contact:
+		_wall_contact_age += get_physics_process_delta_time()
+		return
+	if _wall_contact_age > WALL_CONTACT_GRACE:
+		wall_hit.emit(point, normal, speed, closing)
+	else:
+		wall_scrape.emit(point, normal, speed, closing)
+	_wall_contact_age = 0.0
 
 func _handle_wall_collision(wall_normal: Vector3) -> void:
 	var impact_speed = velocity.length()

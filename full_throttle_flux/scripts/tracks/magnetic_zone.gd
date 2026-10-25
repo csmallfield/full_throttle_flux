@@ -67,29 +67,17 @@ class_name MagneticZone
 
 
 ## Blend weight 0..1 at `distance` along a spline of `length` metres.
+## v35: the span maths moved to SplineSpan (shared with TrackFxZone); same
+## numbers, bit for bit.
 func weight_at(distance: float, length: float) -> float:
-	if not enabled or length <= 0.0:
+	if not enabled:
 		return 0.0
-	var span := _wrap(end_distance - start_distance, length)
-	var into := _wrap(distance - start_distance, length)
-	if into <= span:
-		return 1.0
-	# Before the zone: how far short of start_distance are we?
-	var before := _wrap(start_distance - distance, length)
-	if ramp_in > 0.0 and before < ramp_in:
-		return _smooth01(1.0 - before / ramp_in)
-	# After the zone: how far past end_distance are we?
-	var after := _wrap(distance - end_distance, length)
-	if ramp_out > 0.0 and after < ramp_out:
-		return _smooth01(1.0 - after / ramp_out)
-	return 0.0
+	return SplineSpan.weight(distance, length, start_distance, end_distance, ramp_in, ramp_out)
 
 
 static func _wrap(d: float, length: float) -> float:
-	var r := fmod(d, length)
-	return r + length if r < 0.0 else r
+	return SplineSpan.wrap_distance(d, length)
 
 
 static func _smooth01(t: float) -> float:
-	t = clampf(t, 0.0, 1.0)
-	return t * t * (3.0 - 2.0 * t)
+	return SplineSpan.smooth01(t)

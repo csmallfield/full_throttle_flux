@@ -76,6 +76,15 @@ class_name TrackProfile
 @export var music_override: Resource
 
 # ============================================================================
+# ENVIRONMENT (v35)
+# ============================================================================
+
+@export_group("Environment")
+
+## Dust, weather and FX zones. Null = clean track, clear weather.
+@export var environment: TrackEnvironment
+
+# ============================================================================
 # UTILITY
 # ============================================================================
 

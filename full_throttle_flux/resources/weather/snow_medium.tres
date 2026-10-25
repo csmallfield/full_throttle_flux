@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WeatherPreset" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/weather_preset.gd" id="1_weather"]
+
+[resource]
+script = ExtResource("1_weather")
+display_name = "Snow"
+kind = 2
+intensity = 0.6
+frost = 0.8
+precipitation = 0.5
+surface_change_time = 40.0
+sky_preset = "overcast"
