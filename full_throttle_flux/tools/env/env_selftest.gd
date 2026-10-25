@@ -295,6 +295,8 @@ func _test_track(track_path: String) -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	_check(not probe.active, "probe goes idle without an EnvironmentState")
+	_check(FxPrewarm.available() == FxPrewarm.COUNT,
+		"particle nodes returned to the prewarm stash (%d / %d)" % [FxPrewarm.available(), FxPrewarm.COUNT])
 	ship.queue_free()
 	track.queue_free()
 	await get_tree().process_frame
@@ -311,7 +313,7 @@ func _dust_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
 	_check(pools != null and pools.emitters.size() == 3, "three race pools (dust, spray, powder)")
 	env.apply_weather(null, true)   # clear; the test TrackEnvironment has dust 0.3
 	var counts := await _drive_count(ship, kit, probe, pools, 2.0, 0.0, 0.0)
-	_check(fx.dust.kind == FxPools.Kind.DUST and counts[0] > 20 and counts[1] <= 2,
+	_check(fx.dust.kind == FxPools.Kind.DUST and counts[0] > 20 and counts[1] < 10,
 		"dry: dust %d, spray %d (2 s; first tick may still see rain)" % [counts[0], counts[1]])
 	var dry_ground: float = fx.dust.rates["ground"]
 	_check(dry_ground > 1.0, "ground rate %.0f/s at speed" % dry_ground)

@@ -27,6 +27,7 @@ GameManager="*res://scripts/autoload/game_manager.gd"
 RaceManager="*res://scripts/race_manager.gd"
 AudioManager="*res://scripts/audio_manager.gd"
 MusicPlaylistManager="*res://scripts/music_playlist_manager.gd"
+FxPrewarm="*res://scripts/fx/fx_prewarm.gd"
 
 [display]
 

@@ -257,3 +257,90 @@ xvfb-run -a godot --path full_throttle_flux --resolution 1280x720 --fixed-fps 60
 - No motion-blur interaction check in a real window (transparent FX should not
   write motion vectors; verify no smearing).
 - Per-ship trail colours wait on the class / team decision (open question).
+
+---
+
+# Phase 2: dust, spray and snow powder
+
+## Files
+
+| | |
+| --- | --- |
+| `scripts/fx/fx_pools.gd` | **new** — `FxPools`: per race, one world-space GPUParticles3D per look (dust, spray, powder) fed by every ship with `emit()`; wind pushes all pools; dust tinted with the track's `dust_color` |
+| `scripts/fx/fx_particle_preset.gd`, `resources/fx/particles_{dust,spray,powder}.tres` | **new** — budgets per quality tier, motion, size growth, look |
+| `shaders/fx/dust_puff.gdshader` | **new** — billboard, sun-lit, soft against geometry (depth), noise erosion with age, faded within ~7 m of the camera |
+| `scripts/fx/ship_dust.gd` | **new** — `ShipDust`: ground, wall L/R and airbrake L/R emitters per ship |
+| `scripts/fx/fx_prewarm.gd` | **new autoload** `FxPrewarm` — see "The RNG catch" |
+| `scripts/fx/ship_fx.gd`, `ship_fx_profile.gd` | ShipDust wiring, dust LOD (FULL 1, NEAR 0.6, FAR 0.2, OFF 0), dust parameters; a total ship-FX CPU timer |
+| `scripts/fx/trail_ribbon.gd` | vertex loop unrolled (~25 % cheaper) |
+| `scripts/env/env_debug_overlay.gd` | dust kind and per-emitter rates, pool emissions per frame, total FX CPU |
+| `tools/env/render_dust(_boot).gd` | **new** — stills: dust, airbrake, wall, side, spray, powder |
+
+## How it behaves
+
+Rate per emitter (particles/s) = surface × speed × term × LOD × quality:
+
+- **surface** is the probe's LOCAL surface: track dust × `dust_scale` zones,
+  damped by wetness. Above `dust_wet_switch` (0.3) the same emitters throw
+  **spray**, above `dust_frost_switch` (0.35) **snow powder**. Covered zones are
+  dry, so a tunnel in the rain kicks up dust again.
+- **speed**: from 15 u/s, full at 100 u/s.
+- **ground term**: full at hover height, fades to 0 at 3× hover height (jumps),
+  +30 % when the hull dips below hover height (landings).
+- **walls**: within 4 m, quadratic with closeness, pushed off the wall.
+- **airbrakes**: on the ground under each brake socket × that brake's input,
+  thrown outward.
+- Particles start with 65 % of the ship's velocity (the wake drags the dust)
+  plus rise and spread, then drag, turbulence and the race wind take over.
+- Spawns are spread along the path each emitter covered since the last frame.
+
+Godot details found by testing in the renderer: `emit_particle()` only spawns
+while `emitting` is **false**; per-particle scale and colour passed to it are
+overridden by the process material (so: size from the preset, colour from the
+material); position and velocity work.
+
+## The RNG catch (and why there's a new autoload)
+
+With dust on, the race checksums changed (Utopia 4098609093, Loop Lab
+1671971390). Handling was fine. Of everything the FX create, only the
+**GPUParticles3D constructor draws from Godot's global random generator** (to
+seed itself), and the AI uses that generator: `ai_control_decider` (line
+wobble), `ai_ship_controller` (route bias, shortcut rolls). The probe seeds it
+just before launching the race, so three emitters built during setup shifted
+every AI roll after them.
+
+Options weighed: give the AI its own RNGs (robust, but changes AI code and
+breaks every existing baseline), or reseed after building the pools (hacky,
+diverges from main once). Chosen: **`FxPrewarm` builds 12 GPUParticles3D at
+startup**, before anything seeds the generator, and races borrow and return
+them. No AI change, checksums equal main again, and Phase 3/4 particle
+systems borrow from the same stash. Worth knowing for later: anything that
+constructs a GPUParticles3D mid-race will shift the AI's random stream.
+
+## Verified
+
+- Self-test dust section — PASS: three pools; dry track emits dust (94 in 2 s
+  at track dust 0.3, NEAR LOD) and almost no spray; the left airbrake throws
+  dust on the left only; rain switches to spray (237, no dust); snow to powder
+  (173); a dust storm raises the ground rate (134/s vs 47 dry); emitter nodes go
+  back to the stash after the race (12 / 12).
+- Race checksums equal main with dust running: Utopia 3950927593, Loop Lab
+  3042917252.
+- Cost on this 2-vCPU box (about 2× slower than the Phase 1 one), 8 ships, no
+  camera LOD: all ship FX including dust avg 1.8–2.1 ms/frame (ribbons
+  1.4–1.7, dust ~0.35).
+- Rendered (dusty Utopia, test-only dust 0.7): first pass was a thin, sparse
+  plume and hard round puffs (30 % inherited velocity spread it over ~190 m);
+  tuned to 65 % inherit, ~3× rates, wider spawn under the hull, softer puffs,
+  bigger budgets. Now a visible plume, airbrake clouds, a haze along the wall,
+  a white spray wake, snow puffs. Render camera has no `ship`, so those ships
+  ran at NEAR LOD (0.6); the player in game gets FULL.
+
+## For your eye
+
+1. Pick the dusty track (`TrackEnvironment.dust`, e.g. 0.6) or use the Dust
+   storm preset (F4).
+2. Puffs still read a little "cotton ball" up close: next step would be a
+   noise flipbook texture or more, smaller particles.
+3. Readability in a pack: the near-camera fade (1.5–7 m) and LOD are the knobs.
+4. Airbrake and belly socket positions on the model are still estimates.

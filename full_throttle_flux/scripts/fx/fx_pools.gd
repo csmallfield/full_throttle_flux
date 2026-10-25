@@ -8,9 +8,11 @@ class_name FxPools
 ## spread their spawns along the path they covered this frame instead of
 ## clumping at 120 u/s.
 ##
-## Godot detail: emit_particle() only spawns while `emitting` is false, and
-## the process material overrides per-particle scale and colour, so size
-## variety comes from the preset and colour from the draw material.
+## Godot details: emit_particle() only spawns while `emitting` is false; the
+## process material overrides per-particle scale and colour (size variety
+## comes from the preset, colour from the draw material); and the emitter nodes
+## are borrowed from the FxPrewarm autoload, because constructing a
+## GPUParticles3D mid-race draws from the global RNG the AI uses.
 ## Created on demand under the EnvironmentState: FxPools.for_env(env).
 
 enum Kind { DUST, SPRAY, POWDER }
@@ -67,7 +69,7 @@ func _ready() -> void:
 		_apply_look(pr, mat)
 		var quad := QuadMesh.new()
 		quad.material = mat
-		var p := GPUParticles3D.new()
+		var p := FxPrewarm.take()
 		p.name = pr.display_name.replace(" ", "")
 		p.amount = int(quality.pick(pr.amount_low, pr.amount_medium, pr.amount_high))
 		p.lifetime = pr.lifetime
@@ -99,6 +101,14 @@ func frame_count(kind: int) -> int:
 
 func preset(kind: int) -> FxParticlePreset:
 	return presets[kind]
+
+
+func _notification(what: int) -> void:
+	# Hand the emitter nodes back for the next race instead of freeing them.
+	if what == NOTIFICATION_PREDELETE:
+		for p in emitters:
+			FxPrewarm.give_back(p)
+		emitters.clear()
 
 
 func _process(_delta: float) -> void:
