@@ -9,18 +9,18 @@ class_name FxParticlePreset
 
 @export_group("Budget")
 ## Max live particles per quality tier (LOW, MEDIUM, HIGH).
-@export var amount_low: int = 800
-@export var amount_medium: int = 1600
-@export var amount_high: int = 3000
+@export var amount_low: int = 1800
+@export var amount_medium: int = 3500
+@export var amount_high: int = 6000
 
 @export_group("Motion")
-@export var lifetime: float = 1.6
+@export var lifetime: float = 1.2
 ## Downward pull, m/s^2 (negative = rises).
 @export var gravity: float = 0.6
 ## How much the race wind (EnvironmentState) pushes the particles, m/s^2 per m/s.
 @export var wind_influence: float = 0.35
 ## Drag on the inherited velocity, m/s per second.
-@export var damping: float = 6.0
+@export var damping: float = 9.0
 @export var turbulence_strength: float = 1.2
 @export var turbulence_scale: float = 6.0
 @export var spin: float = 40.0                  # degrees per second, random sign
@@ -38,6 +38,6 @@ class_name FxParticlePreset
 @export_range(0.0, 1.0) var opacity: float = 0.55
 ## Fraction of life spent fading in.
 @export_range(0.0, 0.5) var fade_in: float = 0.1
-@export_range(0.05, 1.0) var softness: float = 0.6
-@export_range(0.0, 1.0) var erosion: float = 0.6
+@export_range(0.05, 1.0) var softness: float = 0.85
+@export_range(0.0, 1.0) var erosion: float = 0.7
 @export var emission_boost: float = 0.0

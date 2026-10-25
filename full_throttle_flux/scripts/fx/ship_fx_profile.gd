@@ -52,9 +52,9 @@ class_name ShipFxProfile
 
 @export_group("Dust, spray, powder (Phase 2)")
 ## Particles per second at full strength, per emitter.
-@export var dust_ground_rate: float = 90.0
-@export var dust_wall_rate: float = 60.0
-@export var dust_airbrake_rate: float = 70.0
+@export var dust_ground_rate: float = 260.0
+@export var dust_wall_rate: float = 180.0
+@export var dust_airbrake_rate: float = 200.0
 ## Speed (u/s) where ground particles start, and where they are full.
 @export var dust_speed_start: float = 15.0
 @export var dust_speed_full: float = 100.0
@@ -65,7 +65,7 @@ class_name ShipFxProfile
 ## A wall closer than this (m) kicks up wall dust.
 @export var dust_wall_range: float = 4.0
 ## Fraction of ship velocity the particles start with.
-@export_range(0.0, 1.0) var dust_inherit: float = 0.3
+@export_range(0.0, 1.0) var dust_inherit: float = 0.65
 ## Upward kick, m/s (random 0.5x .. 1x).
 @export var dust_rise: float = 2.5
 ## Sideways spread, m/s.
@@ -75,7 +75,7 @@ class_name ShipFxProfile
 @export_range(0.0, 1.0) var dust_wet_switch: float = 0.3
 @export_range(0.0, 1.0) var dust_frost_switch: float = 0.35
 ## Spray and powder strength relative to dust at the same surface value.
-@export var spray_strength: float = 1.0
+@export var spray_strength: float = 1.2
 @export var powder_strength: float = 1.0
 
 @export_group("Fallback sockets (ship space, metres)")

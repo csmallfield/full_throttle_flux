@@ -152,7 +152,7 @@ func _run(emitter: String, rate: float, delta: float, origin: Vector3, push: Vec
 	var right := ship.global_transform.basis.x.normalized()
 	var inherit := ship.velocity * p.dust_inherit
 	for i in n:
-		var pos := prev.lerp(origin, _rng.randf()) + right * _rng.randf_range(-0.8, 0.8)
+		var pos := prev.lerp(origin, _rng.randf()) + right * _rng.randf_range(-1.5, 1.5)
 		var v := inherit + up * p.dust_rise * _rng.randf_range(0.5, 1.0) \
 			+ right * _rng.randf_range(-p.dust_spread, p.dust_spread)
 		if push != Vector3.ZERO:

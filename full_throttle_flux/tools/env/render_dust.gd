@@ -61,7 +61,7 @@ func _ready() -> void:
 	await _run(0.6)
 	await _shot("airbrake")
 	brakes = 0.0
-	lat_lead = 11.0
+	lat_lead = 30.0   # past the wall: ride along it
 	await _run(2.0)
 	await _shot("wall")
 	lat_lead = 0.0

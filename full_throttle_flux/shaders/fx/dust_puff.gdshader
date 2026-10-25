@@ -16,8 +16,8 @@ uniform float softness : hint_range(0.05, 1.0) = 0.55;       // radial falloff
 uniform float noise_scale = 3.0;
 uniform float erosion : hint_range(0.0, 1.0) = 0.6;           // how much noise eats the puff as it ages
 uniform float soft_depth = 1.5;                               // metres of blend into geometry
-uniform float near_fade_start = 2.0;                          // metres from the camera: fully gone...
-uniform float near_fade_end = 9.0;                            // ...to fully visible
+uniform float near_fade_start = 1.5;                          // metres from the camera: fully gone...
+uniform float near_fade_end = 7.0;                            // ...to fully visible
 uniform float emission_boost = 0.0;                           // >0 lets spray catch a little light
 uniform sampler2D depth_tex : hint_depth_texture, filter_linear;
 
