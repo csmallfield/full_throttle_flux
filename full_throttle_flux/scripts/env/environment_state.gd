@@ -66,6 +66,8 @@ var wetness: float = 0.0
 var frost: float = 0.0
 var dust: float = 0.0
 var precipitation: float = 0.0
+## Moisture in the air, 0..1 (not a shader global; read by ship FX).
+var humidity: float = 0.3
 ## Unit direction the wind blows TOWARD, in world X/Z (sky controller convention).
 var wind_direction := Vector2(0.0, -1.0)
 ## m/s near the road.
@@ -77,6 +79,7 @@ var _t_wetness: float = 0.0
 var _t_frost: float = 0.0
 var _t_dust: float = 0.0
 var _t_precip: float = 0.0
+var _t_humidity: float = 0.3
 var _t_wind_dir := Vector2(0.0, -1.0)
 var _t_wind_speed: float = 0.0
 var _change_time: float = 20.0
@@ -142,6 +145,7 @@ func _process(delta: float) -> void:
 	frost = move_toward(frost, _t_frost, step)
 	dust = move_toward(dust, _t_dust, step)
 	precipitation = move_toward(precipitation, _t_precip, step)
+	humidity = move_toward(humidity, _t_humidity, step)
 	var w := ShipController._smooth(1.0, delta)
 	wind_direction = wind_direction.lerp(_t_wind_dir, w).normalized()
 	wind_speed = lerpf(wind_speed, _t_wind_speed, w)
@@ -164,6 +168,7 @@ func apply_weather(preset: WeatherPreset, instant := false) -> void:
 	_t_frost = preset.frost
 	_t_dust = clampf(base_dust + preset.dust_add, 0.0, 1.0)
 	_t_precip = preset.precipitation
+	_t_humidity = preset.humidity
 	_change_time = preset.surface_change_time
 	_t_wind_dir = _wind_dir_for(preset)
 	_t_wind_speed = preset.ground_wind
@@ -173,6 +178,7 @@ func apply_weather(preset: WeatherPreset, instant := false) -> void:
 		frost = _t_frost
 		dust = _t_dust
 		precipitation = _t_precip
+		humidity = _t_humidity
 		wind_direction = _t_wind_dir
 		wind_speed = _t_wind_speed
 		_publish(true)

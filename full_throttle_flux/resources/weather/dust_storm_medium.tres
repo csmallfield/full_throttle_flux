@@ -13,3 +13,4 @@ ground_wind = 14.0
 sky_preset = "storm_light"
 fog_density = 0.0015
 volumetric_density = 0.05
+humidity = 0.0

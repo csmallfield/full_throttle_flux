@@ -177,6 +177,7 @@ func _test_track(track_path: String) -> void:
 	var ship: ShipController = (load(SHIP_SCENE) as PackedScene).instantiate()
 	ship.profile = load(SHIP_PROFILE)
 	ship.ai_controlled = true
+	ShipVisuals.swap_mesh(ship, load("res://scenes/ships/variants/variant_red_yellow.tscn"))
 	add_child(ship)
 	ship.wall_hit.connect(func(_p, _n, _s, _c): _hits += 1)
 	ship.wall_scrape.connect(func(_p, _n, _s, _c): _scrapes += 1)
@@ -203,6 +204,10 @@ func _test_track(track_path: String) -> void:
 	var saw_wall := false
 	var cover_seen := 0.0
 	var wet_in_cover := 1.0
+	var fx := ShipFx.of(ship)
+	var thrust_pts := 0
+	var air_pts := 0
+	var head_gap := 0.0
 	while t < DRIVE_SECONDS:
 		_steer(ship, kit, probe.spline_distance, 1.0, 0.0)
 		await get_tree().physics_frame
@@ -221,12 +226,35 @@ func _test_track(track_path: String) -> void:
 		if probe.zone.covered > 0.99:
 			cover_seen = 1.0
 			wet_in_cover = minf(wet_in_cover, probe.wetness)
+		if fx and fx.active and not fx.thrust.is_empty():
+			var r: TrailRibbon = fx.thrust[0]
+			thrust_pts = maxi(thrust_pts, r.point_count())
+			if r.point_count() > 0:
+				head_gap = maxf(head_gap, r.head_position().distance_to(r.socket.global_position))
+			air_pts = maxi(air_pts, fx.air_left.point_count() + fx.air_right.point_count())
 	_check(float(grounded_ticks) / ticks > 0.95, "grounded %d / %d ticks" % [grounded_ticks, ticks])
 	_check(travelled > 200.0 and backwards == 0,
 		"spline distance advances smoothly (%.0f m, %d backward steps)" % [travelled, backwards])
 	_check(saw_wall, "side rays see the walls")
 	_check(cover_seen == 1.0 and wet_in_cover == 0.0,
 		"covered zone dries the local surface (min wet %.2f)" % wet_in_cover)
+
+	# --- Phase 1: trails ------------------------------------------------------
+	print("ENVTEST trails")
+	_check(fx != null and fx.active, "ShipFx attached and active")
+	if fx and fx.active:
+		_check(fx.thrust.size() == 2, "two thrust sockets found on the variant (%d)" % fx.thrust.size())
+		_check(fx.thrust[0].socket.name == "FX_Thrust_L", "sockets come from the model, not fallbacks (%s)" % fx.thrust[0].socket.name)
+		_check(thrust_pts > 4, "thrust trail built (max %d points)" % thrust_pts)
+		_check(head_gap < 0.01, "head pinned to the nozzle (max gap %.4f m)" % head_gap)
+		_check(air_pts > 0, "air streams appear at speed in rain (max %d points)" % air_pts)
+		var long_len := _trail_length(fx.thrust[0])
+		_check(long_len > 5.0 and long_len <= fx.profile.thrust_max_length * fx.profile.boost_length_mult + 0.01,
+			"trail length %.1f m within its cap" % long_len)
+		ship.ship_respawned.emit()
+		await get_tree().process_frame
+		await get_tree().process_frame
+		_check(fx.thrust[0].point_count() <= 3, "respawn clears the trails (%d points left)" % fx.thrust[0].point_count())
 
 	# --- into the wall ---------------------------------------------------------
 	_hits = 0
@@ -241,6 +269,8 @@ func _test_track(track_path: String) -> void:
 	_check(_scrapes >= 1, "wall_scrape fired while sliding (%d)" % _scrapes)
 	_check(probe.seconds_since_hit() < 3.0 and probe.last_hit_point != Vector3.ZERO,
 		"probe recorded the hit point")
+	if fx and fx.active:
+		await _perf_pack(kit, env)
 
 	# --- weather presets --------------------------------------------------------
 	env.apply_weather(load("res://resources/weather/snow_medium.tres"), true)
@@ -267,6 +297,54 @@ func _test_track(track_path: String) -> void:
 	ship.queue_free()
 	track.queue_free()
 	await get_tree().process_frame
+
+
+func _trail_length(r: TrailRibbon) -> float:
+	var total := 0.0
+	for i in range(1, r._pts.size()):
+		total += r._pts[i].distance_to(r._pts[i - 1])
+	return total
+
+
+## Seven more ships around the test ship, all driving: CPU cost of every
+## ribbon in the race, per frame.
+func _perf_pack(kit: UtopiaKit, env: EnvironmentState) -> void:
+	var ships: Array[ShipController] = []
+	for i in 7:
+		var s: ShipController = (load(SHIP_SCENE) as PackedScene).instantiate()
+		s.profile = load(SHIP_PROFILE)
+		s.ai_controlled = true
+		add_child(s)
+		var d := START_D + 900.0 + 14.0 * i
+		var b := kit.frame(d)
+		s.global_transform = Transform3D(b, kit.center(d) + kit.right_flat(d) * (5.0 if i % 2 else -5.0) + b.y * 4.0)
+		ships.append(s)
+	await get_tree().physics_frame
+	for s in ships:
+		s.settle_on_surface()
+	var probes: Array[ShipEnvProbe] = []
+	for s in ships:
+		probes.append(ShipEnvProbe.of(s))
+	var samples := PackedInt32Array()
+	var t := 0.0
+	while t < 4.0:
+		for i in ships.size():
+			_steer(ships[i], kit, probes[i].spline_distance, 1.0, 0.0)
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		if t > 1.0:
+			samples.append(TrailRibbon.frame_usec)
+	var total := 0
+	var worst := 0
+	for v in samples:
+		total += v
+		worst = maxi(worst, v)
+	var avg := float(total) / maxi(samples.size(), 1) / 1000.0
+	print("  --    8 ships, %d ribbons: trail CPU avg %.2f ms, worst %.2f ms per frame" % [
+		ships.size() * 4 + 4, avg, worst / 1000.0])
+	_check(avg < 2.0, "trail CPU for a full grid under 2 ms/frame (avg %.2f ms)" % avg)
+	for s in ships:
+		s.queue_free()
 
 
 ## Follows the road centre `lat` metres to the right, throttle `thr`.

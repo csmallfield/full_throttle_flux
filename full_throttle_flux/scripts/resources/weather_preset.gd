@@ -27,6 +27,10 @@ enum Kind { CLEAR, RAIN, SNOW, FOG, DUST_STORM }
 ## Added to the track's own dust (TrackEnvironment.dust).
 @export_range(0.0, 1.0) var dust_add: float = 0.0
 
+## Moisture in the air, 0..1. Wingtip air streams show clearly in humid air
+## and stay faint in dry air (v35 Phase 1).
+@export_range(0.0, 1.0) var humidity: float = 0.3
+
 ## Falling rain / snow / grit density, 0..1.
 @export_range(0.0, 1.0) var precipitation: float = 0.0
 

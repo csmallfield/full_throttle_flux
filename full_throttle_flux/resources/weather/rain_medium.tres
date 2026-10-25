@@ -12,3 +12,4 @@ precipitation = 0.6
 ground_wind = 6.0
 sky_preset = "overcast"
 volumetric_density = 0.02
+humidity = 0.9

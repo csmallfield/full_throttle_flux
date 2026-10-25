@@ -11,3 +11,4 @@ frost = 0.8
 precipitation = 0.5
 surface_change_time = 40.0
 sky_preset = "overcast"
+humidity = 0.7

@@ -180,3 +180,80 @@ under every arch.
 - `FxSettings` is not exposed in a menu yet; edit `user://fx_settings.tres`.
 - No shader reads the globals yet — that starts in Phase 2 (dust) and Phase 4
   (`env_surface.gdshaderinc`).
+
+---
+
+# Phase 1: thrust trails and wingtip air streams
+
+## Files
+
+| | |
+| --- | --- |
+| `scripts/fx/trail_ribbon.gd` | **new** — `TrailRibbon`: distance-sampled ribbon, centripetal Catmull-Rom, head pinned to the socket, width/opacity taper by age and length, capped by lifetime and metres, `clear()` on teleport |
+| `shaders/fx/trail_common.gdshaderinc` | **new** — camera-facing expansion in the vertex shader (works for any camera: chase, cinematic rig, spectator), noise, soft edge |
+| `shaders/fx/trail_energy.gdshader` | **new** — thrust: additive, unshaded, HDR so the glow blooms it, scrolling energy noise, white-hot core near the nozzle, no fog (fades by distance instead) |
+| `shaders/fx/trail_air.gdshader` | **new** — air streams: alpha-blended, fogged, slow swirl noise |
+| `resources/fx/trail_energy.tres`, `trail_air.tres` | **new** — the two shared materials (per-ship colour goes in vertex colour, so every ship shares them) |
+| `scripts/fx/ship_fx_profile.gd`, `resources/fx/default_ship_fx.tres` | **new** — `ShipFxProfile`: colours, sizes, boost response, air-stream response, fallback socket offsets |
+| `scripts/fx/ship_fx.gd` | **new** — `ShipFx`: per ship; finds or creates sockets, builds the ribbons, drives them every frame, LOD |
+| `scenes/ships/variants/variant_red_yellow.tscn` | `FX_Thrust_L/R`, `FX_Wingtip_L/R`, `FX_Airbrake_L/R`, `FX_Belly` markers |
+| `scripts/resources/weather_preset.gd`, `scripts/env/environment_state.gd` | `humidity` (rain 0.9, snow 0.7, fog 1.0, dust storm 0.0, clear 0.3) |
+| `scripts/ships/ship_controller.gd` | attaches `ShipFx` next to the probe |
+| `scripts/env/env_debug_overlay.gd` | humidity, trail CPU per frame, the camera ship's FX LOD and point counts |
+| `tools/env/render_trails(_boot).gd` | **new** — chase-cam stills (straight, weave, boost, rain, side) |
+
+## How it behaves
+
+- **Sockets** come from the model: the variant now has markers. Positions were
+  measured from the mesh (twin engine pods at x ≈ ±0.45 at the tail, wingtips
+  at x ±1.92), the airbrake and belly ones are estimates for Phase 2: check
+  them in the editor. Without markers (e.g. `default_racer.tscn` spawned
+  without the visual pool) `ShipFx` creates them from the profile fallbacks,
+  undoing that scene's 1.808 ShipMesh scale.
+- **Thrust**: idle glow 0.3, full at full throttle, smoothed so blips don't
+  strobe. Boost overspeed lengthens (x1.6), brightens (x1.8), widens (x1.3)
+  and whitens the trail.
+- **Air streams**: show above 45 % of max speed, full at 90 %; opacity from load
+  (|yaw rate| x speed, outside tip more, plus that side's airbrake) and from
+  humidity, so they are faint on a dry day and clear in rain or fog.
+- **LOD** (`FxSettings`): camera target and near ships get both; FAR ships keep
+  only the thrust trail with straight segments; OFF ships stop emitting.
+- **Respawn** clears the trails (no ribbon across the map).
+- Purely visual: `ShipFx` only reads the ship.
+
+## Verified
+
+- Self-test (now with a trails section) — PASS: sockets found on the variant,
+  trail built (40 points), head pinned to the nozzle (gap 0.0000 m), air
+  streams appear at speed in rain, length within its cap, respawn clears.
+- **Handling unchanged with trails live**: `ai_race_probe` checksums still
+  equal main (Utopia 3950927593, Loop Lab 3042917252).
+- **Cost**: 8 driven ships, 32 ribbons, no camera LOD (worst case): trail CPU
+  avg 0.82 ms, worst 1.29 ms per frame on the cloud CPU. Real races are lower
+  (far ships drop to thrust-only). If it ever shows up in profiling, the
+  upgrade is the shader-ribbon backend from the design.
+- **Rendered** under xvfb on software Vulkan (`render_trails`): first pass
+  read as solid white rods (HDR energy saturating, 30 m long) and the air
+  streams were invisible; tuned to energy 1.6, fade power 3, 14 m, 0.4 m wide
+  at the nozzle; air streams 0.65 opacity, 0.4 base load, 0.5 m tail width.
+- The engine run also caught a real shader bug (varyings can't be written in a
+  helper function); fixed with a `TRAIL_VARYINGS` macro in `vertex()`.
+
+```
+xvfb-run -a godot --path full_throttle_flux --resolution 1280x720 --fixed-fps 60 -s res://tools/env/render_trails_boot.gd -- /tmp/trails
+```
+
+## For your eye (in game)
+
+1. Trail colour and brightness against each track's sky and road; the
+   additive trail has no fog, check it in the Fog preset.
+2. Boost response, and idle glow on the grid.
+3. Air streams: Rain or Fog (F4), then hard turns and airbrakes.
+4. Socket positions on the model (thrust markers should sit in the pods).
+5. Tuning lives in `default_ship_fx.tres` and the two trail materials.
+
+## Not yet
+
+- No motion-blur interaction check in a real window (transparent FX should not
+  write motion vectors; verify no smearing).
+- Per-ship trail colours wait on the class / team decision (open question).

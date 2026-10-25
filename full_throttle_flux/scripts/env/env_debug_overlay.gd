@@ -121,6 +121,8 @@ func _text(p: ShipEnvProbe) -> String:
 	s += "wind      %3.0f deg  %.1f m/s\n" % [wind_deg, env.wind_speed]
 	s += "track     %d zones  spline %.0f m  sky %s\n" % [
 		env.zones.size(), env.spline_length, "yes" if env.sky else "no"]
+	s += "humidity  %.2f   fx cpu %.2f ms (trail ribbons, all ships)\n" % [
+		env.humidity, TrailRibbon.frame_usec / 1000.0]
 	if p == null:
 		return s + "\n(no probe on the camera target)"
 	if not p.active:
@@ -135,6 +137,13 @@ func _text(p: ShipEnvProbe) -> String:
 		z.weight, z.dust_scale, z.covered, z.standing_water, z.snow_drift]
 	s += "local     wet %.2f  frost %.2f  dust %.2f  precip %.2f\n" % [
 		p.wetness, p.frost, p.dust, p.precipitation]
+	var fx := ShipFx.of(sh)
+	if fx and fx.active:
+		s += "fx        lod %s  thrust %d x %d pts  air L %d R %d pts\n" % [
+			FxSettings.Lod.keys()[fx.lod], fx.thrust.size(),
+			fx.thrust[0].point_count() if not fx.thrust.is_empty() else 0,
+			fx.air_left.point_count() if fx.air_left else 0,
+			fx.air_right.point_count() if fx.air_right else 0]
 	var since := p.seconds_since_hit()
 	if since < 30.0:
 		s += "wall hit  %.1f s ago  closing %.0f u/s%s\n" % [

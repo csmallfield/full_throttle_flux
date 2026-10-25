@@ -13,3 +13,4 @@ sky_preset = "overcast"
 sky_coverage = 0.7
 fog_density = 0.0012
 volumetric_density = 0.04
+humidity = 1.0

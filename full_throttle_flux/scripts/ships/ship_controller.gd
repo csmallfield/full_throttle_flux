@@ -276,6 +276,7 @@ func _ready() -> void:
 	# v35: environment FX probe (idle when there is no EnvironmentState, e.g.
 	# in the AI trainer and the dev sims).
 	ShipEnvProbe.attach(self)
+	ShipFx.attach(self)   # v35: trails etc., idle without an EnvironmentState
 
 	# Initialize safe position to starting position
 	last_safe_position = global_position

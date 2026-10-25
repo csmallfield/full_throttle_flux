@@ -6,3 +6,24 @@
 
 [node name="Model" parent="." instance=ExtResource("1_model")]
 transform = Transform3D(1.808, 0, 0, 0, 1.808, 0, 0, 0, 1.808, 0, 0, 0)
+
+[node name="FX_Thrust_L" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, -0.3, 3.7)
+
+[node name="FX_Thrust_R" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, -0.3, 3.7)
+
+[node name="FX_Wingtip_L" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9, -0.78, 2.1)
+
+[node name="FX_Wingtip_R" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, -0.78, 2.1)
+
+[node name="FX_Airbrake_L" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, -0.6, 3)
+
+[node name="FX_Airbrake_R" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, -0.6, 3)
+
+[node name="FX_Belly" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.2, 0)
