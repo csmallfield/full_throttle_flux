@@ -15,7 +15,7 @@ class_name FxParticlePreset
 
 @export_group("Carriers")
 ## Max live carriers per quality tier.
-@export var carrier_amount: int = 1600
+@export var carrier_amount: int = 3000
 ## Seconds a carrier lives (and spawns puffs).
 @export var carrier_lifetime: float = 0.45
 ## Deceleration, m/s per second: high = the plume stops close behind the ship.
@@ -29,12 +29,12 @@ class_name FxParticlePreset
 
 @export_group("Puff budget")
 ## Max live puffs per quality tier (LOW, MEDIUM, HIGH).
-@export var amount_low: int = 10000
-@export var amount_medium: int = 20000
-@export var amount_high: int = 40000
+@export var amount_low: int = 12000
+@export var amount_medium: int = 25000
+@export var amount_high: int = 50000
 
 @export_group("Puff motion")
-@export var lifetime: float = 2.2
+@export var lifetime: float = 1.6
 @export_range(0.0, 1.0) var lifetime_randomness: float = 0.4
 ## Downward pull, m/s^2 (negative = rises).
 @export var gravity: float = -0.15
@@ -51,8 +51,8 @@ class_name FxParticlePreset
 
 @export_group("Puff size")
 ## Quad size at birth, metres (the drawn puff fills roughly 60 % of it).
-@export var scale_min: float = 0.5
-@export var scale_max: float = 1.1
+@export var scale_min: float = 0.8
+@export var scale_max: float = 1.6
 ## Size at the end of life, relative to birth (most growth early).
 @export var grow: float = 4.5
 
@@ -62,7 +62,7 @@ class_name FxParticlePreset
 @export var use_track_dust_color: bool = true
 ## Per-puff brightness spread: each puff is lit between this and 1.
 @export_range(0.0, 1.0) var brightness_min: float = 0.78
-@export_range(0.0, 2.0) var opacity: float = 0.3
+@export_range(0.0, 2.0) var opacity: float = 0.2
 ## Fraction of life spent fading in.
 @export_range(0.0, 0.5) var fade_in: float = 0.0
 @export_range(0.0, 1.0) var erosion: float = 0.6
