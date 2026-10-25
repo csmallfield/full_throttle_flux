@@ -478,11 +478,12 @@ character.
 MARK_LIFE, MARK_COOL, MARK_GLOW); `spark.gdshader` uniforms; re-bake the
 scuff for a different mark look.
 
-# Phase 4: weather (in progress)
+# Phase 4: weather
 
-Kept up to date per piece, in case the session's context is compacted.
+Rain, snow, fog and dust storm at light / medium / heavy, with wet, frozen
+and dusty road and walls. Visual only: race checksums are unchanged.
 
-## Done so far
+## What's new
 
 | | |
 | --- | --- |
@@ -515,3 +516,57 @@ Kept up to date per piece, in case the session's context is compacted.
 - Volumetric fog stays off (it is tied to the sky controller's
   `volumetric_shafts` and is the expensive option); weather uses distance +
   height fog.
+
+## Picking the weather (for now)
+
+- In game (debug builds): **F4** cycles all 13 presets with blending,
+  **Shift+F4** instantly, **Ctrl+F4** back. F3 shows the overlay (now with
+  line glow, SSR, falling share and cover cut-out).
+- Per track: `TrackEnvironment.default_weather` (Utopia stays clear) and
+  `allowed_weather` (Utopia lists all 13).
+- No race-setup menu option yet: one of the open decisions.
+
+## Verified
+
+- Self-test PASS (83 checks): shader adopted on road + both walls with no
+  conflicts; road UVs map to MainSpline; driving-surface rows checked on the
+  real mesh (+2.0 m up, 16.9 m out); zone mask covered inside the test cover
+  and not outside; every preset loads; fog raises height fog, dims the sun,
+  lights the lines; dust storm tints the fog; SSR on in rain and off again in
+  clear; clear restores fog colour, sun and height fog; snow falls in the
+  open and is cut out under cover; nothing falls in fog; prewarm stash 16/16.
+- Race checksums equal main (Utopia 3950927593, Loop Lab 3042917252).
+- Renders (software Vulkan, 720p): every kind at medium, plus light and heavy
+  of each. Iterations: road camera underground (fixed: ship-relative), snow
+  flakes as 0.8 m blobs (width tied to streak length, fixed), wrong
+  driving-surface rows (no groove, fixed), fog barely visible (density 10×),
+  heavy fog greying the ship at 12 m (height fog cut to a third), heavy rain
+  warm-tinted (overcast mood instead of storm light), far rain curtains too
+  strong (halved, faded higher).
+
+## For your eye
+
+- **GPU cost is unmeasured** (software renderer). Run
+  `godot --path . -s res://tools/env/weather_profile.gd` on the 3080: it
+  prints GPU ms per preset in a real 8-ship race and flags anything over
+  +2 ms vs clear. Suspects: SSR in rain (steps 32/48/64 by quality), the
+  near precipitation (5k/10k/18k particles, alpha-blended), the far cylinder.
+- The wet look is subtle on Utopia's near-black road; it sells through SSR
+  reflections at grazing angles. Puddle threshold and darkening are in
+  `env_surface.gdshaderinc` if you want it wetter.
+- Precipitation follows the camera SHIP's cover, so at a tunnel portal it
+  can cut a moment early or late relative to the camera.
+- The city itself (StandardMaterial3D) doesn't get wet or snowy yet: Phase 5
+  converter.
+
+## Not yet
+
+- Heightfield occlusion under bridges the zones miss (Phase 5).
+- Weather choice in the race-setup menu; random from `allowed_weather`.
+- Grip changes: deliberately none (would invalidate trained AI lines).
+
+## Knobs
+
+`resources/weather/*.tres` (everything per preset), `env_surface.gdshaderinc`
+(puddle threshold, snow groove, dust edges), `WeatherFx._configure()` (streak
+width, length, shutter, opacity per kind), `EnvironmentState.SSR_WETNESS`.

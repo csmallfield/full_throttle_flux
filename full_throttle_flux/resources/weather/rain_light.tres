@@ -15,5 +15,5 @@ sky_preset = "overcast"
 sky_coverage = 0.72
 sky_mood = 0.35
 fog_density = 0.0005
-height_fog_density = 0.015
+height_fog_density = 0.005
 sun_scale = 0.8
