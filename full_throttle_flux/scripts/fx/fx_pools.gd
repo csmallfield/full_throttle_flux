@@ -32,6 +32,8 @@ const SHADER := "res://shaders/fx/dust_puff.gdshader"
 const ATLAS := "res://assets/fx/dust_puffs.png"
 const FLAGS := GPUParticles3D.EMIT_FLAG_POSITION | GPUParticles3D.EMIT_FLAG_VELOCITY
 const HUGE_AABB := AABB(Vector3(-20000, -2000, -20000), Vector3(40000, 4000, 40000))
+## Carrier simulation rate = the most puffs one carrier can lay per second.
+const CARRIER_HZ := 60
 
 var env: EnvironmentState
 var presets: Array[FxParticlePreset] = []
@@ -103,6 +105,11 @@ func _ready() -> void:
 		car.local_coords = false
 		car.emitting = false            # required for emit_particle() to spawn
 		car.process_material = _carrier_material(pr)
+		# A carrier lays at most ONE puff per simulation step, and
+		# GPUParticles3D simulates at 30 Hz by default: that silently capped
+		# every carrier at 30 puffs/s. 60 Hz doubles it; more density comes
+		# from more carriers.
+		car.fixed_fps = CARRIER_HZ
 		car.draw_pass_1 = null
 		car.visibility_aabb = HUGE_AABB
 		add_child(car)
@@ -129,7 +136,7 @@ func frame_count(kind: int) -> int:
 
 ## Puffs a carrier of `kind` lays over its life.
 func puffs_per_carrier(kind: int) -> float:
-	return presets[kind].puff_rate * presets[kind].carrier_lifetime
+	return minf(presets[kind].puff_rate, CARRIER_HZ) * presets[kind].carrier_lifetime
 
 
 func preset(kind: int) -> FxParticlePreset:
@@ -173,7 +180,7 @@ static func _carrier_material(pr: FxParticlePreset) -> ParticleProcessMaterial:
 	pm.damping_min = pr.carrier_damping
 	pm.damping_max = pr.carrier_damping
 	pm.sub_emitter_mode = ParticleProcessMaterial.SUB_EMITTER_CONSTANT
-	pm.sub_emitter_frequency = pr.puff_rate
+	pm.sub_emitter_frequency = minf(pr.puff_rate, CARRIER_HZ)
 	pm.sub_emitter_keep_velocity = pr.puffs_keep_velocity
 	return pm
 

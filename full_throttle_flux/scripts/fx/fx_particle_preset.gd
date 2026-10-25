@@ -20,8 +20,9 @@ class_name FxParticlePreset
 @export var carrier_lifetime: float = 0.8
 ## Deceleration, m/s per second: high = the plume stops close behind the ship.
 @export var carrier_damping: float = 60.0
-## Puffs each carrier spawns per second.
-@export var puff_rate: float = 90.0
+## Puffs each carrier spawns per second. At most FxPools.CARRIER_HZ (60): a
+## carrier lays one puff per simulation step. Want more? Emit more carriers.
+@export var puff_rate: float = 60.0
 ## Puffs start with their carrier's velocity (spray flung off the road) or
 ## nearly still where they are laid (dust hanging in the air behind the ship).
 @export var puffs_keep_velocity: bool = false

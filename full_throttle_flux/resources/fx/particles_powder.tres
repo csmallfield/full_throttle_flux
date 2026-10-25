@@ -6,7 +6,7 @@
 script = ExtResource("1_preset")
 display_name = "Snow powder"
 carrier_lifetime = 0.5
-puff_rate = 85.0
+puff_rate = 60.0
 lifetime = 1.5
 gravity = 0.6
 wind_influence = 0.5
