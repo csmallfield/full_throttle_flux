@@ -313,9 +313,10 @@ func _dust_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
 	_check(pools != null and pools.carriers.size() == 3 and pools.puffs.size() == 3, "three looks, each carriers + puffs")
 	_check(str(pools.carriers[0].sub_emitter) != "", "carriers feed the puff emitter (sub-emitter set)")
 	env.apply_weather(null, true)   # clear; the test TrackEnvironment has dust 0.3
+	await _drive_count(ship, kit, probe, pools, 0.25, 0.0, 0.0)   # let the probe see the change
 	var counts := await _drive_count(ship, kit, probe, pools, 2.0, 0.0, 0.0)
-	_check(fx.dust.kind == FxPools.Kind.DUST and counts[0] > 5 and counts[1] <= 2,
-		"dry: dust carriers %d, spray %d (2 s; first tick may still see rain)" % [counts[0], counts[1]])
+	_check(fx.dust.kind == FxPools.Kind.DUST and counts[0] > 5 and counts[1] == 0,
+		"dry: dust carriers %d, spray %d (2 s)" % [counts[0], counts[1]])
 	var dry_ground: float = fx.dust.rates["ground"]
 	_check(dry_ground > 1.0, "ground rate %.0f/s at speed" % dry_ground)
 	counts = await _drive_count(ship, kit, probe, pools, 1.0, 1.0, 0.0)

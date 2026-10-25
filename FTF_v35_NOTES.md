@@ -344,3 +344,78 @@ constructs a GPUParticles3D mid-race will shift the AI's random stream.
    noise flipbook texture or more, smaller particles.
 3. Readability in a pack: the near-camera fade (1.5–7 m) and LOD are the knobs.
 4. Airbrake and belly socket positions on the model are still estimates.
+
+---
+
+# Phase 2b: dust overhaul (many small textured puffs)
+
+Asked for: much better dust: many more, smaller particles, a noise texture,
+the full deal. Iterated against software-Vulkan renders until the chase view
+read as a soft billowing plume.
+
+## What changed
+
+| | |
+| --- | --- |
+| `tools/env/bake_dust_atlas.py` | **new** — bakes `assets/fx/dust_puffs.png`: 8 × 8 puffs at 128 px; each a lumpy cluster of soft blobs carved by domain-warped fbm, a quarter stretched into wisps, irregular noise-eroded edge, zero at the tile border. RG = normal, B = thickness, A = density. Deterministic (seed 35). `python3 tools/env/bake_dust_atlas.py [out.png] [--preview p.png]` (numpy, Pillow) |
+| `assets/fx/dust_puffs.png` | **new**, imported with mipmaps |
+| `shaders/fx/dust_puff.gdshader` | rewritten: atlas tile per puff from a STABLE random (`anim_offset`, CUSTOM.z); normals spun with the billboard and sun-lit (wrap diffuse + back-light through thin parts); thin wisps dissolve first with age; thick cores slightly darker; soft depth 0.35 m; faded 1.5–6 m from the camera. Fixes the old shader's seed coming from the particle's moving position (the pattern swam) |
+| `scripts/fx/fx_pools.gd` | per look: **carriers** (invisible, script-emitted) + **puffs** (GPU sub-emitter). Two prewarmed nodes per look |
+| `scripts/fx/fx_particle_preset.gd`, `particles_*.tres` | carrier and puff settings |
+| `scripts/fx/fx_prewarm.gd` | 16 nodes; freed at exit |
+| `scripts/fx/ship_dust.gd`, `ship_fx_profile.gd` | carriers spawn 0.6 m above the road; carrier rates (ground 280/s, wall 180/s, airbrake 220/s at full); inherit 92 %; spread 7 m/s |
+| `tools/env/render_dust.gd` | camera with a `ship` (lead ship at FULL LOD like the player), `RENDER_ONLY=dust,airbrake` |
+
+## How it works
+
+Ships emit invisible **carriers** with 92 % of the ship's velocity. They ride
+along under the ship for 0.45 s, decelerating, and lay up to 60 small textured
+**puffs** per second each, on the GPU. Dust puffs stay where they are laid
+(spray keeps its carrier's velocity: a rooster tail), burst upward up to
+4 m/s, grow ×4.5, live ~1.6 s. Result: around 7 000 puffs/s from the player's
+ship at full dust, for ~5 script calls per frame.
+
+## Findings worth keeping
+
+- **Sub-emitter cap**: a carrier lays at most ONE puff per simulation step,
+  and GPUParticles3D simulates at `fixed_fps = 30` by default. Measured: a
+  carrier made 24 puffs over 0.8 s whether asked for 30/s or 90/s. Carriers
+  now run at 60 Hz (`FxPools.CARRIER_HZ`); more density = more carriers.
+- **Chase camera physics**: a stationary puff is between the ship and a chase
+  camera 13 m back for only ~0.1 s at 120 u/s. Slow carriers drop behind the
+  camera before laying most of their puffs, and any fade-in hides exactly the
+  puffs the camera can see. Hence fast carriers, fade-in 0.
+- **Soft particles vs the road**: puffs laid on the road surface were erased
+  by the soft-depth blend (half the quad below the road). Spawn 0.6 m up,
+  upward burst, 0.35 m blend.
+- **Density beats size**: a few big opaque puffs read as clods; many fainter
+  ones (opacity 0.2) overlap into haze.
+
+## Render iterations (chase cam, dusty test Utopia)
+
+1. Atlas + carriers: good puff shapes, ~10 puffs on screen.
+2. Stationary puffs: worse (puffs buried in the road, faded in out of view).
+3. Lifted, FULL LOD camera: side view shows a trail, chase view still empty.
+4. Fade-in off, wider bursts: a few more.
+5. Carriers at 60 Hz: some more.
+6. Carriers ride with the ship: a real plume, but lumpy.
+7. Softer, more transparent: lumps with gaps.
+8. 2× carriers, bigger and fainter puffs: soft billowing plume, rolling
+   airbrake cloud, wall haze, white spray mist, snowy powder. Kept.
+
+## Verified
+
+- Self-test PASS (dry: 103 dust carriers in 2 s and no spray; airbrake left
+  only; rain → spray; snow → powder; dust storm ×2.8; stash 16/16).
+- Race checksums equal main (Utopia 3950927593, Loop Lab 3042917252).
+- Cost (2-vCPU box, 8 ships, no camera LOD): all ship FX avg 1.46 ms/frame
+  CPU. GPU cost unmeasured here (software renderer): watch the overdraw of
+  the airbrake cloud close to the camera on your 3080, and lower
+  `FxSettings.quality` budgets if needed.
+
+## Knobs
+
+`resources/fx/particles_dust.tres` (opacity, grow, lifetime, burst,
+turbulence, erosion), `default_ship_fx.tres` (carrier rates, inherit,
+spread), `FxPools.CARRIER_HZ`, re-bake the atlas for a different puff
+character.
