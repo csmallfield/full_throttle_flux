@@ -26,6 +26,11 @@ var cases := [
 	["boost pads overlapping", "overlap", Callable(self, "_pad_overlap")],
 	["boost into the tightest bend", "the boost carries", Callable(self, "_pad_bend")],
 	["boost into a jump", "to Jump's lip", Callable(self, "_pad_jump")],
+	["greeble key far from the track", "Zone03_Hairpin is", Callable(self, "_greeble_far")],
+	["greeble piece reaching into the track", "reaches into the track", Callable(self, "_greeble_intrude")],
+	["ground greeble too tall", "tall on the road", Callable(self, "_greeble_tall")],
+	["two greeble keys together", "within 2 m of each other", Callable(self, "_greeble_twin")],
+	["greebles out of date", "Greebles are out of date", Callable(self, "_none")],
 ]
 
 
@@ -90,6 +95,12 @@ func _after_build(name: String, tb: TrackBuilder, scene: Node) -> void:
 		seg.end_distance = 1200.0
 		seg.polygon = PackedVector2Array([Vector2(21.5, 0.5), Vector2(-21.5, 0.5), Vector2(-21.5, -0.5), Vector2(21.5, -0.5)])
 		p.add_child(seg)
+	elif name == "greebles out of date":
+		# Move a zone key 200 m on after the build wrote the zones.
+		var k := _greeble_key(tb, "Zone07_Maritime")
+		var main := scene.get_node("MainSpline") as Path3D
+		var f := TrackRoadSegment.frame_at(main.curve, k.distance + 200.0)
+		k.global_position = f.origin + f.basis.y * 8.0
 	elif name == "moved geometry (the offset)":
 		# What the circuits do: rotate the road geometry node.
 		var road := scene.get_node("MainSpline/Road") as Node3D
@@ -194,3 +205,42 @@ func _pad_bend(tb: TrackBuilder, _scene: Node) -> void:
 func _pad_jump(tb: TrackBuilder, _scene: Node) -> void:
 	# 200 m before the main jump's lip: ~127 u/s there.
 	_pad(tb, "PadJump", 300.0)
+
+
+func _greeble_key(tb: TrackBuilder, n: String) -> GreebleZoneKey:
+	for k in TrackGreebler.all_keys(tb):
+		if k.name == n:
+			return k
+	return null
+
+
+func _greeble_far(tb: TrackBuilder, _scene: Node) -> void:
+	var k := _greeble_key(tb, "Zone03_Hairpin")
+	k.global_position += Vector3(0, 60, 0)
+
+
+## A local copy of a style with its lamp poles pushed 8 m in and 6 m down.
+func _greeble_intrude(tb: TrackBuilder, _scene: Node) -> void:
+	var k := _greeble_key(tb, "Zone01_Civic")
+	k.make_local_copy()
+	for r in k.style.rules:
+		if r and r.layer == "wall_top":
+			r.offset = Vector3(8.0, -6.0, 0.0)
+
+
+func _greeble_tall(tb: TrackBuilder, _scene: Node) -> void:
+	var k := _greeble_key(tb, "Zone04_Garden")
+	k.make_local_copy()
+	for r in k.style.rules:
+		if r and r.layer == "ground":
+			r.scale_min = 8.0
+			r.scale_max = 8.0
+
+
+func _greeble_twin(tb: TrackBuilder, _scene: Node) -> void:
+	var k := _greeble_key(tb, "Zone06_SkyDeck")
+	var twin := GreebleZoneKey.new()
+	twin.name = "Zone06_Twin"
+	twin.preset = "civic"
+	k.get_parent().add_child(twin)
+	twin.global_position = k.global_position + Vector3(0.5, 0, 0)

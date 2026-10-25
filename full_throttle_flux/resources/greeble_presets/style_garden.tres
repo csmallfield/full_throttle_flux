@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3]
+
+[ext_resource type="Script" path="res://tools/utopia/greeble_rule.gd" id="1_xyedf"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_seam.tres" id="2_wgtgn"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_stud.tres" id="3_2skvm"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_rib.tres" id="4_pytsk"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_wall_dash.tres" id="5_gss15"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_planter.tres" id="6_po4rf"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_lamp_pole.tres" id="7_nb0lx"]
+[ext_resource type="Script" path="res://tools/utopia/greeble_style.gd" id="8_u5xpl"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_gantry.tres" id="9_rn3ij"]
+
+[sub_resource type="Resource" id="Resource_xyedf"]
+script = ExtResource("1_xyedf")
+mesh = ExtResource("2_wgtgn")
+pattern = "x-"
+side = "center"
+
+[sub_resource type="Resource" id="Resource_wgtgn"]
+script = ExtResource("1_xyedf")
+mesh = ExtResource("3_2skvm")
+slots_per_bay = 2
+slot_phase = 0.5
+lateral = 8.5
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_2skvm"]
+script = ExtResource("1_xyedf")
+layer = "wall_face"
+mesh = ExtResource("4_pytsk")
+pattern = "x-"
+
+[sub_resource type="Resource" id="Resource_pytsk"]
+script = ExtResource("1_xyedf")
+layer = "wall_face"
+mesh = ExtResource("5_gss15")
+slots_per_bay = 2
+pattern = "-x"
+slot_phase = 0.5
+offset = Vector3(0, 1.1, 0)
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_gss15"]
+script = ExtResource("1_xyedf")
+layer = "wall_top"
+mesh = ExtResource("6_po4rf")
+slots_per_bay = 2
+slot_phase = 0.5
+
+[sub_resource type="Resource" id="Resource_po4rf"]
+script = ExtResource("1_xyedf")
+layer = "wall_top"
+mesh = ExtResource("7_nb0lx")
+pattern = "x--"
+side = "left"
+
+[sub_resource type="Resource" id="Resource_nb0lx"]
+script = ExtResource("1_xyedf")
+layer = "wall_top"
+mesh = ExtResource("7_nb0lx")
+pattern = "-x-"
+slot_phase = 0.5
+side = "right"
+
+[resource]
+script = ExtResource("8_u5xpl")
+style_name = "garden"
+bay_length = 20.0
+rules = Array[ExtResource("1_xyedf")]([SubResource("Resource_xyedf"), SubResource("Resource_wgtgn"), SubResource("Resource_2skvm"), SubResource("Resource_pytsk"), SubResource("Resource_gss15"), SubResource("Resource_po4rf"), SubResource("Resource_nb0lx")])
+threshold_mesh = ExtResource("9_rn3ij")

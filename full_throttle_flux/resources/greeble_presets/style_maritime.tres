@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3]
+
+[ext_resource type="Script" path="res://tools/utopia/greeble_rule.gd" id="1_1m01p"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_seam.tres" id="2_0mptc"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_stud.tres" id="3_hh1hm"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_wall_dash.tres" id="4_lam81"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_wall_panel.tres" id="5_yv1wk"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_bollard.tres" id="6_ei1vi"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_lamp_pole.tres" id="7_m86yg"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_mast.tres" id="8_qgre2"]
+[ext_resource type="Script" path="res://tools/utopia/greeble_style.gd" id="9_fxjlj"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_portal.tres" id="10_lepj1"]
+
+[sub_resource type="Resource" id="Resource_1m01p"]
+script = ExtResource("1_1m01p")
+mesh = ExtResource("2_0mptc")
+pattern = "x-"
+side = "center"
+
+[sub_resource type="Resource" id="Resource_0mptc"]
+script = ExtResource("1_1m01p")
+mesh = ExtResource("3_hh1hm")
+slots_per_bay = 4
+slot_phase = 0.5
+lateral = 8.5
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_hh1hm"]
+script = ExtResource("1_1m01p")
+layer = "wall_face"
+mesh = ExtResource("4_lam81")
+slots_per_bay = 4
+slot_phase = 0.5
+offset = Vector3(0, 1.1, 0)
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_lam81"]
+script = ExtResource("1_1m01p")
+layer = "wall_face"
+mesh = ExtResource("5_yv1wk")
+pattern = "x-"
+offset = Vector3(0, -0.6, 0)
+
+[sub_resource type="Resource" id="Resource_yv1wk"]
+script = ExtResource("1_1m01p")
+layer = "wall_top"
+mesh = ExtResource("6_ei1vi")
+slots_per_bay = 2
+
+[sub_resource type="Resource" id="Resource_ei1vi"]
+script = ExtResource("1_1m01p")
+layer = "wall_top"
+mesh = ExtResource("7_m86yg")
+pattern = "x--"
+slot_phase = 0.5
+side = "left"
+
+[sub_resource type="Resource" id="Resource_m86yg"]
+script = ExtResource("1_1m01p")
+layer = "wall_top"
+mesh = ExtResource("7_m86yg")
+pattern = "--x"
+slot_phase = 0.5
+side = "right"
+
+[sub_resource type="Resource" id="Resource_qgre2"]
+script = ExtResource("1_1m01p")
+layer = "outside"
+mesh = ExtResource("8_qgre2")
+pattern = "x-"
+
+[resource]
+script = ExtResource("9_fxjlj")
+style_name = "maritime"
+bay_length = 28.0
+rules = Array[ExtResource("1_1m01p")]([SubResource("Resource_1m01p"), SubResource("Resource_0mptc"), SubResource("Resource_hh1hm"), SubResource("Resource_lam81"), SubResource("Resource_yv1wk"), SubResource("Resource_ei1vi"), SubResource("Resource_m86yg"), SubResource("Resource_qgre2")])
+threshold_mesh = ExtResource("10_lepj1")

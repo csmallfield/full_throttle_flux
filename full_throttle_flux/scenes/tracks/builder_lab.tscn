@@ -11,19 +11,29 @@
 [ext_resource type="Script" path="res://tools/track_builder/branch_feature.gd" id="8_bgun2"]
 [ext_resource type="Script" path="res://scripts/rendering/motion_blur_effect.gd" id="9_fddrg"]
 [ext_resource type="Script" path="res://scripts/tracks/track_road_segment.gd" id="10_qnoji"]
+[ext_resource type="Script" path="res://tools/track_builder/greeble_zone_key.gd" id="10_qsuhs"]
+[ext_resource type="Resource" path="res://resources/greeble_presets/style_service.tres" id="11_cw7oq"]
 [ext_resource type="Material" path="res://shaders/resources/grid_material.tres" id="11_r5qea"]
+[ext_resource type="Resource" path="res://resources/greeble_presets/style_civic.tres" id="12_dw33r"]
 [ext_resource type="Script" path="res://scripts/tracks/track_junction.gd" id="12_o8d6w"]
+[ext_resource type="Resource" path="res://resources/greeble_presets/style_hairpin.tres" id="13_dlsyb"]
 [ext_resource type="PackedScene" path="res://scenes/start_finish_line.tscn" id="13_ox1j4"]
-[ext_resource type="Script" path="res://scripts/start_finish_line.gd" id="14_q7cp5"]
+[ext_resource type="Resource" path="res://resources/greeble_presets/style_garden.tres" id="14_ptc6d"]
+[ext_resource type="Resource" path="res://resources/greeble_presets/style_skyway.tres" id="15_g7d43"]
 [ext_resource type="Script" path="res://scripts/tracks/starting_grid.gd" id="15_jubuv"]
+[ext_resource type="Resource" path="res://resources/greeble_presets/style_sky_deck.tres" id="16_h7qmn"]
 [ext_resource type="Script" path="res://scripts/tracks/magnetic_track.gd" id="16_t3ymg"]
 [ext_resource type="Script" path="res://scripts/tracks/magnetic_zone.gd" id="17_q2n3k"]
+[ext_resource type="Resource" path="res://resources/greeble_presets/style_maritime.tres" id="17_xm2at"]
 [ext_resource type="Script" path="res://scripts/tracks/track_graph.gd" id="18_ch8a7"]
 [ext_resource type="Script" path="res://scripts/tracks/track_branch.gd" id="19_punj6"]
 [ext_resource type="Script" path="res://scripts/tracks/track_jump.gd" id="20_qsuhs"]
 [ext_resource type="Script" path="res://scripts/respawn_trigger.gd" id="21_cw7oq"]
+[ext_resource type="Script" path="res://scripts/start_finish_line.gd" id="23_dlsyb"]
 [ext_resource type="PackedScene" path="res://scenes/boost_pad.tscn" id="23_q7cp5"]
 [ext_resource type="Script" path="res://scripts/boost_pad.gd" id="24_jubuv"]
+[ext_resource type="Script" path="res://scripts/tracks/track_greebles.gd" id="33_ptc6d"]
+[ext_resource type="Script" path="res://scripts/tracks/track_greeble_zone.gd" id="34_g7d43"]
 
 [sub_resource type="Curve3D" id="Curve3D_5obu3"]
 closed = true
@@ -151,6 +161,145 @@ size = Vector3(90, 60, 135.13779)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_tmwcj"]
 size = Vector3(90, 60, 160.15323)
+
+[sub_resource type="Resource" id="Resource_67ll4"]
+script = ExtResource("34_g7d43")
+key_name = "Zone01_Civic"
+label = "Zone01_Civic"
+from_d = 60.0
+to_d = 400.0
+style = ExtResource("12_dw33r")
+seed = 1308017967
+
+[sub_resource type="Resource" id="Resource_tmwcj"]
+script = ExtResource("34_g7d43")
+key_name = "Zone02_Service"
+label = "Zone02_Service"
+from_d = 400.0
+to_d = 899.9971285784651
+style = ExtResource("11_cw7oq")
+seed = 973281690
+
+[sub_resource type="Resource" id="Resource_2u2u5"]
+script = ExtResource("34_g7d43")
+key_name = "Zone03_Hairpin"
+label = "Zone03_Hairpin"
+from_d = 899.9971285784651
+to_d = 1250.0
+style = ExtResource("13_dlsyb")
+mirror = true
+seed = 667560339
+
+[sub_resource type="Resource" id="Resource_wfu0n"]
+script = ExtResource("34_g7d43")
+key_name = "Zone04_Garden"
+label = "Zone04_Garden"
+from_d = 1250.0
+to_d = 1850.0
+style = ExtResource("14_ptc6d")
+seed = 538213665
+
+[sub_resource type="Resource" id="Resource_en2hm"]
+script = ExtResource("34_g7d43")
+key_name = "Zone05_Skyway"
+label = "Zone05_Skyway"
+from_d = 1850.0
+to_d = 2149.9998848868204
+style = ExtResource("15_g7d43")
+seed = 1597911933
+
+[sub_resource type="Resource" id="Resource_4vs66"]
+script = ExtResource("34_g7d43")
+key_name = "Zone06_SkyDeck"
+label = "Zone06_SkyDeck"
+from_d = 2149.9998848868204
+to_d = 3100.0
+style = ExtResource("16_h7qmn")
+seed = 1312110655
+
+[sub_resource type="Resource" id="Resource_5i40i"]
+script = ExtResource("34_g7d43")
+key_name = "Zone07_Maritime"
+label = "Zone07_Maritime"
+from_d = 3100.0
+to_d = 3700.002587102176
+style = ExtResource("17_xm2at")
+seed = 1851075192
+
+[sub_resource type="Resource" id="Resource_rpfmv"]
+script = ExtResource("34_g7d43")
+key_name = "Zone08_Hairpin"
+label = "Zone08_Hairpin"
+from_d = 3700.002587102176
+to_d = 4299.996699202605
+style = ExtResource("13_dlsyb")
+mirror = true
+seed = 1274514473
+
+[sub_resource type="Resource" id="Resource_dxtlj"]
+script = ExtResource("34_g7d43")
+key_name = "Zone09_Skyway"
+label = "Zone09_Skyway"
+from_d = 4299.996699202605
+to_d = 5300.0
+style = ExtResource("15_g7d43")
+seed = 1150032184
+
+[sub_resource type="Resource" id="Resource_u5s0b"]
+script = ExtResource("34_g7d43")
+key_name = "Zone10_SkyDeck"
+label = "Zone10_SkyDeck"
+from_d = 5300.0
+to_d = 6300.000923756913
+style = ExtResource("16_h7qmn")
+seed = 1019510599
+
+[sub_resource type="Resource" id="Resource_ttohc"]
+script = ExtResource("34_g7d43")
+key_name = "Zone11_Civic"
+label = "Zone11_Civic"
+from_d = 6300.000923756913
+to_d = 7300.0
+style = ExtResource("12_dw33r")
+seed = 1720094170
+
+[sub_resource type="Resource" id="Resource_qbyo1"]
+script = ExtResource("34_g7d43")
+key_name = "Zone12_Hairpin"
+label = "Zone12_Hairpin"
+from_d = 7300.0
+to_d = 8550.0
+style = ExtResource("13_dlsyb")
+mirror = true
+seed = 708459900
+
+[sub_resource type="Resource" id="Resource_h8cin"]
+script = ExtResource("34_g7d43")
+key_name = "Zone13_Garden"
+label = "Zone13_Garden"
+from_d = 8550.0
+to_d = 9002.157
+style = ExtResource("14_ptc6d")
+seed = 125821776
+
+[sub_resource type="Resource" id="Resource_0jkno"]
+script = ExtResource("34_g7d43")
+path_index = 1
+key_name = "Zone10_SkyDeck"
+label = "Zone10_SkyDeck@fork"
+to_d = 300.0
+style = ExtResource("16_h7qmn")
+seed = 1976545658
+
+[sub_resource type="Resource" id="Resource_44ats"]
+script = ExtResource("34_g7d43")
+path_index = 1
+key_name = "ShortcutZone_Service"
+label = "ShortcutZone_Service"
+from_d = 300.0
+to_d = 1337.9065
+style = ExtResource("11_cw7oq")
+seed = 156598031
 
 [node name="BuilderLab" type="Node3D" unique_id=1692124175]
 
@@ -325,6 +474,121 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1832, 6, 721)
 script = ExtResource("5_ox1j4")
 anchor = 1
 distance = 944.642850279808
+
+[node name="ShortcutZone_Service" type="Node3D" parent="TrackBuilder/Features/Shortcut" unique_id=598964966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2401.3113, -2.5134535, 432.01077)
+script = ExtResource("10_qsuhs")
+preset = "service"
+style = ExtResource("11_cw7oq")
+distance = 300.0
+
+[node name="GreebleZoneKeys" type="Node3D" parent="TrackBuilder" unique_id=918164098]
+
+[node name="Zone01_Civic" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=188220272]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4787116, 7.9345856, -179.99739)
+script = ExtResource("10_qsuhs")
+preset = "civic"
+style = ExtResource("12_dw33r")
+distance = 60.0
+
+[node name="Zone02_Service" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=1710969969]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.71972513, 16.650883, -519.7898)
+script = ExtResource("10_qsuhs")
+preset = "service"
+style = ExtResource("11_cw7oq")
+seed = 2
+distance = 400.0
+
+[node name="Zone03_Hairpin" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=837687744]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.142553, 9.038414, -1018.19104)
+script = ExtResource("10_qsuhs")
+preset = "hairpin"
+style = ExtResource("13_dlsyb")
+mirror = true
+seed = 3
+distance = 899.9971285784651
+
+[node name="Zone04_Garden" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=269512108]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 204.3455, 14.658325, -1281.3741)
+script = ExtResource("10_qsuhs")
+preset = "garden"
+style = ExtResource("14_ptc6d")
+seed = 4
+distance = 1250.0
+
+[node name="Zone05_Skyway" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=366622261]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 793.16656, 18.147667, -1362.864)
+script = ExtResource("10_qsuhs")
+preset = "skyway"
+style = ExtResource("15_g7d43")
+seed = 5
+distance = 1850.0
+
+[node name="Zone06_SkyDeck" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=1758807766]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1088.7968, 18.078363, -1406.1046)
+script = ExtResource("10_qsuhs")
+preset = "sky_deck"
+style = ExtResource("16_h7qmn")
+seed = 6
+distance = 2149.9998848868204
+
+[node name="Zone07_Maritime" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=1572982015]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1571.9722, 18.227829, -1325.7484)
+script = ExtResource("10_qsuhs")
+preset = "maritime"
+style = ExtResource("17_xm2at")
+seed = 7
+distance = 3100.0
+
+[node name="Zone08_Hairpin" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=1960199859]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2166.3066, 16.276438, -1345.5338)
+script = ExtResource("10_qsuhs")
+preset = "hairpin"
+style = ExtResource("13_dlsyb")
+mirror = true
+seed = 8
+distance = 3700.002587102176
+
+[node name="Zone09_Skyway" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=251770513]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2479.7107, 5.1297045, -900.45703)
+script = ExtResource("10_qsuhs")
+preset = "skyway"
+style = ExtResource("15_g7d43")
+seed = 9
+distance = 4299.996699202605
+
+[node name="Zone10_SkyDeck" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=1488680141]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2481.3047, -2.528101, 99.38705)
+script = ExtResource("10_qsuhs")
+preset = "sky_deck"
+style = ExtResource("16_h7qmn")
+seed = 10
+distance = 5300.0
+
+[node name="Zone11_Civic" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=1295875825]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1955.1721, 8.468953, 787.3106)
+script = ExtResource("10_qsuhs")
+preset = "civic"
+style = ExtResource("12_dw33r")
+seed = 11
+distance = 6300.000923756913
+
+[node name="Zone12_Hairpin" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=442528218]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 955.52985, 7.96809, 800.18304)
+script = ExtResource("10_qsuhs")
+preset = "hairpin"
+style = ExtResource("13_dlsyb")
+mirror = true
+seed = 12
+distance = 7300.0
+
+[node name="Zone13_Garden" type="Node3D" parent="TrackBuilder/GreebleZoneKeys" unique_id=1282369876]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.019368, 7.9681983, 272.00485)
+script = ExtResource("10_qsuhs")
+preset = "garden"
+style = ExtResource("14_ptc6d")
+seed = 13
+distance = 8550.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=827759218]
 environment = SubResource("Environment_r5qea")
@@ -554,7 +818,7 @@ curve = SubResource("Curve3D_ptc6d")
 transform = Transform3D(1.4884187, 0.18603781, -5.1852876e-05, -0.18603781, 1.4884187, 0, 5.1452524e-05, 6.4310634e-06, 1.5, -1.5355136, 0.049613953, -150.00009)
 collision_layer = 4
 collision_mask = 2
-script = ExtResource("14_q7cp5")
+script = ExtResource("23_dlsyb")
 
 [node name="StartingGrid" type="Node3D" parent="StartingPoint" unique_id=449119431 groups=["track_builder_generated"]]
 script = ExtResource("15_jubuv")
@@ -651,3 +915,11 @@ transform = Transform3D(0.37296882, -3.3818626e-08, -0.92784387, 9.0674135e-08, 
 collision_layer = 4
 collision_mask = 2
 script = ExtResource("24_jubuv")
+
+[node name="TrackGreebles" type="Node3D" parent="." unique_id=1230599895 groups=["track_builder_generated"]]
+script = ExtResource("33_ptc6d")
+paths = Array[NodePath]([NodePath("../MainSpline"), NodePath("../BranchSpline")])
+zones = Array[ExtResource("34_g7d43")]([SubResource("Resource_67ll4"), SubResource("Resource_tmwcj"), SubResource("Resource_2u2u5"), SubResource("Resource_wfu0n"), SubResource("Resource_en2hm"), SubResource("Resource_4vs66"), SubResource("Resource_5i40i"), SubResource("Resource_rpfmv"), SubResource("Resource_dxtlj"), SubResource("Resource_u5s0b"), SubResource("Resource_ttohc"), SubResource("Resource_qbyo1"), SubResource("Resource_h8cin"), SubResource("Resource_0jkno"), SubResource("Resource_44ats")])
+no_overhead = PackedVector3Array(0, 2171.7893, 3018.6057, 0, 4440.512, 5260.499, 0, 423.9578, 689.2204, 1, 601.2252, 891.6318, 0, 15, 45)
+ground_exclusions = PackedFloat32Array(0, 30, 0, 40, 3, 0, 6999.501, -9.999995, 4.5, 6.5, 0, 6999.5015, 0, 4.5, 6.5, 0, 6999.5015, 9.999993, 4.5, 6.5, 0, 1499.386, 14.499973, 4.5, 6.5, 1, 945.30493, -14.49998, 4.5, 6.5)
+rail_top = Vector2(25.719, 8.44438)

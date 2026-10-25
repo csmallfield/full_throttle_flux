@@ -1,0 +1,101 @@
+[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3]
+
+[ext_resource type="Script" path="res://tools/utopia/greeble_rule.gd" id="1_x3is4"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_seam.tres" id="2_g7uyj"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_hazard_edge.tres" id="3_n8c4l"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_grate.tres" id="4_uvqdr"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_deck_vent.tres" id="5_mq3mv"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_deck_plate.tres" id="6_bx3qc"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_pipe_run.tres" id="7_x836t"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_wall_panel.tres" id="8_tmvyb"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_rib.tres" id="9_dkfo0"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_sensor_pod.tres" id="10_uyf60"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_bollard.tres" id="11_tqkt2"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_fin.tres" id="12_dduki"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_truss.tres" id="13_aih64"]
+[ext_resource type="Script" path="res://tools/utopia/greeble_style.gd" id="14_nqgoc"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_gantry.tres" id="15_xo57y"]
+
+[sub_resource type="Resource" id="Resource_x3is4"]
+script = ExtResource("1_x3is4")
+mesh = ExtResource("2_g7uyj")
+side = "center"
+
+[sub_resource type="Resource" id="Resource_g7uyj"]
+script = ExtResource("1_x3is4")
+mesh = ExtResource("3_n8c4l")
+lateral = 15.5
+
+[sub_resource type="Resource" id="Resource_n8c4l"]
+script = ExtResource("1_x3is4")
+mesh = ExtResource("4_uvqdr")
+slot_phase = 0.5
+lateral = 15.5
+
+[sub_resource type="Resource" id="Resource_uvqdr"]
+script = ExtResource("1_x3is4")
+mesh = ExtResource("5_mq3mv")
+slots_per_bay = 2
+probability = 0.6
+lateral = 8.0
+jitter = Vector3(2, 0, 2)
+
+[sub_resource type="Resource" id="Resource_mq3mv"]
+script = ExtResource("1_x3is4")
+mesh = ExtResource("6_bx3qc")
+pattern = "-x"
+slot_phase = 0.5
+probability = 0.7
+side = "center"
+
+[sub_resource type="Resource" id="Resource_bx3qc"]
+script = ExtResource("1_x3is4")
+layer = "wall_face"
+mesh = ExtResource("7_x836t")
+slots_per_bay = 2
+slot_phase = 0.5
+mesh_length = 1.0
+
+[sub_resource type="Resource" id="Resource_x836t"]
+script = ExtResource("1_x3is4")
+layer = "wall_face"
+mesh = ExtResource("8_tmvyb")
+slot_phase = 0.5
+
+[sub_resource type="Resource" id="Resource_tmvyb"]
+script = ExtResource("1_x3is4")
+layer = "wall_face"
+mesh = ExtResource("9_dkfo0")
+
+[sub_resource type="Resource" id="Resource_dkfo0"]
+script = ExtResource("1_x3is4")
+layer = "wall_top"
+mesh = ExtResource("10_uyf60")
+pattern = "x-"
+slot_phase = 0.5
+
+[sub_resource type="Resource" id="Resource_uyf60"]
+script = ExtResource("1_x3is4")
+layer = "wall_top"
+mesh = ExtResource("11_tqkt2")
+
+[sub_resource type="Resource" id="Resource_tqkt2"]
+script = ExtResource("1_x3is4")
+layer = "outside"
+mesh = ExtResource("12_dduki")
+offset = Vector3(-1.1, -7, 0)
+
+[sub_resource type="Resource" id="Resource_dduki"]
+script = ExtResource("1_x3is4")
+layer = "overhead"
+mesh = ExtResource("13_aih64")
+pattern = "x-----"
+slot_phase = 0.5
+avoid_tunnels = true
+
+[resource]
+script = ExtResource("14_nqgoc")
+style_name = "service"
+bay_length = 16.0
+rules = Array[ExtResource("1_x3is4")]([SubResource("Resource_x3is4"), SubResource("Resource_g7uyj"), SubResource("Resource_n8c4l"), SubResource("Resource_uvqdr"), SubResource("Resource_mq3mv"), SubResource("Resource_bx3qc"), SubResource("Resource_x836t"), SubResource("Resource_tmvyb"), SubResource("Resource_dkfo0"), SubResource("Resource_uyf60"), SubResource("Resource_tqkt2"), SubResource("Resource_dduki")])
+threshold_mesh = ExtResource("15_xo57y")

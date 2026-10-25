@@ -47,6 +47,15 @@ class_name TrackValidator
 ##   branch ends      on the main spline within 0.05 m and 0.5°
 ##   respawns         (headless) every point over road; the largest gap
 ##
+## Greebles (GreebleZoneKey, v36):
+##   keys             more than 30 m from the built spline is an error; two
+##                    keys on the same road within 2 m of each other warn
+##   styles           a zone whose style has no usable rule warns
+##   built            the TrackGreebles node exists and matches the keys
+##                    (else: press Build or Refresh greebles)
+##   corridor         pieces reaching into the flat road below 10 m (the
+##                    track clearance), ground pieces over 0.3 m tall
+##
 ## Boost pads (BoostPadKey):
 ##   placement        on the flat road (errors), no overlaps (errors), not over
 ##                    a jump's gap (error) or on its kicker, not on the grid
@@ -151,6 +160,7 @@ func _run(b: TrackBuilder, space: PhysicsDirectSpaceState3D) -> void:
 	_check_branches(b, root, space)
 	_check_pads_built(b, root, space)
 	_check_race(b, root, space)
+	_check_greebles(b, root)
 
 
 # =============================================================================
@@ -1056,3 +1066,78 @@ func _pad_d(b: TrackBuilder, p: Dictionary) -> float:
 ## Distance shown in messages: main lap metres, or -1 on a branch (its own).
 func _track_d(_b: TrackBuilder, branch: int, d: float) -> float:
 	return d if branch < 0 else -1.0
+
+
+# =============================================================================
+# GREEBLES (v36)
+# =============================================================================
+
+const GREEBLE_KEY_TWIN := 2.0
+
+func _check_greebles(b: TrackBuilder, root: Node) -> void:
+	var keys := TrackGreebler.all_keys(b)
+	var node := root.get_node_or_null(TrackBuilder.GREEBLES_NODE) as TrackGreebles if root else null
+	if keys.is_empty():
+		if node:
+			_add(Sev.WARNING, node.global_position, -1.0,
+					"TrackGreebles is left from an earlier build but there are no GreebleZoneKeys: press Build")
+		return
+	var g := TrackGreebler.resolve(b, root)
+	if not g.ok():
+		_add(Sev.WARNING, keys[0].global_position, -1.0, "Greebles: " + "; ".join(g.notes))
+		return
+	for n in g.notes:
+		_add(Sev.WARNING, b.global_position, -1.0, "Greebles: " + n)
+	for i in keys.size():
+		var k := keys[i]
+		if k.distance_to_track > TrackGreebler.KEY_FAR:
+			_add(Sev.ERROR, k.global_position, k.distance,
+					"%s is %.0f m from the track (limit 30): move it closer or it may attach to the wrong stretch"
+					% [k.name, k.distance_to_track])
+		for j in range(i + 1, keys.size()):
+			var o := keys[j]
+			if _branch_of(k) == _branch_of(o) and absf(o.distance - k.distance) < GREEBLE_KEY_TWIN:
+				_add(Sev.WARNING, k.global_position, k.distance,
+						"%s and %s start zones within %.0f m of each other: one of them does nothing"
+						% [k.name, o.name, GREEBLE_KEY_TWIN])
+		if k.style and _usable_rules(k.style) == 0 and k.style.threshold_mesh == null:
+			_add(Sev.WARNING, k.global_position, k.distance,
+					"%s: style '%s' has no enabled rule with a mesh" % [k.name, k.style.style_name])
+	if node == null:
+		_add(Sev.WARNING, keys[0].global_position, -1.0, "Greebles not built yet: press Build (or Refresh greebles)")
+		return
+	if TrackGreebler.signature_of(node) != g.signature():
+		_add(Sev.WARNING, node.global_position, -1.0,
+				"Greebles are out of date: the GreebleZoneKeys changed since they were written (press Build or Refresh greebles)")
+	var pl := node.placements()
+	stats["greebles"] = "%d zones, %d instances" % [node.zones.size(), pl.size()]
+	for it in node.intrusions(pl):
+		var z: TrackGreebleZone = node.zones[it.zi]
+		var piece := "threshold" if it.ri < 0 else _rule_label(z.style.rules[it.ri])
+		_add(Sev.WARNING, it.pos, it.d, "Greebles %s (%s): %s %s%s"
+				% [z.label, z.style.style_name, piece, it.what, " (×%d)" % it.count if it.count > 1 else ""])
+
+
+static func _usable_rules(st: UtopiaGreebleStyle) -> int:
+	var n := 0
+	for r in st.rules:
+		if r and r.enabled and r.mesh:
+			n += 1
+	return n
+
+
+static func _rule_label(r: UtopiaGreebleRule) -> String:
+	var mn := r.mesh.resource_path.get_file().get_basename().trim_prefix("gb_") if r.mesh.resource_path else "mesh"
+	return "%s %s" % [r.layer, mn]
+
+
+## The BranchFeature a key belongs to (null = the main track).
+static func _branch_of(n: Node) -> Node:
+	var p := n.get_parent()
+	while p:
+		if p is BranchFeature:
+			return p
+		if p is TrackBuilder:
+			return null
+		p = p.get_parent()
+	return null
