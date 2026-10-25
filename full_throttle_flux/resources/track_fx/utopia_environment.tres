@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TrackEnvironment" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/track_environment.gd" id="1_env"]
+[ext_resource type="Resource" path="res://resources/track_fx/test_circuit_3_live_cover.tres" id="2_cover"]
+[ext_resource type="Resource" path="res://resources/weather/clear.tres" id="3_clear"]
+[ext_resource type="Resource" path="res://resources/weather/rain_medium.tres" id="4_rain"]
+[ext_resource type="Resource" path="res://resources/weather/snow_medium.tres" id="5_snow"]
+[ext_resource type="Resource" path="res://resources/weather/fog_medium.tres" id="6_fog"]
+[ext_resource type="Resource" path="res://resources/weather/dust_storm_medium.tres" id="7_dust"]
+
+[resource]
+script = ExtResource("1_env")
+allowed_weather = [ExtResource("3_clear"), ExtResource("4_rain"), ExtResource("5_snow"), ExtResource("6_fog"), ExtResource("7_dust")]
+zone_sets = [ExtResource("2_cover")]
