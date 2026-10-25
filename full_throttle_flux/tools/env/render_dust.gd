@@ -125,6 +125,10 @@ func _process(_delta: float) -> void:
 
 
 func _shot(shot_name: String) -> void:
+	# RENDER_ONLY="dust,airbrake" skips the capture (not the driving) of the rest.
+	var only := OS.get_environment("RENDER_ONLY")
+	if only != "" and not (shot_name in only.split(",")):
+		return
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
 	var path := outdir.path_join(shot_name + ".png")

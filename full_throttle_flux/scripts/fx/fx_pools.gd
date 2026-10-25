@@ -201,8 +201,10 @@ static func _puff_material(pr: FxParticlePreset) -> ParticleProcessMaterial:
 	ct.curve = curve
 	pm.scale_curve = ct
 	var g := Gradient.new()
-	g.offsets = PackedFloat32Array([0.0, maxf(pr.fade_in, 0.01), 0.45, 1.0])
-	g.colors = PackedColorArray([Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 0.7), Color(1, 1, 1, 0)])
+	# fade_in 0 = visible from birth: a chase camera flies through fresh puffs
+	# within ~0.1 s, so a fade-in would hide exactly the dust it can see.
+	g.offsets = PackedFloat32Array([0.0, maxf(pr.fade_in, 0.001), 0.45, 1.0])
+	g.colors = PackedColorArray([Color(1, 1, 1, 1.0 if pr.fade_in <= 0.0 else 0.0), Color(1, 1, 1, 1), Color(1, 1, 1, 0.7), Color(1, 1, 1, 0)])
 	var gt := GradientTexture1D.new()
 	gt.gradient = g
 	pm.color_ramp = gt

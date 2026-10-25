@@ -70,7 +70,7 @@ class_name ShipFxProfile
 ## Upward kick, m/s (random 0.5x .. 1x).
 @export var dust_rise: float = 2.5
 ## Sideways spread, m/s.
-@export var dust_spread: float = 3.0
+@export var dust_spread: float = 7.0
 ## Surface wetter than this sprays instead of dusting; frostier than
 ## frost_switch throws snow powder instead.
 @export_range(0.0, 1.0) var dust_wet_switch: float = 0.3

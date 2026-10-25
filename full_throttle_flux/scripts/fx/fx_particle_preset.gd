@@ -43,7 +43,7 @@ class_name FxParticlePreset
 @export var damping: float = 5.0
 ## Random burst speed of a new puff around its carrier, m/s.
 @export var burst_min: float = 0.3
-@export var burst_max: float = 1.6
+@export var burst_max: float = 4.0
 @export var turbulence_strength: float = 1.5
 @export var turbulence_scale: float = 4.0
 @export var spin: float = 45.0                  # degrees per second, random sign
@@ -63,7 +63,7 @@ class_name FxParticlePreset
 @export_range(0.0, 1.0) var brightness_min: float = 0.78
 @export_range(0.0, 2.0) var opacity: float = 0.55
 ## Fraction of life spent fading in.
-@export_range(0.0, 0.5) var fade_in: float = 0.06
+@export_range(0.0, 0.5) var fade_in: float = 0.0
 @export_range(0.0, 1.0) var erosion: float = 0.6
 @export_range(0.0, 1.0) var core_darken: float = 0.3
 @export_range(0.0, 2.0) var backlight: float = 0.5
