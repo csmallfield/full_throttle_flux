@@ -53,9 +53,9 @@ class_name ShipFxProfile
 @export_group("Dust, spray, powder (Phase 2)")
 ## Carriers per second at full strength, per emitter. Each carrier lays
 ## puff_rate x carrier_lifetime puffs (about 30 for dust), see FxParticlePreset.
-@export var dust_ground_rate: float = 80.0
-@export var dust_wall_rate: float = 50.0
-@export var dust_airbrake_rate: float = 60.0
+@export var dust_ground_rate: float = 140.0
+@export var dust_wall_rate: float = 90.0
+@export var dust_airbrake_rate: float = 110.0
 ## Speed (u/s) where ground particles start, and where they are full.
 @export var dust_speed_start: float = 15.0
 @export var dust_speed_full: float = 100.0
@@ -65,8 +65,10 @@ class_name ShipFxProfile
 @export var dust_ground_low_bonus: float = 0.3
 ## A wall closer than this (m) kicks up wall dust.
 @export var dust_wall_range: float = 4.0
-## Fraction of ship velocity the particles start with.
-@export_range(0.0, 1.0) var dust_inherit: float = 0.4
+## Fraction of ship velocity the carriers start with. High = carriers ride
+## along under the ship and lay their puffs right behind it, where a chase
+## camera (13 m back, i.e. ~0.1 s at race speed) can see them.
+@export_range(0.0, 1.0) var dust_inherit: float = 0.92
 ## Upward kick, m/s (random 0.5x .. 1x).
 @export var dust_rise: float = 2.5
 ## Sideways spread, m/s.

@@ -15,11 +15,11 @@ class_name FxParticlePreset
 
 @export_group("Carriers")
 ## Max live carriers per quality tier.
-@export var carrier_amount: int = 1200
+@export var carrier_amount: int = 1600
 ## Seconds a carrier lives (and spawns puffs).
-@export var carrier_lifetime: float = 0.8
+@export var carrier_lifetime: float = 0.45
 ## Deceleration, m/s per second: high = the plume stops close behind the ship.
-@export var carrier_damping: float = 60.0
+@export var carrier_damping: float = 25.0
 ## Puffs each carrier spawns per second. At most FxPools.CARRIER_HZ (60): a
 ## carrier lays one puff per simulation step. Want more? Emit more carriers.
 @export var puff_rate: float = 60.0
