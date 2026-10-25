@@ -174,9 +174,7 @@ static func _carrier_material(pr: FxParticlePreset) -> ParticleProcessMaterial:
 	pm.damping_max = pr.carrier_damping
 	pm.sub_emitter_mode = ParticleProcessMaterial.SUB_EMITTER_CONSTANT
 	pm.sub_emitter_frequency = pr.puff_rate
-	# Puffs start with the carrier's (decaying) velocity: early puffs fly with
-	# the wake, late ones hang back, and the plume stretches out naturally.
-	pm.sub_emitter_keep_velocity = true
+	pm.sub_emitter_keep_velocity = pr.puffs_keep_velocity
 	return pm
 
 

@@ -66,7 +66,7 @@ class_name ShipFxProfile
 ## A wall closer than this (m) kicks up wall dust.
 @export var dust_wall_range: float = 4.0
 ## Fraction of ship velocity the particles start with.
-@export_range(0.0, 1.0) var dust_inherit: float = 0.65
+@export_range(0.0, 1.0) var dust_inherit: float = 0.4
 ## Upward kick, m/s (random 0.5x .. 1x).
 @export var dust_rise: float = 2.5
 ## Sideways spread, m/s.

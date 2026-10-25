@@ -6,7 +6,7 @@
 script = ExtResource("1_preset")
 display_name = "Snow powder"
 carrier_lifetime = 0.5
-puff_rate = 55.0
+puff_rate = 85.0
 lifetime = 1.5
 gravity = 0.6
 wind_influence = 0.5
@@ -18,7 +18,7 @@ grow = 2.6
 color = Color(0.93, 0.95, 1, 1)
 use_track_dust_color = false
 brightness_min = 0.85
-opacity = 0.85
+opacity = 0.55
 fade_in = 0.04
 erosion = 0.55
 core_darken = 0.2
