@@ -184,7 +184,10 @@ static func _puff_material(pr: FxParticlePreset) -> ParticleProcessMaterial:
 	pm.damping_min = pr.damping
 	pm.damping_max = pr.damping
 	pm.lifetime_randomness = pr.lifetime_randomness
-	pm.spread = 180.0
+	# Burst biased upward: dust lifts off the road (world up; fine on all but
+	# loops and barrel rolls).
+	pm.direction = Vector3.UP
+	pm.spread = 75.0
 	pm.initial_velocity_min = pr.burst_min
 	pm.initial_velocity_max = pr.burst_max
 	var grow := maxf(pr.grow, 1.0)

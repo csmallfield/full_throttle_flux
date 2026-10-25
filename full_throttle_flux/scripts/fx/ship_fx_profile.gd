@@ -53,9 +53,9 @@ class_name ShipFxProfile
 @export_group("Dust, spray, powder (Phase 2)")
 ## Carriers per second at full strength, per emitter. Each carrier lays
 ## puff_rate x carrier_lifetime puffs (about 30 for dust), see FxParticlePreset.
-@export var dust_ground_rate: float = 40.0
-@export var dust_wall_rate: float = 28.0
-@export var dust_airbrake_rate: float = 32.0
+@export var dust_ground_rate: float = 80.0
+@export var dust_wall_rate: float = 50.0
+@export var dust_airbrake_rate: float = 60.0
 ## Speed (u/s) where ground particles start, and where they are full.
 @export var dust_speed_start: float = 15.0
 @export var dust_speed_full: float = 100.0

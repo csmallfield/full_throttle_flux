@@ -37,6 +37,12 @@ func _ready() -> void:
 	profile.environment = tenv
 	env = EnvironmentState.install(self, track, profile)
 	cam = Camera3D.new()
+	# Give the camera a `ship` like the race's chase camera, so the lead ship
+	# gets FULL FX LOD as the player's would (the others stay NEAR).
+	var cam_script := GDScript.new()
+	cam_script.source_code = "extends Camera3D\nvar ship: Node3D\n"
+	cam_script.reload()
+	cam.set_script(cam_script)
 	cam.far = 4000.0
 	cam.fov = 74.0
 	add_child(cam)
@@ -55,6 +61,7 @@ func _ready() -> void:
 	for s in ships:
 		s.settle_on_surface()
 		probes.append(ShipEnvProbe.of(s))
+	cam.set("ship", ships[0])
 	await _run(3.0)
 	await _shot("dust")
 	brakes = 1.0

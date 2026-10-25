@@ -129,7 +129,9 @@ func _wall_term(dist: float) -> float:
 ## Projects `p` onto the road plane under the ship.
 func _on_ground(p: Vector3) -> Vector3:
 	var n := probe.ground_normal
-	return p - n * (p - probe.ground_point).dot(n) + n * 0.15
+	# 0.6 m up: puffs are laid IN the air, not half-buried in the road (where
+	# the soft-particle blend would erase them).
+	return p - n * (p - probe.ground_point).dot(n) + n * 0.6
 
 
 func _run(emitter: String, rate: float, delta: float, origin: Vector3, push: Vector3) -> void:
