@@ -54,7 +54,7 @@ class_name FxParticlePreset
 @export var scale_min: float = 0.5
 @export var scale_max: float = 1.1
 ## Size at the end of life, relative to birth (most growth early).
-@export var grow: float = 3.2
+@export var grow: float = 4.5
 
 @export_group("Look")
 @export var color := Color(0.62, 0.52, 0.38)
@@ -62,10 +62,12 @@ class_name FxParticlePreset
 @export var use_track_dust_color: bool = true
 ## Per-puff brightness spread: each puff is lit between this and 1.
 @export_range(0.0, 1.0) var brightness_min: float = 0.78
-@export_range(0.0, 2.0) var opacity: float = 0.55
+@export_range(0.0, 2.0) var opacity: float = 0.3
 ## Fraction of life spent fading in.
 @export_range(0.0, 0.5) var fade_in: float = 0.0
 @export_range(0.0, 1.0) var erosion: float = 0.6
-@export_range(0.0, 1.0) var core_darken: float = 0.3
+@export_range(0.0, 1.0) var core_darken: float = 0.15
+## How strongly the baked normals shade the puff (1 = full relief).
+@export_range(0.0, 2.0) var normal_strength: float = 0.6
 @export_range(0.0, 2.0) var backlight: float = 0.5
 @export var emission_boost: float = 0.0

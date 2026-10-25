@@ -170,6 +170,7 @@ func _apply_look(pr: FxParticlePreset, mat: ShaderMaterial) -> void:
 	mat.set_shader_parameter("opacity", pr.opacity)
 	mat.set_shader_parameter("erosion", pr.erosion)
 	mat.set_shader_parameter("core_darken", pr.core_darken)
+	mat.set_shader_parameter("normal_strength", pr.normal_strength)
 	mat.set_shader_parameter("backlight", pr.backlight)
 	mat.set_shader_parameter("emission_boost", pr.emission_boost)
 
