@@ -168,3 +168,15 @@ env_wind={
 "type": "vec4",
 "value": Vector4(0, -1, 0, 0)
 }
+env_line_glow={
+"type": "float",
+"value": 0.0
+}
+env_track_length={
+"type": "float",
+"value": 0.0
+}
+env_track_mask={
+"type": "sampler2D",
+"value": ""
+}

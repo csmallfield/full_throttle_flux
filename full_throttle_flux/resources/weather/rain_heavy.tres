@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeatherPreset" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/weather_preset.gd" id="1_weather"]
+
+[resource]
+script = ExtResource("1_weather")
+display_name = "Rain (heavy)"
+kind = 1
+intensity = 1.0
+wetness = 1.0
+precipitation = 1.0
+humidity = 1.0
+ground_wind = 11.0
+sky_preset = "storm_light"
+sky_coverage = 0.97
+sky_mood = 0.75
+fog_tint = Color(0.42, 0.45, 0.5, 0.5)
+fog_density = 0.002
+height_fog_density = 0.045
+sun_scale = 0.35
+line_glow = 0.5
+fog_sky_affect = 0.5

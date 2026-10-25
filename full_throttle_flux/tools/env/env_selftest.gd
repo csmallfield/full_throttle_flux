@@ -311,7 +311,8 @@ func _test_track(track_path: String) -> void:
 		_check(is_equal_approx(sky.sun_elevation, sun_el), "sun never moved (%.1f deg)" % sky.sun_elevation)
 		_check(is_equal_approx(sky.coverage, base_cov), "Clear restores the authored coverage (%.2f)" % sky.coverage)
 	var n := env.weather_choices().size()
-	_check(n >= 5, "debug weather list (%d presets)" % n)
+	_check(n >= 13, "weather list: clear + 4 kinds x 3 intensities (%d presets)" % n)
+	await _phase4_checks(ship, kit, probe, env, sky)
 
 	# --- teardown ---------------------------------------------------------------
 	env.free()
@@ -327,6 +328,136 @@ func _test_track(track_path: String) -> void:
 	ship.queue_free()
 	track.queue_free()
 	await get_tree().process_frame
+
+
+## Phase 4: surfaces, zone mask, sky / fog per preset, SSR, falling weather.
+func _phase4_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
+		env: EnvironmentState, sky: UtopiaSkyController) -> void:
+	print("ENVTEST weather (phase 4)")
+	var rep := env.surfaces
+	_check(rep != null and rep.materials >= 3 and rep.conflicts == 0,
+		"road + walls adopted the weather shader (%d materials, %d conflicts)" % [rep.materials, rep.conflicts])
+	_check(rep.road_u_scale == 100.0, "road UVs map to MainSpline (u_scale %.0f)" % rep.road_u_scale)
+	var v := EnvSurfaces.driving_surface_v(PackedVector2Array([Vector2(21.58349, 2.9622357),
+		Vector2(17.218266, 2.0412953), Vector2(-16.617033, 1.8802173), Vector2(-20.253164, 2.7683895),
+		Vector2(-20.286919, -1.9581314), Vector2(21.968796, -1.8501513)]))
+	_check(is_equal_approx(v.x, 3.0 / 12.0) and is_equal_approx(v.y, 4.0 / 12.0),
+		"driving surface UV.y range %.4f..%.4f (3/12..4/12, measured)" % [v.x, v.y])
+	_check(env.track_mask != null, "zone mask built")
+	if env.track_mask:
+		var img := env.track_mask.get_image()
+		var w := img.get_width()
+		var px_in := img.get_pixel(int((START_D + 170.0) / env.spline_length * w), 0)
+		var px_out := img.get_pixel(int((START_D + 20.0) / env.spline_length * w), 0)
+		_check(px_in.r > 0.95 and px_out.r < 0.05 and absf(px_out.a - 0.25) < 0.01,
+			"mask: covered %.2f inside the test cover, %.2f outside, dust scale %.2f" % [px_in.r, px_out.r, px_out.a * 4.0])
+	var road := env.main_spline.get_node("groundGeo") as CSGPolygon3D
+	var sm := road.material as ShaderMaterial
+	# On the real mesh: vertices inside road_v0..v1 are the driving surface
+	# (top of the extrusion), the rest are banks / sides / bottom.
+	var meshes: Array = road.get_meshes()
+	if meshes.size() >= 2:
+		var arr := (meshes[1] as ArrayMesh).surface_get_arrays(0)
+		var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var uvs: PackedVector2Array = arr[Mesh.ARRAY_TEX_UV]
+		var xf: Transform3D = road.global_transform * (meshes[0] as Transform3D)
+		var tr := env.make_spline_tracker()
+		var v0: float = sm.get_shader_parameter("road_v0")
+		var v1: float = sm.get_shader_parameter("road_v1")
+		# CSG vertices sit only at the polygon's corners, so the road_v0 / v1
+		# rows are the driving surface's two edges: ~2 m up, ~17 m out.
+		var h_sum := 0.0
+		var lat_sum := 0.0
+		var cnt := 0
+		for i in range(0, verts.size(), 37):
+			if absf(uvs[i].y - v0) > 0.002 and absf(uvs[i].y - v1) > 0.002:
+				continue
+			var wp: Vector3 = xf * verts[i]
+			tr.reset()
+			tr.update(wp)
+			var fr := tr.frame()
+			h_sum += (wp - fr.origin).dot(fr.basis.y)
+			lat_sum += absf((wp - fr.origin).dot(fr.basis.x))
+			cnt += 1
+		var hh := h_sum / maxi(cnt, 1)
+		var ll := lat_sum / maxi(cnt, 1)
+		_check(cnt > 10 and hh > 1.0 and ll > 14.0 and ll < 19.0,
+			"road_v0/v1 rows are the driving surface edges on the mesh (%d verts: %+.1f m up, %.1f m out)" % [cnt, hh, ll])
+	_check(sm and sm.shader.resource_path == EnvSurfaces.SHADER_PATH and sm.get_shader_parameter("road_v1") > 0.1,
+		"road material: weather shader, driving surface %.3f..%.3f" % [
+			float(sm.get_shader_parameter("road_v0")), float(sm.get_shader_parameter("road_v1"))])
+
+	# Sky / fog per preset, then back to the authored look.
+	var we := env.world_env
+	var base_hfog: float = we.environment.fog_height_density if we else 0.0
+	var base_fog_col: Color = sky.fog_color if sky else Color()
+	var base_sun: float = sky.sun_energy if sky else 0.0
+	for path in EnvironmentState.DEBUG_PRESETS:
+		var pr := load(path) as WeatherPreset
+		_check(pr != null, "preset loads: %s" % path.get_file())
+	env.apply_weather(load("res://resources/weather/fog_heavy.tres"), true)
+	if we:
+		_check(we.environment.fog_height_density > base_hfog, "fog: height fog up (%.3f -> %.3f)" % [base_hfog, we.environment.fog_height_density])
+	if sky:
+		_check(sky.sun_energy < base_sun, "fog: sun dimmed (%.2f -> %.2f)" % [base_sun, sky.sun_energy])
+	_check(env.line_glow > 0.5, "fog: track lines glow (%.2f)" % env.line_glow)
+	env.apply_weather(load("res://resources/weather/dust_storm_heavy.tres"), true)
+	if sky:
+		var fc := sky.fog_color
+		_check(fc.r > fc.b + 0.1, "dust storm: fog takes the dust colour (%s)" % str(fc))
+	env.apply_weather(load("res://resources/weather/rain_heavy.tres"), true)
+	# process_frame fires before the nodes' _process: wait two.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if we:
+		_check(we.environment.ssr_enabled, "rain: SSR on for the wet road")
+	env.apply_weather(null, true)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if we:
+		_check(not we.environment.ssr_enabled and is_equal_approx(we.environment.fog_height_density, base_hfog),
+			"clear: SSR off, height fog back (%.3f)" % we.environment.fog_height_density)
+	if sky:
+		_check(sky.fog_color.is_equal_approx(base_fog_col) and is_equal_approx(sky.sun_energy, base_sun),
+			"clear: fog colour and sun back to the track's own")
+
+	# Falling weather: needs a camera with a `ship`, like the race's chase cam.
+	var wfx := WeatherFx.of(env)
+	_check(wfx != null and wfx.near != null, "WeatherFx built")
+	var cam := Camera3D.new()
+	var cam_script := GDScript.new()
+	cam_script.source_code = "extends Camera3D\nvar ship: Node3D\n"
+	cam_script.reload()
+	cam.set_script(cam_script)
+	add_child(cam)
+	cam.make_current()
+	cam.set("ship", ship)
+	env.apply_weather(load("res://resources/weather/snow_medium.tres"), true)
+	var b := kit.frame(START_D + 20.0)
+	ship.global_transform = Transform3D(b, kit.center(START_D + 20.0) + b.y * 4.0)
+	ship.velocity = Vector3.ZERO
+	if probe._tracker:
+		probe._tracker.reset()
+	cam.global_position = ship.global_position + b.z * 12.0
+	for i in 20:
+		await get_tree().process_frame
+	_check(wfx.kind == WeatherPreset.Kind.SNOW and wfx.near.emitting and absf(wfx.shown - env.precipitation) < 0.01,
+		"snow falls in the open (shown %.2f of %.2f)" % [wfx.shown, env.precipitation])
+	var b2 := kit.frame(START_D + 170.0)
+	ship.global_transform = Transform3D(b2, kit.center(START_D + 170.0) + b2.y * 4.0)
+	ship.velocity = Vector3.ZERO
+	if probe._tracker:
+		probe._tracker.reset()
+	for i in 40:
+		await get_tree().physics_frame
+	await get_tree().process_frame
+	_check(probe.zone.covered > 0.95 and wfx.shown < 0.05,
+		"cut out under cover (covered %.2f, shown %.2f)" % [probe.zone.covered, wfx.shown])
+	env.apply_weather(load("res://resources/weather/fog_medium.tres"), true)
+	await get_tree().process_frame
+	_check(not wfx.near.emitting, "nothing falls in fog")
+	env.apply_weather(null, true)
+	cam.queue_free()
 
 
 ## Phase 2: which pool, how much, from where.

@@ -477,3 +477,41 @@ character.
 `default_ship_fx.tres` → Wall hits group; `FxImpacts` constants (MARKS,
 MARK_LIFE, MARK_COOL, MARK_GLOW); `spark.gdshader` uniforms; re-bake the
 scuff for a different mark look.
+
+# Phase 4: weather (in progress)
+
+Kept up to date per piece, in case the session's context is compacted.
+
+## Done so far
+
+| | |
+| --- | --- |
+| `shaders/env/env_surface.gdshaderinc` | **new** — one call at the end of fragment(): wet (darker, smoother, puddles from world noise on flat ground, rain rings in puddles, run-off streaks on vertical faces), frozen (frost tint, snow on up-facing ground thinned on the racing groove, ice in the groove, sparkle), dusty (dust colour, rougher, heavier at the edges). Reads the env globals + the per-distance zone mask with the SAME formulas as the ship probe |
+| `shaders/env/track_surface.gdshader` | **new** — the grid shader's exact look + env_surface + line glow |
+| `scripts/env/env_surfaces.gd` | **new** — at race start swaps the SHADER of every grid-shader material on the track (road + walls, circuits and builder tracks) and fills `surface_kind`, `u_scale`, `road_v0/v1` from the CSG node. Never reassigns the node's `material` (that would rebuild the CSG mesh and collision). Also builds the zone mask |
+| `scripts/env/weather_fx.gd` + `shaders/env/precip_*.gdshader` | **new** — rain / snow / grit. Near: one prewarmed GPUParticles3D with a custom process shader: no emission, every particle falls forever from a fixed seed and is wrapped into a 44×26×44 m box around the camera (full at any speed); the draw pass stretches each along its velocity relative to the camera. Far: a cylinder with procedural streaks / flecks / wind sheets. Cut out while the camera's ship is in a covered zone |
+| `scripts/resources/weather_preset.gd` | + `sky_mood`, `fog_tint`, `fog_tint_dust`, `sun_scale`, `height_fog_density`, `height_fog_top`, `fog_sky_affect`, `line_glow` |
+| `resources/weather/*.tres` | 13 presets: clear + rain / snow / fog / dust storm × light, medium, heavy ("Blizzard", "Mist" as names) |
+| `environment_state.gd` | installs surfaces + mask + WeatherFx; sky mood / fog tint / sun / height fog (relative to the road's mean height) blended and restored; SSR on above wetness 0.15 (Medium/High quality), restored after; `env_line_glow` |
+| `project.godot` | globals `env_track_mask` (sampler2D), `env_track_length`, `env_line_glow` |
+| `tools/env/render_weather.gd` | stills per preset: chase + low road view (`WEATHERS=`, `RENDER_ONLY=`) |
+| `tools/env/weather_profile.gd` | **for your 3080**: GPU ms per preset in a real 8-ship race vs clear |
+| `tools/env/probe_csg_uv.gd` | dev probe of the CSG UV mapping |
+
+## Findings worth keeping
+
+- **CSG road UVs give the shader the spline distance for free**: UV.x ×
+  `path_u_distance` = metres along MainSpline (within 0.3 m on Utopia). So
+  the per-distance mask works in the shader with no extra data: tunnels are
+  dry exactly where the ship probe says they are.
+- **CSGPolygon3D reverses a counter-clockwise polygon** before extruding;
+  outline vertex i then sits at UV.y = i / (2n). Utopia's driving surface is
+  UV.y 3/12..4/12 (first guess 1/12..2/12 was the far side of the bottom).
+  The selftest now checks this on the real mesh.
+- Godot `fog_density` is exponential per metre: Utopia's authored 0.00014 is
+  near-clear; fog weather needs 0.003–0.012.
+- Height fog only works below `fog_height`, so presets set it relative to the
+  track's average road height.
+- Volumetric fog stays off (it is tied to the sky controller's
+  `volumetric_shafts` and is the expensive option); weather uses distance +
+  height fog.

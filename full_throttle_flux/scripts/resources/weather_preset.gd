@@ -60,10 +60,38 @@ enum Kind { CLEAR, RAIN, SNOW, FOG, DUST_STORM }
 @export_range(-1.0, 1.0) var sky_coverage: float = -1.0
 
 ## Overrides the sky controller's distance fog density (-1 = keep).
-@export_range(-1.0, 0.002, 0.00001) var fog_density: float = -1.0
+@export_range(-1.0, 0.03, 0.00001) var fog_density: float = -1.0
 
 ## Overrides the sky controller's volumetric fog density (-1 = keep).
 @export_range(-1.0, 0.1, 0.0005) var volumetric_density: float = -1.0
+
+## How much of the sky preset's MOOD to take over the track's own: zenith,
+## horizon and fog colour, ambient light (0 = keep the track's colours).
+@export_range(0.0, 1.0) var sky_mood: float = 0.0
+
+## Fog colour pushed toward this; alpha = how far (after sky_mood).
+@export var fog_tint := Color(0.5, 0.5, 0.5, 0.0)
+
+## Tint the fog with the track's dust colour instead (dust storms).
+@export var fog_tint_dust: bool = false
+
+## Sun light multiplier on top of the cloud-cover dimming (1 = unchanged).
+@export_range(0.0, 1.0) var sun_scale: float = 1.0
+
+## Height fog density near the road (-1 = keep the lighting scene's).
+@export_range(-1.0, 0.2, 0.001) var height_fog_density: float = -1.0
+
+## Top of the height fog, metres above the track's average road height
+## (only used when height_fog_density is set).
+@export_range(-50.0, 200.0) var height_fog_top: float = 15.0
+
+## How much the distance fog covers the sky (-1 = keep the lighting scene's).
+## Dense fog and storms want it high or the sky stays crisp behind a wall of fog.
+@export_range(-1.0, 1.0) var fog_sky_affect: float = -1.0
+
+## Grid lines on road and walls glow this much (0..1): keeps the line
+## readable in fog, storms and heavy rain.
+@export_range(0.0, 1.0) var line_glow: float = 0.0
 
 ## Blend time for a mid-race sky change.
 @export_range(0.0, 60.0) var sky_transition_time: float = 6.0

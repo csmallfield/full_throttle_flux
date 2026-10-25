@@ -121,6 +121,12 @@ func _text(p: ShipEnvProbe) -> String:
 	s += "wind      %3.0f deg  %.1f m/s\n" % [wind_deg, env.wind_speed]
 	s += "track     %d zones  spline %.0f m  sky %s\n" % [
 		env.zones.size(), env.spline_length, "yes" if env.sky else "no"]
+	var wfx := WeatherFx.of(env)
+	var we := env.world_env
+	s += "sky/road  line glow %.2f  SSR %s  surfaces %d mats  zone mask %s  falling %.2f%s\n" % [
+		env.line_glow, "on" if we and we.environment and we.environment.ssr_enabled else "off",
+		env.surfaces.materials if env.surfaces else 0, "yes" if env.track_mask else "no",
+		wfx.shown if wfx else 0.0, "  (cut: covered)" if wfx and wfx.covered > 0.5 else ""]
 	s += "humidity  %.2f   fx cpu %.2f ms (ribbons %.2f + driving/dust %.2f, all ships)\n" % [
 		env.humidity, (TrailRibbon.frame_usec + ShipFx.frame_usec) / 1000.0,
 		TrailRibbon.frame_usec / 1000.0, ShipFx.frame_usec / 1000.0]
