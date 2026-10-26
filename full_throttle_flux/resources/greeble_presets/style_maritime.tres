@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3]
+[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3 uid="uid://b8nb0gsgh5nr6"]
 
-[ext_resource type="Script" path="res://tools/utopia/greeble_rule.gd" id="1_1m01p"]
+[ext_resource type="Script" uid="uid://bc8k5tologwm1" path="res://tools/utopia/greeble_rule.gd" id="1_1m01p"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_seam.tres" id="2_0mptc"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_stud.tres" id="3_hh1hm"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_wall_dash.tres" id="4_lam81"]
@@ -8,7 +8,7 @@
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_bollard.tres" id="6_ei1vi"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_lamp_pole.tres" id="7_m86yg"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_mast.tres" id="8_qgre2"]
-[ext_resource type="Script" path="res://tools/utopia/greeble_style.gd" id="9_fxjlj"]
+[ext_resource type="Script" uid="uid://dg1pjlfjggmkt" path="res://tools/utopia/greeble_style.gd" id="9_fxjlj"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_portal.tres" id="10_lepj1"]
 
 [sub_resource type="Resource" id="Resource_1m01p"]
@@ -51,28 +51,28 @@ slots_per_bay = 2
 script = ExtResource("1_1m01p")
 layer = "wall_top"
 mesh = ExtResource("7_m86yg")
-upright = 1.0
 pattern = "x--"
 slot_phase = 0.5
 side = "left"
+upright = 1.0
 
 [sub_resource type="Resource" id="Resource_m86yg"]
 script = ExtResource("1_1m01p")
 layer = "wall_top"
 mesh = ExtResource("7_m86yg")
-upright = 1.0
 pattern = "--x"
 slot_phase = 0.5
 side = "right"
+upright = 1.0
 
 [sub_resource type="Resource" id="Resource_qgre2"]
 script = ExtResource("1_1m01p")
 layer = "outside"
 mesh = ExtResource("8_qgre2")
+pattern = "x-"
 upright = 1.0
 upright_limit_deg = 30.0
 surface_offset = 1.5
-pattern = "x-"
 
 [resource]
 script = ExtResource("9_fxjlj")

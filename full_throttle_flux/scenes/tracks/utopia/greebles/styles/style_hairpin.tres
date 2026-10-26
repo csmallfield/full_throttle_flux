@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3]
+[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3 uid="uid://blckiqg7lea2t"]
 
-[ext_resource type="Script" path="res://tools/utopia/greeble_rule.gd" id="1_jf0hu"]
+[ext_resource type="Script" uid="uid://bc8k5tologwm1" path="res://tools/utopia/greeble_rule.gd" id="1_jf0hu"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_hazard_edge.tres" id="2_r2uwm"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_stud.tres" id="3_b4wba"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_chevron_sign.tres" id="4_whryu"]
@@ -10,7 +10,7 @@
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_sensor_pod.tres" id="7_7c2at"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_bollard.tres" id="8_x5ep4"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_fin.tres" id="9_6k6ss"]
-[ext_resource type="Script" path="res://tools/utopia/greeble_style.gd" id="10_rn2xc"]
+[ext_resource type="Script" uid="uid://dg1pjlfjggmkt" path="res://tools/utopia/greeble_style.gd" id="10_rn2xc"]
 
 [sub_resource type="Resource" id="Resource_b4wba"]
 script = ExtResource("1_jf0hu")

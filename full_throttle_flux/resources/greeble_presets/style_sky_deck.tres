@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3]
+[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3 uid="uid://bwx53x1p1gxdi"]
 
-[ext_resource type="Script" path="res://tools/utopia/greeble_rule.gd" id="1_o1k4d"]
+[ext_resource type="Script" uid="uid://bc8k5tologwm1" path="res://tools/utopia/greeble_rule.gd" id="1_o1k4d"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_seam.tres" id="2_03v3l"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_stud.tres" id="3_ahg63"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_deck_vent.tres" id="4_jsgvk"]
@@ -11,7 +11,7 @@
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_lamp_pole.tres" id="9_tefcf"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_sensor_pod.tres" id="10_hdga1"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_fin.tres" id="11_bc0ab"]
-[ext_resource type="Script" path="res://tools/utopia/greeble_style.gd" id="12_4268n"]
+[ext_resource type="Script" uid="uid://dg1pjlfjggmkt" path="res://tools/utopia/greeble_style.gd" id="12_4268n"]
 [ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_portal.tres" id="13_vlrfo"]
 
 [sub_resource type="Resource" id="Resource_hnn0r"]
@@ -68,17 +68,17 @@ mesh_length = 6.0
 script = ExtResource("1_o1k4d")
 layer = "wall_top"
 mesh = ExtResource("9_tefcf")
-upright = 1.0
 pattern = "x-"
 side = "left"
+upright = 1.0
 
 [sub_resource type="Resource" id="Resource_ipnnn"]
 script = ExtResource("1_o1k4d")
 layer = "wall_top"
 mesh = ExtResource("9_tefcf")
-upright = 1.0
 pattern = "-x"
 side = "right"
+upright = 1.0
 
 [sub_resource type="Resource" id="Resource_0k3h6"]
 script = ExtResource("1_o1k4d")
