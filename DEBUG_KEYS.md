@@ -26,6 +26,8 @@ the number row instead, with the same numbers.
 | 7 | Anti-aliasing: MSAA 2x+SMAA (v36) / **MSAA 4x+SMAA** / TAA / FSR 2 native | `user://graphics.cfg` | 〃 |
 | Shift+7 | Road grid: **filtered (v37)** / v36 fixed-pixel lines | no | 〃 |
 | 8 | Shadows: Low (v36) / **High** / Ultra | `user://graphics.cfg` | 〃 |
+| 9 | Track surface debug view (v38): off / s,t / band ids / panel ids / filter level / zones / wear | no | 〃 |
+| Shift+9 | Track surface quality tier: Low / **High** (same look in v38 phase 1) | `user://graphics.cfg` | 〃 |
 | F9 | AI spectator on / off | no | `ai_spectator.gd` |
 | F10 | Spectator overlay detail: off / basic / full | no | 〃 |
 | F11 | Freeze the spectator readout | no | 〃 |
@@ -64,6 +66,7 @@ override the saved files but don't change them.
 | `FTF_SHADOWS` | 0–2 | Shadow quality, in key 8 order |
 | `FTF_FX` | 0–2 | FX quality, in key 5 order |
 | `FTF_BLUR` | 0 / 1 | Motion blur off / on |
+| `FTF_SURFACE_TIER` | 0 / 1 | Track surface quality tier, in Shift+9 order |
 | `FTF_WEATHER` | preset file name, e.g. `rain_heavy` | Starting weather (`resources/weather/<name>.tres`) |
 | `FTF_CONTACT` | `legacy` | Old per-ship contact path instead of `ShipContactResolver` |
 | `FTF_AI_CONTACT` | `legacy` | Old `AIShipAvoidance` for AI ships |

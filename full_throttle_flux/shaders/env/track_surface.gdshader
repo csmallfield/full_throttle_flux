@@ -3,16 +3,12 @@
 // start on every material that uses the grid shader, road and walls, so no
 // track scene needs editing. With the env globals at 0 it renders exactly
 // like the original.
+// v38: the grid comes from grid_filtered.gdshaderinc, the same code as
+// grid_shader.gdshader (this file had kept the v36 fixed-pixel grid).
 shader_type spatial;
 
 #include "res://shaders/env/env_surface.gdshaderinc"
-
-uniform vec4 grid_color : source_color = vec4(0.0, 0.8, 1.0, 1.0);
-uniform vec4 background_color : source_color = vec4(0.05, 0.05, 0.1, 1.0);
-uniform float grid_size : hint_range(0.1, 10.0) = 1.0;
-uniform float line_width : hint_range(0.01, 0.5) = 0.05;
-uniform float major_grid_every : hint_range(0.0, 20.0) = 5.0;
-uniform float major_line_width : hint_range(0.01, 1.0) = 0.1;
+#include "res://shaders/grid_filtered.gdshaderinc"
 
 // Set by EnvSurfaces from the CSG node:
 // 0 road, 1 wall
@@ -25,17 +21,11 @@ uniform float road_v0 = 0.0;
 uniform float road_v1 = 0.0;
 
 void fragment() {
-	// --- the original grid ------------------------------------------------
-	vec2 pos = UV * 100.0;
-	vec2 grid = abs(fract(pos / grid_size - 0.5) - 0.5) / fwidth(pos / grid_size);
-	float line = min(grid.x, grid.y);
-	vec2 major_grid = abs(fract(pos / (grid_size * major_grid_every) - 0.5) - 0.5) / fwidth(pos / (grid_size * major_grid_every));
-	float major_line = min(major_grid.x, major_grid.y);
-	float grid_mask = 1.0 - min(line / line_width, 1.0);
-	float major_mask = 1.0 - min(major_line / major_line_width, 1.0);
-	vec3 color = background_color.rgb;
-	color = mix(color, grid_color.rgb, grid_mask * 0.3);
-	color = mix(color, grid_color.rgb, major_mask * 0.6);
+	// --- the grid -----------------------------------------------------------
+	GridLook g = grid_look(UV * 100.0);
+	vec3 color = g.color;
+	float grid_mask = g.minor * minor_strength;
+	float major_mask = g.major * major_strength;
 
 	// --- environment ---------------------------------------------------------
 	EnvSurface s;
@@ -56,14 +46,15 @@ void fragment() {
 	}
 	s.edge = edge;
 	s.is_wall = surface_kind;
-	s.keep = max(grid_mask * 0.3, major_mask * 0.6) * 1.4;
+	s.keep = max(grid_mask, major_mask) * 1.4;
+	s.recess = 0.0;
 	env_surface_apply(s, TIME);
 
 	ALBEDO = s.albedo;
 	ROUGHNESS = s.roughness;
 	METALLIC = s.metallic;
 	SPECULAR = s.specular;
-	EMISSION = s.emission + grid_color.rgb * (major_mask * 1.6 + grid_mask * 0.5) * env_line_glow;
+	EMISSION = s.emission + grid_color.rgb * (g.major * 1.6 + g.minor * 0.5) * env_line_glow;
 	if (dot(s.normal_offset, s.normal_offset) > 1e-8) {
 		vec3 nw = normalize(s.world_normal + s.normal_offset);
 		NORMAL = normalize((VIEW_MATRIX * vec4(nw, 0.0)).xyz);

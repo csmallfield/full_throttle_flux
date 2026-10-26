@@ -56,6 +56,15 @@ class_name TrackValidator
 ##   corridor         pieces reaching into the flat road below 10 m (the
 ##                    track clearance), ground pieces over 0.3 m tall
 ##
+## Surface zones (SurfaceZoneKey, v38):
+##   keys             more than 30 m from the built spline is an error; two
+##                    keys on the same road within 2 m of each other warn
+##   profiles         a key without one warns; a profile's own problems
+##                    (TrackSurfaceProfile.problems()) warn; more than 4
+##                    profiles on one path is an error (the shader's limit)
+##   built            the TrackSurface node exists and matches the keys
+##                    (else: press Build or Refresh surface)
+##
 ## Boost pads (BoostPadKey):
 ##   placement        on the flat road (errors), no overlaps (errors), not over
 ##                    a jump's gap (error) or on its kicker, not on the grid
@@ -161,6 +170,7 @@ func _run(b: TrackBuilder, space: PhysicsDirectSpaceState3D) -> void:
 	_check_pads_built(b, root, space)
 	_check_race(b, root, space)
 	_check_greebles(b, root)
+	_check_surface_zones(b, root)
 
 
 # =============================================================================
@@ -1117,6 +1127,78 @@ func _check_greebles(b: TrackBuilder, root: Node) -> void:
 		var piece := "threshold" if it.ri < 0 else _rule_label(z.style.rules[it.ri])
 		_add(Sev.WARNING, it.pos, it.d, "Greebles %s (%s): %s %s%s"
 				% [z.label, z.style.style_name, piece, it.what, " (×%d)" % it.count if it.count > 1 else ""])
+
+
+func _check_surface_zones(b: TrackBuilder, root: Node) -> void:
+	var keys := TrackSurfacer.all_keys(b)
+	var node := root.get_node_or_null(TrackBuilder.SURFACE_NODE) as TrackSurface if root else null
+	if not TrackSurfacer.has_keys(b):
+		if node:
+			_add(Sev.WARNING, b.global_position, -1.0,
+					"TrackSurface is left from an earlier build but there are no SurfaceZoneKeys: press Build")
+		return
+	var sf := TrackSurfacer.resolve(b, root)
+	if not sf.ok():
+		_add(Sev.WARNING, b.global_position, -1.0, "Surface: " + "; ".join(sf.notes))
+		return
+	_check_decals(sf)
+	for n in sf.notes:
+		_add(Sev.WARNING, b.global_position, -1.0, "Surface: " + n)
+	var seen := {}
+	for i in keys.size():
+		var k := keys[i]
+		if k.distance_to_track > TrackGreebler.KEY_FAR:
+			_add(Sev.ERROR, k.global_position, k.distance,
+					"%s is %.0f m from the track (limit 30): move it closer or it may attach to the wrong stretch"
+					% [k.name, k.distance_to_track])
+		for j in range(i + 1, keys.size()):
+			var o := keys[j]
+			if _branch_of(k) == _branch_of(o) and absf(o.distance - k.distance) < GREEBLE_KEY_TWIN:
+				_add(Sev.WARNING, k.global_position, k.distance,
+						"%s and %s start zones within %.0f m of each other: one of them does nothing"
+						% [k.name, o.name, GREEBLE_KEY_TWIN])
+		if k.profile and not seen.has(k.profile):
+			seen[k.profile] = true
+			for pr in k.profile.problems():
+				_add(Sev.WARNING, k.global_position, k.distance,
+						"%s: profile '%s': %s" % [k.name, k.profile.profile_name, pr])
+	var per := sf.profiles_per_path()
+	for pi in per:
+		if int(per[pi]) > TrackSurface.MAX_PROFILES:
+			_add(Sev.ERROR, keys[0].global_position, -1.0,
+					"Surface: %d different profiles on %s (max %d): the extra ones draw as the first"
+					% [per[pi], sf.paths[pi], TrackSurface.MAX_PROFILES])
+	if node == null:
+		_add(Sev.WARNING, b.global_position, -1.0,
+				"Surface zones not built yet: press Build (or Refresh surface)")
+		return
+	if node.signature() != sf.signature(b):
+		_add(Sev.WARNING, b.global_position, -1.0,
+				"Surface zones are out of date: the SurfaceZoneKeys changed since they were written (press Build or Refresh surface)")
+	stats["surface"] = "%d zones, %s" % [node.zones.size(),
+			", ".join(per.keys().map(func(pi): return "%s: %d profiles" % [sf.paths[pi], per[pi]]))]
+
+
+## v38 phase 5: decal keys near the track, with text their font can draw.
+func _check_decals(sf: TrackSurfacer) -> void:
+	var glyphs := load(TrackSurface.GLYPHS) as TrackSurfaceGlyphs
+	for dd in sf.decals:
+		var k: SurfaceDecalKey = dd.key
+		if k.distance_to_track > TrackGreebler.KEY_FAR:
+			_add(Sev.ERROR, k.global_position, k.distance,
+					"%s is %.0f m from the track (limit 30): move it closer or it may attach to the wrong stretch"
+					% [k.name, k.distance_to_track])
+		if k.shape != TrackSurfaceDecal.Shape.TEXT or glyphs == null:
+			continue
+		var missing := PackedStringArray()
+		for ch in TrackSurface.decal_text(k.text, k.role, 0):
+			if ch != " " and ch != "#" and not glyphs.has_glyph(k.role, ch.unicode_at(0)) and not missing.has(ch):
+				missing.append(ch)
+		if not missing.is_empty():
+			_add(Sev.WARNING, k.global_position, k.distance, "%s: %s can't draw '%s' (left out)" % [
+					k.name, TrackSurfaceDecal.Role.keys()[k.role], "".join(missing)])
+		if k.text.strip_edges().is_empty():
+			_add(Sev.WARNING, k.global_position, k.distance, "%s has no text" % k.name)
 
 
 static func _usable_rules(st: UtopiaGreebleStyle) -> int:

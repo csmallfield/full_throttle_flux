@@ -184,3 +184,11 @@ env_track_mask={
 "type": "sampler2D",
 "value": ""
 }
+track_surface_debug={
+"type": "int",
+"value": 0
+}
+track_surface_tier={
+"type": "int",
+"value": 1
+}

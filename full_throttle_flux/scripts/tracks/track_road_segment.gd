@@ -21,6 +21,32 @@ class_name TrackRoadSegment
 ##
 ## Built in _ready() into internal children (nothing is saved into the scene),
 ## so a generated track file stays small and always matches its splines.
+##
+## v38: track-space data for the track surface shader, beside the UVs (which
+## are unchanged):
+##   UV2      (metres along the path, metres across from the centre line,
+##            +x = right) of the ACTUAL vertex, after any width profile
+##   CUSTOM0  (edge class, left half width, right half width, height): the
+##            class of the polygon edge the vertex belongs to (EDGE_SURFACE,
+##            EDGE_LIP, EDGE_OTHER, EDGE_FACE), the half widths of the driving
+##            surface at that ring, so fixed bands can sit on the real edges,
+##            and (v38 phase 5) the vertex's height in the section (metres
+##            above the road plane), for the walls' height bands
+##   instance uniform path_length  the path's baked length (for seams that
+##            land exactly on the lap)
+##   TANGENT  the direction of travel (caps: the frame's right), so the
+##            shader has an exact along / across frame for normal detail and
+##            parallax (v38 phase 2)
+
+const EDGE_SURFACE := 0
+const EDGE_LIP := 1
+## Underside, sides and caps.
+const EDGE_OTHER := 2
+## v38 phase 5: a near-vertical edge facing the centre line (a wall's inner
+## face). Wall tops class as EDGE_LIP (facing up, raised).
+const EDGE_FACE := 3
+## Section heights within this of 0 are the driving surface.
+const SURFACE_EPS := 0.001
 
 @export var path_node: NodePath = NodePath("..")
 @export var start_distance: float = 0.0
@@ -107,8 +133,12 @@ func build() -> void:
 	var verts := PackedVector3Array()
 	var norms := PackedVector3Array()
 	var uvs := PackedVector2Array()
+	var uv2s := PackedVector2Array()
+	var cust := PackedFloat32Array()
+	var tans := PackedFloat32Array()
 	var idx := PackedInt32Array()
 	var faces := PackedVector3Array()
+	var classes := edge_classes(poly, ccw)
 	
 	var frames: Array[Transform3D] = []
 	for d in ds:
@@ -117,9 +147,11 @@ func build() -> void:
 		frames[frames.size() - 1] = to_local * frame_at(curve, 0.0)
 
 	if not width_profile.is_empty():
-		_build_widened(poly, ccw, per, ds, frames, d0, d1, verts, norms, uvs, idx, faces)
-		_finish(verts, norms, uvs, idx, faces)
+		_build_widened(poly, ccw, classes, per, ds, frames, d0, d1, verts, norms, uvs, uv2s, cust,
+				tans, idx, faces)
+		_finish(verts, norms, uvs, uv2s, cust, tans, idx, faces, length)
 		return
+	var half := surface_half_widths(poly, classes)
 
 	# One pair of vertex columns per polygon edge: flat across, smooth along.
 	for e in m:
@@ -144,6 +176,11 @@ func build() -> void:
 			var u := ds[k] / u_distance
 			uvs.append(Vector2(u, per[e] / u_distance))
 			uvs.append(Vector2(u, per[e + 1] / u_distance))
+			uv2s.append(Vector2(ds[k], q0.x))
+			uv2s.append(Vector2(ds[k], q1.x))
+			_append_custom(cust, classes[e], half, q0.y)
+			_append_custom(cust, classes[e], half, q1.y)
+			_append_tangent(tans, -fr.basis.z, 2)
 		for k in ds.size() - 1:
 			var a := base + k * 2
 			var b := a + 1
@@ -155,23 +192,30 @@ func build() -> void:
 	
 	if caps:
 		if not (weld_lap_seam and d0 <= 0.0):
-			_cap(poly, frames[0], -1.0, d0, d0, d1, verts, norms, uvs, idx, faces)
+			_cap(poly, frames[0], -1.0, d0, d0, d1, half, verts, norms, uvs, uv2s, cust, tans,
+					idx, faces)
 		if not (weld_lap_seam and d1 >= length):
-			_cap(poly, frames[frames.size() - 1], 1.0, d1, d0, d1, verts, norms, uvs, idx, faces)
+			_cap(poly, frames[frames.size() - 1], 1.0, d1, d0, d1, half, verts, norms, uvs, uv2s, cust, tans,
+					idx, faces)
 
-	_finish(verts, norms, uvs, idx, faces)
+	_finish(verts, norms, uvs, uv2s, cust, tans, idx, faces, length)
 
 
 func _finish(verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVector2Array,
-		idx: PackedInt32Array, faces: PackedVector3Array) -> void:
+		uv2s: PackedVector2Array, cust: PackedFloat32Array, tans: PackedFloat32Array,
+		idx: PackedInt32Array, faces: PackedVector3Array, path_length: float) -> void:
 	var arr := []
 	arr.resize(Mesh.ARRAY_MAX)
 	arr[Mesh.ARRAY_VERTEX] = verts
 	arr[Mesh.ARRAY_NORMAL] = norms
 	arr[Mesh.ARRAY_TEX_UV] = uvs
+	arr[Mesh.ARRAY_TEX_UV2] = uv2s
+	arr[Mesh.ARRAY_CUSTOM0] = cust
+	arr[Mesh.ARRAY_TANGENT] = tans
 	arr[Mesh.ARRAY_INDEX] = idx
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {},
+			Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT)
 	if material:
 		mesh.surface_set_material(0, material)
 	
@@ -180,6 +224,7 @@ func _finish(verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVe
 		_mi.name = "Mesh"
 		add_child(_mi, false, Node.INTERNAL_MODE_FRONT)
 	_mi.mesh = mesh
+	_mi.set_instance_shader_parameter("path_length", path_length)
 	_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cast_shadows \
 			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	
@@ -213,12 +258,14 @@ static func frame_at(curve: Curve3D, d: float) -> Transform3D:
 ## v34: the extrusion with a width profile. Same layout as the plain path, but
 ## each ring's section is re-shaped for the width there, and normals come from
 ## the re-shaped section.
-func _build_widened(poly: PackedVector2Array, ccw: bool, per: PackedFloat32Array,
-		ds: PackedFloat32Array, frames: Array[Transform3D], d0: float, d1: float,
-		verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVector2Array,
+func _build_widened(poly: PackedVector2Array, ccw: bool, classes: PackedInt32Array,
+		per: PackedFloat32Array, ds: PackedFloat32Array, frames: Array[Transform3D], d0: float,
+		d1: float, verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVector2Array,
+		uv2s: PackedVector2Array, cust: PackedFloat32Array, tans: PackedFloat32Array,
 		idx: PackedInt32Array, faces: PackedVector3Array) -> void:
 	var m := poly.size()
 	var sections: Array[PackedVector2Array] = []
+	var halves := PackedVector2Array()
 	for k in ds.size():
 		var w := width_at(ds[k])
 		var sc := _lip_scale(ds[k], d0, d1)
@@ -228,6 +275,7 @@ func _build_widened(poly: PackedVector2Array, ccw: bool, per: PackedFloat32Array
 			var p := poly[i]
 			sec[i] = Vector2(_widen_x(p.x, w), p.y * sc if p.y > 0.0 else p.y)
 		sections.append(sec)
+		halves.append(surface_half_widths(sec, classes))
 	for e in m:
 		var base := verts.size()
 		for k in ds.size():
@@ -245,6 +293,11 @@ func _build_widened(poly: PackedVector2Array, ccw: bool, per: PackedFloat32Array
 			var u := ds[k] / u_distance
 			uvs.append(Vector2(u, per[e] / u_distance))
 			uvs.append(Vector2(u, per[e + 1] / u_distance))
+			uv2s.append(Vector2(ds[k], q0.x))
+			uv2s.append(Vector2(ds[k], q1.x))
+			_append_custom(cust, classes[e], halves[k], q0.y)
+			_append_custom(cust, classes[e], halves[k], q1.y)
+			_append_tangent(tans, -fr.basis.z, 2)
 		for k in ds.size() - 1:
 			var a := base + k * 2
 			_tri(verts, idx, faces, a, a + 1, a + 3, norms[a])
@@ -253,10 +306,11 @@ func _build_widened(poly: PackedVector2Array, ccw: bool, per: PackedFloat32Array
 		# _cap applies the lip fade itself: hand it the widened, unfaded section.
 		var length := (get_node_or_null(path_node) as Path3D).curve.get_baked_length()
 		if not (weld_lap_seam and d0 <= 0.0):
-			_cap(_widened(poly, width_at(d0)), frames[0], -1.0, d0, d0, d1, verts, norms, uvs, idx, faces)
+			_cap(_widened(poly, width_at(d0)), frames[0], -1.0, d0, d0, d1, halves[0],
+					verts, norms, uvs, uv2s, cust, tans, idx, faces)
 		if not (weld_lap_seam and d1 >= length):
 			_cap(_widened(poly, width_at(d1)), frames[frames.size() - 1], 1.0, d1, d0, d1,
-					verts, norms, uvs, idx, faces)
+					halves[halves.size() - 1], verts, norms, uvs, uv2s, cust, tans, idx, faces)
 
 
 func _widened(poly: PackedVector2Array, w: Vector2) -> PackedVector2Array:
@@ -325,8 +379,9 @@ static func _tri(verts: PackedVector3Array, idx: PackedInt32Array, faces: Packed
 
 
 func _cap(poly: PackedVector2Array, fr: Transform3D, dir: float, d: float, d0: float, d1: float,
-		verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVector2Array,
-		idx: PackedInt32Array, faces: PackedVector3Array) -> void:
+		half: Vector2, verts: PackedVector3Array, norms: PackedVector3Array,
+		uvs: PackedVector2Array, uv2s: PackedVector2Array, cust: PackedFloat32Array,
+		tans: PackedFloat32Array, idx: PackedInt32Array, faces: PackedVector3Array) -> void:
 	var tri := Geometry2D.triangulate_polygon(poly)
 	if tri.is_empty():
 		return
@@ -338,5 +393,110 @@ func _cap(poly: PackedVector2Array, fr: Transform3D, dir: float, d: float, d0: f
 		verts.append(fr.origin + fr.basis.x * q.x + fr.basis.y * q.y)
 		norms.append(out)
 		uvs.append(q / u_distance)
+		uv2s.append(Vector2(d, q.x))
+		_append_custom(cust, EDGE_OTHER, half, q.y)
+	_append_tangent(tans, fr.basis.x, poly.size())
 	for i in range(0, tri.size(), 3):
 		_tri(verts, idx, faces, base + tri[i], base + tri[i + 1], base + tri[i + 2], out)
+
+
+## v38: the built mesh (an internal child), or null before build().
+func mesh_instance() -> MeshInstance3D:
+	return _mi
+
+
+## v38 phase 5: half widths (left, right) of the driving surface at distance
+## `d`, after the width profile (decal anchors use them).
+func surface_half_widths_at(d: float) -> Vector2:
+	var m := polygon.size()
+	if m < 3:
+		return Vector2.ZERO
+	var area := 0.0
+	for i in m:
+		area += polygon[i].x * polygon[(i + 1) % m].y - polygon[(i + 1) % m].x * polygon[i].y
+	var sec := polygon if width_profile.is_empty() else _widened(polygon, width_at(d))
+	return surface_half_widths(sec, edge_classes(polygon, area > 0.0))
+
+
+## v38: UV.y range (v0, v1) of the driving surface, for the grid's weather
+## wrapper (UV.y = outline perimeter / u_distance, on the drawn polygon).
+func driving_surface_v() -> Vector2:
+	var m := polygon.size()
+	if m < 3:
+		return Vector2.ZERO
+	var area := 0.0
+	for i in m:
+		area += polygon[i].x * polygon[(i + 1) % m].y - polygon[(i + 1) % m].x * polygon[i].y
+	var classes := edge_classes(polygon, area > 0.0)
+	var per := 0.0
+	var v := Vector2(INF, -INF)
+	for e in m:
+		var next := per + polygon[e].distance_to(polygon[(e + 1) % m])
+		if classes[e] == EDGE_SURFACE:
+			v = Vector2(minf(v.x, per), maxf(v.y, next))
+		per = next
+	if v.x > v.y:
+		return Vector2.ZERO
+	return v / u_distance
+
+
+## v38: the class of each polygon edge (edge i runs from point i to i + 1).
+## Surface: flat at y = 0 and facing up. Lip: facing clearly up (normal y
+## over 0.3) with a raised end
+## (classed on the drawn polygon, so a lip stays a lip while it fades flat).
+## A near-vertical edge facing the centre line is EDGE_FACE (a wall's inner
+## face). Everything else (underside, outer sides) is EDGE_OTHER.
+static func edge_classes(poly: PackedVector2Array, ccw: bool) -> PackedInt32Array:
+	var m := poly.size()
+	var out := PackedInt32Array()
+	out.resize(m)
+	for e in m:
+		var p0 := poly[e]
+		var p1 := poly[(e + 1) % m]
+		var ed := p1 - p0
+		var n2 := (Vector2(ed.y, -ed.x) if ccw else Vector2(-ed.y, ed.x)).normalized()
+		var flat := absf(p0.y) <= SURFACE_EPS and absf(p1.y) <= SURFACE_EPS
+		var mid_x := (p0.x + p1.x) * 0.5
+		if n2.y > 0.5 and flat:
+			out[e] = EDGE_SURFACE
+		elif n2.y > 0.3 and maxf(p0.y, p1.y) > SURFACE_EPS:
+			out[e] = EDGE_LIP
+		elif absf(n2.y) < 0.5 and absf(mid_x) > SURFACE_EPS and n2.x * mid_x < 0.0:
+			out[e] = EDGE_FACE
+		else:
+			out[e] = EDGE_OTHER
+	return out
+
+
+## v38: half widths (left, right) of the driving surface in `section`: how
+## far its EDGE_SURFACE edges reach either side of the centre line. 0 where
+## a section has no surface (walls).
+static func surface_half_widths(section: PackedVector2Array, classes: PackedInt32Array) -> Vector2:
+	var m := section.size()
+	var lo := INF
+	var hi := -INF
+	for e in m:
+		if classes[e] != EDGE_SURFACE:
+			continue
+		lo = minf(lo, minf(section[e].x, section[(e + 1) % m].x))
+		hi = maxf(hi, maxf(section[e].x, section[(e + 1) % m].x))
+	if lo > hi:
+		return Vector2.ZERO
+	return Vector2(maxf(-lo, 0.0), maxf(hi, 0.0))
+
+
+## One vertex's CUSTOM0: class, half widths, height in the section.
+static func _append_custom(cust: PackedFloat32Array, cls: int, half: Vector2, height: float) -> void:
+	cust.append(float(cls))
+	cust.append(half.x)
+	cust.append(half.y)
+	cust.append(height)
+
+
+static func _append_tangent(tans: PackedFloat32Array, t: Vector3, count: int) -> void:
+	t = t.normalized()
+	for i in count:
+		tans.append(t.x)
+		tans.append(t.y)
+		tans.append(t.z)
+		tans.append(1.0)

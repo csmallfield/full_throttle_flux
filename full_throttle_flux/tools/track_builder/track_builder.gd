@@ -34,6 +34,9 @@ const ISSUES_NAME := "_Issues"
 const GREEBLE_PREVIEW_NAME := "_GreebleMarkers"
 const GREEBLES_NODE := "TrackGreebles"
 const GREEBLES_SCRIPT := "res://scripts/tracks/track_greebles.gd"
+const SURFACE_PREVIEW_NAME := "_SurfaceMarkers"
+const SURFACE_NODE := "TrackSurface"
+const SURFACE_SCRIPT := "res://scripts/tracks/track_surface.gd"
 const DEBOUNCE_S := 0.2
 const ROLL_LIMIT := 0.7          # °/m, design limit outside roll features
 const TAPER_LIMIT := 0.1         # m of half width per m of track
@@ -118,6 +121,28 @@ const KEY_FAR := 30.0            # m from the track: validator error
 ## Removes the TrackGreebles node (the keys stay; Build or Refresh makes it again).
 @export_tool_button("Remove greebles", "Remove") var _btn_greebles_clear := remove_greebles
 
+@export_group("Surface")
+## v38: the track's own deviations from the shared surface style (accent and
+## light colours, hazard colours, panel tint, ...). Null = the style as is.
+@export var surface_variation: TrackSurfaceVariation:
+	set(v):
+		surface_variation = v
+		mark_surface_dirty()
+## Re-apply the surface zones as you move or change SurfaceZoneKeys.
+@export var surface_live: bool = true:
+	set(v):
+		surface_live = v
+		if v:
+			mark_surface_dirty()
+## Zone markers (a gate and a label at each SurfaceZoneKey's start).
+@export var surface_markers: bool = true:
+	set(v):
+		surface_markers = v
+		mark_surface_dirty()
+@export_tool_button("Refresh surface", "Reload") var _btn_surface := refresh_surface
+## Removes the TrackSurface node (the keys stay; Build or Refresh makes it again).
+@export_tool_button("Remove surface zones", "Remove") var _btn_surface_clear := remove_surface
+
 @export_group("Report (read only)")
 @export_multiline var report: String = ""
 
@@ -143,6 +168,9 @@ var _last_ms := 0.0
 var _greebles_dirty := false
 var _greebles_dirty_at := 0.0
 var _last_greebles := ""
+var _surface_dirty := false
+var _surface_dirty_at := 0.0
+var _last_surface := ""
 
 
 func _ready() -> void:
@@ -154,6 +182,7 @@ func _ready() -> void:
 	set_process(true)
 	mark_dirty()
 	mark_greebles_dirty()
+	mark_surface_dirty()
 	if OS.get_environment("TB_EDITOR_SELFTEST") == "1":
 		_editor_selftest.call_deferred()
 
@@ -166,6 +195,8 @@ func _process(_delta: float) -> void:
 		preview()
 	if _greebles_dirty and greebles_live and _now() - _greebles_dirty_at >= DEBOUNCE_S:
 		refresh_greebles()
+	if _surface_dirty and surface_live and _now() - _surface_dirty_at >= DEBOUNCE_S:
+		refresh_surface()
 
 
 func _validate_property(property: Dictionary) -> void:
@@ -183,6 +214,13 @@ func mark_dirty() -> void:
 func mark_greebles_dirty() -> void:
 	_greebles_dirty = true
 	_greebles_dirty_at = _now()
+
+
+## A SurfaceZoneKey or the surface variation changed (the drivable track
+## didn't).
+func mark_surface_dirty() -> void:
+	_surface_dirty = true
+	_surface_dirty_at = _now()
 
 
 func base_path() -> Path3D:
@@ -834,6 +872,108 @@ func _draw_greeble_markers(g: TrackGreebler) -> void:
 
 
 # =============================================================================
+# SURFACE (v38)
+# =============================================================================
+
+## Resolves the SurfaceZoneKeys against the built track, writes the
+## TrackSurface node (made if missing) and re-applies the per-path materials.
+## Needs a Build.
+func refresh_surface() -> void:
+	_surface_dirty = false
+	var root: Node = owner if owner else get_parent()
+	if root == null:
+		return
+	var node := root.get_node_or_null(SURFACE_NODE) as TrackSurface
+	if not TrackSurfacer.has_keys(self) and node == null:
+		_last_surface = ""
+		_clear_surface_markers()
+		report = _make_report()
+		return
+	var sf := TrackSurfacer.resolve(self, root)
+	if not sf.ok():
+		_last_surface = "Surface: " + "; ".join(sf.notes)
+		report = _make_report()
+		return
+	if node == null:
+		node = (load(SURFACE_SCRIPT) as GDScript).new() as TrackSurface
+		node.name = SURFACE_NODE
+		root.add_child(node)
+		node.owner = root
+		node.add_to_group(TrackBuild.GROUP, true)
+	if sf.write(node, self):
+		_mark_unsaved()
+	var segs := node.apply()
+	_draw_surface_markers(sf)
+	var notes := sf.notes.duplicate()
+	notes.append_array(node.notes)
+	_last_surface = "Surface: %d zones, %d decals on %d segments%s" % [node.zones.size(), node.decals.size(), segs,
+			"" if notes.is_empty() else "\n  " + "\n  ".join(notes)]
+	report = _make_report()
+
+
+func remove_surface() -> void:
+	var root: Node = owner if owner else get_parent()
+	var node := root.get_node_or_null(SURFACE_NODE) if root else null
+	if node:
+		node.get_parent().remove_child(node)
+		node.free()
+		_mark_unsaved()
+	_clear_surface_markers()
+	_last_surface = "Surface zones removed (the road keeps the default profile until Build or Refresh)"
+	report = _make_report()
+
+
+func _clear_surface_markers() -> void:
+	var n := get_node_or_null(SURFACE_PREVIEW_NAME)
+	if n:
+		n.free()
+
+
+## A low gate across the road at each zone's start and a label: profile,
+## blend, length. Red leader = too far away.
+func _draw_surface_markers(sf: TrackSurfacer) -> void:
+	_clear_surface_markers()
+	if not surface_markers or sf.keys.is_empty():
+		return
+	var root := Node3D.new()
+	root.name = SURFACE_PREVIEW_NAME
+	root.top_level = true
+	add_child(root)        # owner left unset: never saved
+	root.global_transform = Transform3D.IDENTITY
+	var im := ImmediateMesh.new()
+	im.surface_begin(Mesh.PRIMITIVE_LINES)
+	var col := Color(0.3, 0.85, 1.0)
+	for k in sf.keys:
+		var fv: Variant = sf.key_frame(k)
+		if fv == null:
+			continue
+		var f: Transform3D = fv
+		var far := k.distance_to_track > TrackGreebler.KEY_FAR
+		_line(im, k.global_position, f.origin + f.basis.y * 1.0, Color(1, 0, 0) if far else col)
+		var h := 4.0
+		var l := f.origin - f.basis.x * 22.0
+		var r := f.origin + f.basis.x * 22.0
+		_line(im, l, l + f.basis.y * h, col)
+		_line(im, r, r + f.basis.y * h, col)
+		_line(im, l + f.basis.y * h, r + f.basis.y * h, col)
+		if k.blend_in > 0.0:
+			# The blend's end, dashed along the road edge.
+			var e := f.origin - f.basis.z * k.blend_in
+			_line(im, l + f.basis.y * h, e - f.basis.x * 22.0 + f.basis.y * h, col)
+			_line(im, r + f.basis.y * h, e + f.basis.x * 22.0 + f.basis.y * h, col)
+		var zl := sf.zone_length(k)
+		_label(root, f.origin + f.basis.y * (h + 2.0),
+				"%s ▸ %.0f m" % [k.label_text(), zl] if zl > 0.0 else k.label_text(), col, 2500.0)
+	im.surface_end()
+	var mi := MeshInstance3D.new()
+	mi.name = "Lines"
+	mi.mesh = im
+	mi.material_override = _vertex_material(true, 1.0)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+
+
+# =============================================================================
 # BUILD AND VALIDATE
 # =============================================================================
 
@@ -993,6 +1133,25 @@ func _editor_selftest() -> void:
 				node.zones[0].style.style_name if node and node.zones.size() > 0 else "-",
 				node.zones[0].style.resource_path if node and node.zones.size() > 0 else "-",
 				node.instance_total if node else -1])
+	# v38: the surface's live path (a key moved, a preset swapped).
+	var sk := TrackSurfacer.all_keys(self)
+	if not sk.is_empty():
+		var k := sk[sk.size() - 1]
+		k.global_position += Vector3(0, 0, -40.0)
+		k.preset = "service"
+		await get_tree().create_timer(DEBOUNCE_S + 0.1).timeout
+		for i in 3:
+			await get_tree().process_frame
+		print("SELFTEST surface: %s" % _last_surface.replace("\n", " | "))
+		var root: Node = owner if owner else get_parent()
+		var node := root.get_node_or_null(SURFACE_NODE) as TrackSurface
+		var seg := root.get_node_or_null("MainSpline/Road") as TrackRoadSegment
+		var mat := seg.mesh_instance().mesh.surface_get_material(0) as ShaderMaterial if seg else null
+		print("SELFTEST surface node: %d zones, last profile '%s'; MainSpline/Road material %s, strip %s" % [
+				node.zones.size() if node else -1,
+				node.zones_of(0)[-1].profile.profile_name if node and not node.zones_of(0).is_empty() else "-",
+				"per-path" if mat and mat.resource_path.is_empty() else "base",
+				mat.get_shader_parameter("surf_strip_info") if mat else null])
 	print("SELFTEST done: %d errors, %d warnings" % [v.errors(), v.warnings()])
 	get_tree().quit(0 if v.errors() == 0 else 1)
 
@@ -1025,6 +1184,8 @@ func _make_report() -> String:
 		lines.append(_last_validate)
 	if not _last_greebles.is_empty():
 		lines.append(_last_greebles)
+	if not _last_surface.is_empty():
+		lines.append(_last_surface)
 	for e in errors():
 		lines.append("✗ " + e)
 	for be in branches:
@@ -1084,7 +1245,8 @@ func _watch_curve() -> void:
 
 func _collect(n: Node, type: String, out: Array[ProfileKey]) -> void:
 	for c in n.get_children():
-		if c.name in [PREVIEW_NAME, ISSUES_NAME, GREEBLE_PREVIEW_NAME] or c is BranchFeature:
+		if c.name in [PREVIEW_NAME, ISSUES_NAME, GREEBLE_PREVIEW_NAME, SURFACE_PREVIEW_NAME] \
+				or c is BranchFeature:
 			continue
 		if c is ProfileKey and (type.is_empty() or (c as Object).get_script().get_global_name() == type):
 			out.append(c)

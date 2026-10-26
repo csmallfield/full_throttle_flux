@@ -337,7 +337,13 @@ func _phase4_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
 	var rep := env.surfaces
 	_check(rep != null and rep.materials >= 3 and rep.conflicts == 0,
 		"road + walls adopted the weather shader (%d materials, %d conflicts)" % [rep.materials, rep.conflicts])
-	_check(rep.road_u_scale == 100.0, "road UVs map to MainSpline (u_scale %.0f)" % rep.road_u_scale)
+	# v38 phase 5b: with a TrackSurface the circuit's road is on the v38
+	# surface in CSG mode (material_override), its s already in metres.
+	var road_csg := env.main_spline.get_node("groundGeo") as CSGPolygon3D
+	var ov := road_csg.material_override as ShaderMaterial
+	var v38 := ov != null and ov.shader != null and ov.shader.resource_path == EnvSurfaces.SURFACE_SHADER_PATH
+	_check(rep.road_u_scale == (1.0 if v38 else 100.0), "road UVs map to MainSpline (u_scale %.0f%s)"
+			% [rep.road_u_scale, ", v38 surface: metres" if v38 else ""])
 	var v := EnvSurfaces.driving_surface_v(PackedVector2Array([Vector2(21.58349, 2.9622357),
 		Vector2(17.218266, 2.0412953), Vector2(-16.617033, 1.8802173), Vector2(-20.253164, 2.7683895),
 		Vector2(-20.286919, -1.9581314), Vector2(21.968796, -1.8501513)]))
@@ -351,8 +357,19 @@ func _phase4_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
 		var px_out := img.get_pixel(int((START_D + 20.0) / env.spline_length * w), 0)
 		_check(px_in.r > 0.95 and px_out.r < 0.05 and absf(px_out.a - 0.25) < 0.01,
 			"mask: covered %.2f inside the test cover, %.2f outside, dust scale %.2f" % [px_in.r, px_out.r, px_out.a * 4.0])
-	var road := env.main_spline.get_node("groundGeo") as CSGPolygon3D
+	var road := road_csg
 	var sm := road.material as ShaderMaterial
+	# The driving surface's UV.y range: the grid wrapper's road_v0/v1, or the
+	# v38 CSG edge table's surface edge.
+	var dv := Vector2(-1.0, -1.0)
+	if v38:
+		var edges: PackedVector4Array = ov.get_shader_parameter("csg_edges")
+		var ys: PackedVector4Array = ov.get_shader_parameter("csg_edges_y")
+		for i in int(ov.get_shader_parameter("csg_edge_count")):
+			if int(ys[i].z) == TrackRoadSegment.EDGE_SURFACE:
+				dv = Vector2(edges[i].x, edges[i].y)
+	elif sm and sm.get_shader_parameter("road_v1") != null:
+		dv = Vector2(sm.get_shader_parameter("road_v0"), sm.get_shader_parameter("road_v1"))
 	# On the real mesh: vertices inside road_v0..v1 are the driving surface
 	# (top of the extrusion), the rest are banks / sides / bottom.
 	var meshes: Array = road.get_meshes()
@@ -362,8 +379,8 @@ func _phase4_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
 		var uvs: PackedVector2Array = arr[Mesh.ARRAY_TEX_UV]
 		var xf: Transform3D = road.global_transform * (meshes[0] as Transform3D)
 		var tr := env.make_spline_tracker()
-		var v0: float = sm.get_shader_parameter("road_v0")
-		var v1: float = sm.get_shader_parameter("road_v1")
+		var v0: float = dv.x
+		var v1: float = dv.y
 		# CSG vertices sit only at the polygon's corners, so the road_v0 / v1
 		# rows are the driving surface's two edges: ~2 m up, ~17 m out.
 		var h_sum := 0.0
@@ -383,9 +400,13 @@ func _phase4_checks(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe,
 		var ll := lat_sum / maxi(cnt, 1)
 		_check(cnt > 10 and hh > 1.0 and ll > 14.0 and ll < 19.0,
 			"road_v0/v1 rows are the driving surface edges on the mesh (%d verts: %+.1f m up, %.1f m out)" % [cnt, hh, ll])
-	_check(sm and sm.shader.resource_path == EnvSurfaces.SHADER_PATH and sm.get_shader_parameter("road_v1") > 0.1,
-		"road material: weather shader, driving surface %.3f..%.3f" % [
-			float(sm.get_shader_parameter("road_v0")), float(sm.get_shader_parameter("road_v1"))])
+	if v38:
+		_check(is_equal_approx(float(ov.get_shader_parameter("csg_u_scale")), 100.0)
+				and float(road.get_instance_shader_parameter("along_main")) > 0.5 and dv.y > 0.1,
+				"road: v38 surface in CSG mode (u 100 m, along_main), driving surface %.3f..%.3f" % [dv.x, dv.y])
+	else:
+		_check(sm and sm.shader.resource_path == EnvSurfaces.SHADER_PATH and dv.y > 0.1,
+			"road material: weather shader, driving surface %.3f..%.3f" % [dv.x, dv.y])
 
 	# Sky / fog per preset, then back to the authored look.
 	var we := env.world_env

@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="TrackSurfaceProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_band.gd" id="1_fv47w"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_profile.gd" id="2_seea3"]
+
+[sub_resource type="Resource" id="Resource_mfl7o"]
+script = ExtResource("1_fv47w")
+type = 2
+width = 1.5
+
+[sub_resource type="Resource" id="Resource_yq5qa"]
+script = ExtResource("1_fv47w")
+type = 1
+width = 0.4
+light = 1
+
+[sub_resource type="Resource" id="Resource_hwgbx"]
+script = ExtResource("1_fv47w")
+width = 4.0
+
+[sub_resource type="Resource" id="Resource_3rud5"]
+script = ExtResource("1_fv47w")
+type = 1
+width = 0.3
+light = 2
+
+[sub_resource type="Resource" id="Resource_i2rsq"]
+script = ExtResource("1_fv47w")
+type = 3
+width = 0.0
+flex = 1.0
+
+[resource]
+script = ExtResource("2_seea3")
+profile_name = "service"
+bands = Array[ExtResource("1_fv47w")]([SubResource("Resource_mfl7o"), SubResource("Resource_yq5qa"), SubResource("Resource_hwgbx"), SubResource("Resource_3rud5"), SubResource("Resource_i2rsq")])

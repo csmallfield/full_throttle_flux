@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" format=4]
+
+[ext_resource type="Shader" path="res://shaders/track/track_surface.gdshader" id="1_surface"]
+[ext_resource type="Texture2D" path="res://resources/track_surface/wear_detail.png" id="2_qp3ut"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_surface")
+shader_parameter/wear_detail = ExtResource("2_qp3ut")
+shader_parameter/surf_bands = PackedVector4Array(1.2, 0, 2, 0, 0.35, 0, 1, 1, 2.4, 0, 4, 0, 0.3, 0, 1, 2, 5, 0, 3, 0, 0.25, 0, 1, 0, 0, 1, 0, 1, 0.25, 0, 1, 0, 5, 0, 3, 0, 0.3, 0, 1, 2, 2.4, 0, 4, 0, 0.35, 0, 1, 1, 1.2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/surf_profiles = PackedVector4Array(13, 19.000002, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
