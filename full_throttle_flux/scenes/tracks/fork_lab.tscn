@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/rendering/motion_blur_effect.gd" id="1_dxyxc"]
 [ext_resource type="Script" path="res://scripts/tracks/track_road_segment.gd" id="2_xvyic"]
 [ext_resource type="Material" path="res://shaders/resources/grid_material.tres" id="3_hkqwj"]
+[ext_resource type="Material" path="res://shaders/track/track_wall_material.tres" id="v38_wall"]
 [ext_resource type="Material" path="res://shaders/track/track_surface_material.tres" id="v38_surface"]
 [ext_resource type="Script" path="res://scripts/tracks/track_graph.gd" id="4_nbbvg"]
 [ext_resource type="Script" path="res://scripts/tracks/track_branch.gd" id="5_8a7my"]
@@ -170,7 +171,7 @@ script = ExtResource("2_xvyic")
 end_distance = 400.20078
 polygon = PackedVector2Array(-21.1, 6.5, -23.5, 8.4, -28.5, 8.5, -28.6, -2, -21.1, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="WallL_Rest" type="Node3D" parent="MainSpline" unique_id=155770229]
@@ -179,7 +180,7 @@ start_distance = 455.47498
 end_distance = 3559.2036
 polygon = PackedVector2Array(-21.1, 6.5, -23.5, 8.4, -28.5, 8.5, -28.6, -2, -21.1, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="WallR_Start" type="Node3D" parent="MainSpline" unique_id=575443360]
@@ -187,7 +188,7 @@ script = ExtResource("2_xvyic")
 end_distance = 400.20078
 polygon = PackedVector2Array(28.5, 8.5, 23.5, 8.4, 21.1, 6.5, 21.1, -2, 28.6, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="WallR_PreFork" type="Node3D" parent="MainSpline" unique_id=917954201]
@@ -196,7 +197,7 @@ start_distance = 455.47498
 end_distance = 1180.4534
 polygon = PackedVector2Array(28.5, 8.5, 23.5, 8.4, 21.1, 6.5, 21.1, -2, 28.6, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="WallR_MainRouteInner" type="Node3D" parent="MainSpline" unique_id=273690997]
@@ -205,7 +206,7 @@ start_distance = 1374.849548339378
 end_distance = 2224.353393554222
 polygon = PackedVector2Array(28.5, 8.5, 23.5, 8.4, 21.1, 6.5, 21.1, -2, 28.6, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="WallR_PostRejoin" type="Node3D" parent="MainSpline" unique_id=1443875836]
@@ -214,7 +215,7 @@ start_distance = 2418.7336
 end_distance = 3559.2036
 polygon = PackedVector2Array(28.5, 8.5, 23.5, 8.4, 21.1, 6.5, 21.1, -2, 28.6, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="BranchSpline" type="Path3D" parent="." unique_id=1437636505]
@@ -243,7 +244,7 @@ script = ExtResource("2_xvyic")
 end_distance = 540.00134
 polygon = PackedVector2Array(28.5, 8.5, 23.5, 8.4, 21.1, 6.5, 21.1, -2, 28.6, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="WallR_B" type="Node3D" parent="BranchSpline" unique_id=1354702781]
@@ -252,7 +253,7 @@ start_distance = 640.488
 end_distance = 1001.39185
 polygon = PackedVector2Array(28.5, 8.5, 23.5, 8.4, 21.1, 6.5, 21.1, -2, 28.6, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="WallL_InnerA" type="Node3D" parent="BranchSpline" unique_id=1265222803]
@@ -261,7 +262,7 @@ start_distance = 176.0
 end_distance = 540.00134
 polygon = PackedVector2Array(-21.1, 6.5, -23.5, 8.4, -28.5, 8.5, -28.6, -2, -21.1, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="WallL_InnerB" type="Node3D" parent="BranchSpline" unique_id=1423244585]
@@ -270,7 +271,7 @@ start_distance = 640.488
 end_distance = 825.39185
 polygon = PackedVector2Array(-21.1, 6.5, -23.5, 8.4, -28.5, 8.5, -28.6, -2, -21.1, -2)
 collision_layer = 4
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_wall")
 u_distance = 50.0
 
 [node name="RouteSpline_Branch" type="Path3D" parent="." unique_id=1328309418]

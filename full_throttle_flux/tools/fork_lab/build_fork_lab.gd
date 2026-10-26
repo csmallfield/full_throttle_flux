@@ -29,6 +29,8 @@ const OUT_SCENE := "res://scenes/tracks/fork_lab.tscn"
 const ROAD_MAT := "res://shaders/resources/grid_material.tres"
 ## v38: the driving surface of road segments (walls and junctions keep ROAD_MAT).
 const ROAD_SURFACE_MAT := "res://shaders/track/track_surface_material.tres"
+## v38 phase 5: the walls' surface (junctions keep ROAD_MAT).
+const WALL_SURFACE_MAT := "res://shaders/track/track_wall_material.tres"
 const MB_SCRIPT := "res://scripts/rendering/motion_blur_effect.gd"
 
 # ---- layout (metres, degrees) ----------------------------------------------
@@ -331,6 +333,7 @@ func _build_scene(main_curve: Curve3D, branch_curve: Curve3D, route_curve: Curve
 	
 	var mat: Material = load(ROAD_MAT)
 	var road_mat: Material = load(ROAD_SURFACE_MAT)
+	var wall_mat: Material = load(WALL_SURFACE_MAT)
 	var L: float = M.length
 	# --- main road -----------------------------------------------------------
 	_seg(main, "Road_Start", _road_poly(), 0.0, M.sj_lip, 1, road_mat, 100.0, 0.5, 0.0, 0.0)
@@ -340,20 +343,20 @@ func _build_scene(main_curve: Curve3D, branch_curve: Curve3D, route_curve: Curve
 	# Main walls. +x is the right of travel. At the fork the branch goes
 	# straight on and the main route bears LEFT, so the main route's right wall
 	# is the inner one (between the routes) and the branch's left wall is.
-	_seg(main, "WallL_Start", WALL_LEFT_POLY, 0.0, M.sj_lip, 4, mat, 50.0, 1.0)
-	_seg(main, "WallL_Rest", WALL_LEFT_POLY, M.sj_landing, L, 4, mat, 50.0, 1.0)
-	_seg(main, "WallR_Start", WALL_RIGHT_POLY, 0.0, M.sj_lip, 4, mat, 50.0, 1.0)
-	_seg(main, "WallR_PreFork", WALL_RIGHT_POLY, M.sj_landing, M.fork, 4, mat, 50.0, 1.0)
-	_seg(main, "WallR_MainRouteInner", WALL_RIGHT_POLY, jf.m, jr.m, 4, mat, 50.0, 1.0)
-	_seg(main, "WallR_PostRejoin", WALL_RIGHT_POLY, M.rejoin, L, 4, mat, 50.0, 1.0)
+	_seg(main, "WallL_Start", WALL_LEFT_POLY, 0.0, M.sj_lip, 4, wall_mat, 50.0, 1.0)
+	_seg(main, "WallL_Rest", WALL_LEFT_POLY, M.sj_landing, L, 4, wall_mat, 50.0, 1.0)
+	_seg(main, "WallR_Start", WALL_RIGHT_POLY, 0.0, M.sj_lip, 4, wall_mat, 50.0, 1.0)
+	_seg(main, "WallR_PreFork", WALL_RIGHT_POLY, M.sj_landing, M.fork, 4, wall_mat, 50.0, 1.0)
+	_seg(main, "WallR_MainRouteInner", WALL_RIGHT_POLY, jf.m, jr.m, 4, wall_mat, 50.0, 1.0)
+	_seg(main, "WallR_PostRejoin", WALL_RIGHT_POLY, M.rejoin, L, 4, wall_mat, 50.0, 1.0)
 	_check_sides(main_curve, branch_curve, jf)
 	# --- branch road ---------------------------------------------------------
 	_seg(br, "Road_BranchA", _road_poly(), jf.b, B.bj_lip, 1, road_mat, 100.0, 0.5, LIP_FADE, 0.0)
 	_seg(br, "Road_BranchB", _road_poly(), B.bj_landing, jr.b, 1, road_mat, 100.0, 0.5, 0.0, LIP_FADE)
-	_seg(br, "WallR_A", WALL_RIGHT_POLY, 0.0, B.bj_lip, 4, mat, 50.0, 1.0)
-	_seg(br, "WallR_B", WALL_RIGHT_POLY, B.bj_landing, B.length, 4, mat, 50.0, 1.0)
-	_seg(br, "WallL_InnerA", WALL_LEFT_POLY, jf.b, B.bj_lip, 4, mat, 50.0, 1.0)
-	_seg(br, "WallL_InnerB", WALL_LEFT_POLY, B.bj_landing, jr.b, 4, mat, 50.0, 1.0)
+	_seg(br, "WallR_A", WALL_RIGHT_POLY, 0.0, B.bj_lip, 4, wall_mat, 50.0, 1.0)
+	_seg(br, "WallR_B", WALL_RIGHT_POLY, B.bj_landing, B.length, 4, wall_mat, 50.0, 1.0)
+	_seg(br, "WallL_InnerA", WALL_LEFT_POLY, jf.b, B.bj_lip, 4, wall_mat, 50.0, 1.0)
+	_seg(br, "WallL_InnerB", WALL_LEFT_POLY, B.bj_landing, jr.b, 4, wall_mat, 50.0, 1.0)
 	# --- junctions -----------------------------------------------------------
 	_junction(root, "ForkJunction", M.fork, jf.m, 0.0, jf.b, true, mat)
 	_junction(root, "RejoinJunction", jr.m, M.rejoin, jr.b, B.length, false, mat)

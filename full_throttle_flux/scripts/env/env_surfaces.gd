@@ -31,6 +31,8 @@ class_name EnvSurfaces
 
 const SHADER_PATH := "res://shaders/env/track_surface.gdshader"
 const SURFACE_SHADER_PATH := "res://shaders/track/track_surface.gdshader"
+## v38 phase 5: builder walls, same instance uniforms as the road surface.
+const WALL_SHADER_PATH := "res://shaders/track/track_wall.gdshader"
 ## A grid-shader material is recognised by its source: the v36 grid declares
 ## major_grid_every itself, the v37 one includes grid_filtered.gdshaderinc.
 const GRID_SIGNATURES: Array[String] = ["major_grid_every", "grid_filtered.gdshaderinc"]
@@ -75,7 +77,7 @@ static func _walk(n: Node, spline: Path3D, shader: Shader, seen: Dictionary, rep
 		var sm := m as ShaderMaterial
 		if sm == null or sm.shader == null:
 			continue
-		if sm.shader.resource_path == SURFACE_SHADER_PATH:
+		if sm.shader.resource_path == SURFACE_SHADER_PATH or sm.shader.resource_path == WALL_SHADER_PATH:
 			_adopt_surface(n, mi, spline, sm, seen, rep)
 			continue
 		if sm.shader != shader and not is_grid(sm.shader):
@@ -108,7 +110,7 @@ static func _adopt_surface(n: Node, mi: MeshInstance3D, spline: Path3D, sm: Shad
 		seen[sm] = {}
 	rep.nodes += 1
 	# s is already metres (UV2.x): any non-zero scale turns the zone mask on.
-	if on_main and rep.road_u_scale == 0.0:
+	if on_main and rep.road_u_scale == 0.0 and sm.shader.resource_path == SURFACE_SHADER_PATH:
 		rep.road_u_scale = 1.0
 
 

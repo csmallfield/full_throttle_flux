@@ -49,6 +49,7 @@ shader_type spatial;
 #include "res://shaders/track/modules/lights.gdshaderinc"
 #include "res://shaders/track/modules/edges.gdshaderinc"
 #include "res://shaders/track/modules/wear.gdshaderinc"
+#include "res://shaders/track/modules/decals.gdshaderinc"
 
 global uniform int track_surface_debug;
 global uniform int track_surface_tier;
@@ -129,7 +130,8 @@ struct Bands {
 	float edge_line;  // painted edge line coverage
 };
 
-Bands band_lookup(int p, float t, float fw_t, float fw_s, float wl, float wr, float dots, float leds) {
+Bands band_lookup(int p, float t, float fw_t, float fw_s, float wl, float wr, float dots, float leds,
+		float pulse) {
 	vec4 info = surf_profiles[p];
 	int count = int(info.x);
 	float fixed_w = info.y;
@@ -182,7 +184,7 @@ Bands band_lookup(int p, float t, float fw_t, float fw_s, float wl, float wr, fl
 			if (type == BT_CHANNEL) {
 				b.channel += aa_pulse(x, x1, t, fw_t);
 				b.channel_fade = max(b.channel_fade, aa_fade(w, fw_t));
-				b.lights += channel_light(int(bd.w), x, x1, t, fw_t, dots);
+				b.lights += channel_light(int(bd.w), x, x1, t, fw_t, dots, pulse);
 			} else if (type == BT_EDGE) {
 				// Its outer side is the road edge it's nearer.
 				bool outer_left = x + x1 < wr - wl;
@@ -221,6 +223,9 @@ struct Px {
 	float dots_fade;
 	float leds;
 	float leds_fade;
+	float pulse;
+	int dfirst;       // decal records reaching this metre (phase 5)
+	int dcount;
 	bool high;
 	vec3 view_ts;
 	float lat01;      // 0 at the centre line .. 1 at the surface edge
@@ -234,7 +239,7 @@ struct Px {
 TSurf shade(int p, float zseed, Px x, out int band_id, out float panel, out float seam,
 		out WearOut wo) {
 	float sd = seed + zseed;
-	Bands b = band_lookup(p, x.t, x.fw_t, x.fw_s, x.wl, x.wr, x.dots, x.leds);
+	Bands b = band_lookup(p, x.t, x.fw_t, x.fw_s, x.wl, x.wr, x.dots, x.leds, x.pulse);
 	band_id = b.id;
 	// Lips carry on the nearer edge band's panels.
 	int count = int(surf_profiles[p].x);
@@ -296,6 +301,9 @@ TSurf shade(int p, float zseed, Px x, out int band_id, out float panel, out floa
 		o.filt = 0.0;
 		seam = 0.0;
 	}
+	if (x.dcount > 0 && x.cls <= EDGE_LIP) {
+		decals(o, x.dfirst, x.dcount, x.s, x.t, x.dx, x.dy, x.fw_s, x.fw_t);
+	}
 	wo = wear(o, x.wi, x.s, x.t, x.cls, x.lat01, panel, pbf, var_fade, x.dx, x.dy, x.high);
 	return o;
 }
@@ -355,9 +363,27 @@ void fragment() {
 
 	// Panels: snapped per path so the lap is a whole number of panels.
 	x.pl = path_length > 0.0 ? path_length / max(1.0, round(path_length / panel_len)) : panel_len;
-	// Dot rows along s, shared by every channel / edge band.
-	x.dots = aa_lines(x.s, light_dot_every, light_dot_len, x.fw_s, x.dots_fade);
-	x.leds = aa_lines(x.s + led_every * 0.5, led_every, led_size, x.fw_s, x.leds_fade);
+	// Dot rows along s, shared by every channel / edge band; living lights
+	// flow along the track (phases wrapped to each period).
+	float dot_phase = mod(TIME * light_flow, light_dot_every);
+	float led_phase = mod(TIME * light_flow, led_every);
+	float pulse_phase = mod(TIME * light_pulse_speed, light_pulse_every);
+	x.dots = aa_lines(x.s - dot_phase, light_dot_every, light_dot_len, x.fw_s, x.dots_fade);
+	x.leds = aa_lines(x.s + led_every * 0.5 - led_phase, led_every, led_size, x.fw_s, x.leds_fade);
+	float pulse_fade;
+	x.pulse = 1.0 + light_pulse_gain
+			* aa_lines(x.s - pulse_phase, light_pulse_every, light_pulse_len, x.fw_s, pulse_fade);
+	// Decals reaching this metre (phase 5): a second fetch, on paths that have any.
+	x.dfirst = 0;
+	x.dcount = 0;
+	if (surf_decal_info.x > 0.0) {
+		int dn = int(surf_decal_info.x);
+		int dw = int(surf_decal_info.y);
+		int di = clamp(int(floor(x.s)), 0, dn - 1);
+		vec2 dz = texelFetch(surf_decal_strip, ivec2(di % dw, di / dw), 0).rg;
+		x.dfirst = int(dz.r + 0.5);
+		x.dcount = int(dz.g + 0.5);
+	}
 
 	// Zone: which profile(s) here, and the transition if there is one.
 	int pa = 0;

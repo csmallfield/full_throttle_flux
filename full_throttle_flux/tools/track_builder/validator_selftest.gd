@@ -35,6 +35,7 @@ var cases := [
 	["five surface profiles on one path", "different profiles on", Callable(self, "_surface_five")],
 	["surface lanes meeting without a channel", "without a channel between", Callable(self, "_surface_no_channel")],
 	["surface zones out of date", "Surface zones are out of date", Callable(self, "_none")],
+	["decal text its font can't draw", "can't draw", Callable(self, "_decal_missing_glyph")],
 ]
 
 
@@ -253,6 +254,13 @@ func _surface_no_channel(tb: TrackBuilder, _scene: Node) -> void:
 	var p := k.profile.duplicate(true) as TrackSurfaceProfile
 	p.bands[3].type = TrackSurfaceBand.Type.GRATE    # the blue channel becomes a grate
 	k.profile = p
+
+
+## A serial with characters the barcode font has no glyph for.
+func _decal_missing_glyph(tb: TrackBuilder, _scene: Node) -> void:
+	for k in TrackSurfacer.all_decal_keys(tb):
+		if k.name == "Decal03_Serials":
+			k.text = "*fx~#*"
 
 
 func _greeble_far(tb: TrackBuilder, _scene: Node) -> void:

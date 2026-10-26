@@ -11,6 +11,9 @@ class_name TrackSurfacer
 ##                the first key (or the whole branch if it has none) the
 ##                branch carries on with the main zone in force at the fork
 ##
+## v38 phase 5: SurfaceDecalKeys too, projected onto their path the same way
+## (main track or their branch) into TrackSurface.decals.
+##
 ## Used by Build (TrackBuild), by the builder's live refresh as keys move, and
 ## by the validator (resolve() and signature(), to see whether the node is up
 ## to date).
@@ -18,6 +21,8 @@ class_name TrackSurfacer
 var zones: Array[Dictionary] = []      # {path, from, to, key, inherited}
 var paths: Array[NodePath] = []
 var keys: Array[SurfaceZoneKey] = []
+var decal_keys: Array[SurfaceDecalKey] = []
+var decals: Array[Dictionary] = []     # {path, distance, key}
 var notes: PackedStringArray = []
 var _lines: Array = []
 var _branch_feats: Array[BranchFeature] = []
@@ -34,6 +39,21 @@ func ok() -> bool:
 
 
 ## Every SurfaceZoneKey of the builder: main track and branches.
+static func all_decal_keys(b: TrackBuilder) -> Array[SurfaceDecalKey]:
+	var out: Array[SurfaceDecalKey] = []
+	for k in b.keys_of("SurfaceDecalKey"):
+		out.append(k as SurfaceDecalKey)
+	for bf in b.branch_nodes():
+		for k in TrackBranchEval.new(bf).keys_of("SurfaceDecalKey"):
+			out.append(k as SurfaceDecalKey)
+	return out
+
+
+## True if the builder has any surface key at all (zones or decals).
+static func has_keys(b: TrackBuilder) -> bool:
+	return not all_keys(b).is_empty() or not all_decal_keys(b).is_empty()
+
+
 static func all_keys(b: TrackBuilder) -> Array[SurfaceZoneKey]:
 	var out: Array[SurfaceZoneKey] = []
 	for k in b.keys_of("SurfaceZoneKey"):
@@ -67,8 +87,36 @@ func write(node: TrackSurface, b: TrackBuilder) -> bool:
 		z.wear = k.wear
 		list.append(z)
 	node.zones = list
+	var old_d := node.decals
+	var dl: Array[TrackSurfaceDecal] = []
+	for i in decals.size():
+		var dd: Dictionary = decals[i]
+		var d: TrackSurfaceDecal = old_d[i] if i < old_d.size() and old_d[i] != null else TrackSurfaceDecal.new()
+		_fill_decal(d, dd)
+		dl.append(d)
+	node.decals = dl
 	node.variation = b.surface_variation
 	return node.signature() != before
+
+
+static func _fill_decal(d: TrackSurfaceDecal, dd: Dictionary) -> void:
+	var k: SurfaceDecalKey = dd.key
+	d.key_name = String(k.name)
+	d.path_index = dd.path
+	d.distance = dd.distance
+	d.anchor = k.anchor
+	d.offset = k.offset
+	d.shape = k.shape
+	d.role = k.role
+	d.text = k.text
+	d.size = k.size
+	d.width = k.width
+	d.paint = k.paint
+	d.glow = k.glow
+	d.opacity = k.opacity
+	d.count = k.count
+	d.spacing = k.spacing
+	d.flipped = k.flipped
 
 
 ## What this resolve would write, for comparing with a node (validator).
@@ -80,6 +128,10 @@ func signature(b: TrackBuilder) -> int:
 				k.profile.get_instance_id() if k.profile else 0,
 				snappedf(0.0 if zd.inherited else k.blend_in, 0.01), hash([k.seed, String(k.name)]) & 1023,
 				snappedf(k.wear, 0.01)])
+	for dd in decals:
+		var d := TrackSurfaceDecal.new()
+		_fill_decal(d, dd)
+		parts.append(TrackSurface.decal_signature(d))
 	return hash(var_to_bytes(parts))
 
 
@@ -147,6 +199,18 @@ func _resolve(b: TrackBuilder, root: Node) -> void:
 	for pi in per_path:
 		(per_path[pi] as Array).sort_custom(func(a: SurfaceZoneKey, c: SurfaceZoneKey) -> bool:
 				return a.distance < c.distance)
+	# Decals: onto their path, sorted along it.
+	decal_keys = all_decal_keys(b)
+	for k in decal_keys:
+		var pi := _path_of_key(k)
+		if pi < 0 or _lines[pi].is_empty():
+			continue
+		var r := TrackGreebler._project(_lines[pi], k.global_position, k.distance)
+		k.distance = r[0]
+		k.distance_to_track = r[1]
+		decals.append({path = pi, distance = r[0], key = k})
+	decals.sort_custom(func(a: Dictionary, c: Dictionary) -> bool:
+			return a.path < c.path or (a.path == c.path and a.distance < c.distance))
 	var main_len := main.curve.get_baked_length()
 	var mk: Array = per_path.get(0, [])
 	for i in mk.size():
@@ -182,7 +246,7 @@ func _main_zone_at(d: float, main_len: float) -> Dictionary:
 	return {}
 
 
-func _path_of_key(k: SurfaceZoneKey) -> int:
+func _path_of_key(k: ProfileKey) -> int:
 	var n := k.get_parent()
 	while n:
 		if n is BranchFeature:

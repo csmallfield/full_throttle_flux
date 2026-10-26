@@ -42,6 +42,8 @@ const META_HASH := "track_builder_input_hash"
 const ROAD_MAT := "res://shaders/resources/grid_material.tres"
 ## v38: the driving surface of road segments (walls and junctions keep ROAD_MAT).
 const ROAD_SURFACE_MAT := "res://shaders/track/track_surface_material.tres"
+## v38 phase 5: the walls' surface (junctions keep ROAD_MAT).
+const WALL_SURFACE_MAT := "res://shaders/track/track_wall_material.tres"
 const LINE_SCENE := "res://scenes/start_finish_line.tscn"
 const GAP_TRIGGER_SCRIPT := "res://scripts/respawn_trigger.gd"
 const PAD_SCENE := "res://scenes/boost_pad.tscn"
@@ -192,13 +194,14 @@ func _run(b: TrackBuilder) -> void:
 	# --- branches: their own splines, before the main road is cut ---------------
 	var mat: Material = load(ROAD_MAT)
 	var road_mat: Material = load(ROAD_SURFACE_MAT)
+	var wall_mat: Material = load(WALL_SURFACE_MAT)
 	var main_map := DistMap.new()
 	main_map.s = _map_s
 	main_map.d = _map_d
 	var built_branches: Array[Dictionary] = []
 	for bi in b.branches.size():
 		var be: TrackBranchEval = b.branches[bi]
-		var bb := _branch(be, bi, main_map, mat, road_mat)
+		var bb := _branch(be, bi, main_map, mat, road_mat, wall_mat)
 		if bb.is_empty():
 			return
 		built_branches.append(bb)
@@ -219,9 +222,9 @@ func _run(b: TrackBuilder) -> void:
 	_pieces_out(main, "Road", _road_poly(), LAYER_GROUND, 100.0, ROAD_HALF, widths, road_mat,
 			_pieces(_cat([gaps, junctions_l, junctions_r]), length), true)
 	# A wall stops only where its own side opens into a junction.
-	_pieces_out(main, "WallL", WALL_LEFT_POLY, LAYER_WALLS, 50.0, 0.0, widths, mat,
+	_pieces_out(main, "WallL", WALL_LEFT_POLY, LAYER_WALLS, 50.0, 0.0, widths, wall_mat,
 			_pieces(_cat([gaps, junctions_l]), length), true)
-	_pieces_out(main, "WallR", WALL_RIGHT_POLY, LAYER_WALLS, 50.0, 0.0, widths, mat,
+	_pieces_out(main, "WallR", WALL_RIGHT_POLY, LAYER_WALLS, 50.0, 0.0, widths, wall_mat,
 			_pieces(_cat([gaps, junctions_r]), length), true)
 
 	# --- start line and grid -------------------------------------------------
@@ -352,7 +355,8 @@ static func _copy_curve(from: Curve3D, to: Curve3D) -> void:
 ## Builds one branch: its spline, road and walls (the main track's are cut
 ## around the junctions by the caller), the junctions, the route lap. Returns
 ## what the graph needs, or {} after _fail().
-func _branch(be: TrackBranchEval, bi: int, main_map: DistMap, mat: Material, road_mat: Material) -> Dictionary:
+func _branch(be: TrackBranchEval, bi: int, main_map: DistMap, mat: Material, road_mat: Material,
+		wall_mat: Material) -> Dictionary:
 	var sfx := "" if bi == 0 else "_%d" % (bi + 1)
 	var bs := be.track
 	# Spline.
@@ -396,9 +400,9 @@ func _branch(be: TrackBranchEval, bi: int, main_map: DistMap, mat: Material, roa
 	_pieces_out(path, "Road", _road_poly(), LAYER_GROUND, 100.0, ROAD_HALF, widths, road_mat,
 			_pieces(_cat([gaps, juncs]), blen), false)
 	var inner_left := be.side > 0.0
-	_pieces_out(path, "WallL", WALL_LEFT_POLY, LAYER_WALLS, 50.0, 0.0, widths, mat,
+	_pieces_out(path, "WallL", WALL_LEFT_POLY, LAYER_WALLS, 50.0, 0.0, widths, wall_mat,
 			_pieces(_cat([gaps, juncs if inner_left else none]), blen), false)
-	_pieces_out(path, "WallR", WALL_RIGHT_POLY, LAYER_WALLS, 50.0, 0.0, widths, mat,
+	_pieces_out(path, "WallR", WALL_RIGHT_POLY, LAYER_WALLS, 50.0, 0.0, widths, wall_mat,
 			_pieces(_cat([gaps, none if inner_left else juncs]), blen), false)
 	# Junctions (flat union road + splitter wedge).
 	var fork := main_map.at(be.s_fork)
@@ -757,7 +761,7 @@ func _greebles(b: TrackBuilder) -> int:
 ## With no keys nothing is made (a TrackSurface left from an earlier build is
 ## removed as stale). Returns the zone count.
 func _surface(b: TrackBuilder) -> int:
-	if TrackSurfacer.all_keys(b).is_empty():
+	if not TrackSurfacer.has_keys(b):
 		return 0
 	var node := _ensure(root, TrackBuilder.SURFACE_NODE, load(TrackBuilder.SURFACE_SCRIPT)) as TrackSurface
 	var sf := TrackSurfacer.resolve(b, root)

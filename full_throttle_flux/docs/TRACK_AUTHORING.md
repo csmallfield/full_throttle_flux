@@ -310,7 +310,9 @@ The road's surface is drawn by the track surface shader (v38): lanes of
 plate, ribbed plate and hex grate, channels with guide lights between them,
 painted edge bands with LED rows, and hazard stripes on the lips. What runs
 across the road is a **profile**. A `SurfaceZoneKey` picks the profile for a
-stretch of track. Walls and junctions keep the grid for now.
+stretch of track. The walls have their own shader in the same system (panels,
+a hazard band at the foot, a blue guide strip and an LED row, grime splashed
+up from the road); junctions keep the grid for now.
 
 **Build first.** Surface zones sit on the built splines, like greeble zones.
 A track with no keys draws the default profile (industrial).
@@ -390,6 +392,38 @@ tracks without zones draw the new version too.
 **Looking at it.** In game, key 9 cycles the surface debug views (bands,
 panels, filter level, zones, wear) and Shift+9 the quality tier. See
 `DEBUG_KEYS.md`.
+
+### 3.8 Road decals (`SurfaceDecalKey`)
+
+Words, stencils, numbers, barcode serials, chevrons and arrows painted on the
+road. Drop a `SurfaceDecalKey` near the built road (a `SurfaceDecalKeys`
+folder, say); under a `BranchFeature` it goes on that branch. Text reads for
+a ship coming along the track: left to right across the road, letter tops
+pointing the way it's going (`flipped` turns it round).
+
+| Setting | Default | What it does |
+|---|---|---|
+| `shape` | text | text, chevron (^ along the track) or arrow |
+| `role` | WORD | The font, by job: WORD (BBH Bartle, caps) for big road words, STENCIL (Alien Block) for short hazard stencils, LABEL (Audiowide) for numbers and labels, SERIAL (Libre Barcode 39) for panel serials |
+| `text` | | What it says. `#` counts up with each copy: `SECTOR #`, `*FX-0#*` |
+| `size` | 4 m | Letter height (shapes: length along the track) |
+| `width` | 4 m | Shapes only: width across |
+| `anchor`, `offset` | centre, 0 | As `BoostPadKey`: from the centre line, or in from the left / right edge of the driving surface |
+| `paint` | white | white, yellow, red or blue. No orange: that's the boost pads |
+| `glow` | 0 | 0 = paint, 1 = lit like the guide lights |
+| `opacity` | 0.9 | |
+| `count`, `spacing` | 1, 10 m | Copies along the track (chevron rows, serials) |
+
+Sizes that work: BBH Bartle is very wide (about 1.1 m of road per metre of
+letter height and character), so a long word wants 2 m letters on a 39 m
+road; chevrons 3-4 m long; serials about 1 m. Far away a decal fades to its
+paint's average, barcodes first. At most 24 glyphs may overlap any metre of
+road (the validator's stats and the builder report say if more do). The
+validator warns about characters the font can't draw.
+
+The fonts are in `res://fonts` with their licences (`CREDITS.md`). The decal
+atlas is made from them by `make_decal_atlas` (below): rerun it if you
+change which characters it includes.
 
 ---
 
@@ -502,6 +536,8 @@ godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_b
 godot --headless --path full_throttle_flux -s res://tools/track_builder/greeble_stats_boot.gd -- --scene=res://scenes/tracks/<id>.tscn
 # road surface: make missing preset profiles, sync the industrial preset into the material
 godot --headless --path full_throttle_flux -s res://tools/track_surface/sync_surface_presets.gd
+# road surface: rebuild the decal glyph atlas from res://fonts (resources/track_surface/decal_atlas.png + decal_glyphs.tres)
+godot --headless --path full_throttle_flux -s res://tools/track_surface/make_decal_atlas.gd
 # road surface: regenerate the placeholder wear detail texture (resources/track_surface/wear_detail.png)
 godot --headless --path full_throttle_flux -s res://tools/track_surface/make_wear_detail.gd
 # road surface: shots, debug views and aliasing measurements (needs a display; v38 notes)

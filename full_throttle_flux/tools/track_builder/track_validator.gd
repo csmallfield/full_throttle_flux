@@ -1132,15 +1132,16 @@ func _check_greebles(b: TrackBuilder, root: Node) -> void:
 func _check_surface_zones(b: TrackBuilder, root: Node) -> void:
 	var keys := TrackSurfacer.all_keys(b)
 	var node := root.get_node_or_null(TrackBuilder.SURFACE_NODE) as TrackSurface if root else null
-	if keys.is_empty():
+	if not TrackSurfacer.has_keys(b):
 		if node:
 			_add(Sev.WARNING, b.global_position, -1.0,
 					"TrackSurface is left from an earlier build but there are no SurfaceZoneKeys: press Build")
 		return
 	var sf := TrackSurfacer.resolve(b, root)
 	if not sf.ok():
-		_add(Sev.WARNING, keys[0].global_position, -1.0, "Surface: " + "; ".join(sf.notes))
+		_add(Sev.WARNING, b.global_position, -1.0, "Surface: " + "; ".join(sf.notes))
 		return
+	_check_decals(sf)
 	for n in sf.notes:
 		_add(Sev.WARNING, b.global_position, -1.0, "Surface: " + n)
 	var seen := {}
@@ -1168,7 +1169,7 @@ func _check_surface_zones(b: TrackBuilder, root: Node) -> void:
 					"Surface: %d different profiles on %s (max %d): the extra ones draw as the first"
 					% [per[pi], sf.paths[pi], TrackSurface.MAX_PROFILES])
 	if node == null:
-		_add(Sev.WARNING, keys[0].global_position, -1.0,
+		_add(Sev.WARNING, b.global_position, -1.0,
 				"Surface zones not built yet: press Build (or Refresh surface)")
 		return
 	if node.signature() != sf.signature(b):
@@ -1176,6 +1177,28 @@ func _check_surface_zones(b: TrackBuilder, root: Node) -> void:
 				"Surface zones are out of date: the SurfaceZoneKeys changed since they were written (press Build or Refresh surface)")
 	stats["surface"] = "%d zones, %s" % [node.zones.size(),
 			", ".join(per.keys().map(func(pi): return "%s: %d profiles" % [sf.paths[pi], per[pi]]))]
+
+
+## v38 phase 5: decal keys near the track, with text their font can draw.
+func _check_decals(sf: TrackSurfacer) -> void:
+	var glyphs := load(TrackSurface.GLYPHS) as TrackSurfaceGlyphs
+	for dd in sf.decals:
+		var k: SurfaceDecalKey = dd.key
+		if k.distance_to_track > TrackGreebler.KEY_FAR:
+			_add(Sev.ERROR, k.global_position, k.distance,
+					"%s is %.0f m from the track (limit 30): move it closer or it may attach to the wrong stretch"
+					% [k.name, k.distance_to_track])
+		if k.shape != TrackSurfaceDecal.Shape.TEXT or glyphs == null:
+			continue
+		var missing := PackedStringArray()
+		for ch in TrackSurface.decal_text(k.text, k.role, 0):
+			if ch != " " and ch != "#" and not glyphs.has_glyph(k.role, ch.unicode_at(0)) and not missing.has(ch):
+				missing.append(ch)
+		if not missing.is_empty():
+			_add(Sev.WARNING, k.global_position, k.distance, "%s: %s can't draw '%s' (left out)" % [
+					k.name, TrackSurfaceDecal.Role.keys()[k.role], "".join(missing)])
+		if k.text.strip_edges().is_empty():
+			_add(Sev.WARNING, k.global_position, k.distance, "%s has no text" % k.name)
 
 
 static func _usable_rules(st: UtopiaGreebleStyle) -> int:

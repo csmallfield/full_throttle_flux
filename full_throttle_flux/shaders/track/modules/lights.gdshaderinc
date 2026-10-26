@@ -6,8 +6,13 @@
 // EVERY channel / edge band whose footprint the pixel touches (not just the
 // band under the pixel centre): far away a strip narrower than a pixel
 // still adds exactly its coverage, so the glow stays steady under bloom.
-// Dot rows fade to a dimmed continuous strip (their duty cycle). Static in
-// phase 2; flow animation is phase 5.
+// Dot rows fade to a dimmed continuous strip (their duty cycle).
+//
+// Living lights (phase 5): dot rows and LED rows flow along the track at
+// light_flow m/s, and brighter pulses run down the blue strips at
+// light_pulse_speed. Both only move the filtered patterns' phase (wrapped to
+// each pattern's period, so precision holds after hours of TIME): nothing
+// new to alias, and a distant row is still its steady average.
 //
 // HDR: coverage is filtered before tonemapping, so a sub-pixel strip at full
 // energy would still tonemap almost as bright as a resolved one (distant
@@ -32,6 +37,13 @@ uniform float led_inset : hint_range(0.0, 3.0) = 0.45;
 uniform float led_size : hint_range(0.02, 0.5) = 0.14;
 uniform float led_every : hint_range(0.2, 10.0) = 1.6;
 uniform float led_energy : hint_range(0.0, 16.0) = 2.0;
+// Living lights (phase 5): flow along the track, m/s (0 = still).
+uniform float light_flow : hint_range(0.0, 120.0) = 24.0;
+// Pulses along the blue strips: speed, spacing, length, extra brightness.
+uniform float light_pulse_speed : hint_range(0.0, 400.0) = 90.0;
+uniform float light_pulse_every : hint_range(5.0, 500.0) = 60.0;
+uniform float light_pulse_len : hint_range(0.5, 50.0) = 8.0;
+uniform float light_pulse_gain : hint_range(0.0, 4.0) = 1.2;
 group_uniforms;
 
 const int LIGHT_NONE = 0;
@@ -39,8 +51,9 @@ const int LIGHT_RED_DOTS = 1;
 const int LIGHT_BLUE = 2;
 
 // Emission of a channel light in band [x0, x1] for a pixel at t.
-// `dots` = the red dot row along s (shared by all channels, see dot_row()).
-vec3 channel_light(int kind, float x0, float x1, float t, float fw_t, float dots) {
+// `dots` = the red dot row along s, `pulse` the blue strips' brightness
+// (both shared by all channels, worked out once per pixel).
+vec3 channel_light(int kind, float x0, float x1, float t, float fw_t, float dots, float pulse) {
 	if (kind == LIGHT_NONE) {
 		return vec3(0.0);
 	}
@@ -51,7 +64,7 @@ vec3 channel_light(int kind, float x0, float x1, float t, float fw_t, float dots
 	if (kind == LIGHT_RED_DOTS) {
 		return light_red * energy * strip * dots;
 	}
-	return light_blue * energy * strip;
+	return light_blue * energy * strip * pulse;
 }
 
 // LED row of an edge band [x0, x1]; `outer_left` = its outer edge is x0.

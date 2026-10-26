@@ -15,6 +15,10 @@ class_name TrackSurface
 ##                 and wear, and (phase 4) the wear inputs baked from the
 ##                 track's trained racing line (see build_strip())
 ##   variation     the track's TrackSurfaceVariation overrides
+##   decals        (phase 5) the SurfaceDecalKeys laid out into glyph and
+##                 shape records (DECAL_TEXELS texels each, sorted along s)
+##                 and a per-metre strip of (first record, count): a second
+##                 fetch per pixel, and a few more on metres with decals
 ##
 ## Wear (v38 phase 4) is baked when the track loads, from the trained line
 ## AILineTrainer saved for WEAR_SHIP (the branch: its route line, projected
@@ -51,11 +55,24 @@ const BRAKE_SMEAR := 8
 ## Packing ranges (see build_strip()).
 const LINE_RANGE := 32.0       # line t in [-32, 32) m, 1/64 m steps
 const HALF_STEP := 0.25        # corridor half width, 0.25 m steps up to 31.75 m
+## Decals (phase 5).
+const GLYPHS := "res://resources/track_surface/decal_glyphs.tres"
+const DECAL_TEXELS := 4
+## Records per row of the record texture.
+const DECAL_ROW := 1024
+## The shader loops over at most this many records per metre.
+const DECAL_MAX := 24
+## Records are listed this far beyond their own extent along s (footprint).
+const DECAL_PAD := 1.0
+## Stroke width as a share of the letter height, per Role: the size at which
+## a glyph fades to its average (barcode bars are thinnest, first to go).
+const STROKE := [0.14, 0.18, 0.09, 0.025]
 
 ## The paths the zones run along (0 = MainSpline), relative to this node.
 @export var paths: Array[NodePath] = []
 @export var zones: Array[TrackSurfaceZone] = []
 @export var variation: TrackSurfaceVariation
+@export var decals: Array[TrackSurfaceDecal] = []
 
 ## What the last apply() found (warnings for the builder report).
 var notes := PackedStringArray()
@@ -100,7 +117,10 @@ func build_material(base: ShaderMaterial, path_index: int, path: Path3D) -> Shad
 			else:
 				notes.append("%s: more than %d profiles on one path; %s draws as %s" % [
 						z.key_name, MAX_PROFILES, z.profile.profile_name, slots[0].profile_name])
+	_add_decals(mat, path_index, path)
 	if slots.is_empty():
+		if variation:
+			variation.apply(mat)
 		return mat
 	var bands := PackedVector4Array()
 	bands.resize(MAX_PROFILES * MAX_BANDS)
@@ -122,6 +142,170 @@ func build_material(base: ShaderMaterial, path_index: int, path: Path3D) -> Shad
 	if variation:
 		variation.apply(mat)
 	return mat
+
+
+## Lays this path's decals out into records and sets the decal textures.
+func _add_decals(mat: ShaderMaterial, path_index: int, path: Path3D) -> void:
+	var mine: Array[TrackSurfaceDecal] = []
+	for d in decals:
+		if d and d.path_index == path_index:
+			mine.append(d)
+	if mine.is_empty():
+		return
+	var glyphs := load(GLYPHS) as TrackSurfaceGlyphs
+	if glyphs == null:
+		notes.append("no decal atlas (%s): run tools/track_surface/make_decal_atlas.gd" % GLYPHS)
+		return
+	var segs := _road_segments(path)
+	var records: Array = []    # {s0, t0, hs, wt, uv, kind, paint, glow, opacity, ink, stroke, flipped}
+	for d in mine:
+		for n in d.count:
+			var sd := d.distance + n * d.spacing
+			var half := _half_widths(segs, sd)
+			records.append_array(layout(d, sd, half, n, glyphs))
+	if records.is_empty():
+		return
+	records.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.s0 < b.s0)
+	# Record texture: DECAL_TEXELS RGBAF texels per record.
+	var rows := int(ceil(float(records.size()) / DECAL_ROW))
+	var rw := mini(records.size(), DECAL_ROW) * DECAL_TEXELS
+	var rd := PackedFloat32Array()
+	rd.resize(rw * rows * 4)
+	for i in records.size():
+		var r: Dictionary = records[i]
+		var base := ((i / DECAL_ROW) * rw + (i % DECAL_ROW) * DECAL_TEXELS) * 4
+		var vals := [r.s0, r.t0, r.hs, r.wt, r.uv.x, r.uv.y, r.uv.z, r.uv.w,
+				r.kind, r.paint, r.glow, r.opacity, r.ink, r.stroke, 1.0 if r.flipped else 0.0, 0.0]
+		for j in vals.size():
+			rd[base + j] = vals[j]
+	var rec_img := Image.create_from_data(rw, rows, false, Image.FORMAT_RGBAF, rd.to_byte_array())
+	# Per-metre strip: (first record, count) of those reaching that metre.
+	var n := int(ceil(path.curve.get_baked_length())) + 1
+	var first := PackedInt32Array()
+	var last := PackedInt32Array()
+	first.resize(n)
+	last.resize(n)
+	first.fill(-1)
+	last.fill(-1)
+	for i in records.size():
+		var r: Dictionary = records[i]
+		for m in range(int(floor(r.s0 - DECAL_PAD)), int(ceil(r.s0 + r.hs + DECAL_PAD))):
+			if m < 0 or m >= n:
+				continue
+			first[m] = i if first[m] < 0 else mini(first[m], i)
+			last[m] = maxi(last[m], i)
+	var sw := mini(n, STRIP_W)
+	var sh := int(ceil(float(n) / sw))
+	var sd := PackedFloat32Array()
+	sd.resize(sw * sh * 2)
+	var over := 0
+	for m in n:
+		if first[m] < 0:
+			continue
+		var cnt := last[m] - first[m] + 1
+		if cnt > DECAL_MAX:
+			over = maxi(over, cnt)
+			cnt = DECAL_MAX
+		sd[m * 2] = first[m]
+		sd[m * 2 + 1] = cnt
+	if over > 0:
+		notes.append("%s: up to %d decal glyphs overlap one metre (the shader draws %d): spread them out"
+				% [path.name, over, DECAL_MAX])
+	var strip_img := Image.create_from_data(sw, sh, false, Image.FORMAT_RGF, sd.to_byte_array())
+	mat.set_shader_parameter("surf_decals", ImageTexture.create_from_image(rec_img))
+	mat.set_shader_parameter("surf_decal_strip", ImageTexture.create_from_image(strip_img))
+	mat.set_shader_parameter("surf_decal_atlas", glyphs.atlas())
+	mat.set_shader_parameter("surf_decal_info", Vector4(n, sw, DECAL_ROW, glyphs.px_range))
+
+
+## The records for one copy of decal `d` whose baseline (shapes: start) is
+## at `sd` along the path; `half` = the surface half widths there, `n` = which
+## copy (for "#" in the text).
+static func layout(d: TrackSurfaceDecal, sd: float, half: Vector2, n: int,
+		glyphs: TrackSurfaceGlyphs) -> Array:
+	var out: Array = []
+	if d.shape != TrackSurfaceDecal.Shape.TEXT:
+		var c := _anchor_centre(d, half, d.width)
+		var th := 0.2 * minf(d.width, d.size)
+		var ink := clampf(th * (d.size + d.width) / (d.width * d.size), 0.05, 0.6)
+		out.append({s0 = sd, t0 = c - d.width * 0.5, hs = d.size, wt = d.width, uv = Vector4.ZERO,
+				kind = float(d.shape), paint = float(d.paint), glow = d.glow, opacity = d.opacity,
+				ink = ink, stroke = th, flipped = false})
+		return out
+	var text := decal_text(d.text, d.role, n)
+	var k := d.size / glyphs.em_px     # metres per atlas pixel
+	var space := 0.3 * glyphs.em_px
+	var total := 0.0
+	for ch in text:
+		var key := TrackSurfaceGlyphs.key(d.role, ch.unicode_at(0))
+		total += float(glyphs.advances[key]) if glyphs.advances.has(key) else space
+	var width := total * k
+	var c := _anchor_centre(d, half, width)
+	var pen := c - width * 0.5
+	var aw := float(glyphs.atlas_size.x)
+	var ah := float(glyphs.atlas_size.y)
+	var stroke: float = STROKE[d.role] * d.size
+	for ch in text:
+		var key := TrackSurfaceGlyphs.key(d.role, ch.unicode_at(0))
+		if not glyphs.rects.has(key):
+			pen += space * k
+			continue
+		var r: Vector4 = glyphs.rects[key]
+		var o: Vector2 = glyphs.offsets[key]
+		var t0 := pen + o.x * k
+		var s0 := sd - (o.y + r.w) * k
+		if d.flipped:
+			# Turned round the decal's centre: for ships coming the other way.
+			t0 = 2.0 * c - (t0 + r.z * k)
+			s0 = 2.0 * sd - (s0 + r.w * k)
+		out.append({s0 = s0, t0 = t0, hs = r.w * k, wt = r.z * k,
+				uv = Vector4(r.x / aw, r.y / ah, (r.x + r.z) / aw, (r.y + r.w) / ah),
+				kind = 0.0, paint = float(d.paint), glow = d.glow, opacity = d.opacity,
+				ink = float(glyphs.inks[key]), stroke = stroke, flipped = d.flipped})
+		pen += float(glyphs.advances[key]) * k
+	return out
+
+
+## The text as drawn: WORD (Bartle) is caps only, "#" counts copies from 1.
+static func decal_text(text: String, role: int, n: int) -> String:
+	var t := text.replace("#", str(n + 1))
+	return t.to_upper() if role == TrackSurfaceDecal.Role.WORD else t
+
+
+static func _anchor_centre(d: TrackSurfaceDecal, half: Vector2, width: float) -> float:
+	match d.anchor:
+		TrackSurfaceDecal.Anchor.LEFT:
+			return -half.x + d.offset + width * 0.5
+		TrackSurfaceDecal.Anchor.RIGHT:
+			return half.y + d.offset - width * 0.5
+	return d.offset
+
+
+static func _road_segments(path: Path3D) -> Array[TrackRoadSegment]:
+	var out: Array[TrackRoadSegment] = []
+	for c in path.get_children():
+		var seg := c as TrackRoadSegment
+		if seg and not (seg.collision_layer & 4):
+			out.append(seg)
+	return out
+
+
+## Surface half widths at `d` from the road segment covering it (the first
+## one if none does).
+static func _half_widths(segs: Array[TrackRoadSegment], d: float) -> Vector2:
+	if segs.is_empty():
+		return Vector2(19.5, 19.5)
+	for seg in segs:
+		var d1 := seg.end_distance if seg.end_distance >= 0.0 else INF
+		if d >= seg.start_distance and d <= d1:
+			return seg.surface_half_widths_at(d)
+	return segs[0].surface_half_widths_at(d)
+
+
+static func decal_signature(d: TrackSurfaceDecal) -> Array:
+	return [d.path_index, snappedf(d.distance, 0.01), d.anchor, snappedf(d.offset, 0.01), d.shape, d.role,
+			d.text, snappedf(d.size, 0.01), snappedf(d.width, 0.01), d.paint, snappedf(d.glow, 0.01),
+			snappedf(d.opacity, 0.01), d.count, snappedf(d.spacing, 0.01), d.flipped]
 
 
 ## Wear inputs per metre of `path` from the trained racing line:
@@ -319,4 +503,7 @@ func signature() -> int:
 			parts.append([z.path_index, snappedf(z.from_d, 0.01), snappedf(z.to_d, 0.01),
 					z.profile.get_instance_id() if z.profile else 0, snappedf(z.blend_in, 0.01), z.seed,
 					snappedf(z.wear, 0.01)])
+	for d in decals:
+		if d:
+			parts.append(decal_signature(d))
 	return hash(var_to_bytes(parts))

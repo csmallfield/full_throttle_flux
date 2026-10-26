@@ -26,10 +26,12 @@ class_name TrackRoadSegment
 ## are unchanged):
 ##   UV2      (metres along the path, metres across from the centre line,
 ##            +x = right) of the ACTUAL vertex, after any width profile
-##   CUSTOM0  (edge class, left half width, right half width, 0): the class
-##            of the polygon edge the vertex belongs to (EDGE_SURFACE,
-##            EDGE_LIP, EDGE_OTHER) and the half widths of the driving
-##            surface at that ring, so fixed bands can sit on the real edges
+##   CUSTOM0  (edge class, left half width, right half width, height): the
+##            class of the polygon edge the vertex belongs to (EDGE_SURFACE,
+##            EDGE_LIP, EDGE_OTHER, EDGE_FACE), the half widths of the driving
+##            surface at that ring, so fixed bands can sit on the real edges,
+##            and (v38 phase 5) the vertex's height in the section (metres
+##            above the road plane), for the walls' height bands
 ##   instance uniform path_length  the path's baked length (for seams that
 ##            land exactly on the lap)
 ##   TANGENT  the direction of travel (caps: the frame's right), so the
@@ -40,6 +42,9 @@ const EDGE_SURFACE := 0
 const EDGE_LIP := 1
 ## Underside, sides and caps.
 const EDGE_OTHER := 2
+## v38 phase 5: a near-vertical edge facing the centre line (a wall's inner
+## face). Wall tops class as EDGE_LIP (facing up, raised).
+const EDGE_FACE := 3
 ## Section heights within this of 0 are the driving surface.
 const SURFACE_EPS := 0.001
 
@@ -173,7 +178,8 @@ func build() -> void:
 			uvs.append(Vector2(u, per[e + 1] / u_distance))
 			uv2s.append(Vector2(ds[k], q0.x))
 			uv2s.append(Vector2(ds[k], q1.x))
-			_append_custom(cust, classes[e], half, 2)
+			_append_custom(cust, classes[e], half, q0.y)
+			_append_custom(cust, classes[e], half, q1.y)
 			_append_tangent(tans, -fr.basis.z, 2)
 		for k in ds.size() - 1:
 			var a := base + k * 2
@@ -289,7 +295,8 @@ func _build_widened(poly: PackedVector2Array, ccw: bool, classes: PackedInt32Arr
 			uvs.append(Vector2(u, per[e + 1] / u_distance))
 			uv2s.append(Vector2(ds[k], q0.x))
 			uv2s.append(Vector2(ds[k], q1.x))
-			_append_custom(cust, classes[e], halves[k], 2)
+			_append_custom(cust, classes[e], halves[k], q0.y)
+			_append_custom(cust, classes[e], halves[k], q1.y)
 			_append_tangent(tans, -fr.basis.z, 2)
 		for k in ds.size() - 1:
 			var a := base + k * 2
@@ -387,7 +394,7 @@ func _cap(poly: PackedVector2Array, fr: Transform3D, dir: float, d: float, d0: f
 		norms.append(out)
 		uvs.append(q / u_distance)
 		uv2s.append(Vector2(d, q.x))
-	_append_custom(cust, EDGE_OTHER, half, poly.size())
+		_append_custom(cust, EDGE_OTHER, half, q.y)
 	_append_tangent(tans, fr.basis.x, poly.size())
 	for i in range(0, tri.size(), 3):
 		_tri(verts, idx, faces, base + tri[i], base + tri[i + 1], base + tri[i + 2], out)
@@ -396,6 +403,19 @@ func _cap(poly: PackedVector2Array, fr: Transform3D, dir: float, d: float, d0: f
 ## v38: the built mesh (an internal child), or null before build().
 func mesh_instance() -> MeshInstance3D:
 	return _mi
+
+
+## v38 phase 5: half widths (left, right) of the driving surface at distance
+## `d`, after the width profile (decal anchors use them).
+func surface_half_widths_at(d: float) -> Vector2:
+	var m := polygon.size()
+	if m < 3:
+		return Vector2.ZERO
+	var area := 0.0
+	for i in m:
+		area += polygon[i].x * polygon[(i + 1) % m].y - polygon[(i + 1) % m].x * polygon[i].y
+	var sec := polygon if width_profile.is_empty() else _widened(polygon, width_at(d))
+	return surface_half_widths(sec, edge_classes(polygon, area > 0.0))
 
 
 ## v38: UV.y range (v0, v1) of the driving surface, for the grid's weather
@@ -421,9 +441,11 @@ func driving_surface_v() -> Vector2:
 
 
 ## v38: the class of each polygon edge (edge i runs from point i to i + 1).
-## Surface: flat at y = 0 and facing up. Lip: facing up with a raised end
+## Surface: flat at y = 0 and facing up. Lip: facing clearly up (normal y
+## over 0.3) with a raised end
 ## (classed on the drawn polygon, so a lip stays a lip while it fades flat).
-## Everything else (underside, sides) is EDGE_OTHER.
+## A near-vertical edge facing the centre line is EDGE_FACE (a wall's inner
+## face). Everything else (underside, outer sides) is EDGE_OTHER.
 static func edge_classes(poly: PackedVector2Array, ccw: bool) -> PackedInt32Array:
 	var m := poly.size()
 	var out := PackedInt32Array()
@@ -434,10 +456,13 @@ static func edge_classes(poly: PackedVector2Array, ccw: bool) -> PackedInt32Arra
 		var ed := p1 - p0
 		var n2 := (Vector2(ed.y, -ed.x) if ccw else Vector2(-ed.y, ed.x)).normalized()
 		var flat := absf(p0.y) <= SURFACE_EPS and absf(p1.y) <= SURFACE_EPS
+		var mid_x := (p0.x + p1.x) * 0.5
 		if n2.y > 0.5 and flat:
 			out[e] = EDGE_SURFACE
-		elif n2.y > 0.0 and maxf(p0.y, p1.y) > SURFACE_EPS:
+		elif n2.y > 0.3 and maxf(p0.y, p1.y) > SURFACE_EPS:
 			out[e] = EDGE_LIP
+		elif absf(n2.y) < 0.5 and absf(mid_x) > SURFACE_EPS and n2.x * mid_x < 0.0:
+			out[e] = EDGE_FACE
 		else:
 			out[e] = EDGE_OTHER
 	return out
@@ -460,12 +485,12 @@ static func surface_half_widths(section: PackedVector2Array, classes: PackedInt3
 	return Vector2(maxf(-lo, 0.0), maxf(hi, 0.0))
 
 
-static func _append_custom(cust: PackedFloat32Array, cls: int, half: Vector2, count: int) -> void:
-	for i in count:
-		cust.append(float(cls))
-		cust.append(half.x)
-		cust.append(half.y)
-		cust.append(0.0)
+## One vertex's CUSTOM0: class, half widths, height in the section.
+static func _append_custom(cust: PackedFloat32Array, cls: int, half: Vector2, height: float) -> void:
+	cust.append(float(cls))
+	cust.append(half.x)
+	cust.append(half.y)
+	cust.append(height)
 
 
 static func _append_tangent(tans: PackedFloat32Array, t: Vector3, count: int) -> void:

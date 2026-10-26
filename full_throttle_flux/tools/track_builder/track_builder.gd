@@ -883,9 +883,8 @@ func refresh_surface() -> void:
 	var root: Node = owner if owner else get_parent()
 	if root == null:
 		return
-	var keys := TrackSurfacer.all_keys(self)
 	var node := root.get_node_or_null(SURFACE_NODE) as TrackSurface
-	if keys.is_empty() and node == null:
+	if not TrackSurfacer.has_keys(self) and node == null:
 		_last_surface = ""
 		_clear_surface_markers()
 		report = _make_report()
@@ -907,7 +906,7 @@ func refresh_surface() -> void:
 	_draw_surface_markers(sf)
 	var notes := sf.notes.duplicate()
 	notes.append_array(node.notes)
-	_last_surface = "Surface: %d zones on %d road segments%s" % [node.zones.size(), segs,
+	_last_surface = "Surface: %d zones, %d decals on %d segments%s" % [node.zones.size(), node.decals.size(), segs,
 			"" if notes.is_empty() else "\n  " + "\n  ".join(notes)]
 	report = _make_report()
 

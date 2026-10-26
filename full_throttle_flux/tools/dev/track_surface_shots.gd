@@ -31,6 +31,9 @@ extends Node
 ##   TS_CREEP (0.012), TS_FOV (80), TS_POSES (default "chase,low,top"),
 ##   TS_PARAMS "name=value,..." surface material overrides (A/B a module,
 ##   e.g. "light_energy=0,led_energy=0"), TS_TIER 0|1 (default: as saved),
+##   TS_FREEZE 1 (default) stops the living lights (phase 5) while measuring:
+##   moving lights are real motion, which the flicker measure can't tell from
+##   aliasing. 0 measures them moving.
 ##   TS_GLOBALS "name=value,..." global shader parameters, e.g. weather:
 ##   "env_wetness=0.8,env_precip=0.5" (there's no EnvironmentState here).
 
@@ -85,9 +88,11 @@ func _run() -> void:
 	for n in track.find_children("*", "TrackRoadSegment", true, false):
 		var seg := n as TrackRoadSegment
 		var sm := seg.mesh_instance().mesh.surface_get_material(0) as ShaderMaterial
-		if sm and sm.shader.resource_path == EnvSurfaces.SURFACE_SHADER_PATH:
+		if sm and (sm.shader.resource_path == EnvSurfaces.SURFACE_SHADER_PATH
+				or sm.shader.resource_path == EnvSurfaces.WALL_SHADER_PATH):
 			segs.append(seg.mesh_instance())
-			surface_mat = sm
+			if sm.shader.resource_path == EnvSurfaces.SURFACE_SHADER_PATH:
+				surface_mat = sm
 			# One material per path once TrackSurface has run (v38 phase 3).
 			if not surf_mats.has(sm):
 				surf_mats.append(sm)
@@ -96,6 +101,9 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	EnvSurfaces.adopt(track, path)
+	if _env("TS_FREEZE", "1") == "1":
+		_set_all("light_flow", 0.0)
+		_set_all("light_pulse_speed", 0.0)
 	for kv in _env("TS_PARAMS", "").split(",", false):
 		var p := kv.split("=")
 		_set_all(p[0].strip_edges(), float(p[1]))

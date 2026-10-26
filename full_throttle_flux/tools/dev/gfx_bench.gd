@@ -18,7 +18,8 @@ extends Node
 ##               grid shader, 1 (or left out) = the filtered one, 2 = the v38
 ##               track surface where the track has it (builder tracks) and the
 ##               filtered grid elsewhere; with 0 and 1 builder roads are put
-##               back on the grid. tier = v38 surface tier 0 low / 1 high
+##               back on the grid; 3 = the v38 road with the walls on the grid
+##               (phase 5: what the walls cost). tier = v38 surface tier 0 low / 1 high
 ##               (default 1). Default: CONFIGS; "v38" = V38_CONFIGS, the v38 gate.
 ##   GB_ENV      1 (default) = run EnvSurfaces.adopt() as a race does, so road
 ##               and walls draw with their weather shaders (env globals at 0).
@@ -142,6 +143,8 @@ func _setup(track_id: String, use_profile: bool, grid_mode: int) -> Dictionary:
 		get_node("/root/GraphicsSettings").apply_track(track, tp.get("shadow_profile") if tp else null)
 	if grid_mode < 2:
 		_roads_to_grid(track)
+	elif grid_mode == 3:
+		_roads_to_grid(track, true)
 	if grid_mode != 0 and _env("GB_ENV", "1") == "1":
 		EnvSurfaces.adopt(track, track.find_child("MainSpline", true, false) as Path3D)
 	await get_tree().physics_frame
@@ -174,10 +177,13 @@ func _setup(track_id: String, use_profile: bool, grid_mode: int) -> Dictionary:
 	return {root = holder}
 
 
-## v38 baseline: builder road segments drawn with the grid again.
-func _roads_to_grid(track: Node) -> void:
+## v38 baseline: builder road (and, phase 5, wall) segments drawn with the
+## grid again.
+func _roads_to_grid(track: Node, walls_only := false) -> void:
 	var grid_mat := load(GRID_MATERIAL) as Material
 	for n in track.find_children("*", "TrackRoadSegment", true, false):
+		if walls_only and not ((n as TrackRoadSegment).collision_layer & 4):
+			continue
 		var mi := (n as TrackRoadSegment).mesh_instance()
 		if mi and mi.mesh and mi.mesh.surface_get_material(0) != grid_mat:
 			mi.set_surface_override_material(0, grid_mat)
