@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="ShadowProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/rendering/shadow_profile.gd" id="1_shp"]
+
+[resource]
+script = ExtResource("1_shp")
+max_distance = 1600.0

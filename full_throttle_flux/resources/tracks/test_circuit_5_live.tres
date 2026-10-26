@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="TrackProfile" load_steps=2 format=3 uid="uid://bphk7y17ib0c1"]
+[gd_resource type="Resource" script_class="TrackProfile" load_steps=3 format=3 uid="uid://bphk7y17ib0c1"]
 
 [ext_resource type="Script" uid="uid://b85k11qyblqdt" path="res://scripts/resources/track_profile.gd" id="1_qrhon"]
+[ext_resource type="Resource" path="res://resources/rendering/shadow_profile_swoopy.tres" id="2_shp"]
 
 [resource]
 script = ExtResource("1_qrhon")
@@ -8,3 +9,4 @@ track_id = "test_circuit_5_live"
 display_name = "Swoopy"
 description = "A swoopy affair"
 author = "Flux Industries"
+shadow_profile = ExtResource("2_shp")

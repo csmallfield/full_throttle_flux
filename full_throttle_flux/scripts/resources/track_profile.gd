@@ -70,6 +70,12 @@ class_name TrackProfile
 # AUDIO
 # ============================================================================
 
+@export_group("Rendering")
+
+## v37: this track's shadow settings (null = the shared default,
+## resources/rendering/shadow_profile_default.tres). See ShadowProfile.
+@export var shadow_profile: ShadowProfile
+
 @export_group("Audio")
 
 ## Optional music override for this track (null = use default playlist)

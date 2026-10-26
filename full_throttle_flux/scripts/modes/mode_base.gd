@@ -119,6 +119,11 @@ func _load_track() -> void:
 	
 	add_child(track_instance)
 	
+	# v37: shared shadow settings on the track's lights
+	var gs := get_node_or_null("/root/GraphicsSettings")
+	if gs:
+		gs.apply_track(track_instance, track_profile.get("shadow_profile"))
+	
 	# Find starting grid
 	starting_grid = _find_starting_grid(track_instance)
 	if not starting_grid:
