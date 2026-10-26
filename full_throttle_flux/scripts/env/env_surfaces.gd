@@ -22,8 +22,9 @@ class_name EnvSurfaces
 ## is harmless: with the env globals at 0 the new shader looks the same.
 
 const SHADER_PATH := "res://shaders/env/track_surface.gdshader"
-## A grid-shader material is recognised by its source.
-const GRID_SIGNATURE := "major_grid_every"
+## A grid-shader material is recognised by its source: the v36 grid declares
+## major_grid_every itself, the v37 one includes grid_filtered.gdshaderinc.
+const GRID_SIGNATURES: Array[String] = ["major_grid_every", "grid_filtered.gdshaderinc"]
 const WALL_LAYER := 4
 
 ## Result of adopt().
@@ -61,7 +62,7 @@ static func _walk(n: Node, spline: Path3D, shader: Shader, seen: Dictionary, rep
 		var sm := m as ShaderMaterial
 		if sm == null or sm.shader == null:
 			continue
-		if sm.shader != shader and not sm.shader.code.contains(GRID_SIGNATURE):
+		if sm.shader != shader and not is_grid(sm.shader):
 			continue
 		var params := _params_for(n, spline)
 		if seen.has(sm):
@@ -77,6 +78,13 @@ static func _walk(n: Node, spline: Path3D, shader: Shader, seen: Dictionary, rep
 			rep.road_u_scale = params["u_scale"]
 	for c in n.get_children():
 		_walk(c, spline, shader, seen, rep)
+
+
+static func is_grid(sh: Shader) -> bool:
+	for sig in GRID_SIGNATURES:
+		if sh.code.contains(sig):
+			return true
+	return false
 
 
 static func _params_for(n: Node, spline: Path3D) -> Dictionary:
