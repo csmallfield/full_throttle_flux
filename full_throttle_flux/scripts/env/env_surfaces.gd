@@ -20,8 +20,17 @@ class_name EnvSurfaces
 ## `material`: reassigning that would rebuild the CSG mesh AND its collision
 ## mid-load. The swap persists on the shared resource for the session, which
 ## is harmless: with the env globals at 0 the new shader looks the same.
+##
+## v38: builder tracks. A TrackRoadSegment's mesh is an internal child, which
+## the walk never reached, so builder tracks had no weather at all; it's now
+## adopted through its segment (u_scale = the segment's u_distance on
+## MainSpline). The v38 track surface shader (SURFACE_SHADER_PATH) already
+## includes env_surface, so it's never swapped: each mesh using it gets the
+## instance uniform along_main (1 = its s is distance along MainSpline, so
+## the zone mask applies), and a main road using it turns the mask on.
 
 const SHADER_PATH := "res://shaders/env/track_surface.gdshader"
+const SURFACE_SHADER_PATH := "res://shaders/track/track_surface.gdshader"
 ## A grid-shader material is recognised by its source: the v36 grid declares
 ## major_grid_every itself, the v37 one includes grid_filtered.gdshaderinc.
 const GRID_SIGNATURES: Array[String] = ["major_grid_every", "grid_filtered.gdshaderinc"]
@@ -49,10 +58,14 @@ static func adopt(track_root: Node, main_spline: Path3D) -> Report:
 
 static func _walk(n: Node, spline: Path3D, shader: Shader, seen: Dictionary, rep: Report) -> void:
 	var mats: Array[Material] = []
+	var mi: MeshInstance3D = null
 	if n is CSGPrimitive3D:
 		mats.append((n as CSGPrimitive3D).material)
 	elif n is MeshInstance3D:
-		var mi := n as MeshInstance3D
+		mi = n as MeshInstance3D
+	elif n is TrackRoadSegment:
+		mi = (n as TrackRoadSegment).mesh_instance()
+	if mi:
 		mats.append(mi.material_override)
 		if mi.mesh:
 			for i in mi.mesh.get_surface_count():
@@ -61,6 +74,9 @@ static func _walk(n: Node, spline: Path3D, shader: Shader, seen: Dictionary, rep
 	for m in mats:
 		var sm := m as ShaderMaterial
 		if sm == null or sm.shader == null:
+			continue
+		if sm.shader.resource_path == SURFACE_SHADER_PATH:
+			_adopt_surface(n, mi, spline, sm, seen, rep)
 			continue
 		if sm.shader != shader and not is_grid(sm.shader):
 			continue
@@ -80,6 +96,22 @@ static func _walk(n: Node, spline: Path3D, shader: Shader, seen: Dictionary, rep
 		_walk(c, spline, shader, seen, rep)
 
 
+## v38: a mesh drawn with the track surface shader: nothing to swap, only
+## where its s runs.
+static func _adopt_surface(n: Node, mi: MeshInstance3D, spline: Path3D, sm: ShaderMaterial,
+		seen: Dictionary, rep: Report) -> void:
+	var seg := n as TrackRoadSegment
+	var on_main := seg != null and spline != null and seg.get_node_or_null(seg.path_node) == spline
+	if mi:
+		mi.set_instance_shader_parameter("along_main", 1.0 if on_main else 0.0)
+	if not seen.has(sm):
+		seen[sm] = {}
+	rep.nodes += 1
+	# s is already metres (UV2.x): any non-zero scale turns the zone mask on.
+	if on_main and rep.road_u_scale == 0.0:
+		rep.road_u_scale = 1.0
+
+
 static func is_grid(sh: Shader) -> bool:
 	for sig in GRID_SIGNATURES:
 		if sh.code.contains(sig):
@@ -93,6 +125,18 @@ static func _params_for(n: Node, spline: Path3D) -> Dictionary:
 		var layer: int = n.get("collision_layer")
 		is_wall = is_wall or (layer & WALL_LAYER) != 0
 	var p := {"surface_kind": 1.0 if is_wall else 0.0, "u_scale": 0.0, "road_v0": 0.0, "road_v1": 0.0}
+	var seg := n as TrackRoadSegment
+	if seg:
+		# UV.x = metres along / u_distance; UV.y runs along the outline.
+		is_wall = is_wall or (seg.collision_layer & WALL_LAYER) != 0
+		p["surface_kind"] = 1.0 if is_wall else 0.0
+		if spline and seg.get_node_or_null(seg.path_node) == spline:
+			p["u_scale"] = seg.u_distance
+		if not is_wall:
+			var v := seg.driving_surface_v()
+			p["road_v0"] = v.x
+			p["road_v1"] = v.y
+		return p
 	var poly := n as CSGPolygon3D
 	if poly == null or poly.mode != CSGPolygon3D.MODE_PATH:
 		return p

@@ -14,9 +14,13 @@ extends Node
 ##                            only (not saved)
 ##   8         shadows        Low = v36 (4096 atlas, soft low) / High = 8192
 ##                            atlas, soft medium (default) / Ultra = 8192, soft high
+##   9         track surface  debug view: off / s,t / band ids / panel ids /
+##                            filter level (not saved)
+##   Shift+9   track surface  quality tier Low / High (default). v38 phase 1:
+##                            both look the same; the hook later modules use
 ##
 ## Env overrides for tests and the benchmark: FTF_AA=0..3, FTF_SHADOWS=0..2,
-## FTF_FX=0..2, FTF_BLUR=0|1.
+## FTF_FX=0..2, FTF_BLUR=0|1, FTF_SURFACE_TIER=0|1.
 ##
 ## Tracks: apply_track() puts the track's ShadowProfile (TrackProfile's own,
 ## else resources/rendering/shadow_profile_default.tres) on every shadow-casting
@@ -27,11 +31,17 @@ extends Node
 
 enum AA { MSAA2_SMAA, MSAA4_SMAA, TAA, FSR2_NATIVE }
 enum Shadows { LOW, HIGH, ULTRA }
+enum SurfaceTier { LOW, HIGH }
 
 const AA_NAMES := ["MSAA 2x + SMAA (v36)", "MSAA 4x + SMAA", "TAA", "FSR 2 native"]
 const SHADOW_NAMES := ["Low (v36: 4096, soft low)", "High (8192, soft medium)", "Ultra (8192, soft high)"]
 const FX_NAMES := ["Low", "Medium", "High"]
 const BLUR_VIEWS := ["off", "velocity", "neighbour max", "distance"]
+const SURFACE_TIER_NAMES := ["Low", "High"]
+const SURFACE_VIEWS := ["off", "s / t", "band ids", "panel ids", "filter level"]
+## Global shader uniforms the v38 track surface reads (project.godot).
+const U_SURFACE_TIER := &"track_surface_tier"
+const U_SURFACE_DEBUG := &"track_surface_debug"
 const CONFIG := "user://graphics.cfg"
 const DEFAULT_PROFILE := "res://resources/rendering/shadow_profile_default.tres"
 const GRID_MATERIAL := "res://shaders/resources/grid_material.tres"
@@ -39,6 +49,8 @@ const GRID_V36 := "res://shaders/grid_shader_v36.gdshader"
 
 var aa: AA = AA.MSAA4_SMAA
 var shadows: Shadows = Shadows.HIGH
+var surface_tier: SurfaceTier = SurfaceTier.HIGH
+var surface_view := 0
 var grid_v36 := false
 var _grid_v37: Shader = null
 
@@ -52,6 +64,8 @@ func _ready() -> void:
 		shadows = clampi(int(OS.get_environment("FTF_SHADOWS")), 0, 2) as Shadows
 	if OS.get_environment("FTF_FX") != "":
 		FxSettings.active().quality = clampi(int(OS.get_environment("FTF_FX")), 0, 2) as FxSettings.Quality
+	if OS.get_environment("FTF_SURFACE_TIER") != "":
+		surface_tier = clampi(int(OS.get_environment("FTF_SURFACE_TIER")), 0, 1) as SurfaceTier
 	if OS.get_environment("FTF_BLUR") != "":
 		MotionBlurEffect.set_user_settings(OS.get_environment("FTF_BLUR") != "0")
 	apply_all()
@@ -69,6 +83,11 @@ func _bind_keys() -> void:
 	DebugKeys.bind(KEY_7, "Road grid", func(): set_grid_v36(not grid_v36),
 		func(): return "v36 (fixed-pixel lines)" if grid_v36 else "filtered (v37)", null, DebugKeys.SHIFT)
 	DebugKeys.bind(KEY_8, "Shadows", _cycle_shadows, func(): return SHADOW_NAMES[shadows])
+	DebugKeys.bind(KEY_9, "Track surface debug view",
+		func(): set_surface_view((surface_view + 1) % SURFACE_VIEWS.size()),
+		func(): return SURFACE_VIEWS[surface_view])
+	DebugKeys.bind(KEY_9, "Track surface quality", _cycle_surface_tier,
+		func(): return SURFACE_TIER_NAMES[surface_tier], null, DebugKeys.SHIFT)
 
 
 func _cycle_aa() -> void:
@@ -78,6 +97,11 @@ func _cycle_aa() -> void:
 
 func _cycle_shadows() -> void:
 	set_shadows(((shadows + 1) % Shadows.size()) as Shadows)
+	_save()
+
+
+func _cycle_surface_tier() -> void:
+	set_surface_tier(((surface_tier + 1) % SurfaceTier.size()) as SurfaceTier)
 	_save()
 
 
@@ -116,6 +140,20 @@ func blur_effects() -> Array:
 func apply_all() -> void:
 	set_aa(aa)
 	set_shadows(shadows)
+	set_surface_tier(surface_tier)
+	set_surface_view(surface_view)
+
+
+## v38 track surface quality tier (global track_surface_tier).
+func set_surface_tier(tier: SurfaceTier) -> void:
+	surface_tier = tier
+	RenderingServer.global_shader_parameter_set(U_SURFACE_TIER, int(tier))
+
+
+## v38 track surface debug view, an index into SURFACE_VIEWS (0 = off).
+func set_surface_view(view: int) -> void:
+	surface_view = view
+	RenderingServer.global_shader_parameter_set(U_SURFACE_DEBUG, view)
 
 
 func set_aa(mode: AA) -> void:
@@ -196,10 +234,12 @@ func _load() -> void:
 		return
 	aa = clampi(int(cf.get_value("graphics", "aa", aa)), 0, 3) as AA
 	shadows = clampi(int(cf.get_value("graphics", "shadows", shadows)), 0, 2) as Shadows
+	surface_tier = clampi(int(cf.get_value("graphics", "surface_tier", surface_tier)), 0, 1) as SurfaceTier
 
 
 func _save() -> void:
 	var cf := ConfigFile.new()
 	cf.set_value("graphics", "aa", int(aa))
 	cf.set_value("graphics", "shadows", int(shadows))
+	cf.set_value("graphics", "surface_tier", int(surface_tier))
 	cf.save(CONFIG)

@@ -37,6 +37,8 @@ const Turtle := preload("res://tools/fork_lab/fork_lab_turtle.gd")
 const GROUP := "track_builder_generated"
 const META_HASH := "track_builder_input_hash"
 const ROAD_MAT := "res://shaders/resources/grid_material.tres"
+## v38: the driving surface of road segments (walls and junctions keep ROAD_MAT).
+const ROAD_SURFACE_MAT := "res://shaders/track/track_surface_material.tres"
 const LINE_SCENE := "res://scenes/start_finish_line.tscn"
 const GAP_TRIGGER_SCRIPT := "res://scripts/respawn_trigger.gd"
 const PAD_SCENE := "res://scenes/boost_pad.tscn"
@@ -186,13 +188,14 @@ func _run(b: TrackBuilder) -> void:
 
 	# --- branches: their own splines, before the main road is cut ---------------
 	var mat: Material = load(ROAD_MAT)
+	var road_mat: Material = load(ROAD_SURFACE_MAT)
 	var main_map := DistMap.new()
 	main_map.s = _map_s
 	main_map.d = _map_d
 	var built_branches: Array[Dictionary] = []
 	for bi in b.branches.size():
 		var be: TrackBranchEval = b.branches[bi]
-		var bb := _branch(be, bi, main_map, mat)
+		var bb := _branch(be, bi, main_map, mat, road_mat)
 		if bb.is_empty():
 			return
 		built_branches.append(bb)
@@ -210,7 +213,7 @@ func _run(b: TrackBuilder) -> void:
 			junctions_r.append_array(spans)
 		else:
 			junctions_l.append_array(spans)
-	_pieces_out(main, "Road", _road_poly(), LAYER_GROUND, 100.0, ROAD_HALF, widths, mat,
+	_pieces_out(main, "Road", _road_poly(), LAYER_GROUND, 100.0, ROAD_HALF, widths, road_mat,
 			_pieces(_cat([gaps, junctions_l, junctions_r]), length), true)
 	# A wall stops only where its own side opens into a junction.
 	_pieces_out(main, "WallL", WALL_LEFT_POLY, LAYER_WALLS, 50.0, 0.0, widths, mat,
@@ -343,7 +346,7 @@ static func _copy_curve(from: Curve3D, to: Curve3D) -> void:
 ## Builds one branch: its spline, road and walls (the main track's are cut
 ## around the junctions by the caller), the junctions, the route lap. Returns
 ## what the graph needs, or {} after _fail().
-func _branch(be: TrackBranchEval, bi: int, main_map: DistMap, mat: Material) -> Dictionary:
+func _branch(be: TrackBranchEval, bi: int, main_map: DistMap, mat: Material, road_mat: Material) -> Dictionary:
 	var sfx := "" if bi == 0 else "_%d" % (bi + 1)
 	var bs := be.track
 	# Spline.
@@ -384,7 +387,7 @@ func _branch(be: TrackBranchEval, bi: int, main_map: DistMap, mat: Material) -> 
 		gaps.append({a = j.lip, b = j.landing, junction = false})
 	var juncs: Array[Dictionary] = [{a = 0.0, b = jf_b, junction = true}, {a = jr_b, b = blen, junction = true}]
 	var none: Array[Dictionary] = []
-	_pieces_out(path, "Road", _road_poly(), LAYER_GROUND, 100.0, ROAD_HALF, widths, mat,
+	_pieces_out(path, "Road", _road_poly(), LAYER_GROUND, 100.0, ROAD_HALF, widths, road_mat,
 			_pieces(_cat([gaps, juncs]), blen), false)
 	var inner_left := be.side > 0.0
 	_pieces_out(path, "WallL", WALL_LEFT_POLY, LAYER_WALLS, 50.0, 0.0, widths, mat,

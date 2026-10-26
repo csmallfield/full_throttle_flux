@@ -12,10 +12,17 @@ extends Node
 ## Env (all optional):
 ##   GB_TRACKS   default: the four circuits
 ##               test_circuit_3_live,test_circuit_5_live,test_circuit_6_live,test_circuit_7_live
-##   GB_CONFIGS  name:aa:shadows:profile:grid,...  aa 0-3 and shadows 0-2 as
-##               in GraphicsSettings; profile 1 = apply the v37 ShadowProfile,
+##   GB_CONFIGS  name:aa:shadows:profile:grid[:tier],...  aa 0-3 and shadows 0-2
+##               as in GraphicsSettings; profile 1 = apply the v37 ShadowProfile,
 ##               0 = the track's own v36 light settings; grid 0 = the v36 road
-##               grid shader, 1 (or left out) = the filtered one. Default: CONFIGS.
+##               grid shader, 1 (or left out) = the filtered one, 2 = the v38
+##               track surface where the track has it (builder tracks) and the
+##               filtered grid elsewhere; with 0 and 1 builder roads are put
+##               back on the grid. tier = v38 surface tier 0 low / 1 high
+##               (default 1). Default: CONFIGS; "v38" = V38_CONFIGS, the v38 gate.
+##   GB_ENV      1 (default) = run EnvSurfaces.adopt() as a race does, so road
+##               and walls draw with their weather shaders (env globals at 0).
+##               Skipped on grid 0 rows (it would swap the v36 grid out).
 ##   GB_SECONDS  measured seconds per config (default 20)
 ##   GB_WARMUP   seconds before measuring (default 4)
 ##   GB_RES      window size, default 1920x1080
@@ -30,6 +37,10 @@ extends Node
 
 const CONFIGS := "v36:0:0:0:0,profile:0:0:1,shadows_high:0:1:1,msaa4:1:0:1,v37:1:1:1,shadows_ultra:1:2:1,taa:2:1:1,fsr2:3:1:1"
 const TRACKS := "test_circuit_3_live,test_circuit_5_live,test_circuit_6_live,test_circuit_7_live"
+## v38 gate: the filtered grid against the track surface, both tiers, at v37
+## settings. Run with GB_TRACKS=builder_lab.
+const V38_CONFIGS := "grid_v37:1:1:1:1,surface_low:1:1:1:2:0,surface_high:1:1:1:2:1"
+const GRID_MATERIAL := "res://shaders/resources/grid_material.tres"
 
 var out := ""
 var rows: Array = []
@@ -66,13 +77,18 @@ func _run() -> void:
 	print("GFXBENCH %s, %s, %s" % [RenderingServer.get_video_adapter_name(),
 			RenderingServer.get_video_adapter_api_version(), get_window().size])
 	for track_id in _env("GB_TRACKS", TRACKS).split(",", false):
-		for cfg in _env("GB_CONFIGS", CONFIGS).split(",", false):
+		var configs := _env("GB_CONFIGS", CONFIGS)
+		if configs == "v38":
+			configs = V38_CONFIGS
+		for cfg in configs.split(",", false):
 			var c := cfg.split(":")
 			var name := c[0]
 			gs.set_aa(int(c[1]))
 			gs.set_shadows(int(c[2]))
-			gs.set_grid_v36(c.size() > 4 and c[4] == "0")
-			var setup := await _setup(track_id, c.size() > 3 and c[3] == "1")
+			var grid := int(c[4]) if c.size() > 4 else 1
+			gs.set_grid_v36(grid == 0)
+			gs.set_surface_tier(int(c[5]) if c.size() > 5 else 1)
+			var setup := await _setup(track_id, c.size() > 3 and c[3] == "1", grid)
 			if setup.is_empty():
 				continue
 			var t := 0.0
@@ -110,7 +126,7 @@ func _run() -> void:
 
 
 ## A fresh track with one AI ship and the chase camera. {root} or {}.
-func _setup(track_id: String, use_profile: bool) -> Dictionary:
+func _setup(track_id: String, use_profile: bool, grid_mode: int) -> Dictionary:
 	var ps := load("res://scenes/tracks/%s.tscn" % track_id) as PackedScene
 	if ps == null:
 		print("GFXBENCH no track %s" % track_id)
@@ -122,6 +138,10 @@ func _setup(track_id: String, use_profile: bool) -> Dictionary:
 	if use_profile:
 		var tp := _track_profile(track_id)
 		get_node("/root/GraphicsSettings").apply_track(track, tp.get("shadow_profile") if tp else null)
+	if grid_mode < 2:
+		_roads_to_grid(track)
+	if grid_mode != 0 and _env("GB_ENV", "1") == "1":
+		EnvSurfaces.adopt(track, track.find_child("MainSpline", true, false) as Path3D)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	var profile := load("res://resources/ships/default_racer.tres") as ShipProfile
@@ -150,6 +170,15 @@ func _setup(track_id: String, use_profile: bool) -> Dictionary:
 		cam.call("set_track", track)
 	cam.make_current()
 	return {root = holder}
+
+
+## v38 baseline: builder road segments drawn with the grid again.
+func _roads_to_grid(track: Node) -> void:
+	var grid_mat := load(GRID_MATERIAL) as Material
+	for n in track.find_children("*", "TrackRoadSegment", true, false):
+		var mi := (n as TrackRoadSegment).mesh_instance()
+		if mi and mi.mesh and mi.mesh.surface_get_material(0) != grid_mat:
+			mi.set_surface_override_material(0, grid_mat)
 
 
 func _track_profile(track_id: String) -> Resource:
