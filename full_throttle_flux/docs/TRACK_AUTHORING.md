@@ -2,7 +2,7 @@
 
 How to make a new Full Throttle Flux track in the Godot editor: draw the
 curve, key the banks and widths, drop in loops, rolls, jumps, forks and boost
-pads, Build, Validate, drive it, train the AI. Builder Lab
+pads, Build, Validate, dress it with greebles, drive it, train the AI. Builder Lab
 (`scenes/tracks/builder_lab.tscn`) is a worked example of everything here.
 
 The four circuits (Utopia, Swoopy, Hairpin Alley, The Drop) were made the old
@@ -61,8 +61,10 @@ by following four rules. The validator checks every one.
    one means.
 8. **Measure the jumps** (if you have any): `measure_jumps` flies the real
    ship off each jump to find its clean landing speed (section 3.3).
-9. **Add it to the game** (section 5) and **drive it.**
-10. **Train the AI** (section 6).
+9. **Dress it** (section 3.6): drop `GreebleZoneKey`s where the dressing
+   should change style. It updates live; it never makes the Build out of date.
+10. **Add it to the game** (section 5) and **drive it.**
+11. **Train the AI** (section 6).
 
 ### The preview
 
@@ -204,6 +206,104 @@ The AI doesn't aim for pads: it gets the ones that are on its racing line.
 On Builder Lab the field hits the centre row every lap and never the pads
 against the edges.
 
+### 3.6 Greebles (`GreebleZoneKey`)
+
+Track dressing: lamps, wall panels, railings, light strips, pylons, gantries.
+It uses the same styles, rules and greybox meshes as the Utopia, Swoopy and
+Hairpin dressings (`tools/utopia`, `scenes/tracks/utopia/greebles/gb_*.tres`),
+but with no survey. The greebles are placed straight from the built road, so
+they follow WidthKeys, loops and rolls, and they leave gaps and junctions
+bare by themselves.
+
+**Build first.** Greebles sit on the built splines.
+
+**Zones.** A `GreebleZoneKey` starts a zone. Drop one anywhere near the
+built road, under the TrackBuilder (a `GreebleZoneKeys` folder, say). Its
+style runs from there to the next key along the track. The lap wraps: the
+last key's zone runs past the start line to the first key. A green gate and
+label mark each zone's start in the editor.
+
+Under a `BranchFeature`, a key dresses that branch. A branch with no key of
+its own carries on with the main track's zone at the fork.
+
+| Setting | Default | What it does |
+|---|---|---|
+| `preset` | None | A style from the library (`resources/greeble_presets`). None = a bare stretch |
+| `style` | (from `preset`) | The style itself: drag any `UtopiaGreebleStyle` .tres here, or expand it to edit its rules |
+| `mirror` | off | Swaps left and right rules. Turn chevrons belong on the outside wall: the presets put them on the right (left-hand corners), so mirror a zone of right-handers |
+| `density` | 1 | Multiplies every rule's probability |
+| `seed` | 1 | Reshuffles the random parts: probability, jitter and scale |
+| `skip_layers` | none | Leaves layers out of this zone: ground, wall face, wall top, outside, overhead |
+
+**Presets.** The library starts with the seven existing styles: civic,
+garden, hairpin, maritime, service, skyway and sky_deck. These are copies, so
+editing them doesn't touch Utopia or Swoopy.
+
+- **Editing a preset changes every zone that uses it, on every track.** The
+  TrackGreebles node picks rule edits up within half a second.
+- To change one zone only, press **Make local copy**. The zone gets its own
+  copy of the style (and its rules), saved in the scene. The meshes stay
+  shared.
+- To add a style to the library, type a name in `new_preset_name` and press
+  **Save as preset**. It's saved as `style_<name>.tres`.
+
+**Layers.** A rule's `layer` says where it sits:
+
+| Layer | Where |
+|---|---|
+| ground | On the road. `lateral` scales with the flat road's half width |
+| wall_face | On the inner face of the wall, 3 m up |
+| wall_top | In the middle of the wall's flat top |
+| outside | On the outer face of the wall, 3 m up |
+| overhead | Centred between the wall tops |
+
+Wall layers move with the road edge. Centred pieces wider than 20 m (seams,
+gantries, trusses, portals) are stretched to span the road where WidthKeys
+narrow or widen it. Stretched rules (`mesh_length`) fill their slot as
+measured along their own rail: longer on the outside of a bend.
+
+**Upright and surface offset.** Each rule also has these settings, in the
+rule's *Upright and surface* group:
+
+| Setting | Default | What it does |
+|---|---|---|
+| `upright` | 0 | 0 = the piece leans with the road (anything fixed to a surface). 1 = it stands vertical (light poles, masts, antennas). In between = part way. It turns about its attachment point. Overhead pieces ignore it, since their legs stand on both walls |
+| `upright_axes` | bank and slope | What it straightens: both, the bank only (still leans along hills) or the slope only (still leans with the bank) |
+| `upright_limit_deg` | 45° | Where the road tilts further than this from what `upright` aims for, the piece is left out. That covers loop walls, rolls and upside-down road. Only applies when `upright` is above 0 |
+| `surface_offset` | 0 m | Along the surface's normal: + = away from it, − = into it, to hide edges. The surface is the road, the wall top, the inner face (+ = toward the track) or the outer face (+ = outward) |
+| `auto_embed` | on | When `upright` tilts a piece standing on the road or a wall top, it's sunk just enough that no corner of its base floats |
+
+The presets use it for the tall freestanding pieces:
+
+- Lamp poles and antennas: `upright` 1.
+- Masts and tall pylons outside the wall: `upright` 1 with a 30° limit and
+  `surface_offset` 1.5 m. Upright, they'd otherwise clip the leaning wall
+  above or below their attachment point on a steep bank.
+
+The validator reports how many pieces the limits left out, and it flags
+anything that `upright` swings into the track.
+
+**Where pieces are left out:**
+
+- Each piece only goes where its surface exists: ground on the road, wall
+  layers on their wall, overhead where both walls stand. So jump gaps,
+  junctions and the inner side of a fork stay bare.
+- Overhead pieces, and any rule with `avoid_tunnels`, are left out in loops,
+  rolls, from a jump's kicker to its landing end, and at the start line.
+- Ground pieces stay off the boost pads and the start line.
+
+**Live and built.** Moving a key or changing its settings re-dresses the
+track about 0.2 s after you stop. That needs `greebles_live` on the
+TrackBuilder. **Refresh greebles** does it by hand, and Build always does it.
+
+The scene only saves the zones (the `TrackGreebles` node). The instances are
+scattered when the track loads, so the file stays small and the greebles
+always match the road. Builder Lab takes about 0.2 s to scatter 9,300
+instances. Headless runs skip the scatter unless `FTF_GREEBLES=1` is set.
+
+**Swapping in detail** works as on Utopia: overwrite a `gb_<name>.tres` with
+your mesh (same pivot and axes), or point a rule at your model.
+
 ---
 
 ## 4. What the validator is telling you
@@ -247,6 +347,12 @@ and Fork Lab.
 | *The boost carries X u/s into the bend* | A ship that takes the pad and doesn't brake is over what default_racer can steer there | Move the pad further from the bend, or lower `strength` |
 | *Boosted, the crest needs X u/s²* | The extra speed turns a crest into a launch (thresholds as above) | Move the pad or soften the crest |
 | *The boost carries X u/s to a jump's lip* | Landings are only measured up to 120 u/s | Move the pad, or measure the jump faster (`MJ_SPEEDS`) and check the landing |
+| *GreebleZoneKey is more than 30 m from the track* | It may attach to the wrong stretch | Move it closer |
+| *Two greeble keys start zones within 2 m* | One of them does nothing | Delete or move one |
+| *Style has no enabled rule with a mesh* | The zone would be bare | Pick another preset, or None if bare is what you want |
+| *Greebles are out of date* / *not built yet* | The keys changed since the zones were written (live refresh off, or a headless edit) | Build, or Refresh greebles |
+| *Greebles …: reaches into the track* | A piece is inside the flat road below 10 m (the track clearance), where ships and the camera go | Fix the rule's offset, lateral or scale, or skip that layer in the zone |
+| *Greebles …: X m tall on the road* | A ground piece over 0.3 m: ships hover at about 2 m, and it reads as an obstacle | Scale it down, or move it to a wall layer |
 
 ---
 
@@ -305,6 +411,11 @@ godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_b
 godot --headless --path full_throttle_flux -s res://tools/track_builder/validator_selftest_boot.gd
 # what a boost pad does to default_racer, against the validator's model
 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_builder/measure_boost_boot.gd
+# greebles headless: counts, pieces left out by upright limits, intrusions, a checksum
+godot --headless --path full_throttle_flux -s res://tools/track_builder/greeble_stats_boot.gd -- --scene=res://scenes/tracks/<id>.tscn
+# greebles: chase-camera shots at every zone, plus scatter stats (needs a display)
+TB_SCENE=res://scenes/tracks/<id>.tscn TB_OUT=/tmp/shots xvfb-run -s "-screen 0 1600x900x24" \
+  godot --rendering-driver opengl3 --path full_throttle_flux -s res://tools/track_builder/greeble_shots_boot.gd
 ```
 
 The full detail and the measurements behind every number are in

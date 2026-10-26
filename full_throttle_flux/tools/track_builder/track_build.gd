@@ -15,6 +15,8 @@ class_name TrackBuild
 ##   GapTrigger_1, _2 ...         respawn triggers under each jump's gap
 ##   BoostPads                    one BoostPad (scenes/boost_pad.tscn) per pad
 ##                                of every BoostPadKey, on the road surface
+##   TrackGreebles                the greeble zones from the GreebleZoneKeys
+##                                (v36; scattered at load, see TrackGreebler)
 ##   per branch (split track):
 ##     BranchSpline (_2 ...)      the branch, tilts solved; Road / WallL / WallR
 ##     RouteSpline_Branch (_2 ...)  a whole lap through the branch (AI, rig)
@@ -243,10 +245,13 @@ func _run(b: TrackBuilder) -> void:
 	# --- boost pads ------------------------------------------------------------
 	var pads := _pads(b, built_branches)
 
+	# --- greebles (v36): only once the splines and pads above exist -----------
+	var greebles := _greebles(b)
+
 	_remove_stale()
 	var ms := (Time.get_ticks_usec() - t0) / 1000.0
-	log.insert(0, "Built %.0f m lap: %d control points, tilt solve %.3f° max, %d features, %d branches, %d boost pads, %.0f ms"
-			% [length, curve.point_count, tilt_error_deg, b.composer.placed.size(), built_branches.size(), pads, ms])
+	log.insert(0, "Built %.0f m lap: %d control points, tilt solve %.3f° max, %d features, %d branches, %d boost pads, %d greeble zones, %.0f ms"
+			% [length, curve.point_count, tilt_error_deg, b.composer.placed.size(), built_branches.size(), pads, greebles, ms])
 	for bb in built_branches:
 		log.append("  %s: %.0f m, fork %.0f, rejoin %.0f (main), junctions to %.0f / from %.0f (branch), route lap %.0f m"
 				% [bb.name, bb.length, bb.fork, bb.rejoin, bb.jf_b, bb.jr_b, bb.route_length])
@@ -721,6 +726,22 @@ func _pads(b: TrackBuilder, built_branches: Array[Dictionary]) -> int:
 		pad.transform = Transform3D(pb, f.origin + f.basis.x * float(p.x))
 		pad.set("boost_strength", key.strength)
 	return placements.size()
+
+
+## TrackGreebles from the GreebleZoneKeys (TrackGreebler), if there are any.
+## With no keys nothing is made (and a TrackGreebles left from an earlier
+## build is removed as stale). Returns the zone count.
+func _greebles(b: TrackBuilder) -> int:
+	if TrackGreebler.all_keys(b).is_empty():
+		return 0
+	var node := _ensure(root, TrackBuilder.GREEBLES_NODE, load(TrackBuilder.GREEBLES_SCRIPT)) as TrackGreebles
+	var g := TrackGreebler.resolve(b, root)
+	g.write(node, b)
+	for n in g.notes:
+		log.append("⚠ " + n)
+	if node.is_inside_tree() and Engine.is_editor_hint():
+		node.rebuild()
+	return node.zones.size()
 
 
 ## A respawn trigger below the gap, as on Fork Lab: a ship that clears the gap

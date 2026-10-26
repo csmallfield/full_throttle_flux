@@ -6,7 +6,8 @@ class_name TrackBuilder
 ## Draw the base curve by hand (the BaseSpline child, a closed Path3D), then
 ## drop BankKey, WidthKey and StartKey nodes anywhere near it, features
 ## (RollFeature, LoopFeature, JumpFeature, BranchFeature) where you want them,
-## and BoostPadKeys where you want boost pads. The preview
+## BoostPadKeys where you want boost pads, and (after a Build) GreebleZoneKeys
+## where the track dressing should change style (v36). The preview
 ## ribbon follows every edit within a fraction of a second, coloured by the
 ## overlay you pick. Build writes the track the game runs on (TrackBuild);
 ## Validate checks it (TrackValidator) and marks problems where they are.
@@ -30,6 +31,9 @@ enum Overlay {
 
 const PREVIEW_NAME := "_Preview"
 const ISSUES_NAME := "_Issues"
+const GREEBLE_PREVIEW_NAME := "_GreebleMarkers"
+const GREEBLES_NODE := "TrackGreebles"
+const GREEBLES_SCRIPT := "res://scripts/tracks/track_greebles.gd"
 const DEBOUNCE_S := 0.2
 const ROLL_LIMIT := 0.7          # °/m, design limit outside roll features
 const TAPER_LIMIT := 0.1         # m of half width per m of track
@@ -97,6 +101,23 @@ const KEY_FAR := 30.0            # m from the track: validator error
 @export_tool_button("Preview now", "Reload") var _btn_preview := preview
 @export_tool_button("Clear preview", "Remove") var _btn_clear := clear_preview
 
+@export_group("Greebles")
+## Re-dress the built track as you move or change GreebleZoneKeys (styles
+## and rules you edit are picked up by the TrackGreebles node itself).
+@export var greebles_live: bool = true:
+	set(v):
+		greebles_live = v
+		if v:
+			mark_greebles_dirty()
+## Zone markers (a gate and a label at each GreebleZoneKey's start).
+@export var greeble_markers: bool = true:
+	set(v):
+		greeble_markers = v
+		mark_greebles_dirty()
+@export_tool_button("Refresh greebles", "Reload") var _btn_greebles := refresh_greebles
+## Removes the TrackGreebles node (the keys stay; Build or Refresh makes it again).
+@export_tool_button("Remove greebles", "Remove") var _btn_greebles_clear := remove_greebles
+
 @export_group("Report (read only)")
 @export_multiline var report: String = ""
 
@@ -119,6 +140,9 @@ var _dirty := false
 var _dirty_at := 0.0
 var _watched: Curve3D = null
 var _last_ms := 0.0
+var _greebles_dirty := false
+var _greebles_dirty_at := 0.0
+var _last_greebles := ""
 
 
 func _ready() -> void:
@@ -129,6 +153,7 @@ func _ready() -> void:
 		return
 	set_process(true)
 	mark_dirty()
+	mark_greebles_dirty()
 	if OS.get_environment("TB_EDITOR_SELFTEST") == "1":
 		_editor_selftest.call_deferred()
 
@@ -139,6 +164,8 @@ func _process(_delta: float) -> void:
 	_watch_curve()
 	if _dirty and auto_preview and _now() - _dirty_at >= DEBOUNCE_S:
 		preview()
+	if _greebles_dirty and greebles_live and _now() - _greebles_dirty_at >= DEBOUNCE_S:
+		refresh_greebles()
 
 
 func _validate_property(property: Dictionary) -> void:
@@ -150,6 +177,12 @@ func _validate_property(property: Dictionary) -> void:
 func mark_dirty() -> void:
 	_dirty = true
 	_dirty_at = _now()
+
+
+## A GreebleZoneKey moved or changed (the drivable track didn't).
+func mark_greebles_dirty() -> void:
+	_greebles_dirty = true
+	_greebles_dirty_at = _now()
 
 
 func base_path() -> Path3D:
@@ -697,6 +730,110 @@ static func _ramp(x: float) -> Color:
 
 
 # =============================================================================
+# GREEBLES
+# =============================================================================
+
+## Resolves the GreebleZoneKeys against the built track, writes the
+## TrackGreebles node (made if missing) and re-dresses. Needs a Build.
+func refresh_greebles() -> void:
+	_greebles_dirty = false
+	var root: Node = owner if owner else get_parent()
+	if root == null:
+		return
+	var t0 := Time.get_ticks_usec()
+	var keys := TrackGreebler.all_keys(self)
+	var node := root.get_node_or_null(GREEBLES_NODE) as TrackGreebles
+	if keys.is_empty() and node == null:
+		_last_greebles = ""
+		_clear_greeble_markers()
+		report = _make_report()
+		return
+	var g := TrackGreebler.resolve(self, root)
+	if not g.ok():
+		_last_greebles = "Greebles: " + "; ".join(g.notes)
+		_draw_greeble_markers(g)
+		report = _make_report()
+		return
+	if node == null:
+		node = (load(GREEBLES_SCRIPT) as GDScript).new() as TrackGreebles
+		node.name = GREEBLES_NODE
+		root.add_child(node)
+		node.owner = root
+		node.add_to_group(TrackBuild.GROUP, true)
+	if g.write(node, self):
+		_mark_unsaved()
+		node.rebuild()
+	elif node.instance_total == 0 and node.editor_preview:
+		node.rebuild()
+	_draw_greeble_markers(g)
+	_last_greebles = "Greebles: %d zones, %d instances, %.0f ms%s" % [node.zones.size(), node.instance_total,
+			(Time.get_ticks_usec() - t0) / 1000.0, "" if g.notes.is_empty() else "\n  " + "\n  ".join(g.notes)]
+	report = _make_report()
+
+
+func remove_greebles() -> void:
+	var root: Node = owner if owner else get_parent()
+	var node := root.get_node_or_null(GREEBLES_NODE) if root else null
+	if node:
+		node.get_parent().remove_child(node)
+		node.free()
+		_mark_unsaved()
+	_clear_greeble_markers()
+	_last_greebles = "Greebles removed (Refresh greebles or Build makes them again)"
+	report = _make_report()
+
+
+func _clear_greeble_markers() -> void:
+	var n := get_node_or_null(GREEBLE_PREVIEW_NAME)
+	if n:
+		n.free()
+
+
+## A gate across the road at each zone's start (posts on the wall tops) and
+## a label: style, mirrored, density, length. Red leader = too far away.
+func _draw_greeble_markers(g: TrackGreebler) -> void:
+	_clear_greeble_markers()
+	if not greeble_markers or g.keys.is_empty():
+		return
+	var root := Node3D.new()
+	root.name = GREEBLE_PREVIEW_NAME
+	root.top_level = true
+	add_child(root)        # owner left unset: never saved
+	root.global_transform = Transform3D.IDENTITY
+	var im := ImmediateMesh.new()
+	im.surface_begin(Mesh.PRIMITIVE_LINES)
+	var col := Color(0.75, 1.0, 0.25)
+	for k in g.keys:
+		var fv: Variant = g.key_frame(k)
+		if fv == null:
+			continue
+		var f: Transform3D = fv
+		var far := k.distance_to_track > TrackGreebler.KEY_FAR
+		_line(im, k.global_position, f.origin + f.basis.y * 2.0, Color(1, 0, 0) if far else col)
+		var h := 12.0
+		var l := f.origin - f.basis.x * 26.0
+		var r := f.origin + f.basis.x * 26.0
+		_line(im, l + f.basis.y * 8.0, l + f.basis.y * h, col)
+		_line(im, r + f.basis.y * 8.0, r + f.basis.y * h, col)
+		_line(im, l + f.basis.y * h, r + f.basis.y * h, col)
+		# An arrow along the road: the zone runs this way.
+		var c := f.origin + f.basis.y * h
+		_line(im, c, c - f.basis.z * 10.0, col)
+		_line(im, c - f.basis.z * 10.0, c - f.basis.z * 7.0 + f.basis.x * 2.0, col)
+		_line(im, c - f.basis.z * 10.0, c - f.basis.z * 7.0 - f.basis.x * 2.0, col)
+		var zl := g.zone_length(k)
+		_label(root, f.origin + f.basis.y * (h + 3.0),
+				"%s ▸ %.0f m" % [k.label_text(), zl] if zl > 0.0 else k.label_text(), col, 2500.0)
+	im.surface_end()
+	var mi := MeshInstance3D.new()
+	mi.name = "Lines"
+	mi.mesh = im
+	mi.material_override = _vertex_material(true, 1.0)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+
+
+# =============================================================================
 # BUILD AND VALIDATE
 # =============================================================================
 
@@ -724,6 +861,8 @@ func build() -> void:
 	_last_validate = ""
 	_clear_issues()
 	preview()
+	if r.ok:
+		refresh_greebles()
 
 
 ## Validates and marks problems in the viewport. The physics space needs a
@@ -772,6 +911,8 @@ func input_hash() -> int:
 				vals.append([bp.curve.get_point_position(i), bp.curve.get_point_in(i), bp.curve.get_point_out(i)])
 		var be := TrackBranchEval.new(bf)
 		for k in be.keys_of(""):
+			if k is GreebleZoneKey:
+				continue    # dressing only: never makes the build out of date
 			var kv := [k.get_script().get_global_name(), k.global_position]
 			for prop in k.get_property_list():
 				if prop.usage & PROPERTY_USAGE_SCRIPT_VARIABLE and prop.usage & PROPERTY_USAGE_STORAGE \
@@ -833,6 +974,25 @@ func _editor_selftest() -> void:
 		await get_tree().process_frame
 	print("SELFTEST validate (after 3 frames)")
 	var v := validate()
+	# v36: the greebler's live path (a key moved, a preset swapped, a local copy).
+	var gk := TrackGreebler.all_keys(self)
+	if not gk.is_empty():
+		var k := gk[0]
+		k.global_position += Vector3(0, 0, -40.0)
+		k.preset = "maritime"
+		k.make_local_copy()
+		for i in 20:
+			await get_tree().process_frame
+		await get_tree().create_timer(DEBOUNCE_S + 0.1).timeout
+		for i in 3:
+			await get_tree().process_frame
+		print("SELFTEST greebles: %s" % _last_greebles.replace("\n", " | "))
+		var node := (owner if owner else get_parent()).get_node_or_null(GREEBLES_NODE) as TrackGreebles
+		print("SELFTEST greebles node: %d zones, first style '%s' (%s), %d instances in the editor" % [
+				node.zones.size() if node else -1,
+				node.zones[0].style.style_name if node and node.zones.size() > 0 else "-",
+				node.zones[0].style.resource_path if node and node.zones.size() > 0 else "-",
+				node.instance_total if node else -1])
 	print("SELFTEST done: %d errors, %d warnings" % [v.errors(), v.warnings()])
 	get_tree().quit(0 if v.errors() == 0 else 1)
 
@@ -863,6 +1023,8 @@ func _make_report() -> String:
 		lines.append(_last_build)
 	if not _last_validate.is_empty():
 		lines.append(_last_validate)
+	if not _last_greebles.is_empty():
+		lines.append(_last_greebles)
 	for e in errors():
 		lines.append("✗ " + e)
 	for be in branches:
@@ -922,7 +1084,7 @@ func _watch_curve() -> void:
 
 func _collect(n: Node, type: String, out: Array[ProfileKey]) -> void:
 	for c in n.get_children():
-		if c.name == PREVIEW_NAME or c.name == ISSUES_NAME or c is BranchFeature:
+		if c.name in [PREVIEW_NAME, ISSUES_NAME, GREEBLE_PREVIEW_NAME] or c is BranchFeature:
 			continue
 		if c is ProfileKey and (type.is_empty() or (c as Object).get_script().get_global_name() == type):
 			out.append(c)

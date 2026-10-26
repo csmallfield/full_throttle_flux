@@ -1,0 +1,87 @@
+[gd_resource type="Resource" script_class="UtopiaGreebleStyle" format=3]
+
+[ext_resource type="Script" path="res://tools/utopia/greeble_rule.gd" id="1_2qebi"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_seam.tres" id="2_w78ht"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_stud.tres" id="3_d0hom"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_deck_vent.tres" id="4_kaspu"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_rib.tres" id="5_o6ubk"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_wall_dash.tres" id="6_53elo"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_bollard.tres" id="7_x5afk"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_antenna.tres" id="8_cwuv8"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_pylon_tall.tres" id="9_ly8eo"]
+[ext_resource type="Script" path="res://tools/utopia/greeble_style.gd" id="10_7lik0"]
+[ext_resource type="ArrayMesh" path="res://scenes/tracks/utopia/greebles/gb_gantry.tres" id="11_215hy"]
+
+[sub_resource type="Resource" id="Resource_2qebi"]
+script = ExtResource("1_2qebi")
+mesh = ExtResource("2_w78ht")
+side = "center"
+
+[sub_resource type="Resource" id="Resource_w78ht"]
+script = ExtResource("1_2qebi")
+mesh = ExtResource("3_d0hom")
+slots_per_bay = 3
+slot_phase = 0.5
+lateral = 8.5
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_d0hom"]
+script = ExtResource("1_2qebi")
+mesh = ExtResource("4_kaspu")
+slots_per_bay = 2
+slot_phase = 0.5
+probability = 0.4
+lateral = 10.0
+jitter = Vector3(2, 0, 3)
+
+[sub_resource type="Resource" id="Resource_kaspu"]
+script = ExtResource("1_2qebi")
+layer = "wall_face"
+mesh = ExtResource("5_o6ubk")
+
+[sub_resource type="Resource" id="Resource_o6ubk"]
+script = ExtResource("1_2qebi")
+layer = "wall_face"
+mesh = ExtResource("6_53elo")
+slots_per_bay = 6
+slot_phase = 0.5
+offset = Vector3(0, 1.1, 0)
+cast_shadows = false
+
+[sub_resource type="Resource" id="Resource_53elo"]
+script = ExtResource("1_2qebi")
+layer = "wall_top"
+mesh = ExtResource("7_x5afk")
+slots_per_bay = 2
+slot_phase = 0.5
+
+[sub_resource type="Resource" id="Resource_x5afk"]
+script = ExtResource("1_2qebi")
+layer = "wall_top"
+mesh = ExtResource("8_cwuv8")
+upright = 1.0
+pattern = "x--"
+side = "left"
+
+[sub_resource type="Resource" id="Resource_cwuv8"]
+script = ExtResource("1_2qebi")
+layer = "wall_top"
+mesh = ExtResource("8_cwuv8")
+upright = 1.0
+pattern = "--x"
+side = "right"
+
+[sub_resource type="Resource" id="Resource_ly8eo"]
+script = ExtResource("1_2qebi")
+layer = "outside"
+mesh = ExtResource("9_ly8eo")
+upright = 1.0
+upright_limit_deg = 30.0
+surface_offset = 1.5
+
+[resource]
+script = ExtResource("10_7lik0")
+style_name = "skyway"
+bay_length = 30.0
+rules = Array[ExtResource("1_2qebi")]([SubResource("Resource_2qebi"), SubResource("Resource_w78ht"), SubResource("Resource_d0hom"), SubResource("Resource_kaspu"), SubResource("Resource_o6ubk"), SubResource("Resource_53elo"), SubResource("Resource_x5afk"), SubResource("Resource_cwuv8"), SubResource("Resource_ly8eo")])
+threshold_mesh = ExtResource("11_215hy")
