@@ -73,7 +73,10 @@ func update(delta: float, lod_mult: float) -> void:
 	# Ground, under the belly.
 	var ground_origin := Vector3.INF
 	if probe.has_ground:
-		ground_origin = _on_ground(belly.global_position if belly else ship.global_position)
+		# v37.1: where the ship is drawn (interpolated), not its physics pose
+		# up to a tick ahead.
+		var under: Node3D = belly if belly else ship
+		ground_origin = _on_ground(under.get_global_transform_interpolated().origin)
 	_run("ground", p.dust_ground_rate * base * g, delta, ground_origin, Vector3.ZERO)
 
 	# Walls: closer = more, pushed away from the wall.
@@ -88,7 +91,7 @@ func update(delta: float, lod_mult: float) -> void:
 		var input: float = side[1]
 		var origin := Vector3.INF
 		if probe.has_ground and side[2] != null:
-			origin = _on_ground((side[2] as Node3D).global_position)
+			origin = _on_ground((side[2] as Node3D).get_global_transform_interpolated().origin)
 		_run(side[0], p.dust_airbrake_rate * base * g * input, delta, origin, side[3])
 
 
