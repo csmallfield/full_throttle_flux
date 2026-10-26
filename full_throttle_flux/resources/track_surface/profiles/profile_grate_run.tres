@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="TrackSurfaceProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_band.gd" id="1_oaspb"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_profile.gd" id="2_1oy6l"]
+
+[sub_resource type="Resource" id="Resource_51q77"]
+script = ExtResource("1_oaspb")
+type = 2
+
+[sub_resource type="Resource" id="Resource_oi88e"]
+script = ExtResource("1_oaspb")
+type = 1
+width = 0.3
+light = 1
+
+[sub_resource type="Resource" id="Resource_amqob"]
+script = ExtResource("1_oaspb")
+width = 3.0
+
+[sub_resource type="Resource" id="Resource_wb042"]
+script = ExtResource("1_oaspb")
+type = 1
+width = 0.3
+light = 2
+
+[sub_resource type="Resource" id="Resource_u74b1"]
+script = ExtResource("1_oaspb")
+type = 4
+width = 4.0
+
+[sub_resource type="Resource" id="Resource_0es8w"]
+script = ExtResource("1_oaspb")
+type = 1
+width = 0.3
+light = 2
+
+[sub_resource type="Resource" id="Resource_w7w7r"]
+script = ExtResource("1_oaspb")
+width = 0.0
+flex = 1.0
+
+[resource]
+script = ExtResource("2_1oy6l")
+profile_name = "grate_run"
+bands = Array[ExtResource("1_oaspb")]([SubResource("Resource_51q77"), SubResource("Resource_oi88e"), SubResource("Resource_amqob"), SubResource("Resource_wb042"), SubResource("Resource_u74b1"), SubResource("Resource_0es8w"), SubResource("Resource_w7w7r")])

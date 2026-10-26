@@ -31,6 +31,10 @@ var cases := [
 	["ground greeble too tall", "tall on the road", Callable(self, "_greeble_tall")],
 	["two greeble keys together", "within 2 m of each other", Callable(self, "_greeble_twin")],
 	["greebles out of date", "Greebles are out of date", Callable(self, "_none")],
+	["surface key far from the track", "Surface02_service is", Callable(self, "_surface_far")],
+	["five surface profiles on one path", "different profiles on", Callable(self, "_surface_five")],
+	["surface lanes meeting without a channel", "without a channel between", Callable(self, "_surface_no_channel")],
+	["surface zones out of date", "Surface zones are out of date", Callable(self, "_none")],
 ]
 
 
@@ -101,6 +105,12 @@ func _after_build(name: String, tb: TrackBuilder, scene: Node) -> void:
 		var main := scene.get_node("MainSpline") as Path3D
 		var f := TrackRoadSegment.frame_at(main.curve, k.distance + 200.0)
 		k.global_position = f.origin + f.basis.y * 8.0
+	elif name == "surface zones out of date":
+		# Move a surface key 200 m on after the build wrote the zones.
+		var k := _surface_key(tb, "Surface03_grate_run")
+		var main := scene.get_node("MainSpline") as Path3D
+		var f := TrackRoadSegment.frame_at(main.curve, k.distance + 200.0)
+		k.global_position = f.origin + f.basis.y * 3.0
 	elif name == "moved geometry (the offset)":
 		# What the circuits do: rotate the road geometry node.
 		var road := scene.get_node("MainSpline/Road") as Node3D
@@ -212,6 +222,37 @@ func _greeble_key(tb: TrackBuilder, n: String) -> GreebleZoneKey:
 		if k.name == n:
 			return k
 	return null
+
+
+func _surface_key(tb: TrackBuilder, n: String) -> SurfaceZoneKey:
+	for k in TrackSurfacer.all_keys(tb):
+		if k.name == n:
+			return k
+	return null
+
+
+func _surface_far(tb: TrackBuilder, _scene: Node) -> void:
+	var k := _surface_key(tb, "Surface02_service")
+	k.global_position += Vector3(0, 60, 0)
+
+
+## Two more keys with profiles of their own: 5 on MainSpline (3 already).
+func _surface_five(tb: TrackBuilder, _scene: Node) -> void:
+	var k := _surface_key(tb, "Surface02_service")
+	for i in 2:
+		var extra := SurfaceZoneKey.new()
+		extra.name = "SurfaceExtra%d" % i
+		k.get_parent().add_child(extra)
+		extra.profile = k.profile.duplicate(true) as TrackSurfaceProfile
+		extra.global_position = k.global_position + Vector3(0, 0, -300.0 * (i + 1))
+
+
+## A local profile where a plate lane meets a grate with no channel.
+func _surface_no_channel(tb: TrackBuilder, _scene: Node) -> void:
+	var k := _surface_key(tb, "Surface02_service")
+	var p := k.profile.duplicate(true) as TrackSurfaceProfile
+	p.bands[3].type = TrackSurfaceBand.Type.GRATE    # the blue channel becomes a grate
+	k.profile = p
 
 
 func _greeble_far(tb: TrackBuilder, _scene: Node) -> void:

@@ -35,7 +35,7 @@ extends Node
 const GRID_MATERIAL := "res://shaders/resources/grid_material.tres"
 const LOOKS := ["grid", "surface", "average"]
 const POSES := "chase,low,top"
-const VIEW_NAMES := ["", "st", "bands", "panels", "filter"]
+const VIEW_NAMES := ["", "st", "bands", "panels", "filter", "zones"]
 
 var out := ""
 var cam: Camera3D
@@ -46,6 +46,8 @@ var mask := PackedByteArray()
 var far_rows := Vector2i()
 var near_rows := Vector2i()
 var far_cols := Vector2i()
+## Every road material (one per path with a TrackSurface).
+var surf_mats: Array[ShaderMaterial] = []
 
 
 func _env(k: String, d: String) -> String:
@@ -84,6 +86,9 @@ func _run() -> void:
 		if sm and sm.shader.resource_path == EnvSurfaces.SURFACE_SHADER_PATH:
 			segs.append(seg.mesh_instance())
 			surface_mat = sm
+			# One material per path once TrackSurface has run (v38 phase 3).
+			if not surf_mats.has(sm):
+				surf_mats.append(sm)
 	if surface_mat == null:
 		print("TSMETRIC no track surface on %s" % track_id)
 		get_tree().quit(1)
@@ -91,7 +96,7 @@ func _run() -> void:
 	EnvSurfaces.adopt(track, path)
 	for kv in _env("TS_PARAMS", "").split(",", false):
 		var p := kv.split("=")
-		surface_mat.set_shader_parameter(p[0].strip_edges(), float(p[1]))
+		_set_all(p[0].strip_edges(), float(p[1]))
 	if gs and _env("TS_TIER", "") != "":
 		gs.set_surface_tier(int(_env("TS_TIER", "1")))
 	var grid_mat := load(GRID_MATERIAL) as Material
@@ -107,7 +112,7 @@ func _run() -> void:
 				_set_look(segs, grid_mat, surface_mat, look, fade_px)
 				await _measure(track_id, d, pose, look)
 			if pose == "chase":
-				surface_mat.set_shader_parameter("aa_fade_px", fade_px)
+				_set_all("aa_fade_px", fade_px)
 				for v in range(1, VIEW_NAMES.size()):
 					if gs:
 						gs.set_surface_view(v)
@@ -123,11 +128,16 @@ func _run() -> void:
 	get_tree().quit(0)
 
 
+func _set_all(param: String, value: Variant) -> void:
+	for m in surf_mats:
+		m.set_shader_parameter(param, value)
+
+
 func _set_look(segs: Array[MeshInstance3D], grid_mat: Material, surface_mat: ShaderMaterial,
 		look: String, fade_px: float) -> void:
 	for mi in segs:
 		mi.set_surface_override_material(0, grid_mat if look == "grid" else null)
-	surface_mat.set_shader_parameter("aa_fade_px", 1e6 if look == "average" else fade_px)
+	_set_all("aa_fade_px", 1e6 if look == "average" else fade_px)
 
 
 ## Road pixels: where the grid and the averaged surface differ.

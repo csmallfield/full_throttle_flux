@@ -14,7 +14,6 @@
 [ext_resource type="Script" path="res://tools/track_builder/greeble_zone_key.gd" id="10_qsuhs"]
 [ext_resource type="Resource" path="res://resources/greeble_presets/style_service.tres" id="11_cw7oq"]
 [ext_resource type="Material" path="res://shaders/resources/grid_material.tres" id="11_r5qea"]
-[ext_resource type="Material" path="res://shaders/track/track_surface_material.tres" id="v38_surface"]
 [ext_resource type="Resource" path="res://resources/greeble_presets/style_civic.tres" id="12_dw33r"]
 [ext_resource type="Script" path="res://scripts/tracks/track_junction.gd" id="12_o8d6w"]
 [ext_resource type="Resource" path="res://resources/greeble_presets/style_hairpin.tres" id="13_dlsyb"]
@@ -26,15 +25,22 @@
 [ext_resource type="Script" path="res://scripts/tracks/magnetic_track.gd" id="16_t3ymg"]
 [ext_resource type="Script" path="res://scripts/tracks/magnetic_zone.gd" id="17_q2n3k"]
 [ext_resource type="Resource" path="res://resources/greeble_presets/style_maritime.tres" id="17_xm2at"]
+[ext_resource type="Script" path="res://tools/track_builder/surface_zone_key.gd" id="18_67ll4"]
 [ext_resource type="Script" path="res://scripts/tracks/track_graph.gd" id="18_ch8a7"]
 [ext_resource type="Script" path="res://scripts/tracks/track_branch.gd" id="19_punj6"]
+[ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_industrial.tres" id="19_tmwcj"]
+[ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_service.tres" id="20_2u2u5"]
 [ext_resource type="Script" path="res://scripts/tracks/track_jump.gd" id="20_qsuhs"]
 [ext_resource type="Script" path="res://scripts/respawn_trigger.gd" id="21_cw7oq"]
+[ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_grate_run.tres" id="21_wfu0n"]
 [ext_resource type="Script" path="res://scripts/start_finish_line.gd" id="23_dlsyb"]
 [ext_resource type="PackedScene" path="res://scenes/boost_pad.tscn" id="23_q7cp5"]
 [ext_resource type="Script" path="res://scripts/boost_pad.gd" id="24_jubuv"]
 [ext_resource type="Script" path="res://scripts/tracks/track_greebles.gd" id="33_ptc6d"]
 [ext_resource type="Script" path="res://scripts/tracks/track_greeble_zone.gd" id="34_g7d43"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface.gd" id="40_en2hm"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_zone.gd" id="41_4vs66"]
+[ext_resource type="Material" path="res://shaders/track/track_surface_material.tres" id="v38_surface"]
 
 [sub_resource type="Curve3D" id="Curve3D_5obu3"]
 closed = true
@@ -301,6 +307,48 @@ from_d = 300.0
 to_d = 1337.9065
 style = ExtResource("11_cw7oq")
 seed = 156598031
+
+[sub_resource type="Resource" id="Resource_2lj3d"]
+script = ExtResource("41_4vs66")
+from_d = 30.0
+to_d = 2050.000073581846
+profile = ExtResource("19_tmwcj")
+seed = 770
+key_name = "Surface01_industrial"
+
+[sub_resource type="Resource" id="Resource_05awq"]
+script = ExtResource("41_4vs66")
+from_d = 2050.000073581846
+to_d = 4299.99873849486
+profile = ExtResource("20_2u2u5")
+blend_in = 40.0
+seed = 966
+key_name = "Surface02_service"
+
+[sub_resource type="Resource" id="Resource_be70b"]
+script = ExtResource("41_4vs66")
+from_d = 4299.99873849486
+to_d = 6600.0
+profile = ExtResource("21_wfu0n")
+seed = 457
+key_name = "Surface03_grate_run"
+
+[sub_resource type="Resource" id="Resource_otmba"]
+script = ExtResource("41_4vs66")
+from_d = 6600.0
+to_d = 8972.157
+profile = ExtResource("19_tmwcj")
+blend_in = 60.0
+seed = 284
+key_name = "Surface04_industrial"
+
+[sub_resource type="Resource" id="Resource_lsqy2"]
+script = ExtResource("41_4vs66")
+path_index = 1
+to_d = 1337.9065
+profile = ExtResource("21_wfu0n")
+seed = 457
+key_name = "Surface03_grate_run@fork"
 
 [node name="BuilderLab" type="Node3D" unique_id=1692124175]
 
@@ -590,6 +638,36 @@ preset = "garden"
 style = ExtResource("14_ptc6d")
 seed = 13
 distance = 8550.0
+
+[node name="SurfaceZoneKeys" type="Node3D" parent="TrackBuilder" unique_id=559274306]
+
+[node name="Surface01_industrial" type="Node3D" parent="TrackBuilder/SurfaceZoneKeys" unique_id=2053647021]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1696392, 2.9768374, -150.00008)
+script = ExtResource("18_67ll4")
+profile = ExtResource("19_tmwcj")
+distance = 30.0
+
+[node name="Surface02_service" type="Node3D" parent="TrackBuilder/SurfaceZoneKeys" unique_id=2062656330]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 990.25006, 13.128955, -1390.6598)
+script = ExtResource("18_67ll4")
+preset = "service"
+profile = ExtResource("20_2u2u5")
+blend_in = 40.0
+distance = 2050.000073581846
+
+[node name="Surface03_grate_run" type="Node3D" parent="TrackBuilder/SurfaceZoneKeys" unique_id=1342170664]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2480.3848, 0.17563891, -900.512)
+script = ExtResource("18_67ll4")
+preset = "grate_run"
+profile = ExtResource("21_wfu0n")
+distance = 4299.99873849486
+
+[node name="Surface04_industrial" type="Node3D" parent="TrackBuilder/SurfaceZoneKeys" unique_id=1664384794]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1655.4432, 3, 798.5289)
+script = ExtResource("18_67ll4")
+profile = ExtResource("19_tmwcj")
+blend_in = 60.0
+distance = 6600.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=827759218]
 environment = SubResource("Environment_r5qea")
@@ -924,3 +1002,8 @@ zones = Array[ExtResource("34_g7d43")]([SubResource("Resource_67ll4"), SubResour
 no_overhead = PackedVector3Array(0, 2171.7893, 3018.6057, 0, 4440.512, 5260.499, 0, 423.9578, 689.2204, 1, 601.2252, 891.6318, 0, 15, 45)
 ground_exclusions = PackedFloat32Array(0, 30, 0, 40, 3, 0, 6999.501, -9.999995, 4.5, 6.5, 0, 6999.5015, 0, 4.5, 6.5, 0, 6999.5015, 9.999993, 4.5, 6.5, 0, 1499.386, 14.499973, 4.5, 6.5, 1, 945.30493, -14.49998, 4.5, 6.5)
 rail_top = Vector2(25.719, 8.44438)
+
+[node name="TrackSurface" type="Node" parent="." unique_id=1857793333 groups=["track_builder_generated"]]
+script = ExtResource("40_en2hm")
+paths = Array[NodePath]([NodePath("../MainSpline"), NodePath("../BranchSpline")])
+zones = Array[ExtResource("41_4vs66")]([SubResource("Resource_2lj3d"), SubResource("Resource_05awq"), SubResource("Resource_be70b"), SubResource("Resource_otmba"), SubResource("Resource_lsqy2")])

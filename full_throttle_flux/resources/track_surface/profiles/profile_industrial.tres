@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="TrackSurfaceProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_band.gd" id="1_isxpv"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_profile.gd" id="2_32lfv"]
+
+[sub_resource type="Resource" id="Resource_clobv"]
+script = ExtResource("1_isxpv")
+type = 2
+width = 1.2
+
+[sub_resource type="Resource" id="Resource_4ikmk"]
+script = ExtResource("1_isxpv")
+type = 1
+width = 0.35
+light = 1
+
+[sub_resource type="Resource" id="Resource_wv2nc"]
+script = ExtResource("1_isxpv")
+type = 4
+width = 2.4
+
+[sub_resource type="Resource" id="Resource_ic6m8"]
+script = ExtResource("1_isxpv")
+type = 1
+width = 0.3
+light = 2
+
+[sub_resource type="Resource" id="Resource_h80j6"]
+script = ExtResource("1_isxpv")
+type = 3
+width = 5.0
+
+[sub_resource type="Resource" id="Resource_herow"]
+script = ExtResource("1_isxpv")
+type = 1
+width = 0.25
+
+[sub_resource type="Resource" id="Resource_ncfe8"]
+script = ExtResource("1_isxpv")
+width = 0.0
+flex = 1.0
+vents = true
+
+[resource]
+script = ExtResource("2_32lfv")
+profile_name = "industrial"
+bands = Array[ExtResource("1_isxpv")]([SubResource("Resource_clobv"), SubResource("Resource_4ikmk"), SubResource("Resource_wv2nc"), SubResource("Resource_ic6m8"), SubResource("Resource_h80j6"), SubResource("Resource_herow"), SubResource("Resource_ncfe8")])

@@ -17,6 +17,9 @@ class_name TrackBuild
 ##                                of every BoostPadKey, on the road surface
 ##   TrackGreebles                the greeble zones from the GreebleZoneKeys
 ##                                (v36; scattered at load, see TrackGreebler)
+##   TrackSurface                 the road surface zones from the
+##                                SurfaceZoneKeys (v38; applied at load, see
+##                                TrackSurfacer)
 ##   per branch (split track):
 ##     BranchSpline (_2 ...)      the branch, tilts solved; Road / WallL / WallR
 ##     RouteSpline_Branch (_2 ...)  a whole lap through the branch (AI, rig)
@@ -250,11 +253,14 @@ func _run(b: TrackBuilder) -> void:
 
 	# --- greebles (v36): only once the splines and pads above exist -----------
 	var greebles := _greebles(b)
+	# --- surface zones (v38): on the road segments built above -------------------
+	var surface := _surface(b)
 
 	_remove_stale()
 	var ms := (Time.get_ticks_usec() - t0) / 1000.0
-	log.insert(0, "Built %.0f m lap: %d control points, tilt solve %.3f° max, %d features, %d branches, %d boost pads, %d greeble zones, %.0f ms"
-			% [length, curve.point_count, tilt_error_deg, b.composer.placed.size(), built_branches.size(), pads, greebles, ms])
+	log.insert(0, "Built %.0f m lap: %d control points, tilt solve %.3f° max, %d features, %d branches, %d boost pads, %d greeble zones, %d surface zones, %.0f ms"
+			% [length, curve.point_count, tilt_error_deg, b.composer.placed.size(), built_branches.size(), pads, greebles,
+			surface, ms])
 	for bb in built_branches:
 		log.append("  %s: %.0f m, fork %.0f, rejoin %.0f (main), junctions to %.0f / from %.0f (branch), route lap %.0f m"
 				% [bb.name, bb.length, bb.fork, bb.rejoin, bb.jf_b, bb.jr_b, bb.route_length])
@@ -744,6 +750,22 @@ func _greebles(b: TrackBuilder) -> int:
 		log.append("⚠ " + n)
 	if node.is_inside_tree() and Engine.is_editor_hint():
 		node.rebuild()
+	return node.zones.size()
+
+
+## TrackSurface from the SurfaceZoneKeys (TrackSurfacer), if there are any.
+## With no keys nothing is made (a TrackSurface left from an earlier build is
+## removed as stale). Returns the zone count.
+func _surface(b: TrackBuilder) -> int:
+	if TrackSurfacer.all_keys(b).is_empty():
+		return 0
+	var node := _ensure(root, TrackBuilder.SURFACE_NODE, load(TrackBuilder.SURFACE_SCRIPT)) as TrackSurface
+	var sf := TrackSurfacer.resolve(b, root)
+	sf.write(node, b)
+	for n in sf.notes:
+		log.append("⚠ " + n)
+	if node.is_inside_tree():
+		node.apply()
 	return node.zones.size()
 
 

@@ -304,6 +304,81 @@ instances. Headless runs skip the scatter unless `FTF_GREEBLES=1` is set.
 **Swapping in detail** works as on Utopia: overwrite a `gb_<name>.tres` with
 your mesh (same pivot and axes), or point a rule at your model.
 
+### 3.7 Road surface (`SurfaceZoneKey`)
+
+The road's surface is drawn by the track surface shader (v38): lanes of
+plate, ribbed plate and hex grate, channels with guide lights between them,
+painted edge bands with LED rows, and hazard stripes on the lips. What runs
+across the road is a **profile**. A `SurfaceZoneKey` picks the profile for a
+stretch of track. Walls and junctions keep the grid for now.
+
+**Build first.** Surface zones sit on the built splines, like greeble zones.
+A track with no keys draws the default profile (industrial).
+
+**Zones.** A `SurfaceZoneKey` starts a zone. Drop one anywhere near the built
+road, under the TrackBuilder (a `SurfaceZoneKeys` folder, say). Its profile
+runs from there to the next key, and the lap wraps. A blue gate and label
+mark each zone's start in the editor; a blend also draws the blend's length
+along the edges. Under a `BranchFeature` a key covers that branch, and a
+branch with no key of its own carries on with the main track's profile at
+the fork.
+
+| Setting | Default | What it does |
+|---|---|---|
+| `preset` | industrial | A profile from the library (`resources/track_surface/profiles`) |
+| `profile` | (from `preset`) | The profile itself: drag any `TrackSurfaceProfile` .tres here, or expand it to edit its bands |
+| `blend_in` | 0 m | Cross-fades from the zone before over this many metres. 0 = a hard seam (with a seam line across the road) |
+| `seed` | 1 | Reshuffles this zone's panel offsets, tints and vents |
+
+At most **4 different profiles per path** (the main track, each branch): the
+validator makes a 5th an error. Inside a blend the shader draws both
+profiles, so keep blends to a few tens of metres.
+
+**Profiles.** A `TrackSurfaceProfile` is a list of bands, left to right, each
+a `TrackSurfaceBand`:
+
+| Band setting | What it does |
+|---|---|
+| `type` | plate, channel, edge, ribbed or grate |
+| `width` | Metres across (fixed bands) |
+| `flex` | > 0: the band takes this share of what the fixed bands leave. Width keys only change flex bands |
+| `light` | Channels: none, red dots or a blue strip |
+| `vents` | Plates: vent boxes every so often |
+
+With `mirror` on (the presets), the list runs from the left edge to the
+centre band and the right half repeats it in reverse. Fixed bands stack in
+from each real edge of the road, so edge bands stay on the edges where
+WidthKeys change the width; a road narrower than the fixed bands squeezes
+them all. At most 16 bands after mirroring. Put a **channel between two
+different kinds of band**: the shader filters patterns, not switches between
+them, so two lanes meeting without one can show a hard edge (the validator
+warns).
+
+The library starts with three presets: **industrial** (grates by the edges,
+ribbed lanes, a wide centre with vents), **service** (plate lanes and a wide
+ribbed centre) and **grate_run** (wide grates, smooth outer and centre
+lanes). Editing a preset changes every zone that uses it, on every track.
+
+**The track's own look.** The look all tracks share is the material
+`shaders/track/track_surface_material.tres`. A track can deviate from it with
+a `TrackSurfaceVariation` on the TrackBuilder (`surface_variation`): light,
+plate, hazard, grate and vent colours, light energy, panel tint, vent
+chance. A colour with alpha 0 or a number below 0 keeps the shared value.
+Keep clear of orange: it's the boost pads' colour.
+
+**Live and built.** Moving a key or changing a setting re-applies the surface
+about 0.2 s after you stop (`surface_live` on the TrackBuilder). **Refresh
+surface** does it by hand, and Build always does it. The scene only saves the
+zones (the `TrackSurface` node). The per-path materials are made when the
+track loads.
+
+If you edit `profile_industrial.tres`, run `sync_surface_presets` (below) so
+tracks without zones draw the new version too.
+
+**Looking at it.** In game, key 9 cycles the surface debug views (bands,
+panels, filter level, zones) and Shift+9 the quality tier. See
+`DEBUG_KEYS.md`.
+
 ---
 
 ## 4. What the validator is telling you
@@ -413,6 +488,10 @@ godot --headless --path full_throttle_flux -s res://tools/track_builder/validato
 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_builder/measure_boost_boot.gd
 # greebles headless: counts, pieces left out by upright limits, intrusions, a checksum
 godot --headless --path full_throttle_flux -s res://tools/track_builder/greeble_stats_boot.gd -- --scene=res://scenes/tracks/<id>.tscn
+# road surface: make missing preset profiles, sync the industrial preset into the material
+godot --headless --path full_throttle_flux -s res://tools/track_surface/sync_surface_presets.gd
+# road surface: shots, debug views and aliasing measurements (needs a display; v38 notes)
+godot --path full_throttle_flux -s res://tools/dev/track_surface_shots_boot.gd
 # greebles: chase-camera shots at every zone, plus scatter stats (needs a display)
 TB_SCENE=res://scenes/tracks/<id>.tscn TB_OUT=/tmp/shots xvfb-run -s "-screen 0 1600x900x24" \
   godot --rendering-driver opengl3 --path full_throttle_flux -s res://tools/track_builder/greeble_shots_boot.gd
