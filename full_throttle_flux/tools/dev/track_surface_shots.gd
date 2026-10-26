@@ -30,12 +30,14 @@ extends Node
 ##   TS_RES (1920x1080), TS_OUT (user://track_surface), TS_FRAMES (16),
 ##   TS_CREEP (0.012), TS_FOV (80), TS_POSES (default "chase,low,top"),
 ##   TS_PARAMS "name=value,..." surface material overrides (A/B a module,
-##   e.g. "light_energy=0,led_energy=0"), TS_TIER 0|1 (default: as saved).
+##   e.g. "light_energy=0,led_energy=0"), TS_TIER 0|1 (default: as saved),
+##   TS_GLOBALS "name=value,..." global shader parameters, e.g. weather:
+##   "env_wetness=0.8,env_precip=0.5" (there's no EnvironmentState here).
 
 const GRID_MATERIAL := "res://shaders/resources/grid_material.tres"
 const LOOKS := ["grid", "surface", "average"]
 const POSES := "chase,low,top"
-const VIEW_NAMES := ["", "st", "bands", "panels", "filter", "zones"]
+const VIEW_NAMES := ["", "st", "bands", "panels", "filter", "zones", "wear"]
 
 var out := ""
 var cam: Camera3D
@@ -97,6 +99,9 @@ func _run() -> void:
 	for kv in _env("TS_PARAMS", "").split(",", false):
 		var p := kv.split("=")
 		_set_all(p[0].strip_edges(), float(p[1]))
+	for kv in _env("TS_GLOBALS", "").split(",", false):
+		var p := kv.split("=")
+		RenderingServer.global_shader_parameter_set(p[0].strip_edges(), float(p[1]))
 	if gs and _env("TS_TIER", "") != "":
 		gs.set_surface_tier(int(_env("TS_TIER", "1")))
 	var grid_mat := load(GRID_MATERIAL) as Material

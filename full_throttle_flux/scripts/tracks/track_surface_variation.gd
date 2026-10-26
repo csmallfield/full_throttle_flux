@@ -28,11 +28,17 @@ class_name TrackSurfaceVariation
 @export_range(-1.0, 4.0, 0.05) var grate_glow_energy: float = -1.0
 @export var vent_glow := Color(0, 0, 0, 0)
 @export_range(-1.0, 1.0, 0.05) var vent_chance: float = -1.0
+@export_group("Wear")
+## How used the whole track looks (phase 4): 0 = factory new, 1 = old.
+@export_range(-1.0, 1.0, 0.05) var wear_age: float = -1.0
+@export var grime_color := Color(0, 0, 0, 0)
+@export var scorch_color := Color(0, 0, 0, 0)
 
 ## Shader parameter -> exported property, for the overrides above.
 const PARAMS := ["light_blue", "light_red", "light_white", "light_energy", "plate_color",
 		"edge_color", "panel_tint_var", "hazard_yellow", "hazard_black", "edge_line_color",
-		"grate_glow", "grate_glow_energy", "vent_glow", "vent_chance"]
+		"grate_glow", "grate_glow_energy", "vent_glow", "vent_chance", "wear_age", "grime_color",
+		"scorch_color"]
 
 
 ## Writes the overridden values into `mat` (colours as vec3).

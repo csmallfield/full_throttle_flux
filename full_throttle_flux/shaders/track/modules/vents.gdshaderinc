@@ -16,7 +16,10 @@ uniform vec3 vent_frame_color : source_color = vec3(0.34, 0.35, 0.37);
 uniform vec3 vent_slot_color : source_color = vec3(0.012, 0.012, 0.014);
 // Faint heat in the slots (red, clear of the boost pads' orange).
 uniform vec3 vent_glow : source_color = vec3(0.9, 0.1, 0.04);
-uniform float vent_glow_energy : hint_range(0.0, 4.0) = 0.25;
+// Off by default (the doc calls it optional). It fades out with the slots:
+// averaged from afar, a glowing box reads as a solid red pad, a gameplay
+// marker, which the surface must never look like.
+uniform float vent_glow_energy : hint_range(0.0, 4.0) = 0.0;
 group_uniforms;
 
 // `u` metres from the band's left edge, `w` the band width.
@@ -41,6 +44,7 @@ void vents(inout TSurf o, float u, float w, float s, float fw_t, float fw_s, flo
 	o.albedo = mix(o.albedo, col, box);
 	o.rough = mix(o.rough, mix(0.35, 0.9, slot), box);
 	o.metal = mix(o.metal, mix(0.7, 0.1, slot), box);
-	o.emission += vent_glow * vent_glow_energy * slot;
+	o.emission += vent_glow * vent_glow_energy * slot * (1.0 - f);
 	o.keep = max(o.keep, box * 0.6);
+	o.recess = max(o.recess, slot);
 }

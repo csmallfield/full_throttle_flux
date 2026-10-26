@@ -18,5 +18,8 @@ class_name TrackSurfaceZone
 @export var blend_in := 0.0
 ## 0..1023, varies the panel and vent hashes per zone.
 @export var seed := 0
+## Wear multiplier (v38 phase 4): 0 = factory clean, 1 = the track's age,
+## 2 = twice as worn.
+@export var wear := 1.0
 ## The SurfaceZoneKey this came from (for reports and the validator).
 @export var key_name := ""

@@ -15,7 +15,7 @@ extends Node
 ##   8         shadows        Low = v36 (4096 atlas, soft low) / High = 8192
 ##                            atlas, soft medium (default) / Ultra = 8192, soft high
 ##   9         track surface  debug view: off / s,t / band ids / panel ids /
-##                            filter level / zones (not saved)
+##                            filter level / zones / wear (not saved)
 ##   Shift+9   track surface  quality tier Low / High (default). v38 phase 1:
 ##                            both look the same; the hook later modules use
 ##
@@ -38,7 +38,7 @@ const SHADOW_NAMES := ["Low (v36: 4096, soft low)", "High (8192, soft medium)", 
 const FX_NAMES := ["Low", "Medium", "High"]
 const BLUR_VIEWS := ["off", "velocity", "neighbour max", "distance"]
 const SURFACE_TIER_NAMES := ["Low", "High"]
-const SURFACE_VIEWS := ["off", "s / t", "band ids", "panel ids", "filter level", "zones"]
+const SURFACE_VIEWS := ["off", "s / t", "band ids", "panel ids", "filter level", "zones", "wear"]
 ## Global shader uniforms the v38 track surface reads (project.godot).
 const U_SURFACE_TIER := &"track_surface_tier"
 const U_SURFACE_DEBUG := &"track_surface_debug"

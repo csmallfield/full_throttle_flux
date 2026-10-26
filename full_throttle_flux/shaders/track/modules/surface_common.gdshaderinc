@@ -10,6 +10,7 @@
 //     slope variance it loses goes into `normal_var` (roughness keeps the
 //     energy: Toksvig-style)
 //   * record how far it faded in `filt` (the filter-level debug view)
+//   * mark recesses in `recess` (filtered coverage, like everything else)
 //   * no colour in the boost pads' range (orange, about 20-40 degrees hue)
 
 struct TSurf {
@@ -20,6 +21,8 @@ struct TSurf {
 	vec2 slope;        // height gradient (dh/dt, dh/ds), metres per metre
 	float normal_var;  // slope variance filtered away, for roughness
 	float keep;        // 0..1: how much of the look survives snow / dust
+	float recess;      // 0..1: how sunken this is (channels, holes, grooves,
+	                   // seams): grime and water collect here first (phase 4)
 	float filt;        // 0 = full detail .. 1 = all averaged
 };
 

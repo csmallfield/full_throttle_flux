@@ -32,6 +32,7 @@ void ribs(inout TSurf o, float u, float fw_t, bool normals) {
 	float groove = aa_lines(u, rib_pitch, rib_groove * rib_pitch, fw_t, f);
 	ts_filt(o, f);
 	o.albedo *= mix(1.0, rib_dark, groove);
+	o.recess = max(o.recess, groove * 0.6);
 	o.rough = mix(o.rough, min(o.rough + 0.15, 1.0), groove);
 	// Unfiltered slope variance: the walls' share of the pitch times slope^2.
 	float wall_slope = rib_depth / rib_bevel;

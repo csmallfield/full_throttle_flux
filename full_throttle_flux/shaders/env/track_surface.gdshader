@@ -47,6 +47,7 @@ void fragment() {
 	s.edge = edge;
 	s.is_wall = surface_kind;
 	s.keep = max(grid_mask, major_mask) * 1.4;
+	s.recess = 0.0;
 	env_surface_apply(s, TIME);
 
 	ALBEDO = s.albedo;

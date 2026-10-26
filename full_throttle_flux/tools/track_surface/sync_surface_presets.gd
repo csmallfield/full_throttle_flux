@@ -10,9 +10,12 @@ extends SceneTree
 ##    (shaders/track/track_surface_material.tres). That's what a track
 ##    without a TrackSurface node draws (Fork Lab, a builder track with no
 ##    SurfaceZoneKeys). Rerun after editing profile_industrial.tres.
+## 3. Points the base material at the wear detail texture (phase 4;
+##    tools/track_surface/make_wear_detail.gd makes the placeholder).
 
 const MATERIAL := "res://shaders/track/track_surface_material.tres"
 const DEFAULT_PRESET := "industrial"
+const WEAR_DETAIL := "res://resources/track_surface/wear_detail.png"
 
 const T := TrackSurfaceBand.Type
 const L := TrackSurfaceBand.Light
@@ -49,6 +52,8 @@ func _initialize() -> void:
 	info[0] = Vector4(pk.size(), sums.x, sums.y, 0.0)
 	mat.set_shader_parameter("surf_bands", bands)
 	mat.set_shader_parameter("surf_profiles", info)
+	if ResourceLoader.exists(WEAR_DETAIL):
+		mat.set_shader_parameter("wear_detail", load(WEAR_DETAIL))
 	var err := ResourceSaver.save(mat, MATERIAL)
 	if err == OK:
 		_drop_null_params(MATERIAL)

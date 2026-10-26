@@ -54,6 +54,13 @@ const CUSTOM := "(other file)"
 		seed = v
 		_changed()
 
+## v38 phase 4: how worn this stretch is, times the track's age (the
+## variation's wear_age): 0 = factory clean, 2 = twice as worn.
+@export_range(0.0, 2.0, 0.05) var wear: float = 1.0:
+	set(v):
+		wear = v
+		_changed()
+
 
 func _validate_property(property: Dictionary) -> void:
 	super(property)
@@ -81,6 +88,8 @@ func label_text() -> String:
 	var t := "SURFACE %s" % nm
 	if blend_in > 0.0:
 		t += " ⤳%.0f m" % blend_in
+	if not is_equal_approx(wear, 1.0):
+		t += " wear ×%.2f" % wear
 	return t
 
 

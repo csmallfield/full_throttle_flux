@@ -329,6 +329,7 @@ the fork.
 | `profile` | (from `preset`) | The profile itself: drag any `TrackSurfaceProfile` .tres here, or expand it to edit its bands |
 | `blend_in` | 0 m | Cross-fades from the zone before over this many metres. 0 = a hard seam (with a seam line across the road) |
 | `seed` | 1 | Reshuffles this zone's panel offsets, tints and vents |
+| `wear` | 1 | How worn this stretch looks, times the track's age: 0 = factory clean, 2 = twice as worn |
 
 At most **4 different profiles per path** (the main track, each branch): the
 validator makes a 5th an error. Inside a blend the shader draws both
@@ -366,6 +367,17 @@ plate, hazard, grate and vent colours, light energy, panel tint, vent
 chance. A colour with alpha 0 or a number below 0 keeps the shared value.
 Keep clear of orange: it's the boost pads' colour.
 
+**Wear.** The road wears where ships use it. When the track loads, the
+surface reads the AI's trained racing line (`resources/ai_data/`, the
+default_racer line; a branch uses its route line) and puts a polished strip
+along it, grime in the channels, grate holes and grooves and toward the
+edges, and a blue-violet heat tint where ships brake or corner hard.
+Retrain the AI line and the wear follows; a track without a trained line
+gets grime and panel age but no polished line. The track's overall age is
+the variation's `wear_age` (0 = factory new, 1 = old; the style's default
+is 0.5), and each zone's `wear` scales it. In rain, water stands in the
+recesses first.
+
 **Live and built.** Moving a key or changing a setting re-applies the surface
 about 0.2 s after you stop (`surface_live` on the TrackBuilder). **Refresh
 surface** does it by hand, and Build always does it. The scene only saves the
@@ -376,7 +388,7 @@ If you edit `profile_industrial.tres`, run `sync_surface_presets` (below) so
 tracks without zones draw the new version too.
 
 **Looking at it.** In game, key 9 cycles the surface debug views (bands,
-panels, filter level, zones) and Shift+9 the quality tier. See
+panels, filter level, zones, wear) and Shift+9 the quality tier. See
 `DEBUG_KEYS.md`.
 
 ---
@@ -490,6 +502,8 @@ godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_b
 godot --headless --path full_throttle_flux -s res://tools/track_builder/greeble_stats_boot.gd -- --scene=res://scenes/tracks/<id>.tscn
 # road surface: make missing preset profiles, sync the industrial preset into the material
 godot --headless --path full_throttle_flux -s res://tools/track_surface/sync_surface_presets.gd
+# road surface: regenerate the placeholder wear detail texture (resources/track_surface/wear_detail.png)
+godot --headless --path full_throttle_flux -s res://tools/track_surface/make_wear_detail.gd
 # road surface: shots, debug views and aliasing measurements (needs a display; v38 notes)
 godot --path full_throttle_flux -s res://tools/dev/track_surface_shots_boot.gd
 # greebles: chase-camera shots at every zone, plus scatter stats (needs a display)

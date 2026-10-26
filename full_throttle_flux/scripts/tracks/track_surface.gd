@@ -10,13 +10,19 @@ class_name TrackSurface
 ##   band tables   the zones' profiles in uniform arrays (at most
 ##                 MAX_PROFILES per path, MAX_BANDS bands each), so the band
 ##                 loop reads a constant buffer, not a texture
-##   zone strip    one RGBAF texel per metre of path: which profile(s), the
-##                 transition there (start, length; 0 = hard seam) and the
-##                 zone seeds. The shader fetches one texel per pixel.
+##   strip         one RGBAF texel per metre of path, ONE fetch per pixel:
+##                 which profile(s), the transition there, the zone seeds
+##                 and wear, and (phase 4) the wear inputs baked from the
+##                 track's trained racing line (see build_strip())
 ##   variation     the track's TrackSurfaceVariation overrides
 ##
+## Wear (v38 phase 4) is baked when the track loads, from the trained line
+## AILineTrainer saved for WEAR_SHIP (the branch: its route line, projected
+## onto the BranchSpline), so it always matches the AI line: retrain the line
+## and the polish and scorch follow.
+##
 ## A track without this node (Fork Lab, the circuits later) draws the
-## material's own band table: the industrial preset.
+## material's own band table (the industrial preset) and no line wear.
 ##
 ## Never edit by hand: move or change the SurfaceZoneKeys and the builder
 ## rewrites it.
@@ -29,6 +35,22 @@ const STRIP_W := 16384
 ## A hard seam is filtered over the pixel footprint: texels this far either
 ## side of it know about it.
 const SEAM_PAD := 4.0
+## The ship whose trained line drives the wear.
+const WEAR_SHIP := "default_racer"
+## Deceleration (u/s per second) that counts as full braking for scorch.
+const BRAKE_REF := 45.0
+## Ships airbrake through hard corners; the trained lines carry no airbrake
+## record, so cornering load (v^2 * curvature, u/s^2) stands in for it:
+## scorch ramps from CORNER_FROM to CORNER_FROM + CORNER_SPAN, up to
+## CORNER_SHARE of a full brake.
+const CORNER_FROM := 25.0
+const CORNER_SPAN := 35.0
+const CORNER_SHARE := 0.6
+## Braking is smeared this many metres either way (scorch builds over a zone).
+const BRAKE_SMEAR := 8
+## Packing ranges (see build_strip()).
+const LINE_RANGE := 32.0       # line t in [-32, 32) m, 1/64 m steps
+const HALF_STEP := 0.25        # corridor half width, 0.25 m steps up to 31.75 m
 
 ## The paths the zones run along (0 = MainSpline), relative to this node.
 @export var paths: Array[NodePath] = []
@@ -57,7 +79,7 @@ func apply() -> int:
 		if segs.is_empty():
 			continue
 		var base := segs[0].mesh.surface_get_material(0) as ShaderMaterial
-		var mat := build_material(base, pi, path.curve.get_baked_length())
+		var mat := build_material(base, pi, path)
 		for mi in segs:
 			mi.mesh.surface_set_material(0, mat)
 			set_count += 1
@@ -66,8 +88,9 @@ func apply() -> int:
 
 ## The path's own material: `base` with this path's band tables, strip and
 ## the variation.
-func build_material(base: ShaderMaterial, path_index: int, length: float) -> ShaderMaterial:
+func build_material(base: ShaderMaterial, path_index: int, path: Path3D) -> ShaderMaterial:
 	var mat := base.duplicate() as ShaderMaterial
+	var length := path.curve.get_baked_length() if path and path.curve else 0.0
 	var mine := zones_of(path_index)
 	var slots: Array[TrackSurfaceProfile] = []
 	for z in mine:
@@ -91,7 +114,8 @@ func build_material(base: ShaderMaterial, path_index: int, length: float) -> Sha
 		info[k] = Vector4(pk.size(), sums.x, sums.y, 0.0)
 	mat.set_shader_parameter("surf_bands", bands)
 	mat.set_shader_parameter("surf_profiles", info)
-	var strip := build_strip(mine, slots, length, path_index == 0)
+	var wear := bake_wear(path, path_index)
+	var strip := build_strip(mine, slots, length, path_index == 0, wear)
 	mat.set_shader_parameter("surf_strip", ImageTexture.create_from_image(strip))
 	mat.set_shader_parameter("surf_strip_info", Vector2(strip.get_width() * strip.get_height(),
 			strip.get_width()))
@@ -100,53 +124,157 @@ func build_material(base: ShaderMaterial, path_index: int, length: float) -> Sha
 	return mat
 
 
-## The zone strip: texel i covers metres [i, i + 1). R = profile slot A +
-## 16 * slot B, G = transition start (< 0: none), B = transition length (0 =
-## hard), A = seed A + 1024 * seed B. Before the transition start the shader
-## draws A, after start + length B, a cross-fade between.
+## Wear inputs per metre of `path` from the trained racing line:
+## {line: racing line t (m), half: corridor half width (m), brake: heat for
+## the scorch, 0..1, from braking and hard cornering};
+## empty when there's no trained line for it.
+func bake_wear(path: Path3D, path_index: int) -> Dictionary:
+	var track_id := AILineTrainer.track_id_for(get_parent())
+	if track_id.is_empty() or path == null:
+		return {}
+	var line_id := track_id if path_index == 0 else "%s__route%d" % [track_id, path_index - 1]
+	var line := AILineTrainer.load_trained_line(line_id, WEAR_SHIP)
+	if line == null or line.sample_count < 2 or line.lateral_offsets.size() < line.sample_count:
+		notes.append("no trained line %s for %s: no line wear there" % [line_id, path.name])
+		return {}
+	var n := int(ceil(path.curve.get_baked_length())) + 1
+	var lt := PackedFloat32Array()
+	var half := PackedFloat32Array()
+	var brake := PackedFloat32Array()
+	lt.resize(n)
+	half.resize(n)
+	brake.resize(n)
+	# The branch's route line runs a whole lap through it: find each branch
+	# metre's place on the route spline.
+	var route: Path3D = null
+	if path_index > 0:
+		var nm := "RouteSpline_Branch" if path_index == 1 else "RouteSpline_Branch_%d" % path_index
+		route = get_parent().get_node_or_null(nm) as Path3D
+		if route == null or route.curve == null:
+			notes.append("no %s: no line wear on %s" % [nm, path.name])
+			return {}
+	var route_len := route.curve.get_baked_length() if route else 0.0
+	var N := line.sample_count
+	var ds := line.track_length / N if line.track_length > 0.0 else 1.0
+	var decel := PackedFloat32Array()    # heat per metre, before smearing
+	decel.resize(n)
+	for i in n:
+		var frac := (float(i) + 0.5) / maxf(path.curve.get_baked_length(), 1.0)
+		if route:
+			var wp := path.global_transform * path.curve.sample_baked(minf(i + 0.5, path.curve.get_baked_length()))
+			frac = route.curve.get_closest_offset(route.global_transform.affine_inverse() * wp) / route_len
+		var f := fposmod(frac, 1.0) * N
+		var k0 := int(floorf(f)) % N
+		var k1 := (k0 + 1) % N
+		var w := f - floorf(f)
+		lt[i] = lerpf(line.lateral_offsets[k0], line.lateral_offsets[k1], w)
+		if line.corridor_min.size() == N and line.corridor_max.size() == N:
+			half[i] = 0.5 * lerpf(line.corridor_max[k0] - line.corridor_min[k0],
+					line.corridor_max[k1] - line.corridor_min[k1], w)
+		else:
+			half[i] = 15.0
+		# Heat: deceleration from the speed profile (v dv/ds, braking
+		# positive), or cornering load as the airbrake's stand-in.
+		if line.target_speeds.size() == N:
+			var va := line.target_speeds[k0]
+			var vb := line.target_speeds[k1]
+			var heat := maxf((va * va - vb * vb) / (2.0 * ds), 0.0) / BRAKE_REF
+			if line.curvatures.size() == N:
+				var a_lat := va * va * absf(line.curvatures[k0])
+				heat = maxf(heat, CORNER_SHARE * clampf((a_lat - CORNER_FROM) / CORNER_SPAN, 0.0, 1.0))
+			decel[i] = heat
+	for i in n:
+		var acc := 0.0
+		for j in range(-BRAKE_SMEAR, BRAKE_SMEAR + 1):
+			acc += decel[posmod(i + j, n)] if path_index == 0 else decel[clampi(i + j, 0, n - 1)]
+		brake[i] = clampf(acc / (2 * BRAKE_SMEAR + 1), 0.0, 1.0)
+	return {line = lt, half = half, brake = brake}
+
+
+## The strip: texel i covers metres [i, i + 1). Every channel holds an exact
+## integer (or, G, a distance), so the shader can unpack bits:
+##   R  slot A | slot B << 2 | seed A << 4 | seed B << 14
+##   G  transition start, metres (< 0: no transition here)
+##   B  transition length (m, 0..255; 0 = hard seam) | brake (6 bits) << 8 |
+##      zone wear (6 bits, 0..2 in 63 steps) << 14
+##   A  racing line t ((t + 32) * 64, 12 bits) | corridor half width (0.25 m
+##      steps, 7 bits) << 12 | has a line << 19
+## Before the transition start the shader draws A, after start + length B, a
+## cross-fade between.
 static func build_strip(mine: Array[TrackSurfaceZone], slots: Array[TrackSurfaceProfile],
-		length: float, closed: bool) -> Image:
+		length: float, closed: bool, wear: Dictionary = {}) -> Image:
 	var n := maxi(int(ceil(length)) + 1, 1)
-	var data := PackedFloat32Array()
-	data.resize(n * 4)
+	var sa := PackedInt32Array()
+	var sb := PackedInt32Array()
+	var da := PackedInt32Array()
+	var db := PackedInt32Array()
+	var s0 := PackedFloat32Array()
+	var blend := PackedInt32Array()
+	var zwear := PackedInt32Array()
+	# (Packed arrays are values: resize each one itself.)
+	sa.resize(n)
+	sb.resize(n)
+	da.resize(n)
+	db.resize(n)
+	blend.resize(n)
+	zwear.resize(n)
+	s0.resize(n)
+	s0.fill(-1.0)
+	zwear.fill(31)
 	var slot_of := func(z: TrackSurfaceZone) -> int:
 		return maxi(slots.find(z.profile), 0)
 	# Plain zones.
 	for z in mine:
 		var sl: int = slot_of.call(z)
+		var zw := clampi(roundi(z.wear / 2.0 * 63.0), 0, 63)
 		for i in range(int(floor(z.from_d)), int(ceil(z.to_d))):
 			var idx := posmod(i, n) if closed else i
 			if idx < 0 or idx >= n:
 				continue
-			data[idx * 4] = sl + 16 * sl
-			data[idx * 4 + 1] = -1.0
-			data[idx * 4 + 2] = 0.0
-			data[idx * 4 + 3] = z.seed + 1024 * z.seed
+			sa[idx] = sl
+			sb[idx] = sl
+			da[idx] = z.seed & 1023
+			db[idx] = z.seed & 1023
+			zwear[idx] = zw
 	# Transitions: each zone from the one in force just before it.
 	for zi in mine.size():
 		var z := mine[zi]
 		var prev := _zone_before(mine, zi, closed)
 		if prev == null or prev == z:
 			continue
-		var a: int = slot_of.call(prev)
-		var b: int = slot_of.call(z)
-		var s0 := z.from_d
-		var blend := maxf(z.blend_in, 0.0)
-		for i in range(int(floor(s0 - SEAM_PAD)), int(ceil(s0 + blend + SEAM_PAD))):
+		var start := z.from_d
+		var bl := clampi(roundi(z.blend_in), 0, 255)
+		for i in range(int(floor(start - SEAM_PAD)), int(ceil(start + bl + SEAM_PAD))):
 			var idx := i
-			var s0_here := s0
+			var start_here := start
 			if closed:
 				idx = posmod(i, n)
-				s0_here = s0 - length * floor(float(i) / n)
+				start_here = start - length * floor(float(i) / n)
 			if idx < 0 or idx >= n:
 				continue
-			data[idx * 4] = a + 16 * b
-			data[idx * 4 + 1] = s0_here
-			data[idx * 4 + 2] = blend
-			data[idx * 4 + 3] = prev.seed + 1024 * z.seed
+			sa[idx] = slot_of.call(prev)
+			sb[idx] = slot_of.call(z)
+			da[idx] = prev.seed & 1023
+			db[idx] = z.seed & 1023
+			s0[idx] = start_here
+			blend[idx] = bl
+	var has_line := not wear.is_empty()
+	var data := PackedFloat32Array()
 	var w := mini(n, STRIP_W)
 	var h := int(ceil(float(n) / w))
 	data.resize(w * h * 4)
+	for i in n:
+		data[i * 4] = sa[i] | (sb[i] << 2) | (da[i] << 4) | (db[i] << 14)
+		data[i * 4 + 1] = s0[i]
+		var br := 0
+		var la := 0
+		if has_line and i < (wear.line as PackedFloat32Array).size():
+			br = clampi(roundi(float(wear.brake[i]) * 63.0), 0, 63)
+			var lq := clampi(roundi((float(wear.line[i]) + LINE_RANGE) * 64.0), 0, 4095)
+			var hq := clampi(roundi(float(wear.half[i]) / HALF_STEP), 0, 127)
+			la = lq | (hq << 12) | (1 << 19)
+		data[i * 4 + 2] = blend[i] | (br << 8) | (zwear[i] << 14)
+		data[i * 4 + 3] = la
 	return Image.create_from_data(w, h, false, Image.FORMAT_RGBAF, data.to_byte_array())
 
 
@@ -189,5 +317,6 @@ func signature() -> int:
 	for z in zones:
 		if z:
 			parts.append([z.path_index, snappedf(z.from_d, 0.01), snappedf(z.to_d, 0.01),
-					z.profile.get_instance_id() if z.profile else 0, snappedf(z.blend_in, 0.01), z.seed])
+					z.profile.get_instance_id() if z.profile else 0, snappedf(z.blend_in, 0.01), z.seed,
+					snappedf(z.wear, 0.01)])
 	return hash(var_to_bytes(parts))

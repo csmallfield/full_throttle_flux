@@ -42,6 +42,8 @@ struct EnvSurface {
 	float edge;           // 0 = on the racing groove ... 1 = at / past the road edge
 	float is_wall;        // 0 road, 1 wall
 	float keep;           // 0..1: how much of the base look survives cover (grid lines)
+	float recess;         // 0..1: sunken detail (v38 track surface: channels,
+	                      // grate holes, grooves): water, snow and dust fill it first
 	vec3 normal_offset;   // OUT: world-space normal perturbation to add
 };
 
@@ -125,6 +127,7 @@ void env_surface_apply(inout EnvSurface s, float time) {
 		float amount = dust * mix(0.35, 0.85, edge) * mix(0.6, 1.2, n) * mix(1.0, 0.6, s.is_wall);
 		amount *= 1.0 - wet * 0.8;                // mud is another story
 		amount *= 1.0 - base_keep * 0.6;
+		amount = max(amount, dust * clamp(s.recess, 0.0, 1.0) * 0.7);
 		s.albedo = mix(s.albedo, env_dust_color.rgb * 0.75, clamp(amount, 0.0, 0.9));
 		s.roughness = mix(s.roughness, 0.95, clamp(amount * 1.4, 0.0, 1.0));
 	}
@@ -140,6 +143,8 @@ void env_surface_apply(inout EnvSurface s, float time) {
 		float thresh = mix(0.78, 0.38, clamp(wet * 0.8 + water * 0.6, 0.0, 1.0));
 		float puddle = smoothstep(thresh, thresh + 0.06, n) * flat_ground * smoothstep(0.35, 0.8, wet);
 		puddle *= mix(0.55, 1.0, edge);           // ships blow the groove clear; water pools at the edges
+		// Recesses (channels, grate holes) hold water before the flat does.
+		puddle = max(puddle, clamp(s.recess, 0.0, 1.0) * flat_ground * smoothstep(0.15, 0.5, wet));
 		s.albedo *= mix(1.0, 0.55, puddle);
 		s.roughness = mix(s.roughness, 0.02, puddle);
 		s.specular = mix(s.specular, 1.0, puddle);
@@ -170,6 +175,7 @@ void env_surface_apply(inout EnvSurface s, float time) {
 		float cover = frost * groove * smoothstep(0.35, 0.85, up);
 		float snow = smoothstep(0.55 - cover * 0.6, 0.75 - cover * 0.6, n + cover * 0.5) * cover;
 		snow *= 1.0 - base_keep * 0.75;           // keep the grid lines readable
+		snow = max(snow, clamp(s.recess, 0.0, 1.0) * cover * 0.8);  // drifts fill the recesses
 		vec3 snow_col = vec3(0.86, 0.89, 0.93);
 		s.albedo = mix(s.albedo, snow_col, clamp(snow, 0.0, 1.0));
 		s.roughness = mix(s.roughness, 0.75, snow);

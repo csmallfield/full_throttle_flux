@@ -64,6 +64,7 @@ func write(node: TrackSurface, b: TrackBuilder) -> bool:
 		# An inherited zone starts the branch: nothing to blend from.
 		z.blend_in = 0.0 if zd.inherited else k.blend_in
 		z.seed = hash([k.seed, String(k.name)]) & 1023
+		z.wear = k.wear
 		list.append(z)
 	node.zones = list
 	node.variation = b.surface_variation
@@ -77,7 +78,8 @@ func signature(b: TrackBuilder) -> int:
 		var k: SurfaceZoneKey = zd.key
 		parts.append([zd.path, snappedf(zd.from, 0.01), snappedf(zd.to, 0.01),
 				k.profile.get_instance_id() if k.profile else 0,
-				snappedf(0.0 if zd.inherited else k.blend_in, 0.01), hash([k.seed, String(k.name)]) & 1023])
+				snappedf(0.0 if zd.inherited else k.blend_in, 0.01), hash([k.seed, String(k.name)]) & 1023,
+				snappedf(k.wear, 0.01)])
 	return hash(var_to_bytes(parts))
 
 

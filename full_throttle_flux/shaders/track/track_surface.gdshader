@@ -34,7 +34,8 @@
 //
 // Debug views (key 9, global track_surface_debug): 1 s/t, 2 band ids,
 // 3 panel ids, 4 filter level (green = full detail, red = faded to average),
-// 5 zones (a hue per profile slot, blends between, hard seams white).
+// 5 zones (a hue per profile slot, blends between, hard seams white),
+// 6 wear (grime red, polish green, scorch blue).
 // Quality tier (Shift+9, global track_surface_tier): 0 low = no normal
 // detail, no grate parallax; 1 high = everything.
 shader_type spatial;
@@ -47,6 +48,7 @@ shader_type spatial;
 #include "res://shaders/track/modules/vents.gdshaderinc"
 #include "res://shaders/track/modules/lights.gdshaderinc"
 #include "res://shaders/track/modules/edges.gdshaderinc"
+#include "res://shaders/track/modules/wear.gdshaderinc"
 
 global uniform int track_surface_debug;
 global uniform int track_surface_tier;
@@ -100,9 +102,9 @@ group_uniforms zones;
 uniform vec4 surf_bands[64];
 // Per profile: (band count, sum of fixed widths, sum of flex weights, 0).
 uniform vec4 surf_profiles[4];
-// One texel per metre of path (TrackSurface.build_strip()): R = slot A +
-// 16 * slot B, G = transition start (< 0: none), B = its length (0 = hard
-// seam), A = seed A + 1024 * seed B.
+// One texel per metre of path (TrackSurface.build_strip()), exact integers
+// unpacked bitwise: R = slots and seeds, G = transition start (< 0: none),
+// B = transition length, brake, zone wear, A = racing line and corridor.
 uniform sampler2D surf_strip : filter_nearest, repeat_disable;
 // (texel count, texture width); 0 texels = no zones: profile 0 everywhere.
 uniform vec2 surf_strip_info = vec2(0.0);
@@ -221,11 +223,16 @@ struct Px {
 	float leds_fade;
 	bool high;
 	vec3 view_ts;
+	float lat01;      // 0 at the centre line .. 1 at the surface edge
+	vec2 dx;          // screen gradients of (t, s), for textureGrad
+	vec2 dy;
+	WearIn wi;
 };
 
-// The surface as profile `p` draws it (zone seed `zseed`), plus what the
-// debug views need.
-TSurf shade(int p, float zseed, Px x, out int band_id, out float panel, out float seam) {
+// The surface as profile `p` draws it (zone seed `zseed`), worn, plus what
+// the debug views need.
+TSurf shade(int p, float zseed, Px x, out int band_id, out float panel, out float seam,
+		out WearOut wo) {
 	float sd = seed + zseed;
 	Bands b = band_lookup(p, x.t, x.fw_t, x.fw_s, x.wl, x.wr, x.dots, x.leds);
 	band_id = b.id;
@@ -248,6 +255,7 @@ TSurf shade(int p, float zseed, Px x, out int band_id, out float panel, out floa
 	o.slope = vec2(0.0);
 	o.normal_var = 0.0;
 	o.keep = 0.0;
+	o.recess = 0.0;
 	o.filt = max(seam_fade, var_fade);
 	if (x.cls == EDGE_SURFACE) {
 		bool edge_band = bt == BT_EDGE;
@@ -270,6 +278,7 @@ TSurf shade(int p, float zseed, Px x, out int band_id, out float panel, out floa
 		o.rough = mix(o.rough, channel_roughness, b.channel);
 		o.metal = mix(o.metal, 0.2, b.channel);
 		o.slope *= 1.0 - b.channel;
+		o.recess = max(o.recess, max(b.channel, seam * 0.8));
 		o.albedo = mix(o.albedo, edge_line_color, b.edge_line);
 		o.rough = mix(o.rough, 0.6, b.edge_line);
 		o.metal = mix(o.metal, 0.0, b.edge_line);
@@ -287,6 +296,7 @@ TSurf shade(int p, float zseed, Px x, out int band_id, out float panel, out floa
 		o.filt = 0.0;
 		seam = 0.0;
 	}
+	wo = wear(o, x.wi, x.s, x.t, x.cls, x.lat01, panel, pbf, var_fade, x.dx, x.dy, x.high);
 	return o;
 }
 
@@ -299,6 +309,7 @@ TSurf ts_mix(TSurf a, TSurf b, float w) {
 	o.slope = mix(a.slope, b.slope, w);
 	o.normal_var = mix(a.normal_var, b.normal_var, w);
 	o.keep = max(a.keep, b.keep);
+	o.recess = mix(a.recess, b.recess, w);
 	o.filt = max(a.filt, b.filt);
 	return o;
 }
@@ -324,6 +335,9 @@ void fragment() {
 	x.fw_t = aa_fw(x.t);
 	x.fw_s = aa_fw_s(x.s);
 	x.q = (x.s + abs(x.t)) * 0.70710678;
+	x.dx = dFdx(vec2(x.t, x.s));
+	x.dy = dFdy(vec2(x.t, x.s));
+	x.lat01 = clamp(x.t < 0.0 ? -x.t / max(x.wl, 0.01) : x.t / max(x.wr, 0.01), 0.0, 1.0);
 	// The hazard diagonals: highest contrast, on thin lips: filter twice as hard.
 	x.fw_q = aa_fw(x.q) * aa_s_bias * 2.0;
 
@@ -352,19 +366,32 @@ void fragment() {
 	float seed_b = 0.0;
 	float w = 0.0;
 	float hard_seam = 0.0;
+	x.wi.zone = 1.0;
+	x.wi.brake = 0.0;
+	x.wi.line = false;
+	x.wi.line_t = 0.0;
+	x.wi.half = 0.0;
 	if (surf_strip_info.x > 0.0) {
 		int n = int(surf_strip_info.x);
 		int sw = int(surf_strip_info.y);
 		int i = clamp(int(floor(x.s)), 0, n - 1);
 		vec4 z = texelFetch(surf_strip, ivec2(i % sw, i / sw), 0);
-		int slots = int(z.r + 0.5);
-		pa = slots % 16;
-		pbz = slots / 16;
-		seed_a = mod(z.a, 1024.0);
-		seed_b = floor(z.a / 1024.0 + 0.0005);
+		uint r = uint(z.r + 0.5);
+		pa = int(r & 3u);
+		pbz = int((r >> 2u) & 3u);
+		seed_a = float((r >> 4u) & 1023u);
+		seed_b = float((r >> 14u) & 1023u);
+		uint bz = uint(z.b + 0.5);
+		float blend_len = float(bz & 255u);
+		x.wi.brake = float((bz >> 8u) & 63u) / 63.0;
+		x.wi.zone = float((bz >> 14u) & 63u) / 63.0 * 2.0;
+		uint az = uint(z.a + 0.5);
+		x.wi.line = ((az >> 19u) & 1u) == 1u;
+		x.wi.line_t = float(az & 4095u) / 64.0 - 32.0;
+		x.wi.half = float((az >> 12u) & 127u) * 0.25;
 		if (z.g >= 0.0) {
-			if (z.b > 0.0) {
-				w = clamp((x.s - z.g) / z.b, 0.0, 1.0);
+			if (blend_len > 0.0) {
+				w = clamp((x.s - z.g) / blend_len, 0.0, 1.0);
 			} else {
 				// A hard seam: switch over the footprint, and mark it.
 				w = aa_step(z.g, x.s, x.fw_s);
@@ -375,18 +402,20 @@ void fragment() {
 	int band_id;
 	float panel;
 	float seam;
+	WearOut wo;
 	TSurf o;
 	if (w <= 0.0) {
-		o = shade(pa, seed_a, x, band_id, panel, seam);
+		o = shade(pa, seed_a, x, band_id, panel, seam, wo);
 	} else if (w >= 1.0) {
-		o = shade(pbz, seed_b, x, band_id, panel, seam);
+		o = shade(pbz, seed_b, x, band_id, panel, seam, wo);
 	} else {
 		// Inside a transition: both profiles, cross-faded.
 		int id_b;
 		float panel_b;
 		float seam_b;
-		TSurf ob = shade(pbz, seed_b, x, id_b, panel_b, seam_b);
-		o = ts_mix(shade(pa, seed_a, x, band_id, panel, seam), ob, w);
+		WearOut wo_b;
+		TSurf ob = shade(pbz, seed_b, x, id_b, panel_b, seam_b, wo_b);
+		o = ts_mix(shade(pa, seed_a, x, band_id, panel, seam, wo), ob, w);
 		if (w >= 0.5) {
 			band_id = id_b;
 			panel = panel_b;
@@ -411,6 +440,9 @@ void fragment() {
 			c = x.cls == 2 ? vec3(0.05) : debug_hue(env_hash(vec2(panel, float(band_id)))) * mix(1.0, 0.1, seam);
 		} else if (track_surface_debug == 4) {
 			c = mix(vec3(0.0, 0.8, 0.1), vec3(0.9, 0.05, 0.0), o.filt);
+		} else if (track_surface_debug == 6) {
+			// Wear: grime red, polish green, scorch blue.
+			c = vec3(wo.grime, wo.polish, wo.scorch);
 		} else {
 			// Zones: one hue per profile slot, blends in between, seams white.
 			c = mix(debug_hue(float(pa) * 0.27 + 0.05), debug_hue(float(pbz) * 0.27 + 0.05), w) * 0.8;
@@ -438,6 +470,7 @@ void fragment() {
 		e.edge = x.cls == EDGE_SURFACE ? clamp(lat, 0.0, 1.0) : 1.0;
 		e.is_wall = 0.0;
 		e.keep = o.keep;
+		e.recess = o.recess;
 		env_surface_apply(e, TIME);
 
 		ALBEDO = e.albedo;

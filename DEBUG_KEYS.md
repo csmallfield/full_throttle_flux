@@ -26,7 +26,7 @@ the number row instead, with the same numbers.
 | 7 | Anti-aliasing: MSAA 2x+SMAA (v36) / **MSAA 4x+SMAA** / TAA / FSR 2 native | `user://graphics.cfg` | 〃 |
 | Shift+7 | Road grid: **filtered (v37)** / v36 fixed-pixel lines | no | 〃 |
 | 8 | Shadows: Low (v36) / **High** / Ultra | `user://graphics.cfg` | 〃 |
-| 9 | Track surface debug view (v38): off / s,t / band ids / panel ids / filter level / zones | no | 〃 |
+| 9 | Track surface debug view (v38): off / s,t / band ids / panel ids / filter level / zones / wear | no | 〃 |
 | Shift+9 | Track surface quality tier: Low / **High** (same look in v38 phase 1) | `user://graphics.cfg` | 〃 |
 | F9 | AI spectator on / off | no | `ai_spectator.gd` |
 | F10 | Spectator overlay detail: off / basic / full | no | 〃 |

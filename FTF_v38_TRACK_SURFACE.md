@@ -10,7 +10,8 @@ Design doc: *FTF Track Surface Shader — Design Doc* (claude.ai artifact
 2cW92pxkyTic7oBCau9SLR). Branch `feature/v38-track-surface`, not merged.
 
 **Phase 2 (core modules) is in `FTF_v38_TRACK_SURFACE_P2.md`, phase 3
-(authoring) in `FTF_v38_TRACK_SURFACE_P3.md`.** It changes
+(authoring) in `FTF_v38_TRACK_SURFACE_P3.md`, phase 4 (wear and weather) in
+`FTF_v38_TRACK_SURFACE_P4.md`.** It changes
 two things described here:
 - `aa_lines` now filters over 1.5 footprints and fades at 6→3 px;
 - the far-flicker metric now uses the centre half of the columns.

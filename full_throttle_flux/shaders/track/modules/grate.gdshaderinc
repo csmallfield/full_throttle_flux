@@ -70,4 +70,5 @@ void grate(inout TSurf o, float u, float w, float s, float fw_t, float fw_s, vec
 	o.metal = mix(0.8, 0.2, hole);
 	o.emission += grate_glow * grate_glow_energy * hole * (1.0 - wall);
 	o.keep = max(o.keep, hole * 0.5);
+	o.recess = max(o.recess, hole);
 }
