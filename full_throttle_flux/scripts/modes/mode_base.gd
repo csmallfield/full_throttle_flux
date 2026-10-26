@@ -234,6 +234,10 @@ func _setup_camera() -> void:
 		else:
 			push_warning("ModeBase: Camera has no 'ship' property")
 		
+		# v35: the chase camera leads its aim down the upcoming track
+		if camera_instance.has_method("set_track") and track_instance:
+			camera_instance.set_track(track_instance)
+		
 		# Give ship reference to camera for shake effects
 		if ship_instance is ShipController:
 			ship_instance.camera = camera_instance

@@ -35,6 +35,17 @@ class_name AGCamera2097
 ##   * FOV is driven by acceleration and boost, not by absolute speed. v1
 ##     measured 116 degrees on straights and 81 mid-corner: a 35-degree lens
 ##     breathing in and out of every corner, zooming IN when you turned.
+##
+## v35:
+##   * Velocity feedforward on the AIM point too (aim_feedforward). v2 only
+##     fed it into the position, so the aim lagged speed / aim_follow_rate
+##     (10 m at 120 u/s, against look_distance 9): at speed the camera aimed
+##     at the ship, stared at the road, cut to the inside of corners, and
+##     whipped down on boost pads.
+##   * Track look-ahead: the aim bends toward where the track goes over the
+##     next track_look_time seconds (forks followed). See set_track().
+##   * Boost lag: the chase distance grows with the speed above max_speed, so
+##     the ship surges away on a pad and the camera reels it back in.
 
 ## Reference to the ship being followed. Must be set for the camera to run.
 @export var ship: ShipController
@@ -96,6 +107,66 @@ class_name AGCamera2097
 
 ## How quickly the aim point converges (per second).
 @export var aim_follow_rate := 12.0
+
+## v35: velocity feedforward on the aim point, matching what v2 did for the
+## position. Without it the aim point lags its target by speed / rate --
+## 10 m at 120 u/s against a 9 m look_distance -- so at top speed the camera
+## was aiming at the SHIP, not ahead of it: it stared at the road (55% of a
+## Swoopy lap had the view ray hitting the track within 25 m), cut to the
+## inside of tight corners, and on a 150 u/s boost pad the aim point fell
+## ~13 m behind the ship and the view whipped down 24 degrees.
+## 1 = full feedforward. 0 = the old behaviour.
+@export_range(0.0, 1.0) var aim_feedforward := 1.0
+
+# ============================================================================
+# TRACK LOOK-AHEAD
+# ============================================================================
+
+@export_group("Track Look-Ahead")
+
+## v35: bend the aim toward where the TRACK goes, not just where the ship
+## points. Needs a track: ModeBase calls set_track(); otherwise the camera
+## looks for one once and falls back to the plain nose/velocity aim.
+@export var track_look_enabled := true
+
+## 0 = nose/velocity aim only, 1 = aim entirely along the upcoming track.
+## The aim keeps its look_distance, so on a straight nothing changes; through
+## corners, crests and dips the view leads down the road.
+@export_range(0.0, 1.0) var track_look_weight := 0.55
+
+## How far ahead along the track to look, in seconds at the current speed...
+@export var track_look_time := 0.35
+
+## ...clamped to this range, metres.
+@export var track_look_min := 15.0
+@export var track_look_max := 55.0
+
+## The look-ahead fades out when the ship is further than this from the
+## centre line (a fork's other branch, a big jump, off the road), metres.
+@export var track_look_fade_lateral := 40.0
+
+# ============================================================================
+# BOOST LAG
+# ============================================================================
+
+@export_group("Boost Lag")
+
+## v35: on a boost the ship surges away from the camera, then the camera
+## catches up as the overspeed bleeds off.
+@export var boost_lag_enabled := true
+
+## Extra distance at a speed excess of boost_lag_ref_speed, metres.
+@export var boost_lag_distance := 7.0
+
+## Speed above max_speed that gives the full boost_lag_distance (u/s).
+## The default pad adds 150.
+@export var boost_lag_ref_speed := 120.0
+
+## How quickly the camera drops back when the boost hits (per second).
+@export var boost_lag_attack := 12.0
+
+## How quickly it catches up again (per second).
+@export var boost_lag_release := 1.5
 
 # ============================================================================
 # BANK
@@ -255,6 +326,68 @@ var _initialised := false
 var _intro_time := 0.0
 var _intro_active := false
 var _intro_consumed := false
+var _boost_lag := 0.0
+
+# v35 track look-ahead: the track's centre lines (MainSpline, plus each fork
+# branch) resampled every TRACK_STEP m in world space, and where along them
+# the ship was last frame.
+const TRACK_STEP := 2.0
+var _track_searched := false
+## [{pts, ups, closed, rejoin, idx}] -- rejoin = main distance at a branch's
+## end (-1 on the main line), idx = nearest sample last frame (-1 = unknown).
+var _paths: Array = []
+var _cur_path := -1
+var _track_ship: Node = null
+var _track_weight := 0.0
+
+## Give the camera the track it is racing on (ModeBase does this). Rebuilds
+## the look-ahead samples; pass null to turn the look-ahead off.
+func set_track(track_root: Node) -> void:
+	_track_searched = true
+	_paths = []
+	_cur_path = -1
+	if track_root == null:
+		return
+	var graph := _find_graph(track_root)
+	var main: Path3D = graph.path_of(-1) if graph and graph.is_valid() else null
+	if main == null:
+		main = TrackSplineHelper.new()._find_track_spline(track_root)
+	if not _add_path(main, -1.0):
+		return
+	if graph and graph.has_branches():
+		for i in graph.branches.size():
+			var bp := graph.path_of(i)
+			if bp and bp.curve:
+				_add_path(bp, graph.branch_to_main(i, graph.path_length(i)))
+
+static func _find_graph(node: Node) -> TrackGraph:
+	if node is TrackGraph:
+		return node
+	for c in node.get_children():
+		var g := _find_graph(c)
+		if g:
+			return g
+	return null
+
+func _add_path(path: Path3D, rejoin: float) -> bool:
+	if path == null or path.curve == null:
+		return false
+	var curve: Curve3D = path.curve
+	var length := curve.get_baked_length()
+	if length < TRACK_STEP * 4.0:
+		return false
+	var xf := path.global_transform
+	var n := int(ceil(length / TRACK_STEP)) + 1
+	var pts := PackedVector3Array()
+	var ups := PackedVector3Array()
+	for i in n:
+		var d := minf(i * TRACK_STEP, length)
+		pts.append(xf * curve.sample_baked(d))
+		var up := xf.basis * curve.sample_baked_up_vector(d, true)
+		ups.append(up.normalized() if up.length() > 0.001 else Vector3.UP)
+	var closed := rejoin < 0.0 and (curve.closed or pts[0].distance_to(pts[n - 1]) < TRACK_STEP * 3.0)
+	_paths.append({pts = pts, ups = ups, closed = closed, rejoin = rejoin, idx = -1})
+	return true
 
 ## True while the cinematic entry is playing.
 func is_intro_playing() -> bool:
@@ -351,7 +484,7 @@ func _desired_position(ship_pos: Vector3, frame: Basis, ratio: float, delta: flo
 	var offset := Vector3(
 		swing,
 		base_height + speed_height * ratio,
-		base_distance + speed_distance * ratio
+		base_distance + speed_distance * ratio + _update_boost_lag(delta)
 	)
 	return ship_pos + frame * offset
 
@@ -391,9 +524,144 @@ func _update_aim(ship_pos: Vector3, ship_forward: Vector3, ship_up: Vector3, del
 		var vel_dir := ship.velocity.normalized()
 		if ship_forward.dot(vel_dir) > -0.5:
 			aim_dir = ship_forward.slerp(vel_dir, look_velocity_blend).normalized()
-	
+
+	# v35: lead down the upcoming track. Same look_distance, so this only
+	# turns the aim; it does not move it further away or change the framing.
+	var track_dir := _track_look_dir(ship_pos, ship_forward)
+	var want := track_look_weight if track_look_enabled and track_dir != Vector3.ZERO else 0.0
+	_track_weight = lerpf(_track_weight, want, _w(4.0, delta))
+	if _track_weight > 0.001 and track_dir != Vector3.ZERO:
+		aim_dir = ShipController.slerp_safe(aim_dir, track_dir, _track_weight).normalized()
+
 	var target := ship_pos + aim_dir * look_distance + ship_up * aim_height
+	_aim_point += ship.velocity * delta * aim_feedforward
 	_aim_point = _aim_point.lerp(target, _w(aim_follow_rate, delta))
+
+## v35: unit direction from the ship to where it will be track_look_time
+## from now if it follows the track at its current lateral and vertical
+## offset, or ZERO when there is no usable track here. Carrying the offset
+## across cancels a constant road-vs-spline offset, so this works on the
+## older circuits whose road does not sit exactly on MainSpline. On a fork
+## the ship follows whichever centre line it is nearest, and a look-ahead
+## that runs off the end of a branch carries on along the main line from
+## the rejoin.
+func _track_look_dir(ship_pos: Vector3, ship_forward: Vector3) -> Vector3:
+	if not track_look_enabled:
+		return Vector3.ZERO
+	if not _track_searched:
+		_track_searched = true
+		var scene := get_tree().current_scene
+		if scene:
+			set_track(scene)
+	if _paths.is_empty():
+		return Vector3.ZERO
+	if ship != _track_ship:
+		_track_ship = ship
+		_reset_track_search()
+	_locate(ship_pos)
+	var P: Dictionary = _paths[_cur_path]
+	var pts: PackedVector3Array = P.pts
+	var i: int = P.idx
+	var j := _step_idx(P, i, 1)
+	if j == i:
+		i = _step_idx(P, i, -1)
+		j = P.idx
+	var seg := pts[j] - pts[i]
+	if seg.length_squared() < 0.0001:
+		return Vector3.ZERO
+	# Where along the track the ship is, and its offset in the track frame.
+	var t := clampf((ship_pos - pts[i]).dot(seg) / seg.length_squared(), 0.0, 1.0)
+	var f := float(i) + t
+	var here := _track_frame(_cur_path, f)
+	var rel := ship_pos - (here[0] as Vector3)
+	var lateral := rel.dot(here[1] as Vector3)
+	var vertical := rel.dot(here[2] as Vector3)
+	var fade := 1.0 - clampf((absf(lateral) - track_look_fade_lateral) / 15.0, 0.0, 1.0)
+	if fade <= 0.0:
+		return Vector3.ZERO
+	var look := clampf(ship.velocity.length() * track_look_time, track_look_min, track_look_max)
+	var ahead_path := _cur_path
+	var ahead_f := f + look / TRACK_STEP
+	var last := float(pts.size() - 1)
+	if not P.closed and ahead_f > last and float(P.rejoin) >= 0.0:
+		ahead_path = 0
+		ahead_f = (float(P.rejoin) + (ahead_f - last) * TRACK_STEP) / TRACK_STEP
+	var ahead := _track_frame(ahead_path, ahead_f)
+	var target: Vector3 = (ahead[0] as Vector3) + (ahead[1] as Vector3) * lateral + (ahead[2] as Vector3) * vertical
+	var dir := target - ship_pos
+	if dir.length() < 1.0:
+		return Vector3.ZERO
+	dir = dir.normalized()
+	if dir.dot(ship_forward) < 0.0:
+		return Vector3.ZERO   # facing backwards, spun out: keep the plain aim
+	return ShipController.slerp_safe(ship_forward, dir, fade).normalized() if fade < 1.0 else dir
+
+func _reset_track_search() -> void:
+	_cur_path = -1
+	for P in _paths:
+		P.idx = -1
+
+func _step_idx(P: Dictionary, i: int, k: int) -> int:
+	var n: int = (P.pts as PackedVector3Array).size()
+	return wrapi(i + k, 0, n - 1) if P.closed else clampi(i + k, 0, n - 1)
+
+## [position, right, up] at a fractional sample index on path `pi`.
+func _track_frame(pi: int, f: float) -> Array:
+	var P: Dictionary = _paths[pi]
+	var pts: PackedVector3Array = P.pts
+	var ups: PackedVector3Array = P.ups
+	var n := pts.size()
+	f = fposmod(f, float(n - 1)) if P.closed else clampf(f, 0.0, float(n - 1))
+	var i := mini(int(f), n - 2)
+	var k := f - float(i)
+	var p := pts[i].lerp(pts[i + 1], k)
+	var up := ups[i].lerp(ups[i + 1], k)
+	var tangent := pts[i + 1] - pts[i]
+	if tangent.length_squared() < 0.0001:
+		tangent = -ship.global_transform.basis.z
+	tangent = tangent.normalized()
+	var right := tangent.cross(up)
+	if right.length_squared() < 0.0001:
+		right = ship.global_transform.basis.x
+	right = right.normalized()
+	up = right.cross(tangent).normalized()
+	return [p, right, up]
+
+## Nearest sample on every centre line -- a short window around last frame's,
+## or the whole line on the first frame or after a jump in position (respawn,
+## a line the ship is nowhere near). The window keeps multi-level tracks from
+## snapping to the deck above or below. The ship then follows the nearest
+## line, sticking with the current one unless another is clearly closer.
+func _locate(pos: Vector3) -> void:
+	var best_path := -1
+	var best_sq := INF
+	var cur_sq := INF
+	for pi in _paths.size():
+		var P: Dictionary = _paths[pi]
+		var pts: PackedVector3Array = P.pts
+		var b := -1
+		var bsq := INF
+		if int(P.idx) >= 0:
+			for k in range(-20, 41):
+				var i := _step_idx(P, P.idx, k)
+				var sq := pos.distance_squared_to(pts[i])
+				if sq < bsq:
+					bsq = sq
+					b = i
+		if b < 0 or bsq > 60.0 * 60.0:
+			for i in pts.size():
+				var sq := pos.distance_squared_to(pts[i])
+				if sq < bsq:
+					bsq = sq
+					b = i
+		P.idx = b
+		if pi == _cur_path:
+			cur_sq = bsq
+		if bsq < best_sq:
+			best_sq = bsq
+			best_path = pi
+	if _cur_path < 0 or sqrt(best_sq) < sqrt(cur_sq) - 2.0:
+		_cur_path = best_path
 
 func _apply_look() -> void:
 	var to_target := _aim_point - global_position
@@ -431,6 +699,18 @@ func _update_fov(ratio: float, delta: float) -> void:
 	
 	_fov_current = lerpf(_fov_current, target, _w(fov_follow_rate, delta))
 	fov = clampf(_fov_current, fov_min, fov_max)
+
+## v35: extra chase distance while the ship runs above max_speed on a boost.
+## Follows the speed excess, so it surges out on the pad and eases back in as
+## the overspeed bleeds off.
+func _update_boost_lag(delta: float) -> float:
+	var target := 0.0
+	if boost_lag_enabled and not _intro_active:
+		var excess: float = ship.velocity.length() - ship._max_speed
+		target = boost_lag_distance * clampf(excess / maxf(boost_lag_ref_speed, 1.0), 0.0, 1.5)
+	var rate := boost_lag_attack if target > _boost_lag else boost_lag_release
+	_boost_lag = lerpf(_boost_lag, target, _w(rate, delta))
+	return _boost_lag
 
 ## Called by ShipController.apply_boost().
 func apply_fov_kick(strength: float = 1.0) -> void:
@@ -563,6 +843,8 @@ func _snap_to_ship() -> void:
 	_collision_distance = _cam_position.distance_to(ship.global_position)
 	_swing = 0.0
 	_bank = 0.0
+	_boost_lag = 0.0
+	_reset_track_search()
 	_fov_current = base_fov
 	fov = base_fov
 	global_position = _cam_position
