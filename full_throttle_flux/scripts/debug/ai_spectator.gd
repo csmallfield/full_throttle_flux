@@ -12,7 +12,8 @@ class_name AISpectator
 ## it works in any mode (race, time trial, a bare test scene) without those
 ## modes needing to know it exists.
 ##
-## Keys (raw scancodes, so no project input map changes are needed):
+## Keys (raw scancodes, so no project input map changes are needed). Only F9
+## works while the spectator is off; the rest are left alone until then:
 ##   F9          toggle spectator on/off
 ##   [  and  ]   previous / next ship
 ##   \           jump back to the player's ship
@@ -126,6 +127,10 @@ func _input(event: InputEvent) -> void:
 		# the brackets are not where US layouts put them at all.
 		if _is_key(key, KEY_F9):
 			_activate(not _active)
+		elif not _active:
+			# Letters are only ours while spectating; otherwise they belong to
+			# whatever is on screen (results-screen initials, for one).
+			return
 		elif _is_key(key, KEY_Y) or _is_key(key, KEY_Z) or _is_key(key, KEY_C):
 			_cycle_camera(-1 if key.shift_pressed else 1)
 		elif _is_key(key, KEY_BRACKETLEFT) or _is_key(key, KEY_COMMA):
@@ -138,7 +143,7 @@ func _input(event: InputEvent) -> void:
 			_set_clean_view(not _clean)
 		elif _is_key(key, KEY_F10):
 			_detail = (_detail + 1) % 3
-			_layer.visible = _detail > 0
+			_layer.visible = _active and _detail > 0
 		elif _is_key(key, KEY_F11):
 			_frozen = not _frozen
 		else:
@@ -264,6 +269,9 @@ func _to_player() -> void:
 	if _player_ship:
 		_attach(_player_ship)
 		_active = false
+		# H only works while spectating, so leaving must not strand the HUD.
+		if _clean:
+			_set_clean_view(false)
 		_layer.visible = false
 
 ## Reassigning the camera's ship is all that is needed -- AGCamera2097 reads
