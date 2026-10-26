@@ -24,6 +24,11 @@ costs" is restated as **≤ +0.1 ms GPU over the v37 grid on the RTX 3080 at
 1080p, to be verified on a GTX 1080 Ti**. Phase 1 met the original gate;
 phase 2 costs +0.07 ms (see the phase 2 notes).
 
+**Budget change after phase 5a:** restated again, as **≤ +0.2 ms GPU over the
+v37 grid on the RTX 3080 at 1080p, to be verified on a GTX 1080 Ti**, so the
+low tier keeps decals and living lights (phase 5a: +0.19–0.20 ms). The high
+tier's budget is unchanged: ≤ +0.5 ms on the 3080 at 1440p.
+
 ## Try it in game
 | Key | What | Options (default in bold) |
 |---|---|---|

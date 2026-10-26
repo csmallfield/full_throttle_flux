@@ -11,9 +11,10 @@ Phase 5 of the track surface ("rollout"). Earlier phases are in
 builder-track look** (gate 3), as the doc and we agreed. Same branch,
 `feature/v38-track-surface`.
 
-**Budget: the low tier is over.** You chose decals and flow on both tiers;
-the low tier is now +0.19–0.20 ms over the grid on the RTX 3080 against
-≤ +0.1 ms. The options are under Cost.
+**Budget: restated for the low tier.** Decals and flow stay on both tiers.
+The low tier's budget is now **≤ +0.2 ms GPU over the v37 grid on the RTX
+3080 at 1080p, to be verified on a GTX 1080 Ti** (it was ≤ +0.1 ms). It
+measures +0.19–0.20 ms, so it meets the new budget with **no headroom left**.
 
 ## Try it
 - **Builder Lab decals:**
@@ -200,7 +201,8 @@ time median, ms:
 
 - **High tier at 1440p: +0.38 ms.** Within ≤ +0.5 ms, with about 0.12 ms
   left.
-- **Low tier at 1080p: +0.19–0.20 ms. Over ≤ +0.1 ms.**
+- **Low tier at 1080p: +0.19–0.20 ms.** Within the restated ≤ +0.2 ms
+  (below), with no headroom.
 - **Where it went** (low tier, 1080p, 12 s A/Bs):
 
   | Piece | Cost |
@@ -211,14 +213,18 @@ time median, ms:
   | Phase 4's surface | +0.10 ms |
   | Remainder (noise) | ~0.02 ms |
 
-- **Options** (your call):
-  1. **Decals and flow off on the low tier**, as the doc had it. That's
-     about +0.12–0.13 ms. Close; the last few hundredths could come from
-     dropping panel age on low.
-  2. **Restate the low-tier budget**, e.g. ≤ +0.2 ms on the 3080, still to
-     verify on a 1080 Ti.
-  3. **Decals only on paths that have them**, which is already the case;
-     Builder Lab's main path has decals, so it pays.
+- **Decision: keep decals and flow on both tiers, and restate the low-tier
+  budget** as **≤ +0.2 ms GPU over the v37 grid on the RTX 3080 at 1080p**,
+  still **to be verified on a GTX 1080 Ti** (min spec, 1080p / 60) before
+  sign-off.
+  - The alternatives were decals and flow off on the low tier (about
+    +0.12–0.13 ms), or trimming panel age on low.
+  - If the 1080 Ti run comes in over, decals and flow off on the low tier is
+    the first fallback (about 0.07 ms back), then panel age on low.
+  - Either way the high tier keeps everything, with its ≤ +0.5 ms budget
+    unchanged.
+- **No low-tier headroom for 5b.** The circuit port must not add per-pixel
+  cost to the low tier, or this needs revisiting.
 
 ## Checks
 - Validator self-test 26/26 (new: decal text the font can't draw).
@@ -245,7 +251,7 @@ In `%APPDATA%\Godot\app_userdata\full_throttle_flux\`:
 ## Open for 5b and after
 - **Gates 2 and 3**: your hand test at speed and look sign-off on Builder
   Lab. That unblocks the circuit port.
-- **The low-tier budget** (above).
+- **Verify the restated low-tier budget (≤ +0.2 ms) on a GTX 1080 Ti.**
 - **The circuit port** (5b): circuits 3, 5, 6 and 7 are CSG, and need
   metres-across rebuilt from the known road width (doc: Coordinates), the
   walls' face/top split, and a `TrackSurface` node or equivalent for zones
