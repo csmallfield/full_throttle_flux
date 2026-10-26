@@ -62,6 +62,15 @@ static func _walk(n: Node, spline: Path3D, shader: Shader, seen: Dictionary, rep
 	var mats: Array[Material] = []
 	var mi: MeshInstance3D = null
 	if n is CSGPrimitive3D:
+		# v38 phase 5b: a circuit CSG that TrackSurface put on a v38 material
+		# (material_override) is adopted as that; its own grid material stays.
+		var ov := (n as GeometryInstance3D).material_override as ShaderMaterial
+		if ov and ov.shader and (ov.shader.resource_path == SURFACE_SHADER_PATH
+				or ov.shader.resource_path == WALL_SHADER_PATH):
+			_adopt_surface(n, null, spline, ov, seen, rep)
+			for c in n.get_children():
+				_walk(c, spline, shader, seen, rep)
+			return
 		mats.append((n as CSGPrimitive3D).material)
 	elif n is MeshInstance3D:
 		mi = n as MeshInstance3D
@@ -100,12 +109,16 @@ static func _walk(n: Node, spline: Path3D, shader: Shader, seen: Dictionary, rep
 
 ## v38: a mesh drawn with the track surface shader: nothing to swap, only
 ## where its s runs.
-static func _adopt_surface(n: Node, mi: MeshInstance3D, spline: Path3D, sm: ShaderMaterial,
+static func _adopt_surface(n: Node, mi: GeometryInstance3D, spline: Path3D, sm: ShaderMaterial,
 		seen: Dictionary, rep: Report) -> void:
 	var seg := n as TrackRoadSegment
 	var on_main := seg != null and spline != null and seg.get_node_or_null(seg.path_node) == spline
-	if mi:
-		mi.set_instance_shader_parameter("along_main", 1.0 if on_main else 0.0)
+	var csg := n as CSGPolygon3D
+	if csg:
+		on_main = spline != null and csg.get_node_or_null(csg.path_node) == spline
+	var gi: GeometryInstance3D = mi if mi else n as GeometryInstance3D
+	if gi:
+		gi.set_instance_shader_parameter("along_main", 1.0 if on_main else 0.0)
 	if not seen.has(sm):
 		seen[sm] = {}
 	rep.nodes += 1

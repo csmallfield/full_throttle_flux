@@ -518,6 +518,23 @@ magnetic zones and the cameras find the road by ray-casting it rather than
 trusting the spline (v33), and set dressing uses `UtopiaKit.road_xf`. Builder
 tracks need none of that.
 
+**Their road surface (v38).** The circuits have the same road surface and
+walls as builder tracks, without the Track Builder: each scene has a
+`TrackSurface` node, and when the race loads it puts the circuit's CSG road
+and walls on the v38 materials (`material_override`, so the CSG meshes and
+their collision are untouched; the editor still shows the old grid). Edit
+the surface in that node's inspector:
+
+- `zones`: one `TrackSurfaceZone` per stretch, with a `profile`, `from_d`
+  (metres along MainSpline), `blend_in`, `seed` and `wear`. Leave `to_d` at 0
+  and the zone runs to the next one (the last round the lap to the first).
+- `decals`: `TrackSurfaceDecal`s with the same settings as `SurfaceDecalKey`
+  (§3.8), placed by `distance` along MainSpline instead of a key.
+- `variation`: the circuit's own `TrackSurfaceVariation`
+  (`resources/track_surface/variations/variation_<id>.tres`).
+
+Remove the node and the circuit goes back to the grid.
+
 ---
 
 ## Running the tools

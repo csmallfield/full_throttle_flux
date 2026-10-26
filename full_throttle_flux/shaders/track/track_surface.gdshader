@@ -50,6 +50,7 @@ shader_type spatial;
 #include "res://shaders/track/modules/edges.gdshaderinc"
 #include "res://shaders/track/modules/wear.gdshaderinc"
 #include "res://shaders/track/modules/decals.gdshaderinc"
+#include "res://shaders/track/modules/csg.gdshaderinc"
 
 global uniform int track_surface_debug;
 global uniform int track_surface_tier;
@@ -116,6 +117,7 @@ const int EDGE_LIP = 1;
 
 varying vec2 v_st;
 varying vec3 v_meta;
+varying vec2 v_uv;
 
 struct Bands {
 	int id;           // band under t
@@ -329,6 +331,7 @@ vec3 debug_hue(float h) {
 void vertex() {
 	v_st = UV2;
 	v_meta = CUSTOM0.xyz;
+	v_uv = UV;
 }
 
 void fragment() {
@@ -338,6 +341,15 @@ void fragment() {
 	x.cls = int(round(v_meta.x));
 	x.wl = v_meta.y;
 	x.wr = v_meta.z;
+	if (csg_mode) {
+		// The circuits: everything from the CSG's UVs (csg.gdshaderinc).
+		vec3 c = csg_lookup(v_uv.y);
+		x.s = v_uv.x * csg_u_scale;
+		x.t = c.x;
+		x.cls = int(round(c.z));
+		x.wl = csg_half.x;
+		x.wr = csg_half.y;
+	}
 	x.high = track_surface_tier > 0;
 	// Derivatives first, in uniform control flow.
 	x.fw_t = aa_fw(x.t);
@@ -355,7 +367,15 @@ void fragment() {
 	vec3 right = vec3(0.0);
 	x.view_ts = vec3(0.0, 0.0, 1.0);
 	if (x.high) {
-		fwd = normalize(TANGENT - n_geo * dot(TANGENT, n_geo));
+		vec3 tan = TANGENT;
+		if (csg_mode) {
+			// No mesh tangents on CSG: the direction of +s from the screen
+			// derivatives (a cotangent frame).
+			vec3 dp1 = dFdx(VERTEX);
+			vec3 dp2 = dFdy(VERTEX);
+			tan = cross(dp2, n_geo) * x.dx.y + cross(n_geo, dp1) * x.dy.y;
+		}
+		fwd = normalize(tan - n_geo * dot(tan, n_geo));
 		right = cross(fwd, n_geo);
 		vec3 v = normalize(-VERTEX);
 		x.view_ts = vec3(dot(v, right), dot(v, fwd), dot(v, n_geo));

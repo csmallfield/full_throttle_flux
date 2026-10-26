@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="TrackSurfaceVariation" format=3]
+
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_variation.gd" id="1_hh570"]
+
+[resource]
+script = ExtResource("1_hh570")

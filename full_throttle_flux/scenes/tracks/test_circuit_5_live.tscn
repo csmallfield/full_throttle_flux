@@ -5,6 +5,11 @@
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_ow3i1"]
 [ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/swoopy_city.tscn" id="5_swoopy_city"]
 [ext_resource type="PackedScene" path="res://scenes/tracks/swoopy/swoopy_lighting.tscn" id="6_swoopy_light"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface.gd" id="v38_ts"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_zone.gd" id="v38_tsz"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_decal.gd" id="v38_tsd"]
+[ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_industrial.tres" id="v38_ind"]
+[ext_resource type="Resource" path="res://resources/track_surface/variations/variation_test_circuit_5_live.tres" id="v38_var"]
 
 [sub_resource type="Curve3D" id="Curve3D_4kxxg"]
 closed = true
@@ -69,6 +74,20 @@ shader_parameter/grid_size = 10.0
 shader_parameter/line_width = 0.5
 shader_parameter/major_grid_every = 10.000000475
 shader_parameter/major_line_width = 1.0
+
+[sub_resource type="Resource" id="v38_zone"]
+script = ExtResource("v38_tsz")
+profile = ExtResource("v38_ind")
+seed = 1
+key_name = "industrial"
+
+[sub_resource type="Resource" id="v38_decal"]
+script = ExtResource("v38_tsd")
+distance = 25.0
+text = "SWOOPY"
+size = 3.5
+opacity = 0.85
+key_name = "start word"
 
 [node name="TestCircuit5" type="Node3D"]
 
@@ -174,3 +193,10 @@ path_continuous_u = true
 path_u_distance = 50.0
 path_joined = false
 material = SubResource("ShaderMaterial_nrqn6")
+
+[node name="TrackSurface" type="Node" parent="."]
+script = ExtResource("v38_ts")
+paths = Array[NodePath]([NodePath("../MainSpline")])
+zones = Array[ExtResource("v38_tsz")]([SubResource("v38_zone")])
+decals = Array[ExtResource("v38_tsd")]([SubResource("v38_decal")])
+variation = ExtResource("v38_var")

@@ -3,6 +3,11 @@
 [ext_resource type="PackedScene" uid="uid://cs3rwb27lu2ct" path="res://scenes/start_finish_line.tscn" id="1_u3iia"]
 [ext_resource type="Script" uid="uid://do1bpsq8pkyxk" path="res://scripts/tracks/starting_grid.gd" id="2_yawyg"]
 [ext_resource type="Material" uid="uid://f5edkxv6sao2" path="res://shaders/resources/grid_material.tres" id="3_iw1ry"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface.gd" id="v38_ts"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_zone.gd" id="v38_tsz"]
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_decal.gd" id="v38_tsd"]
+[ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_industrial.tres" id="v38_ind"]
+[ext_resource type="Resource" path="res://resources/track_surface/variations/variation_test_circuit_7_live.tres" id="v38_var"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8a1g2"]
 sky_top_color = Color(0.05, 0.05, 0.15, 1)
@@ -87,6 +92,20 @@ shader_parameter/grid_size = 10.0
 shader_parameter/line_width = 0.5
 shader_parameter/major_grid_every = 10.000000475
 shader_parameter/major_line_width = 1.0
+
+[sub_resource type="Resource" id="v38_zone"]
+script = ExtResource("v38_tsz")
+profile = ExtResource("v38_ind")
+seed = 1
+key_name = "industrial"
+
+[sub_resource type="Resource" id="v38_decal"]
+script = ExtResource("v38_tsd")
+distance = 26.0
+text = "THE DROP"
+size = 2.7
+opacity = 0.85
+key_name = "start word"
 
 [node name="TestCircuit6" type="Node3D"]
 
@@ -200,3 +219,10 @@ path_continuous_u = true
 path_u_distance = 50.0
 path_joined = true
 material = SubResource("ShaderMaterial_nrqn6")
+
+[node name="TrackSurface" type="Node" parent="."]
+script = ExtResource("v38_ts")
+paths = Array[NodePath]([NodePath("../MainSpline")])
+zones = Array[ExtResource("v38_tsz")]([SubResource("v38_zone")])
+decals = Array[ExtResource("v38_tsd")]([SubResource("v38_decal")])
+variation = ExtResource("v38_var")

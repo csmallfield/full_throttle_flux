@@ -53,6 +53,8 @@ var near_rows := Vector2i()
 var far_cols := Vector2i()
 ## Every road material (one per path with a TrackSurface).
 var surf_mats: Array[ShaderMaterial] = []
+## CSG node -> its v38 override (the circuits), to restore after "grid".
+var csg_mats := {}
 
 
 func _env(k: String, d: String) -> String:
@@ -83,7 +85,7 @@ func _run() -> void:
 	var gs := get_node_or_null("/root/GraphicsSettings")
 	if gs:
 		gs.set_surface_view(0)
-	var segs: Array[MeshInstance3D] = []
+	var segs: Array[GeometryInstance3D] = []
 	var surface_mat: ShaderMaterial = null
 	for n in track.find_children("*", "TrackRoadSegment", true, false):
 		var seg := n as TrackRoadSegment
@@ -96,6 +98,17 @@ func _run() -> void:
 			# One material per path once TrackSurface has run (v38 phase 3).
 			if not surf_mats.has(sm):
 				surf_mats.append(sm)
+	# The circuits (phase 5b): CSG road and walls on v38 overrides.
+	for n in track.find_children("*", "CSGPolygon3D", true, false):
+		var ov := (n as GeometryInstance3D).material_override as ShaderMaterial
+		if ov and ov.shader and (ov.shader.resource_path == EnvSurfaces.SURFACE_SHADER_PATH
+				or ov.shader.resource_path == EnvSurfaces.WALL_SHADER_PATH):
+			segs.append(n as GeometryInstance3D)
+			csg_mats[n] = ov
+			if not surf_mats.has(ov):
+				surf_mats.append(ov)
+			if ov.shader.resource_path == EnvSurfaces.SURFACE_SHADER_PATH:
+				surface_mat = ov
 	if surface_mat == null:
 		print("TSMETRIC no track surface on %s" % track_id)
 		get_tree().quit(1)
@@ -146,15 +159,19 @@ func _set_all(param: String, value: Variant) -> void:
 		m.set_shader_parameter(param, value)
 
 
-func _set_look(segs: Array[MeshInstance3D], grid_mat: Material, surface_mat: ShaderMaterial,
+func _set_look(segs: Array[GeometryInstance3D], grid_mat: Material, surface_mat: ShaderMaterial,
 		look: String, fade_px: float) -> void:
-	for mi in segs:
-		mi.set_surface_override_material(0, grid_mat if look == "grid" else null)
+	for gi in segs:
+		if csg_mats.has(gi):
+			# Circuits: "grid" = the CSG's own (weather-wrapped) grid material.
+			gi.material_override = null if look == "grid" else csg_mats[gi]
+		else:
+			(gi as MeshInstance3D).set_surface_override_material(0, grid_mat if look == "grid" else null)
 	_set_all("aa_fade_px", 1e6 if look == "average" else fade_px)
 
 
 ## Road pixels: where the grid and the averaged surface differ.
-func _build_mask(segs: Array[MeshInstance3D], grid_mat: Material, surface_mat: ShaderMaterial,
+func _build_mask(segs: Array[GeometryInstance3D], grid_mat: Material, surface_mat: ShaderMaterial,
 		d: float, pose: String) -> void:
 	var fade_v = surface_mat.get_shader_parameter("aa_fade_px")
 	var fade_px: float = fade_v if fade_v != null else 2.0

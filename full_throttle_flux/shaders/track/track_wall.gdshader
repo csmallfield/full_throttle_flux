@@ -22,6 +22,7 @@ shader_type spatial;
 #include "res://shaders/track/modules/lights.gdshaderinc"
 #include "res://shaders/track/modules/edges.gdshaderinc"
 #include "res://shaders/track/modules/wear.gdshaderinc"
+#include "res://shaders/track/modules/csg.gdshaderinc"
 
 global uniform int track_surface_debug;
 global uniform int track_surface_tier;
@@ -55,16 +56,25 @@ const int EDGE_FACE = 3;
 
 varying vec2 v_sh;     // (s, height)
 varying float v_cls;
+varying vec2 v_uv;
 
 void vertex() {
 	v_sh = vec2(UV2.x, CUSTOM0.w);
 	v_cls = CUSTOM0.x;
+	v_uv = UV;
 }
 
 void fragment() {
 	float s = v_sh.x;
 	float h = v_sh.y;
 	int cls = int(round(v_cls));
+	if (csg_mode) {
+		// The circuits: from the CSG's UVs (csg.gdshaderinc).
+		vec3 c = csg_lookup(v_uv.y);
+		s = v_uv.x * csg_u_scale;
+		h = c.y;
+		cls = int(round(c.z));
+	}
 	bool high = track_surface_tier > 0;
 	float fw_s = aa_fw_s(s);
 	float fw_h = aa_fw(h);

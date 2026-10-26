@@ -25,13 +25,33 @@ class_name TrackSurface
 ## onto the BranchSpline), so it always matches the AI line: retrain the line
 ## and the polish and scorch follow.
 ##
-## A track without this node (Fork Lab, the circuits later) draws the
-## material's own band table (the industrial preset) and no line wear.
+## A track without this node (Fork Lab) draws the material's own band table
+## (the industrial preset) and no line wear.
+##
+## Phase 5b, the circuits: a circuit's road and walls are CSGPolygon3Ds along
+## MainSpline, with only UVs. With this node in the scene, at runtime (never
+## in the editor, so nothing is saved) each one gets `material_override` = a
+## v38 road or wall material in CSG mode: an edge table of its polygon (the
+## UV.y range, ends and class of every outline edge; csg_edge_table()) tells
+## the shader s, t, height and class from the CSG's UVs. material_override is
+## a rendering property: the CSG mesh and its collision aren't rebuilt, and
+## the shared grid material underneath isn't touched. Zones and decals are
+## authored straight into this node there (no Track Builder): a zone's to_d
+## may be left at 0, it then runs to the next zone (the last wraps the lap).
 ##
 ## Never edit by hand: move or change the SurfaceZoneKeys and the builder
 ## rewrites it.
 
 const SURFACE_SHADER := "res://shaders/track/track_surface.gdshader"
+const WALL_SHADER := "res://shaders/track/track_wall.gdshader"
+const SURFACE_MATERIAL := "res://shaders/track/track_surface_material.tres"
+const WALL_MATERIAL := "res://shaders/track/track_wall_material.tres"
+## The shaders' CSG edge table size.
+const CSG_MAX_EDGES := 16
+## CSGPolygon3D's lateral axis against the road's t (+x = right of travel).
+## Measured on Utopia (band view): +1, the same way round. (The circuits name
+## their +x wall "wallLeftGeo", but that's only a name.)
+const CSG_X_SIGN := 1.0
 const MAX_PROFILES := 4
 const MAX_BANDS := TrackSurfaceProfile.MAX_BANDS
 ## Strip texture width; longer paths wrap onto more rows.
@@ -76,6 +96,8 @@ const STROKE := [0.14, 0.18, 0.09, 0.025]
 
 ## What the last apply() found (warnings for the builder report).
 var notes := PackedStringArray()
+## Surface half widths of the CSG road being worked on (decal anchors).
+var _csg_half := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -92,6 +114,8 @@ func apply() -> int:
 		var path := get_node_or_null(paths[pi]) as Path3D
 		if path == null or path.curve == null:
 			continue
+		if not Engine.is_editor_hint():
+			set_count += _apply_csg(pi, path)
 		var segs := _surface_segments(path)
 		if segs.is_empty():
 			continue
@@ -292,9 +316,10 @@ static func _road_segments(path: Path3D) -> Array[TrackRoadSegment]:
 
 ## Surface half widths at `d` from the road segment covering it (the first
 ## one if none does).
-static func _half_widths(segs: Array[TrackRoadSegment], d: float) -> Vector2:
+func _half_widths(segs: Array[TrackRoadSegment], d: float) -> Vector2:
 	if segs.is_empty():
-		return Vector2(19.5, 19.5)
+		# A CSG road (the circuits): its constant section.
+		return _csg_half if _csg_half != Vector2.ZERO else Vector2(19.5, 19.5)
 	for seg in segs:
 		var d1 := seg.end_distance if seg.end_distance >= 0.0 else INF
 		if d >= seg.start_distance and d <= d1:
@@ -468,7 +493,121 @@ func zones_of(path_index: int) -> Array[TrackSurfaceZone]:
 		if z and z.path_index == path_index:
 			out.append(z)
 	out.sort_custom(func(a: TrackSurfaceZone, b: TrackSurfaceZone) -> bool: return a.from_d < b.from_d)
+	# Hand-authored zones (the circuits) may leave to_d at 0: they run to
+	# the next zone, the last one round the lap to the first.
+	var path := get_node_or_null(paths[path_index]) as Path3D if path_index < paths.size() else null
+	var length := path.curve.get_baked_length() if path and path.curve else 0.0
+	for i in out.size():
+		if out[i].to_d <= out[i].from_d:
+			var z := out[i].duplicate() as TrackSurfaceZone
+			z.to_d = out[i + 1].from_d if i + 1 < out.size() else out[0].from_d + length
+			out[i] = z
 	return out
+
+
+## Phase 5b: the CSG road and walls of `path` onto v38 materials in CSG
+## mode (material_override). Returns how many it set.
+func _apply_csg(path_index: int, path: Path3D) -> int:
+	var road: CSGPolygon3D = null
+	var walls: Array[CSGPolygon3D] = []
+	for c in path.get_children():
+		var csg := c as CSGPolygon3D
+		if csg == null or csg.mode != CSGPolygon3D.MODE_PATH or csg.get_node_or_null(csg.path_node) != path:
+			continue
+		if csg.name.to_lower().contains("wall") or (csg.collision_layer & 4) != 0:
+			walls.append(csg)
+		elif road == null:
+			road = csg
+	if road == null:
+		return 0
+	var length := path.curve.get_baked_length()
+	var road_table := csg_edge_table(road.polygon, true, 0.0)
+	_csg_half = road_table.half
+	var n := 0
+	var road_mat := build_material(load(SURFACE_MATERIAL) as ShaderMaterial, path_index, path)
+	_set_csg(road_mat, road_table, road.path_u_distance)
+	road.material_override = road_mat
+	road.set_instance_shader_parameter("path_length", length)
+	n += 1
+	for w in walls:
+		var wm := (load(WALL_MATERIAL) as ShaderMaterial).duplicate() as ShaderMaterial
+		if variation:
+			variation.apply(wm)
+		_set_csg(wm, csg_edge_table(w.polygon, false, road_table.surface_y), w.path_u_distance)
+		w.material_override = wm
+		w.set_instance_shader_parameter("path_length", length)
+		n += 1
+	return n
+
+
+static func _set_csg(mat: ShaderMaterial, table: Dictionary, u_scale: float) -> void:
+	mat.set_shader_parameter("csg_mode", true)
+	mat.set_shader_parameter("csg_u_scale", u_scale)
+	mat.set_shader_parameter("csg_edges", table.edges)
+	mat.set_shader_parameter("csg_edges_y", table.ys)
+	mat.set_shader_parameter("csg_edge_count", table.count)
+	mat.set_shader_parameter("csg_half", table.half)
+	mat.set_shader_parameter("csg_surface_y", table.surface_y)
+	mat.set_shader_parameter("csg_x_sign", CSG_X_SIGN)
+
+
+## The shaders' edge table for a CSGPolygon3D extrusion polygon:
+## {edges: (v0, v1, x0, x1) per edge, ys: (y0, y1, class, 0), count,
+## half: surface half widths (left, right), surface_y}. CSGPolygon3D reverses
+## a counter-clockwise polygon and puts outline vertex i at UV.y = i / (2n)
+## (EnvSurfaces.driving_surface_v, measured on Utopia). x stays in the CSG's
+## frame (the shader applies CSG_X_SIGN). `road` = classify the widest
+## up-facing edge above the centre as the driving surface; walls use the
+## road's `surface_y` for heights.
+static func csg_edge_table(polygon: PackedVector2Array, road: bool, surface_y: float) -> Dictionary:
+	var n := polygon.size()
+	var poly := polygon.duplicate()
+	var area := 0.0
+	for i in n:
+		area += poly[i].x * poly[(i + 1) % n].y - poly[(i + 1) % n].x * poly[i].y
+	if area > 0.0:
+		poly.reverse()
+	# Now clockwise in (x, y): outward normal of edge a -> b is (-ed.y, ed.x).
+	var drive := -1
+	if road:
+		var cy := 0.0
+		for q in poly:
+			cy += q.y
+		cy /= n
+		var best_dx := 0.0
+		for i in n:
+			var a := poly[i]
+			var b := poly[(i + 1) % n]
+			if (a.y + b.y) * 0.5 > cy and absf(b.x - a.x) > best_dx:
+				best_dx = absf(b.x - a.x)
+				drive = i
+		if drive >= 0:
+			surface_y = (poly[drive].y + poly[(drive + 1) % n].y) * 0.5
+	var edges := PackedVector4Array()
+	var ys := PackedVector4Array()
+	edges.resize(CSG_MAX_EDGES)
+	ys.resize(CSG_MAX_EDGES)
+	var half := Vector2.ZERO
+	for i in mini(n, CSG_MAX_EDGES):
+		var a := poly[i]
+		var b := poly[(i + 1) % n]
+		var ed := b - a
+		var nrm := Vector2(-ed.y, ed.x).normalized()
+		var mid_t := CSG_X_SIGN * (a.x + b.x) * 0.5
+		var nt := CSG_X_SIGN * nrm.x
+		var cls := TrackRoadSegment.EDGE_OTHER
+		if i == drive:
+			cls = TrackRoadSegment.EDGE_SURFACE
+			var t0 := CSG_X_SIGN * a.x
+			var t1 := CSG_X_SIGN * b.x
+			half = Vector2(maxf(-minf(t0, t1), 0.0), maxf(maxf(t0, t1), 0.0))
+		elif nrm.y > 0.3 and maxf(a.y, b.y) > surface_y + 0.05:
+			cls = TrackRoadSegment.EDGE_LIP
+		elif absf(nrm.y) < 0.5 and absf(mid_t) > 0.01 and nt * mid_t < 0.0:
+			cls = TrackRoadSegment.EDGE_FACE
+		edges[i] = Vector4(float(i) / (2 * n), float(i + 1) / (2 * n), a.x, b.x)
+		ys[i] = Vector4(a.y, b.y, float(cls), 0.0)
+	return {edges = edges, ys = ys, count = mini(n, CSG_MAX_EDGES), half = half, surface_y = surface_y}
 
 
 ## The zone in force just before `mine[zi]` starts (the lap wraps on the
