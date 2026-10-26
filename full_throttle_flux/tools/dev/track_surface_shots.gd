@@ -19,19 +19,22 @@ extends Node
 ##   flicker  mean |luma change| between frames while the camera creeps
 ##            forward TS_CREEP metres a frame (sub-pixel far away): a filtered
 ##            pattern changes smoothly, an aliased one flickers. All road
-##            pixels, and the far road (the top fifth of the road's rows,
-##            toward the horizon).
+##            pixels, and the far road: the top fifth of the road's rows,
+##            toward the horizon, in the centre half of the columns (at the
+##            sides those rows hold the raised lips right beside the camera).
 ##   far / near  mean luma of the far road and the near road (bottom third);
 ##            compare surface with average: equal far luma = no brightening
 ##            from aliasing (what's left is real Fresnel).
 ##
 ## Env: TS_TRACK (builder_lab), TS_D distances (default "200,850,2400"),
 ##   TS_RES (1920x1080), TS_OUT (user://track_surface), TS_FRAMES (16),
-##   TS_CREEP (0.012), TS_FOV (80).
+##   TS_CREEP (0.012), TS_FOV (80), TS_POSES (default "chase,low,top"),
+##   TS_PARAMS "name=value,..." surface material overrides (A/B a module,
+##   e.g. "light_energy=0,led_energy=0"), TS_TIER 0|1 (default: as saved).
 
 const GRID_MATERIAL := "res://shaders/resources/grid_material.tres"
 const LOOKS := ["grid", "surface", "average"]
-const POSES := ["chase", "low", "top"]
+const POSES := "chase,low,top"
 const VIEW_NAMES := ["", "st", "bands", "panels", "filter"]
 
 var out := ""
@@ -42,6 +45,7 @@ var csv := PackedStringArray(["track,d,pose,look,flicker_road,flicker_far,far_lu
 var mask := PackedByteArray()
 var far_rows := Vector2i()
 var near_rows := Vector2i()
+var far_cols := Vector2i()
 
 
 func _env(k: String, d: String) -> String:
@@ -85,6 +89,11 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	EnvSurfaces.adopt(track, path)
+	for kv in _env("TS_PARAMS", "").split(",", false):
+		var p := kv.split("=")
+		surface_mat.set_shader_parameter(p[0].strip_edges(), float(p[1]))
+	if gs and _env("TS_TIER", "") != "":
+		gs.set_surface_tier(int(_env("TS_TIER", "1")))
 	var grid_mat := load(GRID_MATERIAL) as Material
 	# Unset parameters read back as null: the shader's default.
 	var fade_v = surface_mat.get_shader_parameter("aa_fade_px")
@@ -92,7 +101,7 @@ func _run() -> void:
 	print("TSMETRIC %s, %s, %s" % [RenderingServer.get_video_adapter_name(), track_id, get_window().size])
 	for ds in _env("TS_D", "200,850,2400").split(",", false):
 		var d := float(ds)
-		for pose in POSES:
+		for pose in _env("TS_POSES", POSES).split(",", false):
 			await _build_mask(segs, grid_mat, surface_mat, d, pose)
 			for look in LOOKS:
 				_set_look(segs, grid_mat, surface_mat, look, fade_px)
@@ -147,6 +156,7 @@ func _build_mask(segs: Array[MeshInstance3D], grid_mat: Material, surface_mat: S
 	var span := maxi(bottom - top, 1)
 	far_rows = Vector2i(top, top + maxi(span / 5, 1))
 	near_rows = Vector2i(bottom - span / 3, bottom + 1)
+	far_cols = Vector2i(w / 4, w * 3 / 4)
 
 
 func _measure(track_id: String, d: float, pose: String, look: String) -> void:
@@ -164,11 +174,11 @@ func _measure(track_id: String, d: float, pose: String, look: String) -> void:
 			img.save_png("%s/%s_%04d_%s_%s.png" % [out, track_id, int(d), pose, look])
 		var l := _luma(img)
 		var w := img.get_width()
-		far_l += _band_mean(l, w, far_rows)
-		near_l += _band_mean(l, w, near_rows)
+		far_l += _band_mean(l, w, far_rows, far_cols)
+		near_l += _band_mean(l, w, near_rows, Vector2i(0, w))
 		if i > 0:
-			sum_all += _diff(l, prev, w, Vector2i(0, img.get_height()))
-			sum_far += _diff(l, prev, w, far_rows)
+			sum_all += _diff(l, prev, w, Vector2i(0, img.get_height()), Vector2i(0, w))
+			sum_far += _diff(l, prev, w, far_rows, far_cols)
 		prev = l
 	var row := [track_id, int(d), pose, look, sum_all / (frames - 1), sum_far / (frames - 1),
 			far_l / frames, near_l / frames]
@@ -214,23 +224,23 @@ func _luma(img: Image) -> PackedFloat32Array:
 	return l
 
 
-## Mean luma of the road pixels in rows [rows.x, rows.y).
-func _band_mean(l: PackedFloat32Array, w: int, rows: Vector2i) -> float:
+## Mean luma of the road pixels in rows [rows.x, rows.y), columns [cols.x, cols.y).
+func _band_mean(l: PackedFloat32Array, w: int, rows: Vector2i, cols: Vector2i) -> float:
 	var s := 0.0
 	var n := 0
 	for i in range(rows.x * w, mini(rows.y * w, l.size())):
-		if mask[i]:
+		if mask[i] and i % w >= cols.x and i % w < cols.y:
 			s += l[i]
 			n += 1
 	return s / maxf(n, 1)
 
 
-## Mean |a - b| over the road pixels in rows [rows.x, rows.y).
-func _diff(a: PackedFloat32Array, b: PackedFloat32Array, w: int, rows: Vector2i) -> float:
+## Mean |a - b| over the road pixels in rows [rows.x, rows.y), columns [cols.x, cols.y).
+func _diff(a: PackedFloat32Array, b: PackedFloat32Array, w: int, rows: Vector2i, cols: Vector2i) -> float:
 	var s := 0.0
 	var n := 0
 	for i in range(rows.x * w, mini(rows.y * w, a.size())):
-		if mask[i]:
+		if mask[i] and i % w >= cols.x and i % w < cols.y:
 			s += absf(a[i] - b[i])
 			n += 1
 	return s / maxf(n, 1)

@@ -5,6 +5,7 @@ extends Node
 ##   UV2.y  = the vertex's actual offset across the frame (after widening)
 ##   CUSTOM0 edge class: the surface verts are at y = 0, lips above
 ##   CUSTOM0 half widths = the outermost surface verts at that ring
+##   TANGENT = the direction of travel (phase 2)
 ##
 ##   godot --headless --path . -s res://tools/dev/track_uv2_check_boot.gd
 ##
@@ -45,11 +46,13 @@ func _check_segment(seg: TrackRoadSegment) -> void:
 	var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 	var uv2s: PackedVector2Array = arr[Mesh.ARRAY_TEX_UV2]
 	var cust: PackedFloat32Array = arr[Mesh.ARRAY_CUSTOM0]
+	var tans: PackedFloat32Array = arr[Mesh.ARRAY_TANGENT]
 	var to_path := path.global_transform.affine_inverse() * seg.global_transform
 	var length := path.curve.get_baked_length()
 	var worst_t := 0.0
 	var worst_y := 0.0
 	var worst_w := 0.0
+	var worst_tan := 1.0
 	var counts := [0, 0, 0]
 	var step := maxi(1, verts.size() / 4000)
 	for i in range(0, verts.size(), step):
@@ -65,12 +68,14 @@ func _check_segment(seg: TrackRoadSegment) -> void:
 		var h := rel.dot(fr.basis.y)
 		if cls == TrackRoadSegment.EDGE_SURFACE:
 			worst_y = maxf(worst_y, absf(h))
+			var tan := to_path.basis * Vector3(tans[i * 4], tans[i * 4 + 1], tans[i * 4 + 2])
+			worst_tan = minf(worst_tan, tan.normalized().dot(-fr.basis.z))
 			var w := seg.width_at(s)
 			var lim := seg.width_stretch_limit
 			var want := Vector2(lim + w.x - seg.width_reference, lim + w.y - seg.width_reference) \
 					if not seg.width_profile.is_empty() else Vector2(lim, lim)
 			worst_w = maxf(worst_w, (Vector2(cust[i * 4 + 1], cust[i * 4 + 2]) - want).abs().length())
-	print("UV2CHECK  %-28s %6d verts  t err %.4f m  surface y err %.4f m  half width err %.4f m  classes %s" % [
-			seg.get_path(), verts.size(), worst_t, worst_y, worst_w, counts])
-	if worst_t > 0.01 or worst_y > 0.01 or worst_w > 0.01 or counts[0] == 0 or counts[1] == 0:
+	print("UV2CHECK  %-28s %6d verts  t err %.4f m  surface y err %.4f m  half width err %.4f m  tangent dot %.5f  classes %s" % [
+			seg.get_path(), verts.size(), worst_t, worst_y, worst_w, worst_tan, counts])
+	if worst_t > 0.01 or worst_y > 0.01 or worst_w > 0.01 or worst_tan < 0.999 			or counts[0] == 0 or counts[1] == 0:
 		_fails += 1

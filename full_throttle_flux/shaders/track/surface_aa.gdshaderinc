@@ -17,7 +17,10 @@
 uniform float aa_s_bias : hint_range(1.0, 3.0) = 1.5;
 // A pattern is fully faded to its average at this many pixels per period,
 // and starts fading at twice that.
-uniform float aa_fade_px : hint_range(1.0, 4.0) = 2.0;
+uniform float aa_fade_px : hint_range(1.0, 6.0) = 3.0;
+// Box filter width in footprints for periodic patterns (aa_lines): > 1
+// trades a little sharpness for less ringing on high-contrast stripes.
+uniform float aa_filter_width : hint_range(1.0, 3.0) = 1.5;
 
 // Pixel footprint of `x`: the length of its screen-space gradient (more
 // accurate on anisotropic footprints than fwidth's |dx| + |dy|).
@@ -63,6 +66,7 @@ float _aa_line_integral(float x, float period, float w) {
 float aa_lines(float x, float period, float w, float fw, out float fade) {
 	w = clamp(w, 0.0, period);
 	float avg = w / period;
+	fw *= aa_filter_width;
 	float cov = (_aa_line_integral(x + fw * 0.5, period, w)
 			- _aa_line_integral(x - fw * 0.5, period, w)) / fw;
 	fade = aa_fade(period, fw);

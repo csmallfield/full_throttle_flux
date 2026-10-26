@@ -32,6 +32,9 @@ class_name TrackRoadSegment
 ##            surface at that ring, so fixed bands can sit on the real edges
 ##   instance uniform path_length  the path's baked length (for seams that
 ##            land exactly on the lap)
+##   TANGENT  the direction of travel (caps: the frame's right), so the
+##            shader has an exact along / across frame for normal detail and
+##            parallax (v38 phase 2)
 
 const EDGE_SURFACE := 0
 const EDGE_LIP := 1
@@ -127,6 +130,7 @@ func build() -> void:
 	var uvs := PackedVector2Array()
 	var uv2s := PackedVector2Array()
 	var cust := PackedFloat32Array()
+	var tans := PackedFloat32Array()
 	var idx := PackedInt32Array()
 	var faces := PackedVector3Array()
 	var classes := edge_classes(poly, ccw)
@@ -139,8 +143,8 @@ func build() -> void:
 
 	if not width_profile.is_empty():
 		_build_widened(poly, ccw, classes, per, ds, frames, d0, d1, verts, norms, uvs, uv2s, cust,
-				idx, faces)
-		_finish(verts, norms, uvs, uv2s, cust, idx, faces, length)
+				tans, idx, faces)
+		_finish(verts, norms, uvs, uv2s, cust, tans, idx, faces, length)
 		return
 	var half := surface_half_widths(poly, classes)
 
@@ -170,6 +174,7 @@ func build() -> void:
 			uv2s.append(Vector2(ds[k], q0.x))
 			uv2s.append(Vector2(ds[k], q1.x))
 			_append_custom(cust, classes[e], half, 2)
+			_append_tangent(tans, -fr.basis.z, 2)
 		for k in ds.size() - 1:
 			var a := base + k * 2
 			var b := a + 1
@@ -181,17 +186,18 @@ func build() -> void:
 	
 	if caps:
 		if not (weld_lap_seam and d0 <= 0.0):
-			_cap(poly, frames[0], -1.0, d0, d0, d1, half, verts, norms, uvs, uv2s, cust, idx, faces)
+			_cap(poly, frames[0], -1.0, d0, d0, d1, half, verts, norms, uvs, uv2s, cust, tans,
+					idx, faces)
 		if not (weld_lap_seam and d1 >= length):
-			_cap(poly, frames[frames.size() - 1], 1.0, d1, d0, d1, half, verts, norms, uvs, uv2s, cust,
+			_cap(poly, frames[frames.size() - 1], 1.0, d1, d0, d1, half, verts, norms, uvs, uv2s, cust, tans,
 					idx, faces)
 
-	_finish(verts, norms, uvs, uv2s, cust, idx, faces, length)
+	_finish(verts, norms, uvs, uv2s, cust, tans, idx, faces, length)
 
 
 func _finish(verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVector2Array,
-		uv2s: PackedVector2Array, cust: PackedFloat32Array, idx: PackedInt32Array,
-		faces: PackedVector3Array, path_length: float) -> void:
+		uv2s: PackedVector2Array, cust: PackedFloat32Array, tans: PackedFloat32Array,
+		idx: PackedInt32Array, faces: PackedVector3Array, path_length: float) -> void:
 	var arr := []
 	arr.resize(Mesh.ARRAY_MAX)
 	arr[Mesh.ARRAY_VERTEX] = verts
@@ -199,6 +205,7 @@ func _finish(verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVe
 	arr[Mesh.ARRAY_TEX_UV] = uvs
 	arr[Mesh.ARRAY_TEX_UV2] = uv2s
 	arr[Mesh.ARRAY_CUSTOM0] = cust
+	arr[Mesh.ARRAY_TANGENT] = tans
 	arr[Mesh.ARRAY_INDEX] = idx
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {},
@@ -248,8 +255,8 @@ static func frame_at(curve: Curve3D, d: float) -> Transform3D:
 func _build_widened(poly: PackedVector2Array, ccw: bool, classes: PackedInt32Array,
 		per: PackedFloat32Array, ds: PackedFloat32Array, frames: Array[Transform3D], d0: float,
 		d1: float, verts: PackedVector3Array, norms: PackedVector3Array, uvs: PackedVector2Array,
-		uv2s: PackedVector2Array, cust: PackedFloat32Array, idx: PackedInt32Array,
-		faces: PackedVector3Array) -> void:
+		uv2s: PackedVector2Array, cust: PackedFloat32Array, tans: PackedFloat32Array,
+		idx: PackedInt32Array, faces: PackedVector3Array) -> void:
 	var m := poly.size()
 	var sections: Array[PackedVector2Array] = []
 	var halves := PackedVector2Array()
@@ -283,6 +290,7 @@ func _build_widened(poly: PackedVector2Array, ccw: bool, classes: PackedInt32Arr
 			uv2s.append(Vector2(ds[k], q0.x))
 			uv2s.append(Vector2(ds[k], q1.x))
 			_append_custom(cust, classes[e], halves[k], 2)
+			_append_tangent(tans, -fr.basis.z, 2)
 		for k in ds.size() - 1:
 			var a := base + k * 2
 			_tri(verts, idx, faces, a, a + 1, a + 3, norms[a])
@@ -292,10 +300,10 @@ func _build_widened(poly: PackedVector2Array, ccw: bool, classes: PackedInt32Arr
 		var length := (get_node_or_null(path_node) as Path3D).curve.get_baked_length()
 		if not (weld_lap_seam and d0 <= 0.0):
 			_cap(_widened(poly, width_at(d0)), frames[0], -1.0, d0, d0, d1, halves[0],
-					verts, norms, uvs, uv2s, cust, idx, faces)
+					verts, norms, uvs, uv2s, cust, tans, idx, faces)
 		if not (weld_lap_seam and d1 >= length):
 			_cap(_widened(poly, width_at(d1)), frames[frames.size() - 1], 1.0, d1, d0, d1,
-					halves[halves.size() - 1], verts, norms, uvs, uv2s, cust, idx, faces)
+					halves[halves.size() - 1], verts, norms, uvs, uv2s, cust, tans, idx, faces)
 
 
 func _widened(poly: PackedVector2Array, w: Vector2) -> PackedVector2Array:
@@ -366,7 +374,7 @@ static func _tri(verts: PackedVector3Array, idx: PackedInt32Array, faces: Packed
 func _cap(poly: PackedVector2Array, fr: Transform3D, dir: float, d: float, d0: float, d1: float,
 		half: Vector2, verts: PackedVector3Array, norms: PackedVector3Array,
 		uvs: PackedVector2Array, uv2s: PackedVector2Array, cust: PackedFloat32Array,
-		idx: PackedInt32Array, faces: PackedVector3Array) -> void:
+		tans: PackedFloat32Array, idx: PackedInt32Array, faces: PackedVector3Array) -> void:
 	var tri := Geometry2D.triangulate_polygon(poly)
 	if tri.is_empty():
 		return
@@ -380,6 +388,7 @@ func _cap(poly: PackedVector2Array, fr: Transform3D, dir: float, d: float, d0: f
 		uvs.append(q / u_distance)
 		uv2s.append(Vector2(d, q.x))
 	_append_custom(cust, EDGE_OTHER, half, poly.size())
+	_append_tangent(tans, fr.basis.x, poly.size())
 	for i in range(0, tri.size(), 3):
 		_tri(verts, idx, faces, base + tri[i], base + tri[i + 1], base + tri[i + 2], out)
 
@@ -457,3 +466,12 @@ static func _append_custom(cust: PackedFloat32Array, cls: int, half: Vector2, co
 		cust.append(half.x)
 		cust.append(half.y)
 		cust.append(0.0)
+
+
+static func _append_tangent(tans: PackedFloat32Array, t: Vector3, count: int) -> void:
+	t = t.normalized()
+	for i in count:
+		tans.append(t.x)
+		tans.append(t.y)
+		tans.append(t.z)
+		tans.append(1.0)
