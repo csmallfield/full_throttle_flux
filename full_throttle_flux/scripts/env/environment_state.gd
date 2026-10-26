@@ -152,6 +152,14 @@ func _ready() -> void:
 	wfx.env = self
 	add_child(wfx)
 	var start: WeatherPreset = track_environment.default_weather if track_environment else null
+	# Tests: FTF_WEATHER=<preset file name in resources/weather>, e.g. rain_heavy
+	var forced := OS.get_environment("FTF_WEATHER")
+	if forced != "":
+		var path := "res://resources/weather/%s.tres" % forced
+		if ResourceLoader.exists(path):
+			start = load(path) as WeatherPreset
+		else:
+			push_warning("EnvironmentState: FTF_WEATHER=%s, no %s" % [forced, path])
 	apply_weather(start, true)
 	if OS.is_debug_build():
 		var overlay := EnvDebugOverlay.new()

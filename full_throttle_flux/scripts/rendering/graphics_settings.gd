@@ -1,15 +1,22 @@
 extends Node
 ## Graphics settings (v37, autoload "GraphicsSettings").
 ##
-## Two knobs, saved in user://graphics.cfg and switchable in game for side by
-## side comparison:
-##   F7  anti-aliasing  MSAA 2x + SMAA (v36) / MSAA 4x + SMAA (default) /
-##                      TAA / FSR 2 at native resolution
-##   F8  shadows        Low = v36 (4096 atlas, soft low) / High = 8192 atlas,
-##                      soft medium (default) / Ultra = 8192, soft high
-##   F9  road grid      filtered (v37) / v36 fixed-pixel lines, for A/B only
-##                      (not saved)
-## A small label shows the new setting for two seconds.
+## Saved in user://graphics.cfg; debug keys (DebugKeys) switch them in game for
+## side by side comparison:
+##   F5        FX quality     Low / Medium / High (FxSettings, saved in
+##                            user://fx_settings.tres). Ship LOD, dust and SSR
+##                            follow at once; particle counts on the next race.
+##   F6        motion blur    on / off (not saved)
+##   Shift+F6  blur debug     off / velocity / neighbour max / distance
+##   F7        anti-aliasing  MSAA 2x + SMAA (v36) / MSAA 4x + SMAA (default) /
+##                            TAA / FSR 2 at native resolution
+##   Shift+F7  road grid      filtered (v37) / v36 fixed-pixel lines, for A/B
+##                            only (not saved)
+##   F8        shadows        Low = v36 (4096 atlas, soft low) / High = 8192
+##                            atlas, soft medium (default) / Ultra = 8192, soft high
+##
+## Env overrides for tests and the benchmark: FTF_AA=0..3, FTF_SHADOWS=0..2,
+## FTF_FX=0..2, FTF_BLUR=0|1.
 ##
 ## Tracks: apply_track() puts the track's ShadowProfile (TrackProfile's own,
 ## else resources/rendering/shadow_profile_default.tres) on every shadow-casting
@@ -23,6 +30,8 @@ enum Shadows { LOW, HIGH, ULTRA }
 
 const AA_NAMES := ["MSAA 2x + SMAA (v36)", "MSAA 4x + SMAA", "TAA", "FSR 2 native"]
 const SHADOW_NAMES := ["Low (v36: 4096, soft low)", "High (8192, soft medium)", "Ultra (8192, soft high)"]
+const FX_NAMES := ["Low", "Medium", "High"]
+const BLUR_VIEWS := ["off", "velocity", "neighbour max", "distance"]
 const CONFIG := "user://graphics.cfg"
 const DEFAULT_PROFILE := "res://resources/rendering/shadow_profile_default.tres"
 const GRID_MATERIAL := "res://shaders/resources/grid_material.tres"
@@ -32,44 +41,76 @@ var aa: AA = AA.MSAA4_SMAA
 var shadows: Shadows = Shadows.HIGH
 var grid_v36 := false
 var _grid_v37: Shader = null
-var _label: Label
-var _label_t := 0.0
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_load()
-	# Env overrides for tests and the benchmark: FTF_AA=0..3, FTF_SHADOWS=0..2.
 	if OS.get_environment("FTF_AA") != "":
 		aa = clampi(int(OS.get_environment("FTF_AA")), 0, 3) as AA
 	if OS.get_environment("FTF_SHADOWS") != "":
 		shadows = clampi(int(OS.get_environment("FTF_SHADOWS")), 0, 2) as Shadows
+	if OS.get_environment("FTF_FX") != "":
+		FxSettings.active().quality = clampi(int(OS.get_environment("FTF_FX")), 0, 2) as FxSettings.Quality
+	if OS.get_environment("FTF_BLUR") != "":
+		MotionBlurEffect.set_user_settings(OS.get_environment("FTF_BLUR") != "0")
 	apply_all()
+	_bind_keys()
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not (event is InputEventKey) or not event.pressed or event.echo:
-		return
-	match (event as InputEventKey).keycode:
-		KEY_F7:
-			set_aa(((aa + 1) % AA.size()) as AA)
-			_save()
-			_toast("Anti-aliasing: " + AA_NAMES[aa])
-		KEY_F8:
-			set_shadows(((shadows + 1) % Shadows.size()) as Shadows)
-			_save()
-			_toast("Shadows: " + SHADOW_NAMES[shadows])
-		KEY_F9:
-			set_grid_v36(not grid_v36)
-			_toast("Road grid: " + ("v36 (fixed-pixel lines)" if grid_v36 else "filtered (v37)"))
+func _bind_keys() -> void:
+	DebugKeys.bind(KEY_F5, "FX quality", _cycle_fx,
+		func(): return FX_NAMES[FxSettings.active().quality] + "  (particle counts: next race)")
+	DebugKeys.bind(KEY_F6, "Motion blur", _toggle_blur,
+		func(): return "on" if MotionBlurEffect.user_enabled else "off")
+	DebugKeys.bind(KEY_F6, "Motion blur debug view", _cycle_blur_view,
+		func(): return BLUR_VIEWS[_blur_view()], null, DebugKeys.SHIFT)
+	DebugKeys.bind(KEY_F7, "Anti-aliasing", _cycle_aa, func(): return AA_NAMES[aa])
+	DebugKeys.bind(KEY_F7, "Road grid", func(): set_grid_v36(not grid_v36),
+		func(): return "v36 (fixed-pixel lines)" if grid_v36 else "filtered (v37)", null, DebugKeys.SHIFT)
+	DebugKeys.bind(KEY_F8, "Shadows", _cycle_shadows, func(): return SHADOW_NAMES[shadows])
 
 
-func _process(delta: float) -> void:
-	if _label and _label_t > 0.0:
-		_label_t -= delta
-		_label.modulate.a = clampf(_label_t * 2.0, 0.0, 1.0)
-		if _label_t <= 0.0:
-			_label.visible = false
+func _cycle_aa() -> void:
+	set_aa(((aa + 1) % AA.size()) as AA)
+	_save()
+
+
+func _cycle_shadows() -> void:
+	set_shadows(((shadows + 1) % Shadows.size()) as Shadows)
+	_save()
+
+
+func _cycle_fx() -> void:
+	var fx := FxSettings.active()
+	fx.quality = ((fx.quality + 1) % FxSettings.Quality.size()) as FxSettings.Quality
+	fx.save()
+
+
+func _toggle_blur() -> void:
+	MotionBlurEffect.set_user_settings(not MotionBlurEffect.user_enabled)
+
+
+func _cycle_blur_view() -> void:
+	for e in blur_effects():
+		e.debug_view = (e.debug_view + 1) % BLUR_VIEWS.size()
+
+
+func _blur_view() -> int:
+	var effects := blur_effects()
+	return int(effects[0].debug_view) if not effects.is_empty() else 0
+
+
+## The MotionBlurEffects on the current WorldEnvironment's compositor.
+func blur_effects() -> Array:
+	var out := []
+	for n in get_tree().root.find_children("*", "WorldEnvironment", true, false):
+		var env := n as WorldEnvironment
+		if env.compositor:
+			for e in env.compositor.compositor_effects:
+				if e is MotionBlurEffect:
+					out.append(e)
+	return out
 
 
 func apply_all() -> void:
@@ -162,20 +203,3 @@ func _save() -> void:
 	cf.set_value("graphics", "aa", int(aa))
 	cf.set_value("graphics", "shadows", int(shadows))
 	cf.save(CONFIG)
-
-
-func _toast(text: String) -> void:
-	if _label == null:
-		var layer := CanvasLayer.new()
-		layer.layer = 100
-		add_child(layer)
-		_label = Label.new()
-		_label.add_theme_font_size_override("font_size", 22)
-		_label.add_theme_color_override("font_outline_color", Color.BLACK)
-		_label.add_theme_constant_override("outline_size", 6)
-		_label.position = Vector2(24, 24)
-		layer.add_child(_label)
-	_label.text = text
-	_label.visible = true
-	_label_t = 2.0
-	print("GraphicsSettings: " + text)

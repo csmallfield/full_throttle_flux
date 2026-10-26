@@ -2,7 +2,7 @@ extends CanvasLayer
 class_name DebugHUD
 
 ## Debug HUD showing real-time ship telemetry
-## Can be toggled on/off via pause menu
+## Toggled with F2 (DebugKeys) or from the pause menu
 
 @export var ship: ShipController
 
@@ -25,6 +25,8 @@ func _ready() -> void:
 	
 	# Start hidden
 	debug_label.visible = is_visible_debug
+	DebugKeys.bind(KEY_F2, "Debug HUD", toggle_visibility,
+		func(): return "on" if is_visible_debug else "off", self)
 
 func _process(_delta: float) -> void:
 	if not is_visible_debug or not debug_label.visible:

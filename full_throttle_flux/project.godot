@@ -28,6 +28,7 @@ RaceManager="*res://scripts/race_manager.gd"
 AudioManager="*res://scripts/audio_manager.gd"
 MusicPlaylistManager="*res://scripts/music_playlist_manager.gd"
 FxPrewarm="*res://scripts/fx/fx_prewarm.gd"
+DebugKeys="*res://scripts/debug/debug_keys.gd"
 GraphicsSettings="*res://scripts/rendering/graphics_settings.gd"
 
 [display]

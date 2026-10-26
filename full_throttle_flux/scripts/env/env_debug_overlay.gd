@@ -7,6 +7,7 @@ class_name EnvDebugOverlay
 ##   F4         next weather, blended as it would be mid-race
 ##   Shift+F4   next weather, instantly
 ##   Ctrl+F4    previous weather, instantly
+## The weather keys work with the readout hidden too. Keys go through DebugKeys.
 ##
 ## Shows the global weather / surface values and the probe of the ship the
 ## camera is following (so it follows the AI spectator too), and draws the
@@ -29,6 +30,11 @@ func _ready() -> void:
 	_build_ui()
 	_build_lines()
 	_set_shown(false)
+	var weather_name := func(): return env.weather.display_name if env and env.weather else "-"
+	DebugKeys.bind(KEY_F3, "Environment readout", func(): _set_shown(not visible), Callable(), self)
+	DebugKeys.bind(KEY_F4, "Weather next (blend)", func(): _cycle(1, false), weather_name, self)
+	DebugKeys.bind(KEY_F4, "Weather next (instant)", func(): _cycle(1, true), weather_name, self, DebugKeys.SHIFT)
+	DebugKeys.bind(KEY_F4, "Weather back (instant)", func(): _cycle(-1, true), weather_name, self, DebugKeys.CTRL)
 
 
 func _build_ui() -> void:
@@ -74,22 +80,9 @@ func _set_shown(v: bool) -> void:
 		_mesh.clear_surfaces()
 
 
-func _unhandled_key_input(event: InputEvent) -> void:
-	var k := event as InputEventKey
-	if k == null or not k.pressed or k.echo:
-		return
-	match k.physical_keycode:
-		KEY_F3:
-			_set_shown(not visible)
-			get_viewport().set_input_as_handled()
-		KEY_F4:
-			if not visible or env == null:
-				return
-			if k.ctrl_pressed:
-				env.cycle_weather(-1, true)
-			else:
-				env.cycle_weather(1, k.shift_pressed)
-			get_viewport().set_input_as_handled()
+func _cycle(step: int, instant: bool) -> void:
+	if env:
+		env.cycle_weather(step, instant)
 
 
 func _process(delta: float) -> void:

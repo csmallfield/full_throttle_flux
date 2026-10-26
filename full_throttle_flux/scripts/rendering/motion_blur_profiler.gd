@@ -6,15 +6,16 @@ class_name MotionBlurProfiler
 ## times plus the viewport's whole-frame GPU time, and prints a line every
 ## `print_every` seconds. The same "MB ..." timestamps appear in the editor's
 ## Debugger > Visual Profiler.
-## Keys: F7 toggles the blur (A/B the viewport GPU time), F6 cycles debug views.
+## Blur on/off and debug views are GraphicsSettings' F6 / Shift+F6; switching
+## the blur starts a new averaging window so on and off never mix.
 
 @export var print_every := 2.0
-@export var keys_enabled := true
 
 var _acc := {}
 var _since := 0.0
 var _vp := RID()
 var _last := {}
+var _blur_was := true
 
 const SEGMENTS := [
 	["prep", "MB begin", "MB prep"],
@@ -27,6 +28,7 @@ const SEGMENTS := [
 
 func _ready() -> void:
 	MotionBlurEffect.profile_gpu = true
+	_blur_was = MotionBlurEffect.user_enabled
 	_vp = get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(_vp, true)
 
@@ -47,6 +49,9 @@ func reset() -> void:
 
 
 func _process(delta: float) -> void:
+	if MotionBlurEffect.user_enabled != _blur_was:
+		_blur_was = MotionBlurEffect.user_enabled
+		reset()
 	var rd := RenderingServer.get_rendering_device()
 	if rd == null:
 		return
@@ -81,27 +86,3 @@ func _add(key: String, v: float) -> void:
 	a[0] += v
 	a[1] += 1.0
 	_acc[key] = a
-
-
-func _unhandled_key_input(event: InputEvent) -> void:
-	if not keys_enabled or not (event is InputEventKey) or not event.pressed or event.echo:
-		return
-	match (event as InputEventKey).physical_keycode:
-		KEY_F7:
-			MotionBlurEffect.set_user_settings(not MotionBlurEffect.user_enabled)
-			reset()
-		KEY_F6:
-			for e in _effects():
-				e.debug_view = (e.debug_view + 1) % 4
-
-
-func _effects() -> Array:
-	var out := []
-	var env: WorldEnvironment = null
-	for n in get_tree().root.find_children("*", "WorldEnvironment", true, false):
-		env = n
-	if env and env.compositor:
-		for e in env.compositor.compositor_effects:
-			if e is MotionBlurEffect:
-				out.append(e)
-	return out

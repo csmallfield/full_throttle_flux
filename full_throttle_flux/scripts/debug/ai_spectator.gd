@@ -12,15 +12,15 @@ class_name AISpectator
 ## it works in any mode (race, time trial, a bare test scene) without those
 ## modes needing to know it exists.
 ##
-## Keys (raw scancodes, so no project input map changes are needed). Only F9
-## works while the spectator is off; the rest are left alone until then:
+## F-keys go through DebugKeys:
 ##   F9          toggle spectator on/off
+##   F10         cycle overlay detail: off -> basic -> full
+##   F11         freeze the AI's inputs readout (useful for reading a moment)
+## While spectating only (raw scancodes, left alone otherwise):
 ##   [  and  ]   previous / next ship
 ##   \           jump back to the player's ship
 ##   Y           cycle cinematic cameras (shift+Y goes back)
 ##   H           hide every HUD and overlay for a clean view
-##   F10         cycle overlay detail: off -> basic -> full
-##   F11         freeze the AI's inputs readout (useful for reading a moment)
 
 ## Set false to compile the spectator out of a build.
 @export var enabled: bool = true
@@ -65,6 +65,12 @@ func _ready() -> void:
 		set_process_unhandled_input(false)
 		return
 	_build_overlay()
+	DebugKeys.bind(KEY_F9, "AI spectator", func(): _activate(not _active),
+		func(): return "on  ([ ] ship  \\ player  Y cams  H clean)" if _active else "off", self)
+	DebugKeys.bind(KEY_F10, "Spectator detail", _cycle_detail,
+		func(): return ["off", "basic", "full"][_detail], self)
+	DebugKeys.bind(KEY_F11, "Spectator freeze", func(): _frozen = not _frozen,
+		func(): return "frozen" if _frozen else "live", self)
 	# Let the mode finish spawning before we look for ships.
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -121,17 +127,15 @@ func _input(event: InputEvent) -> void:
 		var key := event as InputEventKey
 		if not key.pressed or key.echo:
 			return
+		# Letters are only ours while spectating; otherwise they belong to
+		# whatever is on screen (results-screen initials, for one).
+		if not _active:
+			return
 		# Match BOTH codes. `keycode` follows the keyboard layout and
 		# `physical_keycode` follows US positions, and on a German QWERTZ
 		# layout they disagree for exactly the keys used here: Y/Z swap, and
 		# the brackets are not where US layouts put them at all.
-		if _is_key(key, KEY_F9):
-			_activate(not _active)
-		elif not _active:
-			# Letters are only ours while spectating; otherwise they belong to
-			# whatever is on screen (results-screen initials, for one).
-			return
-		elif _is_key(key, KEY_Y) or _is_key(key, KEY_Z) or _is_key(key, KEY_C):
+		if _is_key(key, KEY_Y) or _is_key(key, KEY_Z) or _is_key(key, KEY_C):
 			_cycle_camera(-1 if key.shift_pressed else 1)
 		elif _is_key(key, KEY_BRACKETLEFT) or _is_key(key, KEY_COMMA):
 			_step(-1)
@@ -141,11 +145,6 @@ func _input(event: InputEvent) -> void:
 			_to_player()
 		elif _is_key(key, KEY_H):
 			_set_clean_view(not _clean)
-		elif _is_key(key, KEY_F10):
-			_detail = (_detail + 1) % 3
-			_layer.visible = _active and _detail > 0
-		elif _is_key(key, KEY_F11):
-			_frozen = not _frozen
 		else:
 			return
 		get_viewport().set_input_as_handled()
@@ -169,6 +168,10 @@ func _input(event: InputEvent) -> void:
 			_:
 				return
 		get_viewport().set_input_as_handled()
+
+func _cycle_detail() -> void:
+	_detail = (_detail + 1) % 3
+	_layer.visible = _active and _detail > 0
 
 ## True if either the layout-mapped or the physical code matches.
 func _is_key(key: InputEventKey, code: Key) -> bool:
