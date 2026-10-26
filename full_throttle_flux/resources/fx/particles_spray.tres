@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="FxParticlePreset" format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/fx_particle_preset.gd" id="1_preset"]
+
+[resource]
+script = ExtResource("1_preset")
+display_name = "Spray"
+carrier_lifetime = 0.35
+carrier_damping = 140.0
+puff_rate = 60.0
+puffs_keep_velocity = true
+lifetime = 0.8
+gravity = 3.0
+wind_influence = 0.15
+damping = 3.0
+burst_min = 0.5
+burst_max = 2.5
+turbulence_strength = 0.7
+scale_min = 0.6
+scale_max = 1.2
+grow = 2.6
+color = Color(0.86, 0.89, 0.93, 1)
+use_track_dust_color = false
+brightness_min = 0.85
+opacity = 0.18
+fade_in = 0.03
+erosion = 0.5
+core_darken = 0.15
+backlight = 0.9
+emission_boost = 0.3

@@ -1,0 +1,279 @@
+[gd_resource type="Resource" script_class="TrackFxZoneSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/env/track_fx_zone_set.gd" id="1_se5t3"]
+[ext_resource type="Script" path="res://scripts/env/track_fx_zone.gd" id="2_x6cq1"]
+
+[sub_resource type="Resource" id="Resource_53ul4"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 96-142"
+start_distance = 96.0
+end_distance = 142.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_cupj7"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 440-452"
+start_distance = 440.0
+end_distance = 452.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_blq2t"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 514-524"
+start_distance = 514.0
+end_distance = 524.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_0n48n"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 588-600"
+start_distance = 588.0
+end_distance = 600.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_kw4jv"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 1102-1118"
+start_distance = 1102.0
+end_distance = 1118.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_52new"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 1348-1356"
+start_distance = 1348.0
+end_distance = 1356.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_owcm5"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 1402-1418"
+start_distance = 1402.0
+end_distance = 1418.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_cv4r2"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 1464-1472"
+start_distance = 1464.0
+end_distance = 1472.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_3iip0"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 1552-1560"
+start_distance = 1552.0
+end_distance = 1560.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_wxe5n"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 1616-1802"
+start_distance = 1616.0
+end_distance = 1802.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_3hgxt"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 2370-2376"
+start_distance = 2370.0
+end_distance = 2376.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_7476v"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 2416-2422"
+start_distance = 2416.0
+end_distance = 2422.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_f5ksq"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 2462-2470"
+start_distance = 2462.0
+end_distance = 2470.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_emyjl"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 2508-2516"
+start_distance = 2508.0
+end_distance = 2516.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_xef34"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 2556-2564"
+start_distance = 2556.0
+end_distance = 2564.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_o35c7"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 2644-2782"
+start_distance = 2644.0
+end_distance = 2782.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_gxmoh"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 2912-3280"
+start_distance = 2912.0
+end_distance = 3280.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_tcqst"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 3520-3530"
+start_distance = 3520.0
+end_distance = 3530.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_1jaa8"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 3946-3952"
+start_distance = 3946.0
+end_distance = 3952.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_ahts4"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 4006-4012"
+start_distance = 4006.0
+end_distance = 4012.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_cakj0"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 4066-4072"
+start_distance = 4066.0
+end_distance = 4072.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_gt3w8"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 4126-4132"
+start_distance = 4126.0
+end_distance = 4132.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_kwf47"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 4360-4456"
+start_distance = 4360.0
+end_distance = 4456.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_21ce0"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 4586-4778"
+start_distance = 4586.0
+end_distance = 4778.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_llego"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 4814-4836"
+start_distance = 4814.0
+end_distance = 4836.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_r0asb"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 5054-5098"
+start_distance = 5054.0
+end_distance = 5098.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_83ye4"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 5786-5814"
+start_distance = 5786.0
+end_distance = 5814.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_5lxr8"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 5830-5856"
+start_distance = 5830.0
+end_distance = 5856.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_865s8"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 5880-5906"
+start_distance = 5880.0
+end_distance = 5906.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[sub_resource type="Resource" id="Resource_5wt5m"]
+script = ExtResource("2_x6cq1")
+zone_name = "Covered 5926-5952"
+start_distance = 5926.0
+end_distance = 5952.0
+ramp_in = 8.0
+ramp_out = 8.0
+covered = 1.0
+
+[resource]
+script = ExtResource("1_se5t3")
+source = "tools/env/survey_cover.gd on res://scenes/tracks/test_circuit_3_live.tscn, 2026-10-25T15:02:29"
+zones = Array[ExtResource("2_x6cq1")]([SubResource("Resource_53ul4"), SubResource("Resource_cupj7"), SubResource("Resource_blq2t"), SubResource("Resource_0n48n"), SubResource("Resource_kw4jv"), SubResource("Resource_52new"), SubResource("Resource_owcm5"), SubResource("Resource_cv4r2"), SubResource("Resource_3iip0"), SubResource("Resource_wxe5n"), SubResource("Resource_3hgxt"), SubResource("Resource_7476v"), SubResource("Resource_f5ksq"), SubResource("Resource_emyjl"), SubResource("Resource_xef34"), SubResource("Resource_o35c7"), SubResource("Resource_gxmoh"), SubResource("Resource_tcqst"), SubResource("Resource_1jaa8"), SubResource("Resource_ahts4"), SubResource("Resource_cakj0"), SubResource("Resource_gt3w8"), SubResource("Resource_kwf47"), SubResource("Resource_21ce0"), SubResource("Resource_llego"), SubResource("Resource_r0asb"), SubResource("Resource_83ye4"), SubResource("Resource_5lxr8"), SubResource("Resource_865s8"), SubResource("Resource_5wt5m")])

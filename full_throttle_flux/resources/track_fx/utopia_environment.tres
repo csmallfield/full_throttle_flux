@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="TrackEnvironment" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/track_environment.gd" id="1_env"]
+[ext_resource type="Resource" path="res://resources/track_fx/test_circuit_3_live_cover.tres" id="2_cover"]
+[ext_resource type="Resource" path="res://resources/weather/clear.tres" id="w0_clear"]
+[ext_resource type="Resource" path="res://resources/weather/rain_light.tres" id="w1_rain_light"]
+[ext_resource type="Resource" path="res://resources/weather/rain_medium.tres" id="w2_rain_medium"]
+[ext_resource type="Resource" path="res://resources/weather/rain_heavy.tres" id="w3_rain_heavy"]
+[ext_resource type="Resource" path="res://resources/weather/snow_light.tres" id="w4_snow_light"]
+[ext_resource type="Resource" path="res://resources/weather/snow_medium.tres" id="w5_snow_medium"]
+[ext_resource type="Resource" path="res://resources/weather/snow_heavy.tres" id="w6_snow_heavy"]
+[ext_resource type="Resource" path="res://resources/weather/fog_light.tres" id="w7_fog_light"]
+[ext_resource type="Resource" path="res://resources/weather/fog_medium.tres" id="w8_fog_medium"]
+[ext_resource type="Resource" path="res://resources/weather/fog_heavy.tres" id="w9_fog_heavy"]
+[ext_resource type="Resource" path="res://resources/weather/dust_storm_light.tres" id="w10_dust_storm_light"]
+[ext_resource type="Resource" path="res://resources/weather/dust_storm_medium.tres" id="w11_dust_storm_medium"]
+[ext_resource type="Resource" path="res://resources/weather/dust_storm_heavy.tres" id="w12_dust_storm_heavy"]
+
+[resource]
+script = ExtResource("1_env")
+allowed_weather = [ExtResource("w0_clear"), ExtResource("w1_rain_light"), ExtResource("w2_rain_medium"), ExtResource("w3_rain_heavy"), ExtResource("w4_snow_light"), ExtResource("w5_snow_medium"), ExtResource("w6_snow_heavy"), ExtResource("w7_fog_light"), ExtResource("w8_fog_medium"), ExtResource("w9_fog_heavy"), ExtResource("w10_dust_storm_light"), ExtResource("w11_dust_storm_medium"), ExtResource("w12_dust_storm_heavy")]
+zone_sets = [ExtResource("2_cover")]

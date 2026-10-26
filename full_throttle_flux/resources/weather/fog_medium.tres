@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeatherPreset" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/weather_preset.gd" id="1_weather"]
+
+[resource]
+script = ExtResource("1_weather")
+display_name = "Fog"
+kind = 3
+intensity = 0.6
+wetness = 0.25
+humidity = 1.0
+ground_wind = 1.0
+sky_preset = "overcast"
+sky_coverage = 0.75
+sky_mood = 0.55
+fog_tint = Color(0.75, 0.77, 0.8, 0.5)
+fog_density = 0.006
+height_fog_density = 0.02
+sun_scale = 0.7
+line_glow = 0.45
+fog_sky_affect = 0.8
+height_fog_top = 20.0

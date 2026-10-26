@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="FxParticlePreset" format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/fx_particle_preset.gd" id="1_preset"]
+
+[resource]
+script = ExtResource("1_preset")
+display_name = "Snow powder"
+carrier_lifetime = 0.5
+puff_rate = 60.0
+lifetime = 1.5
+gravity = 0.6
+wind_influence = 0.5
+damping = 4.0
+turbulence_strength = 1.8
+scale_min = 0.7
+scale_max = 1.4
+grow = 2.6
+color = Color(0.93, 0.95, 1, 1)
+use_track_dust_color = false
+brightness_min = 0.85
+opacity = 0.2
+fade_in = 0.04
+erosion = 0.55
+core_darken = 0.2
+backlight = 0.7
+emission_boost = 0.25
