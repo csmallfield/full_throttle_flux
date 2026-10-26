@@ -399,11 +399,21 @@ func _ready() -> void:
 	# though the world is static.
 	set_physics_process(false)
 	set_process(true)
+	# v37.1: the ships are physics-interpolated; the camera is not, since it
+	# already moves every rendered frame (following the interpolated ship).
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	_fov_current = base_fov
 	fov = base_fov
 
 func _exit_tree() -> void:
 	MotionBlurEffect.speed_ratio = -1.0   # nothing drives the fade any more
+
+## v37.1: where the ship is drawn this frame. The ship moves only on physics
+## ticks; reading its raw transform here at render rate, while the velocity
+## feedforward moves the camera smoothly, made the ship lurch against the
+## camera once per tick (measured 28 px RMS at 144 fps with 60 Hz physics).
+func _ship_xform() -> Transform3D:
+	return ship.get_global_transform_interpolated()
 
 ## Frame-rate independent smoothing weight.
 static func _w(rate: float, delta: float) -> float:
@@ -425,9 +435,10 @@ func _process(delta: float) -> void:
 		_process_intro(delta)
 		return
 	
-	var ship_pos: Vector3 = ship.global_position
-	var ship_forward: Vector3 = -ship.global_transform.basis.z
-	var ship_up: Vector3 = ship.global_transform.basis.y
+	var ship_xf := _ship_xform()
+	var ship_pos: Vector3 = ship_xf.origin
+	var ship_forward: Vector3 = -ship_xf.basis.z
+	var ship_up: Vector3 = ship_xf.basis.y
 	var ratio: float = ship.get_speed_ratio()
 	
 	_update_frame(ship_forward, ship_up, delta)
@@ -466,7 +477,7 @@ func _update_frame(ship_forward: Vector3, ship_up: Vector3, delta: float) -> voi
 	# camera survives banked, vertical and inverted track.
 	var right := _cam_forward.cross(_cam_up)
 	if right.length() < 0.001:
-		right = ship.global_transform.basis.x
+		right = _ship_xform().basis.x
 	right = right.normalized()
 	_cam_up = right.cross(_cam_forward).normalized()
 
@@ -618,11 +629,11 @@ func _track_frame(pi: int, f: float) -> Array:
 	var up := ups[i].lerp(ups[i + 1], k)
 	var tangent := pts[i + 1] - pts[i]
 	if tangent.length_squared() < 0.0001:
-		tangent = -ship.global_transform.basis.z
+		tangent = -_ship_xform().basis.z
 	tangent = tangent.normalized()
 	var right := tangent.cross(up)
 	if right.length_squared() < 0.0001:
-		right = ship.global_transform.basis.x
+		right = _ship_xform().basis.x
 	right = right.normalized()
 	up = right.cross(tangent).normalized()
 	return [p, right, up]
@@ -782,13 +793,13 @@ func _shake_offset() -> Vector3:
 ## Chase pose the intro is easing toward, recomputed every frame so the
 ## landing is exact even if the ship creeps on the grid.
 func _chase_pose() -> Array:
-	var ship_forward: Vector3 = -ship.global_transform.basis.z
-	var ship_up: Vector3 = ship.global_transform.basis.y
+	var ship_forward: Vector3 = -_ship_xform().basis.z
+	var ship_up: Vector3 = _ship_xform().basis.y
 	_cam_forward = ship_forward
 	_cam_up = ship_up
 	var frame := _build_basis()
-	var pos: Vector3 = ship.global_position + frame * Vector3(0.0, base_height, base_distance)
-	var aim: Vector3 = ship.global_position + ship_forward * look_distance + ship_up * aim_height
+	var pos: Vector3 = _ship_xform().origin + frame * Vector3(0.0, base_height, base_distance)
+	var aim: Vector3 = _ship_xform().origin + ship_forward * look_distance + ship_up * aim_height
 	return [pos, aim, frame]
 
 func _process_intro(delta: float) -> void:
@@ -804,11 +815,11 @@ func _process_intro(delta: float) -> void:
 	var end_aim: Vector3 = pose[1]
 	var frame: Basis = pose[2]
 	
-	var start_pos: Vector3 = ship.global_position + frame * Vector3(
+	var start_pos: Vector3 = _ship_xform().origin + frame * Vector3(
 			intro_start_lateral, intro_start_height, intro_start_distance)
 	
 	_cam_position = start_pos.lerp(end_pos, e)
-	_aim_point = ship.global_position.lerp(end_aim, e)
+	_aim_point = _ship_xform().origin.lerp(end_aim, e)
 	_fov_current = lerpf(base_fov + 8.0, base_fov, e)
 	fov = _fov_current
 	
@@ -817,7 +828,7 @@ func _process_intro(delta: float) -> void:
 	
 	if t >= 1.0:
 		_intro_active = false
-		_collision_distance = _cam_position.distance_to(ship.global_position)
+		_collision_distance = _cam_position.distance_to(_ship_xform().origin)
 
 ## Restart the cinematic entry (e.g. at the start of a countdown).
 func begin_intro(duration: float = -1.0) -> void:
@@ -840,7 +851,7 @@ func _snap_to_ship() -> void:
 	# applies every frame, so frame one started with a 1-unit aim mismatch that
 	# the aim spring then had to chase out.
 	_aim_point = pose[1]
-	_collision_distance = _cam_position.distance_to(ship.global_position)
+	_collision_distance = _cam_position.distance_to(_ship_xform().origin)
 	_swing = 0.0
 	_bank = 0.0
 	_boost_lag = 0.0

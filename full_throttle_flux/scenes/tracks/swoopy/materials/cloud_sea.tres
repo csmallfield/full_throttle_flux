@@ -1,6 +1,6 @@
-[gd_resource type="ShaderMaterial" format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dhmdi47k37m3x"]
 
-[ext_resource type="Shader" path="res://scenes/tracks/swoopy/materials/cloud_sea.gdshader" id="1_txaot"]
+[ext_resource type="Shader" uid="uid://c32vruvx153ou" path="res://scenes/tracks/swoopy/materials/cloud_sea.gdshader" id="1_txaot"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_6v6nq"]
 seed = 11

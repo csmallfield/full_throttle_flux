@@ -28,6 +28,12 @@ extends Node
 ##
 ## The benchmark (tools/dev/gfx_bench.gd) sets modes directly with
 ## set_aa() / set_shadows() and doesn't save.
+##
+## Physics interpolation (v37.1): on in project.godot, but scoped to the ships.
+## The scene root is set to OFF here and ShipController opts back in, so the
+## ships (which move only on physics ticks) are drawn smoothly between ticks,
+## while everything moved in _process (cameras, weather, greebles, FX) is
+## drawn exactly where it is put, as before.
 
 enum AA { MSAA2_SMAA, MSAA4_SMAA, TAA, FSR2_NATIVE }
 enum Shadows { LOW, HIGH, ULTRA }
@@ -57,6 +63,7 @@ var _grid_v37: Shader = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().root.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	_load()
 	if OS.get_environment("FTF_AA") != "":
 		aa = clampi(int(OS.get_environment("FTF_AA")), 0, 3) as AA

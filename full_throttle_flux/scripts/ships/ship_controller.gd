@@ -266,6 +266,9 @@ var _rumble_frequency: float
 # ============================================================================
 
 func _ready() -> void:
+	# v37.1: the ship moves only on physics ticks, so it is drawn interpolated
+	# between them (the rest of the scene opts out; see GraphicsSettings).
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
 	_find_child_nodes()
 	_apply_profile()
 	_setup_hover_ray()
@@ -477,8 +480,12 @@ func settle_on_surface() -> void:
 	smoothed_track_normal = normal
 	is_grounded = true
 	time_since_grounded = 0.0
-	
+
 	hover_ray.force_raycast_update()
+	# v37.1: this runs after every placement (grid, respawn, the trainer's
+	# lap restart), so the interpolated ship starts here instead of gliding
+	# over from wherever it was.
+	reset_physics_interpolation()
 
 func _setup_hover_ray() -> void:
 	if hover_ray:
@@ -695,7 +702,8 @@ func respawn(custom_position: Vector3 = Vector3.ZERO, custom_rotation: Basis = B
 			audio_controller.stop_wall_scrape()
 	
 	settle_on_surface()
-	
+	reset_physics_interpolation()   # v37.1: appear here, don't glide here
+
 	# Re-snap the camera so it does not sweep across the level after a
 	# respawn (v2 camera has no large world-space lag to absorb the jump).
 	if camera and camera.has_method("reset_to_ship"):
