@@ -6,7 +6,7 @@ extends Node
 ## instead of two features quietly firing on one press. Features keep their
 ## own logic and register a key:
 ##
-##   DebugKeys.bind(KEY_F7, "Anti-aliasing", _cycle_aa, func(): return AA_NAMES[aa])
+##   DebugKeys.bind(KEY_7, "Anti-aliasing", _cycle_aa, func(): return AA_NAMES[aa])
 ##   DebugKeys.bind(KEY_F4, "Weather back", _back, Callable(), self, DebugKeys.CTRL)
 ##
 ## `value` (optional) is shown in the F1 list and as a toast after each press.
@@ -14,10 +14,15 @@ extends Node
 ## per-race features. Keys match by physical position, so keyboard layouts
 ## don't move them. Keys that only mean something inside one feature (the
 ## spectator's letters while spectating) stay with that feature.
+##
+## F5-F8 are refused: they are the editor's run / run scene / pause / stop
+## shortcuts and reach the editor even while the game has focus.
 
 const SHIFT := 1
 const CTRL := 2
 const ALT := 4
+
+const RESERVED: Array[Key] = [KEY_F5, KEY_F6, KEY_F7, KEY_F8]
 
 const TOAST_SECONDS := 2.0
 const HELP_REFRESH := 0.25
@@ -44,6 +49,10 @@ func _ready() -> void:
 func bind(key: Key, label: String, action: Callable, value := Callable(),
 		owner: Node = null, mods := 0) -> void:
 	if not _active:
+		return
+	if key in RESERVED:
+		push_error("DebugKeys: %s is an editor run shortcut; not binding '%s'" % [
+			key_name(key, mods), label])
 		return
 	var id := _id(key, mods)
 	var old: Dictionary = _binds.get(id, {})

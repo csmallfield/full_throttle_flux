@@ -1,18 +1,18 @@
 extends Node
 ## Graphics settings (v37, autoload "GraphicsSettings").
 ##
-## Saved in user://graphics.cfg; debug keys (DebugKeys) switch them in game for
-## side by side comparison:
-##   F5        FX quality     Low / Medium / High (FxSettings, saved in
+## Saved in user://graphics.cfg; debug keys (DebugKeys, number row) switch them
+## in game for side by side comparison:
+##   5         FX quality     Low / Medium / High (FxSettings, saved in
 ##                            user://fx_settings.tres). Ship LOD, dust and SSR
 ##                            follow at once; particle counts on the next race.
-##   F6        motion blur    on / off (not saved)
-##   Shift+F6  blur debug     off / velocity / neighbour max / distance
-##   F7        anti-aliasing  MSAA 2x + SMAA (v36) / MSAA 4x + SMAA (default) /
+##   6         motion blur    on / off (not saved)
+##   Shift+6   blur debug     off / velocity / neighbour max / distance
+##   7         anti-aliasing  MSAA 2x + SMAA (v36) / MSAA 4x + SMAA (default) /
 ##                            TAA / FSR 2 at native resolution
-##   Shift+F7  road grid      filtered (v37) / v36 fixed-pixel lines, for A/B
+##   Shift+7   road grid      filtered (v37) / v36 fixed-pixel lines, for A/B
 ##                            only (not saved)
-##   F8        shadows        Low = v36 (4096 atlas, soft low) / High = 8192
+##   8         shadows        Low = v36 (4096 atlas, soft low) / High = 8192
 ##                            atlas, soft medium (default) / Ultra = 8192, soft high
 ##
 ## Env overrides for tests and the benchmark: FTF_AA=0..3, FTF_SHADOWS=0..2,
@@ -59,16 +59,16 @@ func _ready() -> void:
 
 
 func _bind_keys() -> void:
-	DebugKeys.bind(KEY_F5, "FX quality", _cycle_fx,
+	DebugKeys.bind(KEY_5, "FX quality", _cycle_fx,
 		func(): return FX_NAMES[FxSettings.active().quality] + "  (particle counts: next race)")
-	DebugKeys.bind(KEY_F6, "Motion blur", _toggle_blur,
+	DebugKeys.bind(KEY_6, "Motion blur", _toggle_blur,
 		func(): return "on" if MotionBlurEffect.user_enabled else "off")
-	DebugKeys.bind(KEY_F6, "Motion blur debug view", _cycle_blur_view,
+	DebugKeys.bind(KEY_6, "Motion blur debug view", _cycle_blur_view,
 		func(): return BLUR_VIEWS[_blur_view()], null, DebugKeys.SHIFT)
-	DebugKeys.bind(KEY_F7, "Anti-aliasing", _cycle_aa, func(): return AA_NAMES[aa])
-	DebugKeys.bind(KEY_F7, "Road grid", func(): set_grid_v36(not grid_v36),
+	DebugKeys.bind(KEY_7, "Anti-aliasing", _cycle_aa, func(): return AA_NAMES[aa])
+	DebugKeys.bind(KEY_7, "Road grid", func(): set_grid_v36(not grid_v36),
 		func(): return "v36 (fixed-pixel lines)" if grid_v36 else "filtered (v37)", null, DebugKeys.SHIFT)
-	DebugKeys.bind(KEY_F8, "Shadows", _cycle_shadows, func(): return SHADOW_NAMES[shadows])
+	DebugKeys.bind(KEY_8, "Shadows", _cycle_shadows, func(): return SHADOW_NAMES[shadows])
 
 
 func _cycle_aa() -> void:

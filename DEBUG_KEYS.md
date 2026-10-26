@@ -5,7 +5,10 @@ Every debug hotkey goes through `scripts/debug/debug_keys.gd` (autoload
 current value. Debug builds only: an exported release build has none of these.
 
 Binding a key that's already taken prints an error and keeps the original, so
-two features can't share a key by accident.
+two features can't share a key by accident. **F5–F8 are off limits**: they're
+the editor's run / run scene / pause / stop shortcuts and still reach the
+editor while the game has focus (F8 ends the game). The rendering switches use
+the number row instead, with the same numbers.
 
 ## Keys
 
@@ -17,12 +20,12 @@ two features can't share a key by accident.
 | F4 | Next weather, blended as mid-race | no | `env_debug_overlay.gd` |
 | Shift+F4 | Next weather, instantly | no | 〃 |
 | Ctrl+F4 | Previous weather, instantly | no | 〃 |
-| F5 | FX quality Low / Medium / High | `user://fx_settings.tres` | `graphics_settings.gd` |
-| F6 | Motion blur on / off | no | 〃 |
-| Shift+F6 | Motion blur debug view: off / velocity / neighbour max / distance | no | 〃 |
-| F7 | Anti-aliasing: MSAA 2x+SMAA (v36) / **MSAA 4x+SMAA** / TAA / FSR 2 native | `user://graphics.cfg` | 〃 |
-| Shift+F7 | Road grid: **filtered (v37)** / v36 fixed-pixel lines | no | 〃 |
-| F8 | Shadows: Low (v36) / **High** / Ultra | `user://graphics.cfg` | 〃 |
+| 5 | FX quality Low / Medium / High | `user://fx_settings.tres` | `graphics_settings.gd` |
+| 6 | Motion blur on / off | no | 〃 |
+| Shift+6 | Motion blur debug view: off / velocity / neighbour max / distance | no | 〃 |
+| 7 | Anti-aliasing: MSAA 2x+SMAA (v36) / **MSAA 4x+SMAA** / TAA / FSR 2 native | `user://graphics.cfg` | 〃 |
+| Shift+7 | Road grid: **filtered (v37)** / v36 fixed-pixel lines | no | 〃 |
+| 8 | Shadows: Low (v36) / **High** / Ultra | `user://graphics.cfg` | 〃 |
 | F9 | AI spectator on / off | no | `ai_spectator.gd` |
 | F10 | Spectator overlay detail: off / basic / full | no | 〃 |
 | F11 | Freeze the spectator readout | no | 〃 |
@@ -33,7 +36,7 @@ prints it to the log.
 Weather keys cycle the track's `allowed_weather`, or every stock preset in
 `resources/weather/` if the track doesn't list any.
 
-F5 changes ship FX detail, dust and SSR right away, but particle counts are
+FX quality (5) changes ship detail, dust and SSR right away, but particle counts are
 fixed when the race loads. Restart the race to see all of it.
 
 ### While spectating (F9 on)
@@ -57,9 +60,9 @@ override the saved files but don't change them.
 
 | Variable | Values | Effect |
 |---|---|---|
-| `FTF_AA` | 0–3 | AA mode, in F7 order |
-| `FTF_SHADOWS` | 0–2 | Shadow quality, in F8 order |
-| `FTF_FX` | 0–2 | FX quality, in F5 order |
+| `FTF_AA` | 0–3 | AA mode, in key 7 order |
+| `FTF_SHADOWS` | 0–2 | Shadow quality, in key 8 order |
+| `FTF_FX` | 0–2 | FX quality, in key 5 order |
 | `FTF_BLUR` | 0 / 1 | Motion blur off / on |
 | `FTF_WEATHER` | preset file name, e.g. `rain_heavy` | Starting weather (`resources/weather/<name>.tres`) |
 | `FTF_CONTACT` | `legacy` | Old per-ship contact path instead of `ShipContactResolver` |
