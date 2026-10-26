@@ -119,6 +119,11 @@ func _load_track() -> void:
 	
 	add_child(track_instance)
 
+	# v37: shared shadow settings on the track's lights
+	var gs := get_node_or_null("/root/GraphicsSettings")
+	if gs:
+		gs.apply_track(track_instance, track_profile.get("shadow_profile"))
+
 	# v35: weather / surface state for the environment FX. Before the ships
 	# spawn, so their ShipEnvProbes find it in _ready.
 	EnvironmentState.install(self, track_instance, track_profile)
@@ -237,7 +242,11 @@ func _setup_camera() -> void:
 			print("ModeBase: Camera assigned to ship")
 		else:
 			push_warning("ModeBase: Camera has no 'ship' property")
-		
+
+		# v35: the chase camera leads its aim down the upcoming track
+		if camera_instance.has_method("set_track") and track_instance:
+			camera_instance.set_track(track_instance)
+
 		# Give ship reference to camera for shake effects
 		if ship_instance is ShipController:
 			ship_instance.camera = camera_instance
