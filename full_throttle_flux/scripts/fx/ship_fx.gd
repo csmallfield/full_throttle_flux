@@ -45,6 +45,8 @@ var _layer_timer: float = 0.0
 ## Profiling: microseconds spent in ShipFx._process (dust emission + driving)
 ## by ALL ships this frame. Ribbons add TrailRibbon.frame_usec on top.
 static var frame_usec: int = 0
+## Of which ShipDust.update (all ships).
+static var dust_usec: int = 0
 static var _frame_usec_frame: int = -1
 
 
@@ -96,11 +98,18 @@ func _process(delta: float) -> void:
 	if fr != _frame_usec_frame:
 		_frame_usec_frame = fr
 		frame_usec = 0
-	lod = FxSettings.active().lod_for(ship, get_viewport().get_camera_3d())
+		dust_usec = 0
+	var cam := get_viewport().get_camera_3d()
+	lod = FxSettings.active().lod_for(ship, cam)
 	_drive_thrust(delta)
 	_drive_air(delta)
-	if dust:
+	# v38.1: no dust from a ship the camera can't see (behind it, in a chase
+	# view half the pack): puffs live about a second and drift little. The
+	# ribbons keep sampling so a trail is there when the ship comes into view.
+	if dust and (lod == FxSettings.Lod.FULL or cam == null or _on_screen(cam)):
+		var td := Time.get_ticks_usec()
 		dust.update(delta, _dust_lod() * float(FxSettings.active().pick(0.4, 0.7, 1.0)))
+		dust_usec += Time.get_ticks_usec() - td
 	if impacts:
 		impacts.sparks_enabled = lod != FxSettings.Lod.OFF
 	_layer_timer -= delta
@@ -294,6 +303,16 @@ func _tag_layers(n: Node) -> void:
 				and not c is GPUParticles3D:
 			(c as VisualInstance3D).layers = FxImpacts.SHIP_RENDER_LAYER
 		_tag_layers(c)
+
+
+## The ship, or a few metres around it, is in the camera's view.
+func _on_screen(cam: Camera3D) -> bool:
+	var p := ship.global_position
+	if cam.is_position_in_frustum(p):
+		return true
+	# A ship just off the edge can still throw dust into frame.
+	var r := cam.global_transform.basis.x * 6.0
+	return cam.is_position_in_frustum(p + r) or cam.is_position_in_frustum(p - r)
 
 
 ## Dust strength per LOD: the camera ship gets it all, distant ships a hint.

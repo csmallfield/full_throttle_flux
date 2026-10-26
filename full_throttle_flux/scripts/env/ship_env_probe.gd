@@ -26,6 +26,11 @@ const SIDE_RAY_LENGTH := 12.0        # walls further away than this read as INF
 const SIDE_RAY_LIFT := 0.3
 ## Seconds between EnvironmentState lookups while idle.
 const BIND_RETRY := 1.0
+## v38.1: physics ticks between samples by the ship's FX LOD (ShipFx.lod):
+## FULL (the camera's ship), NEAR, FAR, OFF. Everything here feeds visual FX
+## only, so distant ships are sampled less often; the ground is copied from
+## the controller every tick regardless (free).
+const SAMPLE_EVERY := [1, 2, 4, 8]
 
 var ship: ShipController
 var env: EnvironmentState
@@ -67,6 +72,9 @@ var _tracker: SplineTracker
 var _ray: PhysicsRayQueryParameters3D
 var _bind_timer: float = 0.0
 var _scrape_seen_tick: int = -1
+var _fx: ShipFx
+## Staggers the ships' sampling ticks so a grid's work is spread evenly.
+var _phase: int = 0
 
 
 ## Adds a probe to `p_ship` once; returns the existing one on a second call.
@@ -100,6 +108,7 @@ func _ready() -> void:
 	_ray.collision_mask = WALL_MASK
 	_ray.collide_with_areas = false
 	_ray.exclude = [ship.get_rid()]
+	_phase = get_instance_id() % 8
 	_try_bind()
 
 
@@ -115,9 +124,16 @@ func _physics_process(delta: float) -> void:
 		env = null
 		return
 	_sample_ground()
-	_sample_walls()
-	_sample_track()
-	_sample_surface()
+	if _fx == null:
+		_fx = ShipFx.of(ship)
+	# No camera (tests, sims): nothing to save, and they steer by these values.
+	var every: int = 1
+	if _fx and _fx.active and get_viewport().get_camera_3d() != null:
+		every = SAMPLE_EVERY[int(_fx.lod)]
+	if every == 1 or (Engine.get_physics_frames() + _phase) % every == 0:
+		_sample_walls()
+		_sample_track()
+		_sample_surface()
 	if scraping and Engine.get_physics_frames() - _scrape_seen_tick > 6:
 		scraping = false
 

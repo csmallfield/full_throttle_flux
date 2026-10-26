@@ -15,6 +15,7 @@ uniform float scroll_speed = 6.0;                 // metres per second, head to 
 uniform float fade_distance = 900.0;              // fades out with camera distance (no fog on additive)
 
 void vertex() {
+	TRAIL_BUILD;
 	trail_vertex(VERTEX, NORMAL, UV, UV2, INV_VIEW_MATRIX);
 	TRAIL_VARYINGS;
 }
