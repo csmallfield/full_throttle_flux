@@ -12,8 +12,9 @@ profile is still hard-coded until phase 3. Same branch,
 from the doc's descriptions of the references, not the images.
 
 **Gate 1 was not formally passed** (no 1080 Ti run, no live lap). We agreed
-to go ahead and flag it. The low tier now costs slightly more than the grid
-(see Cost), so the 1080 Ti run matters more than before.
+to go ahead and flag it. The low tier now costs slightly more than the grid,
+so its budget is restated: **≤ +0.1 ms over the grid on the RTX 3080 at
+1080p, to be verified on a 1080 Ti** (see Cost).
 
 ## Try it in game
 Same keys as phase 1: **9** cycles the debug views, **Shift+9** switches the
@@ -186,9 +187,16 @@ GPU frame time median, ms:
 | `surface_high` | 1.67 | 1.69 | 2.59 | 2.56 |
 
 - **High tier at 1440p: +0.08 ms over the grid. Inside the +0.5 ms budget.**
-- **Low tier at 1080p: +0.07 ms over the grid. This FAILS the strict gate**
-  ("no more than the grid costs"), on the 3080. Scaled by ALU, the 1080 Ti
-  could be around +0.2 ms.
+- **Low tier at 1080p: +0.07 ms over the grid. Inside the restated budget**
+  (below). It failed the original "no more than the grid costs". Scaled by
+  ALU, the 1080 Ti could be around +0.2 ms.
+
+**Low-tier budget, restated (decided after phase 2):** the low tier may cost
+**≤ +0.1 ms GPU over the v37 grid on the RTX 3080 at 1080p**, measured with
+`gfx_bench` (`GB_TRACKS=builder_lab GB_CONFIGS=v38`). **It still has to be
+verified on a GTX 1080 Ti** (min spec, 1080p / 60) before the look is signed
+off (gate 3). Every later module is measured against this number. The high
+tier's budget is unchanged: ≤ +0.5 ms over the grid on the 3080 at 1440p.
 - **The cost is per-pixel overhead, not the modules.** Removing pieces at
   1080p (surface vs grid):
 
@@ -205,12 +213,17 @@ GPU frame time median, ms:
     tangent varyings.
   - The loop optimizations took +0.09 down to +0.07. Low and high cost the
     same because normals and parallax are cheap.
-- **Options** (your call):
-  1. Accept a small low-tier overhead and restate the budget, e.g.
-     "≤ +0.1 ms on the 3080, verify on the 1080 Ti".
-  2. Make the low tier draw less: grates and ribs as flat averages, no
-     LEDs. That gives up some look on low for parity.
-  3. Wait for the 1080 Ti numbers before deciding.
+- **Decision: accept the overhead** and restate the low-tier budget (above).
+  The alternatives were:
+  - make the low tier draw less (grates and ribs as flat averages, no
+    LEDs) for parity with the grid;
+  - wait for 1080 Ti numbers before deciding.
+
+  If the 1080 Ti run comes in over budget, trimming the low tier is the
+  first fallback.
+- **Headroom:** the low tier has 0.03 ms left on the 3080 for phase 3+
+  (the per-path data texture fetches). The band loop's cost is the one to
+  watch.
 
 ## Screenshots
 In `%APPDATA%\Godot\app_userdata\full_throttle_flux\`:
@@ -233,7 +246,9 @@ In `%APPDATA%\Godot\app_userdata\full_throttle_flux\`:
     doesn't touch.
 
 ## Open issues for phase 3+
-- **The low-tier budget** (above): decide before more modules land.
+- **Verify the restated low-tier budget on a GTX 1080 Ti** (≤ +0.1 ms on
+  the 3080 holds today at +0.07). If it doesn't hold there, trim the low
+  tier first.
 - **Gate 2 tuning**: ribs and grates are subtle from the chase cam.
   Parameters to tune:
   - `rib_dark`, `rib_pitch`;

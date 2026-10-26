@@ -38,7 +38,9 @@ extends Node
 const CONFIGS := "v36:0:0:0:0,profile:0:0:1,shadows_high:0:1:1,msaa4:1:0:1,v37:1:1:1,shadows_ultra:1:2:1,taa:2:1:1,fsr2:3:1:1"
 const TRACKS := "test_circuit_3_live,test_circuit_5_live,test_circuit_6_live,test_circuit_7_live"
 ## v38 gate: the filtered grid against the track surface, both tiers, at v37
-## settings. Run with GB_TRACKS=builder_lab.
+## settings. Run with GB_TRACKS=builder_lab. Budgets (FTF_v38_TRACK_SURFACE_P2.md):
+## low tier <= +0.1 ms GPU over grid_v37 on the RTX 3080 at 1080p (verify on
+## a GTX 1080 Ti); high tier <= +0.5 ms over grid_v37 on the 3080 at 1440p.
 const V38_CONFIGS := "grid_v37:1:1:1:1,surface_low:1:1:1:2:0,surface_high:1:1:1:2:1"
 const GRID_MATERIAL := "res://shaders/resources/grid_material.tres"
 

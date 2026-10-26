@@ -16,6 +16,11 @@ two things described here:
 
 The tables below are the phase 1 record.
 
+**Budget change after phase 2:** the low tier's gate "no more than the grid
+costs" is restated as **≤ +0.1 ms GPU over the v37 grid on the RTX 3080 at
+1080p, to be verified on a GTX 1080 Ti**. Phase 1 met the original gate;
+phase 2 costs +0.07 ms (see the phase 2 notes).
+
 ## Try it in game
 | Key | What | Options (default in bold) |
 |---|---|---|
