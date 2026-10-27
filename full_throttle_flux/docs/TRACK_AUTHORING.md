@@ -524,8 +524,9 @@ tracks need none of that.
 walls as builder tracks, without the Track Builder: each scene has a
 `TrackSurface` node, and when the race loads it puts the circuit's CSG road
 and walls on the v38 materials (`material_override`, so the CSG meshes and
-their collision are untouched; the editor still shows the old grid). Edit
-the surface in that node's inspector:
+their collision are untouched). The editor shows the same surface as a
+preview that is never saved into the scene, and updates it within a
+quarter of a second as you edit. Edit the surface in that node's inspector:
 
 - `zones`: one `TrackSurfaceZone` per stretch, with a `profile`, `from_d`
   (metres along MainSpline), `blend_in`, `seed` and `wear`. Leave `to_d` at 0
