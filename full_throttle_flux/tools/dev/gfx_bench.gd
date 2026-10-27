@@ -187,6 +187,13 @@ func _roads_to_grid(track: Node, walls_only := false) -> void:
 		var mi := (n as TrackRoadSegment).mesh_instance()
 		if mi and mi.mesh and mi.mesh.surface_get_material(0) != grid_mat:
 			mi.set_surface_override_material(0, grid_mat)
+	# Junction roads (on the surface since v38): back on the grid with the roads.
+	if not walls_only:
+		for n in track.find_children("*", "TrackJunction", true, false):
+			for c in n.get_children(true):
+				var mi := c as MeshInstance3D
+				if mi and mi.mesh and mi.mesh.surface_get_material(0) != grid_mat:
+					mi.set_surface_override_material(0, grid_mat)
 	# The circuits (phase 5b): off their v38 overrides, back to their own grid.
 	for n in track.find_children("*", "CSGPolygon3D", true, false):
 		var csg := n as CSGPolygon3D

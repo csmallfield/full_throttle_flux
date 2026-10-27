@@ -36,6 +36,11 @@ extends Node
 ##   aliasing. 0 measures them moving.
 ##   TS_GLOBALS "name=value,..." global shader parameters, e.g. weather:
 ##   "env_wetness=0.8,env_precip=0.5" (there's no EnvironmentState here).
+##   TS_PATH the path the poses follow (default MainSpline; e.g. BranchSpline
+##   to drive a branch through its junctions), TS_DEBUG_POSES the poses that
+##   also save the debug views (default "chase"). Pose "over": 70 m up, 50 m
+##   behind, looking 60 m ahead (a whole junction in view).
+## Junction roads (TrackJunction, v38) switch looks with the road segments.
 
 const GRID_MATERIAL := "res://shaders/resources/grid_material.tres"
 const LOOKS := ["grid", "surface", "average"]
@@ -74,7 +79,8 @@ func _run() -> void:
 	var track_id := _env("TS_TRACK", "builder_lab")
 	var track := (load("res://scenes/tracks/%s.tscn" % track_id) as PackedScene).instantiate()
 	add_child(track)
-	path = track.find_child("MainSpline", true, false) as Path3D
+	path = track.find_child(_env("TS_PATH", "MainSpline"), true, false) as Path3D
+	var main := track.find_child("MainSpline", true, false) as Path3D
 	cam = Camera3D.new()
 	cam.far = 4000.0
 	cam.near = 0.3
@@ -98,6 +104,16 @@ func _run() -> void:
 			# One material per path once TrackSurface has run (v38 phase 3).
 			if not surf_mats.has(sm):
 				surf_mats.append(sm)
+	for n in track.find_children("*", "TrackJunction", true, false):
+		for c in n.get_children(true):
+			var mi := c as MeshInstance3D
+			if mi == null or mi.mesh == null:
+				continue
+			var sm := mi.mesh.surface_get_material(0) as ShaderMaterial
+			if sm and sm.shader.resource_path == EnvSurfaces.SURFACE_SHADER_PATH:
+				segs.append(mi)
+				if not surf_mats.has(sm):
+					surf_mats.append(sm)
 	# The circuits (phase 5b): CSG road and walls on v38 overrides.
 	for n in track.find_children("*", "CSGPolygon3D", true, false):
 		var ov := (n as GeometryInstance3D).material_override as ShaderMaterial
@@ -113,7 +129,7 @@ func _run() -> void:
 		print("TSMETRIC no track surface on %s" % track_id)
 		get_tree().quit(1)
 		return
-	EnvSurfaces.adopt(track, path)
+	EnvSurfaces.adopt(track, main)
 	if _env("TS_FREEZE", "1") == "1":
 		_set_all("light_flow", 0.0)
 		_set_all("light_pulse_speed", 0.0)
@@ -137,7 +153,7 @@ func _run() -> void:
 			for look in LOOKS:
 				_set_look(segs, grid_mat, surface_mat, look, fade_px)
 				await _measure(track_id, d, pose, look)
-			if pose == "chase":
+			if pose in _env("TS_DEBUG_POSES", "chase").split(","):
 				_set_all("aa_fade_px", fade_px)
 				for v in range(1, VIEW_NAMES.size()):
 					if gs:
@@ -238,6 +254,9 @@ func _place(d: float, pose: String, creep: float) -> void:
 		"chase":
 			pos = (at.call(d + creep - 9.0) as Transform3D).origin + here.basis.y * 3.2
 			target = (at.call(d + creep + 25.0) as Transform3D).origin + here.basis.y * 1.0
+		"over":
+			pos = here.origin + here.basis.y * 70.0 + here.basis.z * 50.0
+			target = here.origin - here.basis.z * 60.0
 		"low":
 			pos = here.origin + here.basis.y * 1.3
 			target = (at.call(d + creep + 200.0) as Transform3D).origin + here.basis.y * 1.3

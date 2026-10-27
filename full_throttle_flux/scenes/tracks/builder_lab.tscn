@@ -1030,7 +1030,8 @@ path_b = NodePath("../BranchSpline")
 a_start = 5350.6954182982445
 a_end = 5680.315454422421
 b_end = 337.0759963986055
-material = ExtResource("11_r5qea")
+material = ExtResource("v38_surface")
+splitter_material = ExtResource("11_r5qea")
 
 [node name="RejoinJunction" type="Node3D" parent="." unique_id=1327261410 groups=["track_builder_generated"]]
 script = ExtResource("12_o8d6w")
@@ -1041,7 +1042,8 @@ a_end = 6805.45266020298
 b_start = 978.2965181791307
 b_end = 1337.9065
 point_at_start = false
-material = ExtResource("11_r5qea")
+material = ExtResource("v38_surface")
+splitter_material = ExtResource("11_r5qea")
 
 [node name="RouteSpline_Branch" type="Path3D" parent="." unique_id=709442327 groups=["track_builder_generated"]]
 curve = SubResource("Curve3D_ptc6d")

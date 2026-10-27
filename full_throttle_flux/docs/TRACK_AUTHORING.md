@@ -312,7 +312,9 @@ painted edge bands with LED rows, and hazard stripes on the lips. What runs
 across the road is a **profile**. A `SurfaceZoneKey` picks the profile for a
 stretch of track. The walls have their own shader in the same system (panels,
 a hazard band at the foot, a blue guide strip and an LED row, grime splashed
-up from the road); junctions keep the grid for now.
+up from the road). Junction roads are drawn with it too, in the main road's
+frame where the main road reaches and the branch's beyond it; the splitter
+wedge keeps the grid for now.
 
 **Build first.** Surface zones sit on the built splines, like greeble zones.
 A track with no keys draws the default profile (industrial).

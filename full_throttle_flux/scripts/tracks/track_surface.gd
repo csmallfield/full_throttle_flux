@@ -5,7 +5,8 @@ class_name TrackSurface
 ## from the SurfaceZoneKeys (TrackSurfacer). Like TrackGreebles it holds
 ## only data; at load it makes one material per path from the shared style
 ## (the road segments' own material, shaders/track/track_surface_material.tres)
-## and puts it on that path's road segments:
+## and puts it on that path's road segments and the junction roads drawn in
+## its frame:
 ##
 ##   band tables   the zones' profiles in uniform arrays (at most
 ##                 MAX_PROFILES per path, MAX_BANDS bands each), so the band
@@ -618,14 +619,21 @@ static func _zone_before(mine: Array[TrackSurfaceZone], zi: int, closed: bool) -
 	return mine[mine.size() - 1] if closed and mine.size() > 1 else null
 
 
-## The road segments of `path` drawn with the track surface shader.
+## The road segments of `path` drawn with the track surface shader, and
+## the junction roads drawn in its frame (TrackJunctions beside the path).
 static func _surface_segments(path: Path3D) -> Array[MeshInstance3D]:
-	var out: Array[MeshInstance3D] = []
+	var meshes: Array[MeshInstance3D] = []
 	for c in path.get_children():
 		var seg := c as TrackRoadSegment
-		if seg == null:
-			continue
-		var mi := seg.mesh_instance()
+		if seg:
+			meshes.append(seg.mesh_instance())
+	if path.get_parent():
+		for c in path.get_parent().get_children():
+			var jn := c as TrackJunction
+			if jn:
+				meshes.append(jn.road_mesh_for(path))
+	var out: Array[MeshInstance3D] = []
+	for mi in meshes:
 		if mi == null or mi.mesh == null or mi.mesh.get_surface_count() == 0:
 			continue
 		var sm := mi.mesh.surface_get_material(0) as ShaderMaterial

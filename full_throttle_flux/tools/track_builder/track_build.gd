@@ -40,9 +40,10 @@ const Turtle := preload("res://tools/fork_lab/fork_lab_turtle.gd")
 const GROUP := "track_builder_generated"
 const META_HASH := "track_builder_input_hash"
 const ROAD_MAT := "res://shaders/resources/grid_material.tres"
-## v38: the driving surface of road segments (walls and junctions keep ROAD_MAT).
+## v38: the driving surface of road segments and junction roads (junction
+## splitters keep ROAD_MAT).
 const ROAD_SURFACE_MAT := "res://shaders/track/track_surface_material.tres"
-## v38 phase 5: the walls' surface (junctions keep ROAD_MAT).
+## v38 phase 5: the walls' surface (junction splitters keep ROAD_MAT).
 const WALL_SURFACE_MAT := "res://shaders/track/track_wall_material.tres"
 const LINE_SCENE := "res://scenes/start_finish_line.tscn"
 const GAP_TRIGGER_SCRIPT := "res://scripts/respawn_trigger.gd"
@@ -409,8 +410,9 @@ func _branch(be: TrackBranchEval, bi: int, main_map: DistMap, mat: Material, roa
 	var rejoin := main_map.at(be.s_rejoin)
 	var jf_m := main_map.at(be.jf_m)
 	var jr_m := main_map.at(be.jr_m)
-	_junction("ForkJunction" + sfx, "BranchSpline" + sfx, fork, jf_m, 0.0, jf_b, true, mat)
-	_junction("RejoinJunction" + sfx, "BranchSpline" + sfx, jr_m, rejoin, jr_b, blen, false, mat)
+	_junction("ForkJunction" + sfx, "BranchSpline" + sfx, fork, jf_m, 0.0, jf_b, true, road_mat, mat)
+	_junction("RejoinJunction" + sfx, "BranchSpline" + sfx, jr_m, rejoin, jr_b, blen, false, road_mat,
+			mat)
 	# Route lap: main to the fork, the branch, main from the rejoin.
 	var route := _route_lap(be, Turtle.new())
 	if route.is_empty():
@@ -505,7 +507,7 @@ func _emit_points_arc(s: TrackSampler, t: Turtle, src: PackedInt32Array, must: P
 
 
 func _junction(n: String, branch_path: String, a0: float, a1: float, b0: float, b1: float, fork: bool,
-		mat: Material) -> void:
+		mat: Material, splitter_mat: Material) -> void:
 	var j := _ensure(root, n, TrackJunction) as TrackJunction
 	j.path_a = NodePath("../MainSpline")
 	j.path_b = NodePath("../" + branch_path)
@@ -515,6 +517,7 @@ func _junction(n: String, branch_path: String, a0: float, a1: float, b0: float, 
 	j.b_end = b1
 	j.point_at_start = fork
 	j.material = mat
+	j.splitter_material = splitter_mat
 	if j.is_inside_tree():
 		j.build()
 

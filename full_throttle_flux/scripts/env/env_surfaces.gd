@@ -28,6 +28,9 @@ class_name EnvSurfaces
 ## includes env_surface, so it's never swapped: each mesh using it gets the
 ## instance uniform along_main (1 = its s is distance along MainSpline, so
 ## the zone mask applies), and a main road using it turns the mask on.
+## TrackJunction meshes are internal too: each is reached through its
+## junction, with along_main from the path its frame follows (path_of()); the
+## splitter (on the grid) is a wall.
 
 const SHADER_PATH := "res://shaders/env/track_surface.gdshader"
 const SURFACE_SHADER_PATH := "res://shaders/track/track_surface.gdshader"
@@ -76,6 +79,11 @@ static func _walk(n: Node, spline: Path3D, shader: Shader, seen: Dictionary, rep
 		mi = n as MeshInstance3D
 	elif n is TrackRoadSegment:
 		mi = (n as TrackRoadSegment).mesh_instance()
+	elif n is TrackJunction:
+		for c in n.get_children(true):
+			if c is MeshInstance3D:
+				_walk(c, spline, shader, seen, rep)
+		return
 	if mi:
 		mats.append(mi.material_override)
 		if mi.mesh:
@@ -113,6 +121,9 @@ static func _adopt_surface(n: Node, mi: GeometryInstance3D, spline: Path3D, sm: 
 		seen: Dictionary, rep: Report) -> void:
 	var seg := n as TrackRoadSegment
 	var on_main := seg != null and spline != null and seg.get_node_or_null(seg.path_node) == spline
+	var jn := n.get_parent() as TrackJunction
+	if jn:
+		on_main = spline != null and jn.path_of(n) == spline
 	var csg := n as CSGPolygon3D
 	if csg:
 		on_main = spline != null and csg.get_node_or_null(csg.path_node) == spline
@@ -139,6 +150,8 @@ static func _params_for(n: Node, spline: Path3D) -> Dictionary:
 	if n is CollisionObject3D or n is CSGShape3D:
 		var layer: int = n.get("collision_layer")
 		is_wall = is_wall or (layer & WALL_LAYER) != 0
+	if n.get_parent() is TrackJunction:
+		is_wall = is_wall or String(n.name) == "Splitter"
 	var p := {"surface_kind": 1.0 if is_wall else 0.0, "u_scale": 0.0, "road_v0": 0.0, "road_v1": 0.0}
 	var seg := n as TrackRoadSegment
 	if seg:

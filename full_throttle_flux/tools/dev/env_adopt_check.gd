@@ -31,4 +31,17 @@ func _run() -> void:
 				mi.get_instance_shader_parameter("along_main"),
 				mi.get_instance_shader_parameter("path_length"),
 				sm.get_shader_parameter("u_scale"), sm.get_shader_parameter("surface_kind")])
+	# Junctions: their road meshes (one per path frame), skirt and splitter.
+	for n in track.find_children("*", "TrackJunction", true, false):
+		for c in n.get_children(true):
+			var mi := c as MeshInstance3D
+			if mi == null:
+				continue
+			var sm := mi.mesh.surface_get_material(0) as ShaderMaterial
+			print("ENVADOPT  %-24s %-44s along_main %s  path_length %s  u_scale %s  kind %s  per-path %s" % [
+					"%s/%s" % [n.name, mi.name], sm.shader.resource_path,
+					mi.get_instance_shader_parameter("along_main"),
+					mi.get_instance_shader_parameter("path_length"),
+					sm.get_shader_parameter("u_scale"), sm.get_shader_parameter("surface_kind"),
+					sm.resource_path == ""])
 	get_tree().quit(0)
