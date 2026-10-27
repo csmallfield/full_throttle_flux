@@ -14,6 +14,8 @@ class_name SplineTracker
 const WINDOW := 40.0     # metres searched either side of the last distance
 const STEP := 2.0
 const LOST := 30.0       # further than this from every sample = re-acquire globally
+const FAST_STEP := 6.0    # metres per refine step from last tick's distance
+const FAST_SETTLE := 0.05 # last refine step under this = settled, skip the scan
 
 var path: Path3D
 var length: float = 0.0
@@ -67,6 +69,13 @@ func frame() -> Transform3D:
 
 func _local_search(local: Vector3) -> float:
 	var curve := path.curve
+	# v38.1: a body moves a few metres per tick, so first refine from last
+	# tick's distance; scan the window only if that does not settle (a jump,
+	# a hairpin). Even more local than the scan, so loops and crossovers are
+	# as safe as before; ~9 curve samples instead of ~47.
+	var quick := _refine(curve, local, distance, 3, FAST_STEP)
+	if quick.y < FAST_SETTLE:
+		return quick.x
 	var best_d := distance
 	var best_sq := INF
 	var d := -WINDOW
@@ -79,14 +88,23 @@ func _local_search(local: Vector3) -> float:
 		d += STEP
 	if best_sq > LOST * LOST:
 		return curve.get_closest_offset(local)
-	# Refine by projecting onto the tangent (two Newton-style steps).
-	for i in 2:
-		var p := curve.sample_baked(best_d)
-		var ahead := curve.sample_baked(minf(best_d + 0.5, length))
-		var behind := curve.sample_baked(maxf(best_d - 0.5, 0.0))
+	return _refine(curve, local, best_d, 2, STEP).x
+
+
+## Newton-style steps projecting `local` onto the tangent from distance `d`,
+## each clamped to `max_step`. Returns (distance, |last step|): a last step
+## near zero means it settled on the nearest point.
+func _refine(curve: Curve3D, local: Vector3, d: float, steps: int, max_step: float) -> Vector2:
+	var last := INF
+	for i in steps:
+		var p := curve.sample_baked(d)
+		var ahead := curve.sample_baked(minf(d + 0.5, length))
+		var behind := curve.sample_baked(maxf(d - 0.5, 0.0))
 		var tan := ahead - behind
 		if tan.length_squared() < 1e-6:
 			break
 		tan = tan.normalized()
-		best_d = SplineSpan.wrap_distance(best_d + clampf((local - p).dot(tan), -STEP, STEP), length)
-	return best_d
+		var step := clampf((local - p).dot(tan), -max_step, max_step)
+		d = SplineSpan.wrap_distance(d + step, length)
+		last = absf(step)
+	return Vector2(d, last)

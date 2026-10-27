@@ -161,6 +161,9 @@ func _run() -> void:
 	var phys := 0.0
 	var gpu := 0.0
 	var cpu_render := 0.0
+	var ribbon_us := 0.0
+	var shipfx_us := 0.0
+	var dust_us := 0.0
 	var n := 0
 	var ticks0 := Engine.get_physics_frames()
 	var last := Time.get_ticks_usec()
@@ -174,6 +177,11 @@ func _run() -> void:
 		phys += Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
 		gpu += RenderingServer.viewport_get_measured_render_time_gpu(vp)
 		cpu_render += RenderingServer.viewport_get_measured_render_time_cpu(vp)
+		if TrailRibbon._frame_usec_frame == Engine.get_process_frames():
+			ribbon_us += TrailRibbon.frame_usec
+		if ShipFx._frame_usec_frame == Engine.get_process_frames():
+			shipfx_us += ShipFx.frame_usec
+			dust_us += ShipFx.dust_usec
 		n += 1
 	var ticks := Engine.get_physics_frames() - ticks0
 	_phase_on = false
@@ -187,6 +195,11 @@ func _run() -> void:
 	print("RACEBENCH %s %dx%d vsync %s: %.1f fps; frame ms p50 %.2f p95 %.2f p99 %.2f max %.1f" % [
 			track_id, size.x, size.y, "on" if DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED else "off",
 			n / elapsed, sorted[n / 2], sorted[int(n * 0.95)], sorted[int(n * 0.99)], sorted[n - 1]])
+	var lods := [0, 0, 0, 0]
+	for fx in get_tree().root.find_children("*", "ShipFx", true, false):
+		lods[int(fx.lod)] += 1
+	print("RACEBENCH   ship FX per frame: ribbons %.2f ms, ShipFx %.2f ms (dust %.2f); ships by LOD [FULL, NEAR, FAR, OFF] %s" % [
+			ribbon_us / n / 1000.0, shipfx_us / n / 1000.0, dust_us / n / 1000.0, str(lods)])
 	print("RACEBENCH   cpu process %.2f ms, physics %.2f ms per tick, %.2f ticks/frame (%d Hz); render cpu %.2f ms, gpu %.2f ms; ships %d" % [
 			proc / n, phys / n, float(ticks) / n, Engine.physics_ticks_per_second,
 			cpu_render / n, gpu / n, get_tree().get_nodes_in_group(ShipContactResolver.GROUP).size()])

@@ -12,6 +12,7 @@ uniform float noise_amount : hint_range(0.0, 1.0) = 0.5;
 uniform float twist_speed = 1.5;   // slow drift of the noise, reads as swirl
 
 void vertex() {
+	TRAIL_BUILD;
 	trail_vertex(VERTEX, NORMAL, UV, UV2, INV_VIEW_MATRIX);
 	TRAIL_VARYINGS;
 }

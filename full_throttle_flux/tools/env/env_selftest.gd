@@ -229,8 +229,6 @@ func _test_track(track_path: String) -> void:
 		if fx and fx.active and not fx.thrust.is_empty():
 			var r: TrailRibbon = fx.thrust[0]
 			thrust_pts = maxi(thrust_pts, r.point_count())
-			if r.point_count() > 0:
-				head_gap = maxf(head_gap, r.head_position().distance_to(r.socket.global_position))
 			air_pts = maxi(air_pts, fx.air_left.point_count() + fx.air_right.point_count())
 	_check(float(grounded_ticks) / ticks > 0.95, "grounded %d / %d ticks" % [grounded_ticks, ticks])
 	_check(travelled > 200.0 and backwards == 0,
@@ -246,6 +244,16 @@ func _test_track(track_path: String) -> void:
 		_check(fx.thrust.size() == 2, "two thrust sockets found on the variant (%d)" % fx.thrust.size())
 		_check(fx.thrust[0].socket.name == "FX_Thrust_L", "sockets come from the model, not fallbacks (%s)" % fx.thrust[0].socket.name)
 		_check(thrust_pts > 4, "thrust trail built (max %d points)" % thrust_pts)
+		# v38.1: where the nozzle is DRAWN (the ships are physics-interpolated),
+		# compared just before drawing, when both are this frame's; the raw
+		# physics pose runs up to a tick ahead of it.
+		for i in 20:
+			_steer(ship, kit, probe.spline_distance, 1.0, 0.0)   # keep to the centre
+			await RenderingServer.frame_pre_draw
+			var r: TrailRibbon = fx.thrust[0]
+			if r.point_count() > 0:
+				head_gap = maxf(head_gap, r.head_position().distance_to(
+						r.socket.get_global_transform_interpolated().origin))
 		_check(head_gap < 0.01, "head pinned to the nozzle (max gap %.4f m)" % head_gap)
 		_check(air_pts > 0, "air streams appear at speed in rain (max %d points)" % air_pts)
 		var long_len := _trail_length(fx.thrust[0])
@@ -536,9 +544,10 @@ func _drive_count(ship: ShipController, kit: UtopiaKit, probe: ShipEnvProbe, poo
 
 
 func _trail_length(r: TrailRibbon) -> float:
+	var pts := r.trail_points()
 	var total := 0.0
-	for i in range(1, r._pts.size()):
-		total += r._pts[i].distance_to(r._pts[i - 1])
+	for i in range(1, pts.size()):
+		total += pts[i].distance_to(pts[i - 1])
 	return total
 
 
