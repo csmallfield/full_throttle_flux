@@ -30,8 +30,8 @@ class_name TrackSurface
 ## (the industrial preset) and no line wear.
 ##
 ## Phase 5b, the circuits: a circuit's road and walls are CSGPolygon3Ds along
-## MainSpline, with only UVs. With this node in the scene, at runtime (never
-## in the editor, so nothing is saved) each one gets `material_override` = a
+## MainSpline, with only UVs. With this node in the scene, at runtime each
+## one gets `material_override` = a
 ## v38 road or wall material in CSG mode: an edge table of its polygon (the
 ## UV.y range, ends and class of every outline edge; csg_edge_table()) tells
 ## the shader s, t, height and class from the CSG's UVs. material_override is
@@ -39,6 +39,9 @@ class_name TrackSurface
 ## the shared grid material underneath isn't touched. Zones and decals are
 ## authored straight into this node there (no Track Builder): a zone's to_d
 ## may be left at 0, it then runs to the next zone (the last wraps the lap).
+## The editor shows the same materials as a preview set on the CSGs' render
+## instances only, so nothing is saved, and rebuilds it as the zones, decals
+## or variation are edited (refresh_preview()).
 ##
 ## Never edit by hand: move or change the SurfaceZoneKeys and the builder
 ## rewrites it.
@@ -99,11 +102,111 @@ const STROKE := [0.14, 0.18, 0.09, 0.025]
 var notes := PackedStringArray()
 ## Surface half widths of the CSG road being worked on (decal anchors).
 var _csg_half := Vector2.ZERO
+## Editor preview of the circuits (FTF_v38_TRACK_SURFACE_EDITOR_PREVIEW.md):
+## the CSGs showing a preview material on their render instances only, the
+## materials themselves (the RenderingServer holds only their RIDs), and the
+## preview_signature() they were built from.
+var _preview_csgs: Array[CSGPolygon3D] = []
+var _preview_mats: Array[ShaderMaterial] = []
+var _preview_sig := 0
+var _preview_wait := 0.0
+## Seconds between the editor's checks for edits.
+const PREVIEW_POLL := 0.25
 
 
 func _ready() -> void:
 	# After the road segments have built their meshes.
 	apply.call_deferred()
+	set_process(Engine.is_editor_hint())
+	if Engine.is_editor_hint() and OS.get_environment("TS_EDITOR_SELFTEST") == "1":
+		Callable(load("res://tools/track_surface/editor_preview_selftest.gd"), "run").call_deferred(self)
+
+
+func _enter_tree() -> void:
+	if Engine.is_editor_hint():
+		_preview_sig = 0  # rebuild on the next check
+
+
+func _exit_tree() -> void:
+	if Engine.is_editor_hint():
+		_clear_preview()
+
+
+## In the editor: rebuilds the circuits' preview when the zones, decals,
+## variation or CSGs change (checked every PREVIEW_POLL s; a few dozen
+## properties hashed).
+func _process(delta: float) -> void:
+	if not Engine.is_editor_hint():
+		return
+	_preview_wait -= delta
+	if _preview_wait > 0.0:
+		return
+	_preview_wait = PREVIEW_POLL
+	var sig := preview_signature()
+	if sig != _preview_sig:
+		_preview_sig = sig
+		refresh_preview()
+
+
+## The editor preview: each CSG road and wall gets the material apply()
+## gives it at runtime, but set on its render instance through the
+## RenderingServer, so its material_override and instance parameters (which
+## would be saved with the scene) stay untouched. Returns how many it set.
+func refresh_preview() -> int:
+	_clear_preview()
+	var keep := notes  # apply()'s, for the builder report
+	notes = PackedStringArray()
+	var n := 0
+	for pi in paths.size():
+		var path := get_node_or_null(paths[pi]) as Path3D
+		if path and path.curve:
+			n += _apply_csg(pi, path, true)
+	notes = keep
+	return n
+
+
+func _clear_preview() -> void:
+	for csg in _preview_csgs:
+		if is_instance_valid(csg):
+			var own := csg.material_override.get_rid() if csg.material_override else RID()
+			RenderingServer.instance_geometry_set_material_override(csg.get_instance(), own)
+	_preview_csgs.clear()
+	_preview_mats.clear()
+
+
+## What the preview is built from: the paths and their CSGs, and every
+## stored property of the zones, decals, variation and the profiles and
+## bands under them.
+func preview_signature() -> int:
+	var parts := [paths, _state(variation), _state(zones), _state(decals)]
+	for np in paths:
+		var path := get_node_or_null(np) as Path3D
+		if path == null or path.curve == null:
+			parts.append(null)
+			continue
+		parts.append(snappedf(path.curve.get_baked_length(), 0.01))
+		for c in path.get_children():
+			var csg := c as CSGPolygon3D
+			if csg:
+				parts.append([csg.get_instance_id(), csg.polygon, csg.path_u_distance, csg.name])
+	return hash(var_to_bytes(parts))
+
+
+static func _state(v: Variant, depth := 0) -> Variant:
+	if depth > 6:
+		return null
+	if v is Resource:
+		var out := [v.get_instance_id()]
+		for p in (v as Resource).get_property_list():
+			if p.usage & PROPERTY_USAGE_STORAGE and p.name != "script" and not p.name.begins_with("resource_"):
+				out.append(_state(v.get(p.name), depth + 1))
+		return out
+	if v is Array:
+		var out := []
+		for e in v:
+			out.append(_state(e, depth + 1))
+		return out
+	return v
 
 
 ## Builds the per-path materials and puts them on the road segments.
@@ -507,8 +610,9 @@ func zones_of(path_index: int) -> Array[TrackSurfaceZone]:
 
 
 ## Phase 5b: the CSG road and walls of `path` onto v38 materials in CSG
-## mode (material_override). Returns how many it set.
-func _apply_csg(path_index: int, path: Path3D) -> int:
+## mode (material_override; `preview`: the editor's render-instance-only
+## preview, see refresh_preview()). Returns how many it set.
+func _apply_csg(path_index: int, path: Path3D, preview := false) -> int:
 	var road: CSGPolygon3D = null
 	var walls: Array[CSGPolygon3D] = []
 	for c in path.get_children():
@@ -527,18 +631,33 @@ func _apply_csg(path_index: int, path: Path3D) -> int:
 	var n := 0
 	var road_mat := build_material(load(SURFACE_MATERIAL) as ShaderMaterial, path_index, path)
 	_set_csg(road_mat, road_table, road.path_u_distance)
-	road.material_override = road_mat
-	road.set_instance_shader_parameter("path_length", length)
+	if preview:
+		_preview_csg(road, road_mat, length)
+	else:
+		road.material_override = road_mat
+		road.set_instance_shader_parameter("path_length", length)
 	n += 1
 	for w in walls:
 		var wm := (load(WALL_MATERIAL) as ShaderMaterial).duplicate() as ShaderMaterial
 		if variation:
 			variation.apply(wm)
 		_set_csg(wm, csg_edge_table(w.polygon, false, road_table.surface_y), w.path_u_distance)
-		w.material_override = wm
-		w.set_instance_shader_parameter("path_length", length)
+		if preview:
+			_preview_csg(w, wm, length)
+		else:
+			w.material_override = wm
+			w.set_instance_shader_parameter("path_length", length)
 		n += 1
 	return n
+
+
+## The editor preview's override: on the render instance only.
+func _preview_csg(csg: CSGPolygon3D, mat: ShaderMaterial, length: float) -> void:
+	var rid := csg.get_instance()
+	RenderingServer.instance_geometry_set_material_override(rid, mat.get_rid())
+	RenderingServer.instance_geometry_set_shader_parameter(rid, "path_length", length)
+	_preview_csgs.append(csg)
+	_preview_mats.append(mat)
 
 
 static func _set_csg(mat: ShaderMaterial, table: Dictionary, u_scale: float) -> void:
