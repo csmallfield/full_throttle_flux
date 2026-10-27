@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://scripts/tracks/track_surface_zone.gd" id="v38_tsz"]
 [ext_resource type="Script" path="res://scripts/tracks/track_surface_decal.gd" id="v38_tsd"]
 [ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_industrial.tres" id="v38_ind"]
+[ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_grate_run.tres" id="v38_gr"]
+[ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_service.tres" id="v38_svc"]
 [ext_resource type="Resource" path="res://resources/track_surface/variations/variation_test_circuit_6_live.tres" id="v38_var"]
 [sub_resource type="Curve3D" id="Curve3D_2rtgt"]
 closed = true
@@ -79,7 +81,114 @@ shader_parameter/major_line_width = 1.0
 script = ExtResource("v38_tsz")
 profile = ExtResource("v38_ind")
 seed = 1
-key_name = "industrial"
+key_name = "home straight"
+
+[sub_resource type="Resource" id="v38_zone1"]
+script = ExtResource("v38_tsz")
+from_d = 380.0
+profile = ExtResource("v38_gr")
+seed = 2
+wear = 1.2
+key_name = "gate tunnel"
+
+[sub_resource type="Resource" id="v38_zone2"]
+script = ExtResource("v38_tsz")
+from_d = 640.0
+profile = ExtResource("v38_ind")
+seed = 3
+key_name = "market"
+
+[sub_resource type="Resource" id="v38_zone3"]
+script = ExtResource("v38_tsz")
+from_d = 1080.0
+profile = ExtResource("v38_gr")
+seed = 4
+wear = 1.2
+key_name = "market bore"
+
+[sub_resource type="Resource" id="v38_zone4"]
+script = ExtResource("v38_tsz")
+from_d = 1320.0
+profile = ExtResource("v38_ind")
+seed = 5
+wear = 1.2
+key_name = "hairpins"
+
+[sub_resource type="Resource" id="v38_zone5"]
+script = ExtResource("v38_tsz")
+from_d = 1900.0
+profile = ExtResource("v38_gr")
+seed = 6
+wear = 1.2
+key_name = "tower bore"
+
+[sub_resource type="Resource" id="v38_zone6"]
+script = ExtResource("v38_tsz")
+from_d = 2200.0
+profile = ExtResource("v38_svc")
+seed = 7
+key_name = "back straight"
+
+[sub_resource type="Resource" id="v38_zone7"]
+script = ExtResource("v38_tsz")
+from_d = 2700.0
+profile = ExtResource("v38_gr")
+seed = 8
+wear = 1.2
+key_name = "long bore"
+
+[sub_resource type="Resource" id="v38_zone8"]
+script = ExtResource("v38_tsz")
+from_d = 3000.0
+profile = ExtResource("v38_ind")
+seed = 9
+wear = 1.2
+key_name = "north"
+
+[sub_resource type="Resource" id="v38_zone9"]
+script = ExtResource("v38_tsz")
+from_d = 3950.0
+profile = ExtResource("v38_gr")
+seed = 10
+wear = 1.2
+key_name = "north bore"
+
+[sub_resource type="Resource" id="v38_zone10"]
+script = ExtResource("v38_tsz")
+from_d = 4200.0
+profile = ExtResource("v38_ind")
+seed = 11
+key_name = "ramp"
+
+[sub_resource type="Resource" id="v38_zone11"]
+script = ExtResource("v38_tsz")
+from_d = 5080.0
+profile = ExtResource("v38_gr")
+seed = 12
+wear = 1.2
+key_name = "ramp bore"
+
+[sub_resource type="Resource" id="v38_zone12"]
+script = ExtResource("v38_tsz")
+from_d = 5380.0
+profile = ExtResource("v38_svc")
+seed = 13
+key_name = "long straight"
+
+[sub_resource type="Resource" id="v38_zone13"]
+script = ExtResource("v38_tsz")
+from_d = 6560.0
+profile = ExtResource("v38_gr")
+seed = 14
+wear = 1.2
+key_name = "home bore"
+
+[sub_resource type="Resource" id="v38_zone14"]
+script = ExtResource("v38_tsz")
+from_d = 6800.0
+profile = ExtResource("v38_ind")
+seed = 15
+key_name = "home"
 
 [sub_resource type="Resource" id="v38_decal"]
 script = ExtResource("v38_tsd")
@@ -88,6 +197,112 @@ text = "HAIRPIN ALLEY"
 size = 1.7
 opacity = 0.85
 key_name = "start word"
+
+[sub_resource type="Resource" id="v38_decal1"]
+script = ExtResource("v38_tsd")
+distance = 350.0
+role = 1
+text = "GATE TUNNEL"
+size = 2.0
+glow = 0.25
+opacity = 0.85
+key_name = "gate tunnel"
+
+[sub_resource type="Resource" id="v38_decal2"]
+script = ExtResource("v38_tsd")
+distance = 1050.0
+role = 1
+text = "MARKET BORE"
+size = 2.0
+glow = 0.25
+opacity = 0.85
+key_name = "market bore"
+
+[sub_resource type="Resource" id="v38_decal3"]
+script = ExtResource("v38_tsd")
+distance = 1870.0
+role = 1
+text = "TOWER BORE"
+size = 2.0
+glow = 0.25
+opacity = 0.85
+key_name = "tower bore"
+
+[sub_resource type="Resource" id="v38_decal4"]
+script = ExtResource("v38_tsd")
+distance = 2670.0
+role = 1
+text = "LONG BORE"
+size = 2.0
+glow = 0.25
+opacity = 0.85
+key_name = "long bore"
+
+[sub_resource type="Resource" id="v38_decal5"]
+script = ExtResource("v38_tsd")
+distance = 3920.0
+role = 1
+text = "NORTH BORE"
+size = 2.0
+glow = 0.25
+opacity = 0.85
+key_name = "north bore"
+
+[sub_resource type="Resource" id="v38_decal6"]
+script = ExtResource("v38_tsd")
+distance = 5050.0
+role = 1
+text = "RAMP BORE"
+size = 2.0
+glow = 0.25
+opacity = 0.85
+key_name = "ramp bore"
+
+[sub_resource type="Resource" id="v38_decal7"]
+script = ExtResource("v38_tsd")
+distance = 6530.0
+role = 1
+text = "HOME BORE"
+size = 2.0
+glow = 0.25
+opacity = 0.85
+key_name = "home bore"
+
+[sub_resource type="Resource" id="v38_decal8"]
+script = ExtResource("v38_tsd")
+distance = 848.0
+shape = 1
+size = 3.5
+width = 7.0
+paint = 3
+glow = 0.5
+count = 6
+spacing = 14.0
+key_name = "chevrons 1"
+
+[sub_resource type="Resource" id="v38_decal9"]
+script = ExtResource("v38_tsd")
+distance = 1349.0
+shape = 1
+size = 3.5
+width = 7.0
+paint = 3
+glow = 0.5
+count = 6
+spacing = 14.0
+key_name = "chevrons 2"
+
+[sub_resource type="Resource" id="v38_decal10"]
+script = ExtResource("v38_tsd")
+distance = 3600.0
+shape = 1
+size = 3.5
+width = 7.0
+paint = 3
+glow = 0.5
+count = 6
+spacing = 14.0
+key_name = "chevrons 3"
 
 [node name="TestCircuit6" type="Node3D"]
 
@@ -196,6 +411,6 @@ material = SubResource("ShaderMaterial_nrqn6")
 [node name="TrackSurface" type="Node" parent="."]
 script = ExtResource("v38_ts")
 paths = Array[NodePath]([NodePath("../MainSpline")])
-zones = Array[ExtResource("v38_tsz")]([SubResource("v38_zone")])
-decals = Array[ExtResource("v38_tsd")]([SubResource("v38_decal")])
+zones = Array[ExtResource("v38_tsz")]([SubResource("v38_zone"), SubResource("v38_zone1"), SubResource("v38_zone2"), SubResource("v38_zone3"), SubResource("v38_zone4"), SubResource("v38_zone5"), SubResource("v38_zone6"), SubResource("v38_zone7"), SubResource("v38_zone8"), SubResource("v38_zone9"), SubResource("v38_zone10"), SubResource("v38_zone11"), SubResource("v38_zone12"), SubResource("v38_zone13"), SubResource("v38_zone14")])
+decals = Array[ExtResource("v38_tsd")]([SubResource("v38_decal"), SubResource("v38_decal1"), SubResource("v38_decal2"), SubResource("v38_decal3"), SubResource("v38_decal4"), SubResource("v38_decal5"), SubResource("v38_decal6"), SubResource("v38_decal7"), SubResource("v38_decal8"), SubResource("v38_decal9"), SubResource("v38_decal10")])
 variation = ExtResource("v38_var")

@@ -9,6 +9,8 @@
 [ext_resource type="Script" path="res://scripts/tracks/track_surface_zone.gd" id="v38_tsz"]
 [ext_resource type="Script" path="res://scripts/tracks/track_surface_decal.gd" id="v38_tsd"]
 [ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_industrial.tres" id="v38_ind"]
+[ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_grate_run.tres" id="v38_gr"]
+[ext_resource type="Resource" path="res://resources/track_surface/profiles/profile_service.tres" id="v38_svc"]
 [ext_resource type="Resource" path="res://resources/track_surface/variations/variation_test_circuit_5_live.tres" id="v38_var"]
 
 [sub_resource type="Curve3D" id="Curve3D_4kxxg"]
@@ -79,7 +81,41 @@ shader_parameter/major_line_width = 1.0
 script = ExtResource("v38_tsz")
 profile = ExtResource("v38_ind")
 seed = 1
-key_name = "industrial"
+key_name = "start stands"
+
+[sub_resource type="Resource" id="v38_zone1"]
+script = ExtResource("v38_tsz")
+from_d = 400.0
+profile = ExtResource("v38_svc")
+blend_in = 60.0
+seed = 2
+wear = 0.8
+key_name = "low sweeps"
+
+[sub_resource type="Resource" id="v38_zone2"]
+script = ExtResource("v38_tsz")
+from_d = 2050.0
+profile = ExtResource("v38_gr")
+blend_in = 40.0
+seed = 3
+wear = 0.8
+key_name = "trestles"
+
+[sub_resource type="Resource" id="v38_zone3"]
+script = ExtResource("v38_tsz")
+from_d = 4780.0
+profile = ExtResource("v38_svc")
+blend_in = 60.0
+seed = 4
+key_name = "descent"
+
+[sub_resource type="Resource" id="v38_zone4"]
+script = ExtResource("v38_tsz")
+from_d = 8100.0
+profile = ExtResource("v38_ind")
+blend_in = 60.0
+seed = 5
+key_name = "home"
 
 [sub_resource type="Resource" id="v38_decal"]
 script = ExtResource("v38_tsd")
@@ -88,6 +124,125 @@ text = "SWOOPY"
 size = 3.5
 opacity = 0.85
 key_name = "start word"
+
+[sub_resource type="Resource" id="v38_decal1"]
+script = ExtResource("v38_tsd")
+distance = 1000.0
+anchor = 1
+offset = 2.5
+role = 2
+text = "ALT 578"
+size = 2.6
+opacity = 0.9
+key_name = "alt_578"
+
+[sub_resource type="Resource" id="v38_decal2"]
+script = ExtResource("v38_tsd")
+distance = 2060.0
+anchor = 1
+offset = 2.5
+role = 2
+text = "TRESTLE"
+size = 2.6
+opacity = 0.9
+key_name = "trestle"
+
+[sub_resource type="Resource" id="v38_decal3"]
+script = ExtResource("v38_tsd")
+distance = 2500.0
+anchor = 1
+offset = 2.5
+role = 2
+text = "ALT 608"
+size = 2.6
+opacity = 0.9
+key_name = "alt_608"
+
+[sub_resource type="Resource" id="v38_decal4"]
+script = ExtResource("v38_tsd")
+distance = 3500.0
+anchor = 1
+offset = 2.5
+role = 2
+text = "ALT 684"
+size = 2.6
+opacity = 0.9
+key_name = "alt_684"
+
+[sub_resource type="Resource" id="v38_decal5"]
+script = ExtResource("v38_tsd")
+distance = 4500.0
+anchor = 1
+offset = 2.5
+role = 2
+text = "ALT 671"
+size = 2.6
+opacity = 0.9
+key_name = "alt_671"
+
+[sub_resource type="Resource" id="v38_decal6"]
+script = ExtResource("v38_tsd")
+distance = 5300.0
+anchor = 1
+offset = 2.5
+role = 2
+text = "UPPERDECK"
+size = 2.6
+opacity = 0.9
+key_name = "upperdeck"
+
+[sub_resource type="Resource" id="v38_decal7"]
+script = ExtResource("v38_tsd")
+distance = 6000.0
+anchor = 1
+offset = 2.5
+role = 2
+text = "ALT 513"
+size = 2.6
+opacity = 0.9
+key_name = "alt_513"
+
+[sub_resource type="Resource" id="v38_decal8"]
+script = ExtResource("v38_tsd")
+distance = 6590.0
+anchor = 1
+offset = 2.5
+role = 2
+text = "GALLERY"
+size = 2.6
+opacity = 0.9
+key_name = "gallery"
+
+[sub_resource type="Resource" id="v38_decal9"]
+script = ExtResource("v38_tsd")
+distance = 7000.0
+anchor = 1
+offset = 2.5
+role = 2
+text = "ALT 550"
+size = 2.6
+opacity = 0.9
+key_name = "alt_550"
+
+[sub_resource type="Resource" id="v38_decal10"]
+script = ExtResource("v38_tsd")
+distance = 3470.0
+shape = 1
+size = 3.5
+width = 7.0
+count = 6
+spacing = 14.0
+key_name = "chevrons trestle hairpin"
+
+[sub_resource type="Resource" id="v38_decal11"]
+script = ExtResource("v38_tsd")
+distance = 7480.0
+shape = 1
+size = 3.5
+width = 7.0
+count = 6
+spacing = 14.0
+key_name = "chevrons hairpin"
 
 [node name="TestCircuit5" type="Node3D"]
 
@@ -197,6 +352,6 @@ material = SubResource("ShaderMaterial_nrqn6")
 [node name="TrackSurface" type="Node" parent="."]
 script = ExtResource("v38_ts")
 paths = Array[NodePath]([NodePath("../MainSpline")])
-zones = Array[ExtResource("v38_tsz")]([SubResource("v38_zone")])
-decals = Array[ExtResource("v38_tsd")]([SubResource("v38_decal")])
+zones = Array[ExtResource("v38_tsz")]([SubResource("v38_zone"), SubResource("v38_zone1"), SubResource("v38_zone2"), SubResource("v38_zone3"), SubResource("v38_zone4")])
+decals = Array[ExtResource("v38_tsd")]([SubResource("v38_decal"), SubResource("v38_decal1"), SubResource("v38_decal2"), SubResource("v38_decal3"), SubResource("v38_decal4"), SubResource("v38_decal5"), SubResource("v38_decal6"), SubResource("v38_decal7"), SubResource("v38_decal8"), SubResource("v38_decal9"), SubResource("v38_decal10"), SubResource("v38_decal11")])
 variation = ExtResource("v38_var")

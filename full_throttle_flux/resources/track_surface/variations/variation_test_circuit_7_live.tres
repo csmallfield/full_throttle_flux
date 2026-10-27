@@ -4,3 +4,10 @@
 
 [resource]
 script = ExtResource("1_6nlf3")
+light_blue = Color(0.55, 0.3, 1, 1)
+plate_color = Color(0.2, 0.2, 0.23, 1)
+hazard_yellow = Color(1, 0.8, 0, 1)
+grate_glow = Color(0.35, 0.15, 0.6, 1)
+grate_glow_energy = 0.5
+wear_age = 0.6
+scorch_color = Color(0.22, 0.14, 0.38, 1)

@@ -4,3 +4,10 @@
 
 [resource]
 script = ExtResource("1_hh570")
+light_blue = Color(0.9, 0.94, 1, 1)
+light_red = Color(1, 0.97, 0.93, 1)
+plate_color = Color(0.235, 0.225, 0.21, 1)
+edge_color = Color(0.33, 0.32, 0.3, 1)
+panel_tint_var = 0.1
+wear_age = 0.45
+grime_color = Color(0.055, 0.048, 0.04, 1)
