@@ -287,9 +287,25 @@ var _ride_rot := Quaternion.IDENTITY
 var _carry_from := Vector3.ZERO
 var _prev_ru := Vector3.UP
 var _prev_ship_p := Vector3.INF
+# v37.2: each camera's pose before this tick, to spot cuts (_reset_cuts).
+var _was: Array[Transform3D] = []
+# Each camera's FOV at the last two ticks: physics interpolation doesn't
+# cover it, so _process blends it the same way (zooms stepped at 60 Hz).
+var _fov_prev := PackedFloat32Array()
+var _fov_tick := PackedFloat32Array()
+## A camera moving further than CUT_REACH x the ship's move this tick plus
+## CUT_MARGIN metres (x hull scale), or turning more than CUT_TURN radians
+## in one tick, has cut.
+const CUT_REACH := 3.0
+const CUT_MARGIN := 3.0
+const CUT_TURN := 0.6
 
 func _ready() -> void:
 	top_level = true
+	# v37.2: every camera moves once per physics tick, so Godot draws it
+	# between ticks like the ships (the root is OFF: see GraphicsSettings).
+	# Without this the cameras stepped at 60 Hz under a smoothly drawn ship.
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
 	for n in CAMERA_NAMES:
 		var cam := Camera3D.new()
 		cam.name = "Cam_" + n
@@ -299,6 +315,9 @@ func _ready() -> void:
 		add_child(cam)
 		cameras.append(cam)
 		_cams[n] = cam
+		_was.append(Transform3D.IDENTITY)
+		_fov_prev.append(cam.fov)
+		_fov_tick.append(cam.fov)
 	set_physics_process(false)
 
 ## Point every camera at a ship. Safe to call repeatedly.
@@ -319,12 +338,47 @@ func snap() -> void:
 	_state.clear()
 	if _target:
 		_update(0.0, true)
+		# A cut: don't draw the cameras sliding from where they were.
+		for i in cameras.size():
+			cameras[i].reset_physics_interpolation()
+			_fov_tick[i] = cameras[i].fov
+			_fov_prev[i] = _fov_tick[i]
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(_target):
 		set_physics_process(false)
 		return
+	for i in cameras.size():
+		_was[i] = cameras[i].global_transform
+		_fov_prev[i] = _fov_tick[i]
 	_update(delta, false)
+	for i in cameras.size():
+		_fov_tick[i] = cameras[i].fov
+	_reset_cuts(delta)
+
+
+func _process(_delta: float) -> void:
+	if active_camera == null:
+		return
+	var i := cameras.find(active_camera)
+	if i >= 0:
+		active_camera.fov = lerpf(_fov_prev[i], _fov_tick[i],
+				Engine.get_physics_interpolation_fraction())
+
+
+## v37.2: a camera that jumped this tick (a replant, a leapfrog, a fresh
+## pass) is a cut, not a move: draw it at its new spot straight away instead
+## of sliding it there over one tick. Moves further than the ship plus a
+## margin, or turns faster than CUT_TURN, count.
+func _reset_cuts(dt: float) -> void:
+	var reach := _target.velocity.length() * dt * CUT_REACH + CUT_MARGIN * _size_scale()
+	for i in cameras.size():
+		var now := cameras[i].global_transform
+		var was: Transform3D = _was[i]
+		var turn := was.basis.get_rotation_quaternion().angle_to(now.basis.get_rotation_quaternion())
+		if was.origin.distance_to(now.origin) > reach or turn > CUT_TURN:
+			cameras[i].reset_physics_interpolation()
+			_fov_prev[i] = _fov_tick[i]
 
 # ============================================================================
 # CYCLE
