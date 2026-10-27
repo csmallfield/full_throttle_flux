@@ -134,7 +134,8 @@ In `%APPDATA%\Godot\app_userdata\full_throttle_flux\circuit_identities\`:
 - `main_cN\`, `ab_*\`: the brightness A/Bs above.
 
 ## Open
-- **Your look sign-off**, and gate 2 (at speed) on the circuits.
+- **Look sign-off: given as a first pass** after your playtest (27 Oct 2026).
+  Further tuning is open.
 - **The env self-test hangs on Utopia** (AI ships respawning at d ≈ 545 m):
   confirm on main, then fix or exclude that stage.
 - **The race_bench comparison** against the baseline above.
