@@ -289,7 +289,8 @@ path_b = NodePath("../BranchSpline")
 a_start = 1180.4534
 a_end = 1374.849548339378
 b_end = 176.0
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_surface")
+splitter_material = ExtResource("3_hkqwj")
 
 [node name="RejoinJunction" type="Node3D" parent="." unique_id=2123459683]
 script = ExtResource("7_s1vnh")
@@ -300,7 +301,8 @@ a_end = 2418.7336
 b_start = 825.39185
 b_end = 1001.39185
 point_at_start = false
-material = ExtResource("3_hkqwj")
+material = ExtResource("v38_surface")
+splitter_material = ExtResource("3_hkqwj")
 
 [node name="GapTrigger_Shared" type="Area3D" parent="." unique_id=1249764608]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -31.637959, -427.3298)

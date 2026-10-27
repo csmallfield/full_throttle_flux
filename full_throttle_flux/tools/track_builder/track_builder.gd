@@ -1152,6 +1152,15 @@ func _editor_selftest() -> void:
 				node.zones_of(0)[-1].profile.profile_name if node and not node.zones_of(0).is_empty() else "-",
 				"per-path" if mat and mat.resource_path.is_empty() else "base",
 				mat.get_shader_parameter("surf_strip_info") if mat else null])
+		# v38: each junction road (rebuilt by the Build) is on its path's material.
+		for jn: TrackJunction in root.find_children("*", "TrackJunction", false, false):
+			for pn: NodePath in [jn.path_a, jn.path_b]:
+				var path := jn.get_node_or_null(pn) as Path3D
+				var mi := jn.road_mesh_for(path)
+				var jm: Material = mi.mesh.surface_get_material(0) if mi else null
+				var pm: Material = TrackSurface._surface_segments(path)[0].mesh.surface_get_material(0)
+				print("SELFTEST junction %s road on %s: %s" % [jn.name, path.name,
+						"missing" if jm == null else ("the path's material" if jm == pm else "OTHER material")])
 	print("SELFTEST done: %d errors, %d warnings" % [v.errors(), v.warnings()])
 	get_tree().quit(0 if v.errors() == 0 else 1)
 

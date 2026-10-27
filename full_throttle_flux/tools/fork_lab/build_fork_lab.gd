@@ -27,9 +27,10 @@ extends SceneTree
 const Turtle := preload("res://tools/fork_lab/fork_lab_turtle.gd")
 const OUT_SCENE := "res://scenes/tracks/fork_lab.tscn"
 const ROAD_MAT := "res://shaders/resources/grid_material.tres"
-## v38: the driving surface of road segments (walls and junctions keep ROAD_MAT).
+## v38: the driving surface of road segments and junction roads (junction
+## splitters keep ROAD_MAT).
 const ROAD_SURFACE_MAT := "res://shaders/track/track_surface_material.tres"
-## v38 phase 5: the walls' surface (junctions keep ROAD_MAT).
+## v38 phase 5: the walls' surface (junction splitters keep ROAD_MAT).
 const WALL_SURFACE_MAT := "res://shaders/track/track_wall_material.tres"
 const MB_SCRIPT := "res://scripts/rendering/motion_blur_effect.gd"
 
@@ -358,8 +359,8 @@ func _build_scene(main_curve: Curve3D, branch_curve: Curve3D, route_curve: Curve
 	_seg(br, "WallL_InnerA", WALL_LEFT_POLY, jf.b, B.bj_lip, 4, wall_mat, 50.0, 1.0)
 	_seg(br, "WallL_InnerB", WALL_LEFT_POLY, B.bj_landing, jr.b, 4, wall_mat, 50.0, 1.0)
 	# --- junctions -----------------------------------------------------------
-	_junction(root, "ForkJunction", M.fork, jf.m, 0.0, jf.b, true, mat)
-	_junction(root, "RejoinJunction", jr.m, M.rejoin, jr.b, B.length, false, mat)
+	_junction(root, "ForkJunction", M.fork, jf.m, 0.0, jf.b, true, road_mat, mat)
+	_junction(root, "RejoinJunction", jr.m, M.rejoin, jr.b, B.length, false, road_mat, mat)
 	# --- jump gaps: respawn the moment a ship that fell short drops below ----
 	_gap_trigger(root, main_curve, M.sj_lip, M.sj_landing, "GapTrigger_Shared")
 	_gap_trigger(root, branch_curve, B.bj_lip, B.bj_landing, "GapTrigger_Branch")
@@ -440,7 +441,7 @@ func _seg(path: Path3D, n: String, poly: Array, d0: float, d1: float, layer: int
 	path.add_child(s)
 
 func _junction(root: Node3D, n: String, a0: float, a1: float, b0: float, b1: float, fork: bool,
-		mat: Material) -> void:
+		mat: Material, splitter_mat: Material) -> void:
 	var j := TrackJunction.new()
 	j.name = n
 	j.path_a = NodePath("../MainSpline")
@@ -451,6 +452,7 @@ func _junction(root: Node3D, n: String, a0: float, a1: float, b0: float, b1: flo
 	j.b_end = b1
 	j.point_at_start = fork
 	j.material = mat
+	j.splitter_material = splitter_mat
 	root.add_child(j)
 
 func _gap_trigger(root: Node3D, c: Curve3D, lip: float, landing: float, n: String) -> void:
