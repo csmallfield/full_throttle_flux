@@ -79,6 +79,8 @@ func _run() -> void:
 	RenderingServer.viewport_set_measure_render_time(vp, true)
 	print("GFXBENCH %s, %s, %s" % [RenderingServer.get_video_adapter_name(),
 			RenderingServer.get_video_adapter_api_version(), get_window().size])
+	# The rows are costs at GB_RES itself: no render scale under them.
+	gs.set_render_scale(GraphicsSettings.RenderScale.NATIVE)
 	for track_id in _env("GB_TRACKS", TRACKS).split(",", false):
 		var configs := _env("GB_CONFIGS", CONFIGS)
 		if configs == "v38":

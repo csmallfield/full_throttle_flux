@@ -14,13 +14,20 @@ extends Node
 ##                            only (not saved)
 ##   8         shadows        Low = v36 (4096 atlas, soft low) / High = 8192
 ##                            atlas, soft medium (default) / Ultra = 8192, soft high
+##   Shift+8   render scale   the 3D view's height: Native / 1440 / 1080 (default)
+##                            / 900 lines. A window taller than that renders 3D
+##                            at that height and upscales (FSR 1 under the MSAA
+##                            and TAA modes, FSR 2 under the FSR 2 mode); the
+##                            HUD stays at window resolution. A 1080p window is
+##                            unchanged; a 3440x1440 fullscreen renders 2580x1080,
+##                            which is what a GTX 1080 Ti holds 60 fps at.
 ##   9         track surface  debug view: off / s,t / band ids / panel ids /
 ##                            filter level / zones / wear (not saved)
 ##   Shift+9   track surface  quality tier Low / High (default). v38 phase 1:
 ##                            both look the same; the hook later modules use
 ##
 ## Env overrides for tests and the benchmark: FTF_AA=0..3, FTF_SHADOWS=0..2,
-## FTF_FX=0..2, FTF_BLUR=0|1, FTF_SURFACE_TIER=0|1.
+## FTF_FX=0..2, FTF_BLUR=0|1, FTF_SURFACE_TIER=0|1, FTF_SCALE=0..3.
 ##
 ## Tracks: apply_track() puts the track's ShadowProfile (TrackProfile's own,
 ## else resources/rendering/shadow_profile_default.tres) on every shadow-casting
@@ -38,9 +45,13 @@ extends Node
 enum AA { MSAA2_SMAA, MSAA4_SMAA, TAA, FSR2_NATIVE }
 enum Shadows { LOW, HIGH, ULTRA }
 enum SurfaceTier { LOW, HIGH }
+enum RenderScale { NATIVE, LINES_1440, LINES_1080, LINES_900 }
 
 const AA_NAMES := ["MSAA 2x + SMAA (v36)", "MSAA 4x + SMAA", "TAA", "FSR 2 native"]
 const SHADOW_NAMES := ["Low (v36: 4096, soft low)", "High (8192, soft medium)", "Ultra (8192, soft high)"]
+const SCALE_NAMES := ["Native", "1440 lines", "1080 lines", "900 lines"]
+## 3D render height per RenderScale (0 = the window's own).
+const SCALE_LINES := [0, 1440, 1080, 900]
 const FX_NAMES := ["Low", "Medium", "High"]
 const BLUR_VIEWS := ["off", "velocity", "neighbour max", "distance"]
 const SURFACE_TIER_NAMES := ["Low", "High"]
@@ -56,6 +67,7 @@ const GRID_V36 := "res://shaders/grid_shader_v36.gdshader"
 var aa: AA = AA.MSAA4_SMAA
 var shadows: Shadows = Shadows.HIGH
 var surface_tier: SurfaceTier = SurfaceTier.HIGH
+var render_scale: RenderScale = RenderScale.LINES_1080
 var surface_view := 0
 var grid_v36 := false
 var _grid_v37: Shader = null
@@ -75,7 +87,11 @@ func _ready() -> void:
 		surface_tier = clampi(int(OS.get_environment("FTF_SURFACE_TIER")), 0, 1) as SurfaceTier
 	if OS.get_environment("FTF_BLUR") != "":
 		MotionBlurEffect.set_user_settings(OS.get_environment("FTF_BLUR") != "0")
+	if OS.get_environment("FTF_SCALE") != "":
+		render_scale = clampi(int(OS.get_environment("FTF_SCALE")), 0, 3) as RenderScale
 	apply_all()
+	# The 3D scale depends on the window's height: fullscreen toggles, resizes.
+	get_tree().root.size_changed.connect(_apply_scale)
 	_bind_keys()
 
 
@@ -90,6 +106,7 @@ func _bind_keys() -> void:
 	DebugKeys.bind(KEY_7, "Road grid", func(): set_grid_v36(not grid_v36),
 		func(): return "v36 (fixed-pixel lines)" if grid_v36 else "filtered (v37)", null, DebugKeys.SHIFT)
 	DebugKeys.bind(KEY_8, "Shadows", _cycle_shadows, func(): return SHADOW_NAMES[shadows])
+	DebugKeys.bind(KEY_8, "Render scale", _cycle_render_scale, render_scale_label, null, DebugKeys.SHIFT)
 	DebugKeys.bind(KEY_9, "Track surface debug view",
 		func(): set_surface_view((surface_view + 1) % SURFACE_VIEWS.size()),
 		func(): return SURFACE_VIEWS[surface_view])
@@ -110,6 +127,21 @@ func _cycle_shadows() -> void:
 func _cycle_surface_tier() -> void:
 	set_surface_tier(((surface_tier + 1) % SurfaceTier.size()) as SurfaceTier)
 	_save()
+
+
+func _cycle_render_scale() -> void:
+	set_render_scale(((render_scale + 1) % RenderScale.size()) as RenderScale)
+	_save()
+
+
+## "1080 lines (2580x1080 of 3440x1440)", or "Native (1920x1080)".
+func render_scale_label() -> String:
+	var win := get_window().size
+	var s := scale_for_height(win.y)
+	if s >= 1.0:
+		return "%s (%dx%d)" % [SCALE_NAMES[render_scale], win.x, win.y]
+	return "%s (%dx%d of %dx%d)" % [SCALE_NAMES[render_scale],
+			roundi(win.x * s), roundi(win.y * s), win.x, win.y]
 
 
 func _cycle_fx() -> void:
@@ -151,6 +183,39 @@ func apply_all() -> void:
 	set_surface_view(surface_view)
 
 
+## The 3D render height the window gets: 3D renders at min(window height,
+## SCALE_LINES[render_scale]) and is upscaled to the window.
+func set_render_scale(s: RenderScale) -> void:
+	render_scale = s
+	_apply_scale()
+
+
+## The viewport's 3D scale for a window `height` pixels tall under the current
+## render_scale: 1.0 at or under the target height, else target / height.
+func scale_for_height(height: int) -> float:
+	var lines: int = SCALE_LINES[render_scale]
+	if lines <= 0 or height <= lines:
+		return 1.0
+	return clampf(float(lines) / float(height), 0.5, 1.0)
+
+
+## Sets scaling_3d_mode and scaling_3d_scale for the current AA mode, render
+## scale and window height. The FSR 2 mode upscales with FSR 2; the others keep
+## their own AA and upscale with FSR 1 (bilinear at scale 1.0).
+func _apply_scale() -> void:
+	var vp := get_viewport()
+	if vp == null:
+		return
+	var s := scale_for_height(get_window().size.y)
+	vp.scaling_3d_scale = s
+	if aa == AA.FSR2_NATIVE:
+		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR2
+	elif s < 1.0:
+		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR
+	else:
+		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+
+
 ## v38 track surface quality tier (global track_surface_tier).
 func set_surface_tier(tier: SurfaceTier) -> void:
 	surface_tier = tier
@@ -168,10 +233,9 @@ func set_aa(mode: AA) -> void:
 	var vp := get_viewport()
 	if vp == null:
 		return
-	# Reset everything the modes touch, then set this one.
+	# Reset everything the modes touch, then set this one. The scaling mode
+	# and scale are _apply_scale()'s, below.
 	vp.use_taa = false
-	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
-	vp.scaling_3d_scale = 1.0
 	match mode:
 		AA.MSAA2_SMAA:
 			vp.msaa_3d = Viewport.MSAA_2X
@@ -185,11 +249,11 @@ func set_aa(mode: AA) -> void:
 			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 			vp.use_taa = true
 		AA.FSR2_NATIVE:
-			# FSR 2 at scale 1.0 is a temporal AA with its own sharpening.
+			# FSR 2 at scale 1.0 is a temporal AA with its own sharpening; under
+			# a render scale it is the upscaler too.
 			vp.msaa_3d = Viewport.MSAA_DISABLED
 			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
-			vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR2
-			vp.scaling_3d_scale = 1.0
+	_apply_scale()
 
 
 func set_shadows(q: Shadows) -> void:
@@ -242,6 +306,7 @@ func _load() -> void:
 	aa = clampi(int(cf.get_value("graphics", "aa", aa)), 0, 3) as AA
 	shadows = clampi(int(cf.get_value("graphics", "shadows", shadows)), 0, 2) as Shadows
 	surface_tier = clampi(int(cf.get_value("graphics", "surface_tier", surface_tier)), 0, 1) as SurfaceTier
+	render_scale = clampi(int(cf.get_value("graphics", "render_scale", render_scale)), 0, 3) as RenderScale
 
 
 func _save() -> void:
@@ -249,4 +314,5 @@ func _save() -> void:
 	cf.set_value("graphics", "aa", int(aa))
 	cf.set_value("graphics", "shadows", int(shadows))
 	cf.set_value("graphics", "surface_tier", int(surface_tier))
+	cf.set_value("graphics", "render_scale", int(render_scale))
 	cf.save(CONFIG)
