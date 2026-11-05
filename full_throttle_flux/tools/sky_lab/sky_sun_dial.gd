@@ -34,7 +34,7 @@ func show_sun(az: float, el: float, col: Color, cam_heading: float) -> void:
 
 
 func _radius() -> float:
-	return minf(size.x, size.y - 20.0) * 0.5 - 12.0
+	return minf(size.x - 60.0, size.y - 20.0) * 0.5 - 12.0
 
 
 func _centre() -> Vector2:
@@ -81,8 +81,8 @@ func _draw() -> void:
 	draw_line(c, sp, Color(sun_color, 0.4), 1.0)
 	draw_circle(sp, 8.0, sun_color)
 	draw_arc(sp, 10.0, 0.0, TAU, 24, Color(0, 0, 0, 0.6), 1.5)
-	draw_string(font, Vector2(4, size.y - 4), "az %.0f°  el %.1f°" % [azimuth, elevation],
-			HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.85))
+	draw_string(font, Vector2(4, 14), "az %.0f°" % azimuth, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.85))
+	draw_string(font, Vector2(4, 30), "el %.1f°" % elevation, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.85))
 
 
 func _gui_input(event: InputEvent) -> void:

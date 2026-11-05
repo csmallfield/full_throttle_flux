@@ -30,7 +30,12 @@ func _frames(n: int) -> void:
 
 
 func _wants(name: String) -> bool:
-	return only == "" or name.begins_with(only)
+	if only == "":
+		return true
+	for p in only.split(","):
+		if name.begins_with(p):
+			return true
+	return false
 
 
 ## Saves the frame, or `area` of it. UI crops stay full size; 3D views shrink.
@@ -104,6 +109,16 @@ func _open_group(rows: Control, title: String) -> void:
 
 func _run() -> void:
 	lab.cam.glide_paused = true
+	if only == "probe":
+		# Candidate spots round the lap, to choose POSE.
+		lab.ui.visible = false
+		var d := 0.0
+		while d < lab.cam.length():
+			lab.cam.jump(d)
+			await _shot("probe_%04d" % roundi(d), Rect2(), 3)
+			d += 400.0
+		get_tree().quit(0)
+		return
 	lab.cam.jump(POSE)
 	lab.exposure.enabled = true
 	await _frames(20)
