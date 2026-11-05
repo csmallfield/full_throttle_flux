@@ -215,7 +215,9 @@ func _run() -> void:
 		doc.set_v("sky/billow_size", 1.8)
 		doc.set_v("sky/cloud_shadow_color", Color(0.24, 0.26, 0.36)))
 	await _before_after("ex_haze", func():
-		doc.set_v("env/fog_height_density", 0.05)
+		# Utopia's height fog sits below its raised road: bring it up to it.
+		doc.set_v("env/fog_height", lab.env.road_mean_y + 25.0)
+		doc.set_v("env/fog_height_density", 0.03)
 		doc.set_v("env/fog_aerial_perspective", 0.5)
 		doc.set_v("sky/fog_density", 0.0006))
 	await _before_after("ex_grade", func():
@@ -248,6 +250,9 @@ func _run() -> void:
 		for at: float in [0.0, 3.0, 6.0, 20.0]:
 			while (Time.get_ticks_msec() - t0) / 1000.0 < at:
 				await get_tree().process_frame
+			print("SKYTOUR change %.0f s: precip %.2f wet %.2f coverage %.2f weather %s" % [
+					(Time.get_ticks_msec() - t0) / 1000.0, lab.env.precipitation, lab.env.wetness,
+					doc.sky.coverage, lab.env.weather.resource_path.get_file()])
 			await _shot("change_%02d" % roundi(at), Rect2(), 1)
 		await _weather("clear.tres")
 

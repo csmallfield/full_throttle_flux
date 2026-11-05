@@ -54,6 +54,7 @@ func _run() -> void:
 	await _edits_reach_the_track(doc)
 	await _history(doc)
 	await _saving(doc)
+	await _play_change(doc)
 	if DisplayServer.get_name() != "headless":
 		lab._measure_exposure()
 		check(lab.exposure.mean > 0.02 and lab.exposure.mean < 0.98,
@@ -171,6 +172,26 @@ func _history(doc) -> void:
 			and doc.sky_vals.preset == "dusk", "Start from preset")
 	doc.undo()
 	check(doc.capture() == edited, "Start from preset undoes in one step")
+
+
+## Play change: clear, then the chosen weather at race speed.
+func _play_change(doc) -> void:
+	lab._pick_weather("rain_heavy.tres")
+	var heavy: WeatherPreset = doc.weathers["rain_heavy.tres"]
+	doc.play_change(doc.weathers["clear.tres"])
+	await _frames(2)
+	print("SKYTEST   right after: precip %.2f -> target %.2f, wet %.2f, coverage %.2f, weather %s" % [
+			lab.env.precipitation, heavy.precipitation, lab.env.wetness, doc.sky.coverage, lab.env.weather.resource_path.get_file()])
+	check(lab.env.precipitation < heavy.precipitation * 0.5, "Play change starts from clear")
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < int(heavy.surface_change_time * 1000.0) + 1500:
+		await get_tree().process_frame
+	print("SKYTEST   after %.0f s: precip %.2f, wet %.2f, coverage %.2f, weather %s" % [
+			(Time.get_ticks_msec() - t0) / 1000.0, lab.env.precipitation, lab.env.wetness, doc.sky.coverage,
+			lab.env.weather.resource_path.get_file()])
+	check(is_equal_approx(lab.env.precipitation, heavy.precipitation) and is_equal_approx(lab.env.wetness, heavy.wetness),
+			"Play change ends in the chosen weather")
+	lab._pick_weather("clear.tres")
 
 
 func _saving(doc) -> void:
