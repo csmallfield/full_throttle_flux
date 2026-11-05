@@ -7,8 +7,14 @@ extends Node
 ## Add LAB_TOUR_ONLY=<prefix> to retake only the shots whose names start with it.
 
 const SCENE_W := 1280
-## Where on Utopia the shots are taken: metres along the lap.
-const POSE := 1180.0
+## Where on Utopia the shots are taken: metres along the lap (open sky, with
+## the arches and towers on the horizon).
+const POSE := 3600.0
+## The view: this far behind and above the road, looking this far ahead and up.
+const POSE_BACK := 12.0
+const POSE_UP := 7.0
+const POSE_AHEAD := 140.0
+const POSE_LIFT := 22.0
 
 var lab: Node
 var doc: RefCounted
@@ -52,6 +58,20 @@ func _shot(name: String, area := Rect2(), settle := 4) -> void:
 	img.convert(Image.FORMAT_RGB8)
 	var err := img.save_jpg("%s/%s.jpg" % [out, name], 0.86)
 	print("SKYTOUR %s %s" % [name, error_string(err)])
+
+
+## A raised view at POSE, held by the Fly camera so the glide doesn't move it.
+func _frame() -> void:
+	var c = lab.cam
+	c.set_mode(0)
+	c.jump(POSE)
+	var sp: Path3D = lab.spline
+	var at := func(x: float) -> Transform3D:
+		return c.road_xf * sp.global_transform * TrackRoadSegment.frame_at(sp.curve, fposmod(x, sp.curve.get_baked_length()))
+	var here: Transform3D = at.call(POSE)
+	var pos: Vector3 = (at.call(POSE - POSE_BACK) as Transform3D).origin + here.basis.y * POSE_UP
+	var target: Vector3 = (at.call(POSE + POSE_AHEAD) as Transform3D).origin + Vector3.UP * POSE_LIFT
+	c.cam.global_transform = Transform3D(Basis.looking_at(target - pos, Vector3.UP), pos)
 
 
 func _side_rect() -> Rect2:
@@ -119,7 +139,7 @@ func _run() -> void:
 			d += 400.0
 		get_tree().quit(0)
 		return
-	lab.cam.jump(POSE)
+	_frame()
 	lab.exposure.enabled = true
 	await _frames(20)
 
@@ -159,11 +179,14 @@ func _run() -> void:
 	# Viewing.
 	lab.ui.visible = false
 	await _shot("view_clean")
+	lab.cam.set_mode(1)
+	lab.cam.jump(POSE)
 	for l: int in [1, 2, 3]:
 		lab.look = l
 		await _frames(2)
 		await _shot("view_look_" + ["road", "sun", "away", "up"][l])
 	lab.look = 0
+	_frame()
 
 	# The sky presets, on this track.
 	for p: String in UtopiaSkyController.PRESETS:
