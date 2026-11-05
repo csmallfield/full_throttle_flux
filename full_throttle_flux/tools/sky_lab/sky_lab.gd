@@ -713,8 +713,10 @@ func _update_views() -> void:
 			fposmod(rad_to_deg(atan2(env.wind_direction.x, -env.wind_direction.y)), 360.0)])
 	if doc.sky:
 		var reach := fog_reach(doc.sky.fog_density)
-		t.append("Distance fog: 90%% at %s   height fog %.3f" % [
-				"never" if is_inf(reach) else "%d m" % roundi(reach), doc.environment.fog_height_density if doc.environment else 0.0])
+		var e := doc.environment
+		t.append("Distance fog: 90%% at %s   height fog %.3f up to y %.0f (road y %.0f)" % [
+				"never" if is_inf(reach) else "%d m" % roundi(reach), e.fog_height_density if e else 0.0,
+				e.fog_height if e else 0.0, env.road_mean_y])
 		var s := doc.sky.get_node_or_null(doc.sky.sun) as DirectionalLight3D
 		t.append("Sun: el %.1f°, light %.2f, cloud cover %.2f" % [doc.sky.sun_elevation,
 				s.light_energy if s else 0.0, doc.sky.coverage])

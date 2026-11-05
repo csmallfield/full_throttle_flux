@@ -245,15 +245,21 @@ func _run() -> void:
 	if _wants("change_"):
 		lab.ui.visible = false
 		await _weather("rain_heavy.tres")
+		# Timed on game time, which is what the change follows (a slow frame
+		# doesn't advance it by its wall-clock length), and run fast.
+		Engine.time_scale = 8.0
 		doc.play_change(doc.weathers["clear.tres"])
-		var t0 := Time.get_ticks_msec()
+		var t := 0.0
 		for at: float in [0.0, 3.0, 6.0, 20.0]:
-			while (Time.get_ticks_msec() - t0) / 1000.0 < at:
+			while t < at:
 				await get_tree().process_frame
-			print("SKYTOUR change %.0f s: precip %.2f wet %.2f coverage %.2f weather %s" % [
-					(Time.get_ticks_msec() - t0) / 1000.0, lab.env.precipitation, lab.env.wetness,
-					doc.sky.coverage, lab.env.weather.resource_path.get_file()])
+				t += get_process_delta_time()
+			print("SKYTOUR change %.1f s: precip %.2f wet %.2f coverage %.2f" % [
+					t, lab.env.precipitation, lab.env.wetness, doc.sky.coverage])
+			Engine.time_scale = 0.0001
 			await _shot("change_%02d" % roundi(at), Rect2(), 1)
+			Engine.time_scale = 8.0
+		Engine.time_scale = 1.0
 		await _weather("clear.tres")
 
 	# The save dialog, never confirmed.
