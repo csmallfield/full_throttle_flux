@@ -349,6 +349,7 @@ a `TrackSurfaceBand`:
 | `flex` | > 0: the band takes this share of what the fixed bands leave. Width keys only change flex bands |
 | `light` | Channels: none, red dots or a blue strip |
 | `vents` | Plates: vent boxes every so often |
+| `mask_amount` | How strongly the track's surface mask reaches this band |
 
 With `mirror` on (the presets), the list runs from the left edge to the
 centre band and the right half repeats it in reverse. Fixed bands stack in
@@ -370,6 +371,12 @@ a `TrackSurfaceVariation` on the TrackBuilder (`surface_variation`): light,
 plate, hazard, grate and vent colours, light energy, panel tint, vent
 chance. A colour with alpha 0 or a number below 0 keeps the shared value.
 Keep clear of orange: it's the boost pads' colour.
+
+**Surface mask.** A `TrackSurfaceMask` recipe combines one or two tiling
+textures into one value that moves roughness, metallic and specular, for variety
+without new shaders. Recipes are in `resources/track_surface/masks`, textures in
+`mask_textures`. A track picks one through its variation's `mask`; each band
+scales it with `mask_amount`. It's high tier only. See `FTF_SURFACE_LAB.md`.
 
 **Wear.** The road wears where ships use it. When the track loads, the
 surface reads the AI's trained racing line (`resources/ai_data/`, the

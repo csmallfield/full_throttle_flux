@@ -105,6 +105,135 @@ func _ui_checks(doc: RefCounted) -> void:
 	lab.follow_camera = true
 
 
+## Mean brightness of the road in the middle of the screen (UI hidden).
+func _road_luma(band: Rect2) -> float:
+	await _frames(6)
+	await RenderingServer.frame_post_draw
+	var img := get_viewport().get_texture().get_image()
+	var sum := 0.0
+	var n := 0
+	for y in range(int(band.position.y), int(band.end.y), 3):
+		for x in range(int(band.position.x), int(band.end.x), 3):
+			sum += img.get_pixel(x, y).get_luminance()
+			n += 1
+	return sum / maxf(n, 1.0)
+
+
+func _gpu_median() -> float:
+	var vp := get_viewport().get_viewport_rid()
+	await _frames(20)
+	var s := PackedFloat32Array()
+	for i in 180:
+		await get_tree().process_frame
+		s.append(RenderingServer.viewport_get_measured_render_time_gpu(vp))
+	s.sort()
+	return s[90]
+
+
+func _mask_checks(doc: RefCounted) -> void:
+	lab.follow_camera = false
+	lab.cam.set_mode(1)
+	lab.cam.glide_paused = true
+	lab.cam.jump(850.0)
+	lab.tabs.current_tab = lab.tabs.get_tab_idx_from_control(lab.tabs.get_node("Mask"))
+	await _shot("mask_tab_none")
+	_check("starter recipes load", doc.masks.size() >= 3, str(doc.masks.keys()))
+	_check("mask textures load", lab.mask_tex_names.size() >= 6, str(lab.mask_tex_names))
+	var mat: ShaderMaterial = doc.surface.live_materials()[0]
+	_check("no mask by default", int(mat.get_shader_parameter("mask_mode")) == 0)
+	var files: Array = doc.masks.keys()
+	files.sort()
+	var r_file: String = files[0]
+	var key := "mask:%s/" % r_file
+	var r: TrackSurfaceMask = doc.masks[r_file]
+	lab._pick_mask(r_file)
+	_check("picking a recipe draws it", int(mat.get_shader_parameter("mask_mode")) == int(r.mode))
+	_check("a measured mean", mat.get_shader_parameter("mask_a_mean") != null
+			and absf(float(mat.get_shader_parameter("mask_a_mean")) - 0.5) < 0.45, str(mat.get_shader_parameter("mask_a_mean")))
+	await _shot("mask_recipe_%s" % r_file.get_basename())
+	if lab.gs:
+		lab.gs.set_surface_view(7)
+	await _shot("mask_debug_view")
+	if lab.gs:
+		lab.gs.set_surface_view(0)
+	# Editing the recipe reaches the live material; undo takes it back.
+	doc.commit()
+	doc.set_v(key + "contrast", 3.0)
+	_check("recipe edit is live", is_equal_approx(float(mat.get_shader_parameter("mask_contrast")), 3.0))
+	_check("recipe edit is dirty", doc.dirty_files().has("%s/%s" % [doc.MASK_DIR, r_file]))
+	doc.commit()
+	doc.undo()
+	_check("recipe undo", not is_equal_approx(float(mat.get_shader_parameter("mask_contrast")), 3.0))
+	# A band's amount reaches the table, in the fraction, without changing its param.
+	var data: Array = (doc.get_v("prof:industrial/bands") as Array).duplicate(true)
+	var plate := data.size() - 1
+	var vents_param := 1 if data[plate][4] else 0
+	data[plate][5] = 0.25
+	doc.set_v("prof:industrial/bands", data)
+	doc.flush()
+	var table: PackedVector4Array = mat.get_shader_parameter("surf_bands")
+	var w: float = table[plate].w
+	_check("band amount keeps its param", int(w) == vents_param, str(w))
+	_check("band amount is in the fraction", is_equal_approx(1.0 - fposmod(w, 1.0) / 0.9, 0.25), str(w))
+	doc.commit()
+	doc.undo()
+	doc.flush()
+	# Saving: a recipe and a variation pointing at it, to the copy folder.
+	var probe := TrackSurfaceVariation.new()
+	probe.mask = r
+	var fresh: ShaderMaterial = doc.road_base.duplicate()
+	probe.apply(fresh)
+	_check("a variation applies its recipe, as a race does", int(fresh.get_shader_parameter("mask_mode")) == int(r.mode)
+			and fresh.get_shader_parameter("mask_a") == r.a_texture)
+	var v_file: String = doc.variations.keys()[0]
+	doc.set_v("var", v_file)
+	var had: Variant = doc.get_v("var:%s/mask" % v_file)
+	doc.set_v("var:%s/mask" % v_file, r)
+	doc.set_v(key + "bias", 0.05)
+	var errors: PackedStringArray = doc.save(OUT + "/save")
+	_check("recipe saves", errors.is_empty(), str(errors))
+	var rc: Resource = ResourceLoader.load("%s/save/%s" % [OUT, r_file], "", ResourceLoader.CACHE_MODE_IGNORE)
+	_check("saved recipe reads back", rc != null and is_equal_approx(rc.bias, 0.05))
+	var vtext := FileAccess.get_file_as_string("%s/save/%s" % [OUT, v_file])
+	_check("saved variation names the recipe", vtext.contains(r_file))
+	doc.set_v("var:%s/mask" % v_file, had)
+	doc.set_v("var", "")
+	doc.restore(doc.saved)
+	doc.commit()
+	doc.flush()
+	_check("back to saved after recipe tests", doc.dirty_files().is_empty(), str(doc.dirty_files()))
+	# Cost and neutrality, with the UI hidden, on a straight piece of road.
+	lab.ui.visible = false
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	Engine.max_fps = 0
+	lab._pick_mask("")
+	var near := Rect2(560, 620, 800, 300)
+	var far := Rect2(800, 480, 320, 50)
+	var luma_near0: float = await _road_luma(near)
+	var luma_far0: float = await _road_luma(far)
+	var gpu0: float = await _gpu_median()
+	print("LABTEST mask off: GPU %.2f ms, luma near %.4f far %.4f" % [gpu0, luma_near0, luma_far0])
+	var modes := {"A only": 1, "A x B": 2, "B masks A": 3}
+	for m: String in modes:
+		r.mode = modes[m]
+		if r.b_texture == null:
+			r.b_texture = lab.mask_textures[lab.mask_tex_names[1]]
+		lab._pick_mask(r_file)
+		doc.apply_mask()
+		var ln: float = await _road_luma(near)
+		var lf: float = await _road_luma(far)
+		var g: float = await _gpu_median()
+		print("LABTEST mask %-10s GPU %.2f ms (%+.2f), luma near %.4f (%+.1f%%) far %.4f (%+.1f%%)" % [m, g, g - gpu0, ln,
+				(ln / luma_near0 - 1.0) * 100.0, lf, (lf / luma_far0 - 1.0) * 100.0])
+	lab._pick_mask("")
+	lab.ui.visible = true
+	doc.restore(doc.saved)
+	doc.commit()
+	doc.flush()
+	_check("clean after cost test", doc.dirty_files().is_empty(), str(doc.dirty_files()))
+	lab.tabs.current_tab = 0
+
+
 ## Frame times while nothing's edited, and while a slider is dragged, vsync off.
 func _timing(doc: RefCounted) -> void:
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
@@ -344,6 +473,7 @@ func _run() -> void:
 	_check("fly lets go of the mouse", Input.mouse_mode == Input.MOUSE_MODE_VISIBLE)
 	var gpu: float = lab._gpu_ms()
 	print("LABTEST GPU %.2f ms" % gpu)
+	await _mask_checks(doc)
 	await _timing(doc)
 	print("LABTEST done, %d failed" % failed)
 	get_tree().quit(1 if failed > 0 else 0)

@@ -23,7 +23,9 @@ const RhythmView := preload("res://tools/surface_lab/lab_rhythm_view.gd")
 const TimelineView := preload("res://tools/surface_lab/lab_timeline_view.gd")
 
 const GB_DIR := "res://scenes/tracks/utopia/greebles"
-const VIEW_NAMES := ["Debug: off", "s, t", "Bands", "Panels", "Filter level", "Zones", "Wear"]
+const VIEW_NAMES := ["Debug: off", "s, t", "Bands", "Panels", "Filter level", "Zones", "Wear", "Mask"]
+const MASK_TEX_DIR := "res://resources/track_surface/mask_textures"
+const WEAR_TEX := "res://resources/track_surface/wear_detail.png"
 const LAYERS := ["ground", "wall_face", "wall_top", "outside", "overhead"]
 ## Boost pads own this hue range (TrackSurfaceVariation's note).
 const ORANGE_HUE := Vector2(20.0 / 360.0, 40.0 / 360.0)
@@ -59,6 +61,11 @@ var profile_opt: OptionButton
 var road_rows: Rows
 var wall_rows: Rows
 var mat_rows: Rows
+var mask_rows: Rows
+var mask_opt: OptionButton
+var mask_note: Label
+var mask_tex_names: Array = ["none"]
+var mask_textures := {}
 var variation_opt: OptionButton
 var style_opt: OptionButton
 var style_rows: Rows
@@ -123,6 +130,7 @@ func _ready() -> void:
 	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 	_find_geometry()
 	_load_meshes()
+	_load_mask_textures()
 	if doc.profiles.size() > 0 and not doc.profiles.has(profile_name):
 		profile_name = doc.profiles.keys()[0]
 	if doc.styles.size() > 0 and not doc.styles.has(style_name):
@@ -152,6 +160,20 @@ func _find_geometry() -> void:
 	neutral_mat = StandardMaterial3D.new()
 	neutral_mat.albedo_color = Color(0.35, 0.35, 0.35)
 	neutral_mat.roughness = 0.8
+
+
+func _load_mask_textures() -> void:
+	var dir := DirAccess.open(MASK_TEX_DIR)
+	if dir:
+		var files := Array(dir.get_files())
+		files.sort()
+		for f: String in files:
+			if f.ends_with(".png"):
+				mask_textures[f.get_basename()] = load("%s/%s" % [MASK_TEX_DIR, f])
+				mask_tex_names.append(f.get_basename())
+	if ResourceLoader.exists(WEAR_TEX):
+		mask_textures["wear_detail"] = load(WEAR_TEX)
+		mask_tex_names.append("wear_detail")
 
 
 func _load_meshes() -> void:
@@ -502,7 +524,7 @@ func _build_side_panel() -> void:
 	p.anchor_left = 1.0
 	p.anchor_right = 1.0
 	p.anchor_bottom = 1.0
-	p.offset_left = -420.0
+	p.offset_left = -470.0
 	p.offset_top = 46.0
 	p.offset_bottom = -216.0
 	ui.add_child(p)
@@ -510,10 +532,11 @@ func _build_side_panel() -> void:
 	p.add_child(col)
 	tabs = TabContainer.new()
 	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	tabs.add_theme_font_size_override("font_size", 14)
+	tabs.add_theme_font_size_override("font_size", 13)
 	col.add_child(tabs)
 	_build_bands_tab()
 	road_rows = _scroll_tab("Road", true)
+	_build_mask_tab()
 	wall_rows = _scroll_tab("Walls", false)
 	_build_greebles_tab()
 	mat_rows = _scroll_tab("Materials", false)
@@ -694,7 +717,7 @@ func _set_band_field(i: int, field: int, value: Variant) -> void:
 
 func _band_add() -> void:
 	var data := _bands_data()
-	data.insert(mini(sel_band + 1, data.size()), [int(TrackSurfaceBand.Type.CHANNEL), 0.3, 0.0, 0, false])
+	data.insert(mini(sel_band + 1, data.size()), [int(TrackSurfaceBand.Type.CHANNEL), 0.3, 0.0, 0, false, 1.0])
 	_set_bands(data)
 	_select_band(mini(sel_band + 1, data.size() - 1))
 
@@ -800,6 +823,11 @@ func _build_band_rows() -> void:
 		band_rows.add_row({name = "vents", type = TYPE_BOOL,
 				get = func(): return _bands_data()[i][4],
 				set = func(v: bool): _set_band_field(i, 4, v)})
+	if e[0] != TrackSurfaceBand.Type.CHANNEL:
+		band_rows.add_row({name = "mask_amount", type = TYPE_FLOAT, hint = PROPERTY_HINT_RANGE, hint_string = "0,1,0.01",
+				tooltip = "How strongly the track's surface mask reaches this band.",
+				get = func(): return _bands_data()[i][5],
+				set = func(v: float): _set_band_field(i, 5, v)})
 
 
 # =============================================================================
@@ -826,6 +854,8 @@ func _on_variation_selected(i: int) -> void:
 	doc.set_v("var", variation_opt.get_item_metadata(i))
 	road_rows.refresh()
 	wall_rows.refresh()
+	_fill_mask_opt()
+	_build_mask_rows()
 
 
 func _rebuild_look_tabs() -> void:
@@ -909,6 +939,116 @@ func _set_override(name: String, on: bool, fallback: Variant) -> void:
 	else:
 		doc.set_v(key, Color(0, 0, 0, 0) if doc.get_v(key) is Color else -1.0)
 	road_rows.refresh()
+
+
+# =============================================================================
+# UI: SURFACE MASK
+# =============================================================================
+
+func _build_mask_tab() -> void:
+	var col := VBoxContainer.new()
+	col.name = "Mask"
+	tabs.add_child(col)
+	var hb := HBoxContainer.new()
+	col.add_child(hb)
+	var l := Label.new()
+	l.text = "Recipe"
+	hb.add_child(l)
+	mask_opt = OptionButton.new()
+	mask_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mask_opt.clip_text = true
+	mask_opt.focus_mode = Control.FOCUS_NONE
+	mask_opt.item_selected.connect(func(i: int): _pick_mask(mask_opt.get_item_metadata(i)))
+	hb.add_child(mask_opt)
+	var edit := LineEdit.new()
+	edit.placeholder_text = "new name"
+	edit.custom_minimum_size = Vector2(90, 0)
+	hb.add_child(edit)
+	var add := Button.new()
+	add.text = "New"
+	add.pressed.connect(func():
+		if edit.text.strip_edges() != "":
+			var f: String = doc.new_mask(edit.text.strip_edges())
+			if f != "":
+				edit.text = ""
+				var fresh: TrackSurfaceMask = doc.masks[f]
+				if mask_tex_names.size() > 1:
+					fresh.a_texture = mask_textures[mask_tex_names[1]]
+				_pick_mask(f))
+	hb.add_child(add)
+	mask_note = Label.new()
+	mask_note.add_theme_font_size_override("font_size", 12)
+	mask_note.add_theme_color_override("font_color", COLOR_WARN)
+	mask_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	col.add_child(mask_note)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	col.add_child(scroll)
+	mask_rows = Rows.new()
+	mask_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(mask_rows)
+	_fill_mask_opt()
+	_build_mask_rows()
+
+
+## Picks what's drawn. With a variation previewed, it's that variation's recipe
+## (saved with it); otherwise only a preview.
+func _pick_mask(file: String) -> void:
+	if doc.variation_file != "":
+		doc.set_v("var:%s/mask" % doc.variation_file, doc.masks.get(file))
+	doc.set_v("mask", file)
+	_fill_mask_opt()
+	_build_mask_rows()
+
+
+func _fill_mask_opt() -> void:
+	mask_opt.clear()
+	mask_opt.add_item("None")
+	mask_opt.set_item_metadata(0, "")
+	var cur: String = doc.effective_mask_file()
+	if cur == "":
+		mask_opt.select(0)
+	var files: Array = doc.masks.keys()
+	files.sort()
+	for f: String in files:
+		mask_opt.add_item(f.trim_prefix("mask_").trim_suffix(".tres"))
+		mask_opt.set_item_metadata(mask_opt.item_count - 1, f)
+		if f == cur:
+			mask_opt.select(mask_opt.item_count - 1)
+	if doc.variation_file != "":
+		mask_note.text = "Choosing a recipe saves it to %s. Editing one reaches every variation using it." \
+				% doc.variation_file.trim_prefix("variation_").trim_suffix(".tres")
+	else:
+		mask_note.text = "Preview only. To use a recipe in a race, pick a variation in the Road tab first, and give the track that variation."
+
+
+func _build_mask_rows() -> void:
+	mask_rows.clear_rows()
+	var file: String = doc.effective_mask_file()
+	if file == "":
+		return
+	var base := "mask:%s/" % file
+	mask_rows.add_group("Combine", true)
+	for p: Dictionary in TrackSurfaceMask.new().get_property_list():
+		if p.usage & PROPERTY_USAGE_GROUP:
+			if String(p.name) != "Resource":
+				mask_rows.add_group(String(p.name), true)
+			continue
+		if not (p.usage & PROPERTY_USAGE_STORAGE and p.usage & PROPERTY_USAGE_SCRIPT_VARIABLE):
+			continue
+		var prop: String = p.name
+		var key: String = base + prop
+		if p.type == TYPE_OBJECT:
+			mask_rows.add_row({name = prop, type = TYPE_STRING, choices = mask_tex_names,
+					get = func() -> String:
+						var t: Texture2D = doc.get_v(key)
+						return t.resource_path.get_file().get_basename() if t else "none",
+					set = func(v: String): doc.set_v(key, mask_textures.get(v))})
+			continue
+		mask_rows.add_row({name = prop, type = p.type, hint = p.hint, hint_string = p.hint_string,
+				get = func(): return doc.get_v(key),
+				set = func(v: Variant): doc.set_v(key, v)})
 
 
 # =============================================================================
@@ -1349,6 +1489,8 @@ func _refresh_all() -> void:
 	wall_rows.refresh()
 	mat_rows.refresh()
 	_select_variation_item(doc.variation_file)
+	_fill_mask_opt()
+	_build_mask_rows()
 	_refresh_status()
 
 

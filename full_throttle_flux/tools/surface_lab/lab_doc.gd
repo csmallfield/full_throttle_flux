@@ -9,8 +9,10 @@ extends RefCounted
 ##   wall/<param>             base wall material (shared by every track)
 ##   var                      the previewed variation's path ("" = none)
 ##   var:<file>/<prop>        a TrackSurfaceVariation
+##   mask                     the mask recipe previewed with no variation ("" = none)
+##   mask:<file>/<prop>       a TrackSurfaceMask recipe
 ##   prof:<name>/mirror       a profile's mirror flag
-##   prof:<name>/bands        its bands: [[type, width, flex, light, vents], ...]
+##   prof:<name>/bands        its bands: [[type, width, flex, light, vents, mask amount], ...]
 ##   style:<name>/bay_length  a greeble style
 ##   style:<name>/threshold_mesh
 ##   style:<name>/n           how many rules
@@ -26,12 +28,13 @@ signal changed
 const ROAD_MATERIAL := "res://shaders/track/track_surface_material.tres"
 const WALL_MATERIAL := "res://shaders/track/track_wall_material.tres"
 const VARIATION_DIR := "res://resources/track_surface/variations"
+const MASK_DIR := "res://resources/track_surface/masks"
 const STYLE_DIR := "res://resources/greeble_presets"
 const GREYBOX_DIR := "res://scenes/tracks/utopia/materials"
 const GREYBOX := ["light", "mid", "dark", "accent", "glow", "glow_cool", "floor"]
 const MAT_PROPS := ["albedo_color", "roughness", "metallic", "emission", "emission_energy_multiplier"]
-## Shader parameters that are data, not style.
-const PARAM_SKIP := ["csg_", "surf_"]
+## Shader parameters that are data, not style (mask_: edited as recipes).
+const PARAM_SKIP := ["csg_", "surf_", "mask_"]
 const DEFAULT_PROFILE := "industrial"
 ## At or past this many edited rules in one go, a full re-scatter is simpler.
 const RULE_LIMIT := 6
@@ -50,6 +53,9 @@ var road_params: Array[Dictionary] = []
 var wall_params: Array[Dictionary] = []
 var variations := {}    # file name -> TrackSurfaceVariation
 var variation_file := ""
+var masks := {}         # file name -> TrackSurfaceMask
+## The recipe drawn when the previewed variation doesn't name one.
+var mask_file := ""
 var profiles := {}      # name -> TrackSurfaceProfile
 var styles := {}        # name -> UtopiaGreebleStyle
 var materials := {}     # name -> StandardMaterial3D
@@ -83,6 +89,8 @@ func setup(track: Node) -> void:
 	wall_params = editable_params(wall_base.shader)
 	for f in _files(VARIATION_DIR):
 		variations[f] = load("%s/%s" % [VARIATION_DIR, f])
+	for f in _files(MASK_DIR):
+		masks[f] = load("%s/%s" % [MASK_DIR, f])
 	for name in TrackSurfaceProfile.list_presets():
 		profiles[name] = load(TrackSurfaceProfile.preset_path(name))
 	for f in _files(STYLE_DIR):
@@ -131,6 +139,11 @@ func capture() -> Dictionary:
 	for f: String in variations:
 		for p: String in TrackSurfaceVariation.PARAMS:
 			d["var:%s/%s" % [f, p]] = variations[f].get(p)
+		d["var:%s/mask" % f] = variations[f].mask
+	d["mask"] = mask_file
+	for f: String in masks:
+		for p: String in mask_props():
+			d["mask:%s/%s" % [f, p]] = masks[f].get(p)
 	for name: String in profiles:
 		var pr: TrackSurfaceProfile = profiles[name]
 		d["prof:%s/mirror" % name] = pr.mirror
@@ -156,12 +169,12 @@ func restore(target: Dictionary) -> int:
 	# Rule counts first, so rule keys have somewhere to land; the selection
 	# before the variation values it decides how to draw.
 	for k: String in target:
-		if k == "var" or k.ends_with("/n"):
+		if k == "var" or k == "mask" or k.ends_with("/n"):
 			if not same(cur.get(k), target[k]):
 				set_v(k, target[k], false)
 				n += 1
 	for k: String in target:
-		if k == "var" or k.ends_with("/n"):
+		if k == "var" or k == "mask" or k.ends_with("/n"):
 			continue
 		if not cur.has(k) or not same(cur[k], target[k]):
 			set_v(k, target[k], false)
@@ -189,6 +202,8 @@ func get_v(key: String) -> Variant:
 	var slash := key.find("/")
 	if key == "var":
 		return variation_file
+	if key == "mask":
+		return mask_file
 	var head := key.substr(0, slash)
 	var rest := key.substr(slash + 1)
 	if head == "road":
@@ -200,6 +215,8 @@ func get_v(key: String) -> Variant:
 	match kind:
 		"var":
 			return variations[name].get(rest)
+		"mask":
+			return masks[name].get(rest)
 		"prof":
 			return profiles[name].mirror if rest == "mirror" else pack_bands(profiles[name])
 		"style":
@@ -219,6 +236,9 @@ func get_v(key: String) -> Variant:
 func set_v(key: String, value: Variant, user := true) -> void:
 	if key == "var":
 		set_variation(String(value))
+	elif key == "mask":
+		mask_file = String(value)
+		apply_mask()
 	else:
 		var slash := key.find("/")
 		var head := key.substr(0, slash)
@@ -243,7 +263,14 @@ func _set_named(kind: String, name: String, rest: String, value: Variant) -> voi
 		"var":
 			variations[name].set(rest, value)
 			if name == variation_file:
-				apply_param(rest)
+				if rest == "mask":
+					apply_mask()
+				else:
+					apply_param(rest)
+		"mask":
+			masks[name].set(rest, value)
+			if name == effective_mask_file():
+				apply_mask()
 		"prof":
 			var pr: TrackSurfaceProfile = profiles[name]
 			if rest == "mirror":
@@ -291,6 +318,46 @@ func set_variation(file: String) -> void:
 	variation_file = file
 	for p: String in TrackSurfaceVariation.PARAMS:
 		apply_param(p)
+	apply_mask()
+
+
+## The recipe being drawn: the previewed variation's, or else the lab's preview.
+func effective_mask_file() -> String:
+	var v: TrackSurfaceVariation = variations.get(variation_file)
+	if v and v.mask:
+		return v.mask.resource_path.get_file()
+	return mask_file
+
+
+func apply_mask() -> void:
+	if surface == null:
+		return
+	var r: TrackSurfaceMask = masks.get(effective_mask_file())
+	for m in surface.live_materials():
+		if r:
+			r.apply(m)
+		else:
+			TrackSurfaceMask.clear(m)
+
+
+## Makes a recipe (saved with the rest). Returns its file name, "" if taken.
+func new_mask(name: String) -> String:
+	var file := "mask_%s.tres" % name.to_snake_case()
+	if masks.has(file):
+		return ""
+	var r := TrackSurfaceMask.new()
+	r.take_over_path("%s/%s" % [MASK_DIR, file])
+	masks[file] = r
+	return file
+
+
+## A recipe's stored properties, in inspector order.
+static func mask_props() -> PackedStringArray:
+	var out := PackedStringArray()
+	for p: Dictionary in TrackSurfaceMask.new().get_property_list():
+		if p.usage & PROPERTY_USAGE_STORAGE and p.usage & PROPERTY_USAGE_SCRIPT_VARIABLE:
+			out.append(p.name)
+	return out
 
 
 ## Makes an empty variation (saved with the rest). Returns its file name.
@@ -308,7 +375,7 @@ func pack_bands(pr: TrackSurfaceProfile) -> Array:
 	var out := []
 	for b in pr.bands:
 		if b:
-			out.append([int(b.type), b.width, b.flex, int(b.light), b.vents])
+			out.append([int(b.type), b.width, b.flex, int(b.light), b.vents, b.mask_amount])
 	return out
 
 
@@ -322,6 +389,7 @@ func _unpack_bands(pr: TrackSurfaceProfile, data: Array) -> void:
 		b.flex = e[2]
 		b.light = e[3]
 		b.vents = e[4]
+		b.mask_amount = e[5] if e.size() > 5 else 1.0
 		list.append(b)
 	pr.bands = list
 
@@ -435,8 +503,8 @@ func dirty_files() -> Dictionary:
 	var out := {}
 	var cur := capture()
 	for k: String in cur:
-		if k == "var":
-			continue    # which variation is previewed isn't saved
+		if k == "var" or k == "mask":
+			continue    # what's being previewed isn't saved
 		if not saved.has(k) or not same(saved[k], cur[k]):
 			var f := file_of(k)
 			out[f] = int(out.get(f, 0)) + 1
@@ -457,6 +525,8 @@ func file_of(key: String) -> String:
 	match head.get_slice(":", 0):
 		"var":
 			return "%s/%s" % [VARIATION_DIR, name]
+		"mask":
+			return "%s/%s" % [MASK_DIR, name]
 		"prof":
 			return TrackSurfaceProfile.preset_path(name)
 		"style":
@@ -486,7 +556,12 @@ func save(redirect := "") -> PackedStringArray:
 		mat_edits[ROAD_MATERIAL]["surf_bands"] = road_base.get_shader_parameter("surf_bands")
 		mat_edits[ROAD_MATERIAL]["surf_profiles"] = road_base.get_shader_parameter("surf_profiles")
 		files[ROAD_MATERIAL] = int(files.get(ROAD_MATERIAL, 0))
-	for path: String in files:
+	# Recipes first: a variation saved below may point at a new one.
+	var order := files.keys()
+	order.sort_custom(func(a: String, b: String) -> bool:
+		return a.begins_with(MASK_DIR) and not b.begins_with(MASK_DIR))
+	DirAccess.make_dir_recursive_absolute(MASK_DIR)
+	for path: String in order:
 		var target := path if redirect == "" else "%s/%s" % [redirect, path.get_file()]
 		var err := OK
 		if mat_edits.has(path):
@@ -573,7 +648,7 @@ func _resource_at(path: String) -> Resource:
 		return road_base
 	if path == WALL_MATERIAL:
 		return wall_base
-	for table: Dictionary in [variations, profiles, styles, materials]:
+	for table: Dictionary in [variations, masks, profiles, styles, materials]:
 		for k: String in table:
 			if (table[k] as Resource).resource_path == path:
 				return table[k]

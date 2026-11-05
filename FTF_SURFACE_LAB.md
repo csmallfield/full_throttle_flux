@@ -59,6 +59,52 @@ Each row says so.
 Saving `profile_industrial` also updates slot 0 of the base road material, as
 `sync_surface_presets` does.
 
+## Surface mask
+One or two tiling textures combined into one value that moves roughness, metallic
+and specular, so two images give many looks. Off unless a track's variation names
+a recipe, so no track changes until you assign one.
+
+- **Recipes** (`TrackSurfaceMask`, `resources/track_surface/masks/mask_<name>.tres`):
+  mode (A only, A x B, B masks A), each layer's texture, channel, tile (across,
+  along) and offset, then contrast, bias, and the roughness, metallic and specular
+  amounts. The Mask tab edits them; **New** makes one.
+- **Textures** (`resources/track_surface/mask_textures`): any tiling greyscale PNG
+  there appears in the pickers, as does `wear_detail` with its four channels. The
+  five there are placeholders from `tools/track_surface/make_mask_noises.gd`. Import
+  with mipmaps on and no VRAM compression: copy an existing `.import`.
+- **Per band:** `mask_amount` in the Bands tab. Channels and painted lines are left out.
+- **Using one in a race:** choose a variation in the Road tab, pick the recipe in the
+  Mask tab, save, and give the track that variation. With no variation it's a preview.
+- **Debug view:** Mask (key 9), where mid grey means no change.
+
+How it behaves:
+- It's computed once per pixel, outside the zones, so a blend doesn't sample it twice.
+- The result is centred on the texture's measured average, so mipmaps can't shift the
+  far road and the low tier, which skips the textures, keeps the same overall look.
+  `bias` is the one deliberate overall shift, and applies on both tiers.
+- Contrast relaxes to 1 as features drop below a pixel.
+- Tiling along the path is snapped per path, so there's no jump at the start line.
+
+Measured on the 1080 Ti at 1080p, on Builder Lab at 850 m, with the UI hidden:
+
+| Mode | GPU vs off | Near road brightness | Far road brightness |
+|---|---|---|---|
+| A only | +0.07 ms | +0.6% | +0.3% |
+| A x B | +0.09 ms | +3.4% | +0.3% |
+| B masks A | +0.10 ms | +0.5% | +0.1% |
+
+Earlier runs gave GPU differences from about -0.02 to +0.11 ms, so treat the cost as
+roughly 0.1 ms or less on this view, where road fills much of the screen. The near
+road's shift is real: highlights don't respond to roughness in a straight line, and
+A x B is the most contrasty case. Worth knowing when comparing with off.
+
+Limits:
+- **Road only:** the walls don't use it.
+- **One recipe per track:** not per zone. Per-zone textures would need a texture array.
+- **Specular** only affects non-metals, so roughness does most of the visible work.
+- **No per-panel offset:** panels depend on the band, and the mask is computed before
+  bands are known so that blends stay cheap.
+
 ## How it works
 - `lab_doc.gd` holds everything editable as one flat "key -> value" dictionary.
   Undo, compare, snapshots and "what's unsaved" are the same operation: capture
@@ -113,7 +159,8 @@ Not covered by the self test, so it needs a person:
   matches where they're used.
 - **Variations are previewed, not assigned.** The lab doesn't set a track's
   `surface_variation`; do that on the TrackBuilder or the circuit's `TrackSurface`.
-- **No new profiles or styles.** Phase 1 edits the existing ones.
+- **No new profiles or styles.** Phase 1 edits the existing ones. Recipes and
+  variations can be made new.
 - **An open editor** may ask to reload a file the lab saved.
 - **Saving needs an editor build of Godot.** An exported build can't write `res://`.
 - **The decal check is approximate:** it uses each piece's unrotated bounds, so a
