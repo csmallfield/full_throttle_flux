@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="PrecipLook" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/precip_look.gd" id="1_look"]
+
+[resource]
+script = ExtResource("1_look")
+fall_speed = 1.4
+wind_carry = 0.8
+fall_spread = 0.35
+sway = 0.6
+density_scale = 0.55
+width = 0.035
+min_length = 0.035
+max_length = 0.6
+shutter = 0.01
+roundness = 1.0
+opacity = 0.6
+near_fade = 1.5
+far_cells = Vector2(0.9, 0.5)
+far_scroll = Vector2(0.3, 1.4)
+far_threshold = 0.72
+far_sharpness = 0.08
+far_opacity = 0.22
+tint_target = Color(0.95, 0.96, 1, 1)
+tint_mix = 0.6
+tint_from_dust = false

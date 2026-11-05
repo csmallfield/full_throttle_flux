@@ -28,6 +28,8 @@ var draw_mat: ShaderMaterial
 var far_mat: ShaderMaterial
 ## What is falling now (WeatherPreset.Kind; CLEAR / FOG = nothing).
 var kind: int = WeatherPreset.Kind.CLEAR
+## How it looks (null when nothing falls).
+var look: PrecipLook
 ## Shown share 0..1 after cover (for tests and the overlay).
 var shown: float = 0.0
 var covered: float = 0.0
@@ -119,8 +121,8 @@ func _process(delta: float) -> void:
 	var falling := kind == WeatherPreset.Kind.RAIN or kind == WeatherPreset.Kind.SNOW \
 		or kind == WeatherPreset.Kind.DUST_STORM
 	shown = env.precipitation * (1.0 - covered) if falling else 0.0
-	# Snow reads denser than rain at the same rate: thin it.
-	var density := shown * (0.55 if kind == WeatherPreset.Kind.SNOW else 1.0)
+	# Snow reads denser than rain at the same rate: its look thins it.
+	var density := shown * (look.density_scale if look else 1.0)
 	var on := shown > 0.002
 	if near.emitting != on:
 		near.emitting = on
@@ -132,79 +134,29 @@ func _process(delta: float) -> void:
 	process_mat.set_shader_parameter("cam_pos", cp)
 	process_mat.set_shader_parameter("cam_vel", _cam_vel)
 	process_mat.set_shader_parameter("ratio", density)
-	match kind:
-		WeatherPreset.Kind.RAIN:
-			process_mat.set_shader_parameter("fall", wind * 0.6 + Vector3(0, -11.0, 0))
-		WeatherPreset.Kind.SNOW:
-			process_mat.set_shader_parameter("fall", wind * 0.8 + Vector3(0, -1.4, 0))
-		WeatherPreset.Kind.DUST_STORM:
-			process_mat.set_shader_parameter("fall", wind * 1.1 + Vector3(0, -0.4, 0))
+	if look:
+		process_mat.set_shader_parameter("fall", look.fall(wind))
 	var tint := _tint()
 	draw_mat.set_shader_parameter("tint", tint)
 	far_mat.set_shader_parameter("tint", tint)
-	far_mat.set_shader_parameter("opacity", float(far.get_meta("opacity", 0.15)) * shown)
+	far_mat.set_shader_parameter("opacity", (look.far_opacity if look else 0.15) * shown)
 	far.global_position = cp
 
 
-## Per-kind look.
+## Per-kind look, from its PrecipLook (resources/weather/precip).
 func _configure(k: int) -> void:
-	var d := draw_mat
-	var p := process_mat
-	match k:
-		WeatherPreset.Kind.RAIN:
-			p.set_shader_parameter("fall_spread", 0.15)
-			p.set_shader_parameter("sway", 0.0)
-			d.set_shader_parameter("width", 0.012)
-			d.set_shader_parameter("min_length", 0.25)
-			d.set_shader_parameter("max_length", 3.5)
-			d.set_shader_parameter("shutter", 0.025)
-			d.set_shader_parameter("roundness", 0.0)
-			d.set_shader_parameter("opacity", 0.32)
-			d.set_shader_parameter("near_fade", 0.6)
-			far_mat.set_shader_parameter("cells", Vector2(1.4, 0.06))
-			far_mat.set_shader_parameter("scroll", Vector2(0.0, 11.0))
-			far_mat.set_shader_parameter("threshold", 0.62)
-			far_mat.set_shader_parameter("sharpness", 0.08)
-			far.set_meta("opacity", 0.08)
-		WeatherPreset.Kind.SNOW:
-			p.set_shader_parameter("fall_spread", 0.35)
-			p.set_shader_parameter("sway", 0.6)
-			d.set_shader_parameter("width", 0.035)
-			d.set_shader_parameter("min_length", 0.035)
-			d.set_shader_parameter("max_length", 0.6)
-			d.set_shader_parameter("shutter", 0.01)
-			d.set_shader_parameter("roundness", 1.0)
-			d.set_shader_parameter("opacity", 0.6)
-			d.set_shader_parameter("near_fade", 1.5)
-			far_mat.set_shader_parameter("cells", Vector2(0.9, 0.5))
-			far_mat.set_shader_parameter("scroll", Vector2(0.3, 1.4))
-			far_mat.set_shader_parameter("threshold", 0.72)
-			far_mat.set_shader_parameter("sharpness", 0.08)
-			far.set_meta("opacity", 0.22)
-		WeatherPreset.Kind.DUST_STORM:
-			p.set_shader_parameter("fall_spread", 0.3)
-			p.set_shader_parameter("sway", 0.3)
-			d.set_shader_parameter("width", 0.02)
-			d.set_shader_parameter("min_length", 0.05)
-			d.set_shader_parameter("max_length", 1.2)
-			d.set_shader_parameter("shutter", 0.02)
-			d.set_shader_parameter("roundness", 0.4)
-			d.set_shader_parameter("opacity", 0.45)
-			d.set_shader_parameter("near_fade", 1.0)
-			far_mat.set_shader_parameter("cells", Vector2(0.05, 0.12))
-			far_mat.set_shader_parameter("scroll", Vector2(14.0, 0.0))
-			far_mat.set_shader_parameter("threshold", 0.45)
-			far_mat.set_shader_parameter("sharpness", 0.4)
-			far.set_meta("opacity", 0.4)
+	look = PrecipLook.for_kind(k)
+	if look:
+		look.configure(process_mat, draw_mat, far_mat)
+
+
+## After an edit to the current look (Sky Lab): applies it again.
+func reconfigure() -> void:
+	_configure(kind)
 
 
 func _tint() -> Color:
 	var base := Color(0.72, 0.74, 0.78)
 	if env.sky:
 		base = env.sky.fog_color
-	match kind:
-		WeatherPreset.Kind.SNOW:
-			return base.lerp(Color(0.95, 0.96, 1.0), 0.6)
-		WeatherPreset.Kind.DUST_STORM:
-			return env.dust_color.lerp(base, 0.3)
-	return base.lerp(Color(0.85, 0.88, 0.92), 0.3)
+	return look.tint(base, env.dust_color) if look else base

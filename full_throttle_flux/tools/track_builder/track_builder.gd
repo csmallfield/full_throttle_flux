@@ -185,6 +185,11 @@ func _ready() -> void:
 	mark_surface_dirty()
 	if OS.get_environment("TB_EDITOR_SELFTEST") == "1":
 		_editor_selftest.call_deferred()
+	elif OS.get_environment("TB_TOUR") != "" and owner and owner.scene_file_path != "":
+		# The tutorial's editor screenshots (tb_tour_editor.gd); never saves.
+		var tour: Node = load("res://tools/track_builder/tb_tour_editor.gd").new()
+		tour.set("tb", self)
+		get_tree().root.add_child.call_deferred(tour)
 
 
 func _process(_delta: float) -> void:

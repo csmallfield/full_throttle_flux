@@ -8,6 +8,9 @@ pads, Build, Validate, dress it with greebles, drive it, train the AI. Builder L
 The four circuits (Utopia, Swoopy, Hairpin Alley, The Drop) were made the old
 way and stay as they are; see the end.
 
+A guided tour with screenshots of each step is in `docs/track-builder/` at the
+repo root (the GitHub Pages site); this file is the full reference.
+
 ---
 
 ## 1. The rules (why there's no offset)
@@ -401,6 +404,10 @@ tracks without zones draw the new version too.
 **Looking at it.** In game, key 9 cycles the surface debug views (bands,
 panels, filter level, zones, wear) and Shift+9 the quality tier. See
 `DEBUG_KEYS.md`.
+
+**The sky and weather.** `tools/sky_lab/sky_lab.tscn` tunes a circuit's sky,
+post, the weather presets and how rain, snow and grit look (`FTF_SKY_LAB.md`).
+Builder tracks have a plain sky for now, so it's for the circuits.
 
 **Tuning it with the greebles.** `tools/surface_lab/surface_lab.tscn` edits
 profiles, the surface style, variations and greeble styles live on a builder

@@ -16,6 +16,9 @@ var glide_speed := 60.0
 var glide_paused := false
 var d := 200.0
 var fly_speed := 30.0
+## The circuits' road sits off their spline by groundGeo's transform
+## (EnvironmentState.road_xf); identity on builder tracks.
+var road_xf := Transform3D.IDENTITY
 
 var cam: Camera3D
 var _chase: Node3D
@@ -90,13 +93,13 @@ func _track_d(delta: float, pos: Vector3) -> void:
 	_d_wait -= delta
 	if _d_wait <= 0.0:
 		_d_wait = 0.1
-		d = spline.curve.get_closest_offset(spline.global_transform.affine_inverse() * pos)
+		d = spline.curve.get_closest_offset(spline.global_transform.affine_inverse() * (road_xf.affine_inverse() * pos))
 
 
 func _place_pose(at: float) -> void:
 	var curve := spline.curve
 	var frame := func(x: float) -> Transform3D:
-		return spline.global_transform * TrackRoadSegment.frame_at(curve, fposmod(x, curve.get_baked_length()))
+		return road_xf * spline.global_transform * TrackRoadSegment.frame_at(curve, fposmod(x, curve.get_baked_length()))
 	var here: Transform3D = frame.call(at)
 	var pos: Vector3 = (frame.call(at - 9.0) as Transform3D).origin + here.basis.y * 3.2
 	var target: Vector3 = (frame.call(at + 25.0) as Transform3D).origin + here.basis.y * 1.0
