@@ -37,8 +37,14 @@ func _settle(seconds := 1.2) -> void:
 	await _frames(6)
 
 
+## TB_TOUR_ONLY takes one prefix, or several separated by commas.
 func _wants(name: String) -> bool:
-	return only == "" or name.begins_with(only)
+	if only == "":
+		return true
+	for p in only.split(","):
+		if name.begins_with(p):
+			return true
+	return false
 
 
 ## Saves the editor window, or `area` of it.
@@ -315,49 +321,9 @@ func _examples() -> void:
 		await _shot("ex_roll_after", _view_rect())
 		roll.length = was
 		await _settle()
-	# Fairing: off, where it matters most.
-	if _wants("ex_fairing"):
-		var was := tb.fairing_m
-		tb.overlay = TrackBuilder.Overlay.LATERAL_G
-		tb.fairing_m = 0.0
-		tb.preview()
-		await _settle()
-		var at := _worst_kink()
-		tb.fairing_m = was
-		tb.preview()
-		await _settle()
-		_oblique(tb.sampler, at, 110.0, -70.0, 55.0, 30.0)
-		await _shot("ex_fairing_before", _view_rect())
-		tb.fairing_m = 0.0
-		tb.preview()
-		await _settle()
-		await _shot("ex_fairing_after", _view_rect())
-		print("TBTOUR fairing kink at %.0f m" % at)
-		tb.fairing_m = was
 	tb.overlay = TrackBuilder.Overlay.BANK
 	_clean(false)
 	await _settle()
-
-
-## Distance of the biggest one-metre jump in cornering load on drawn road
-## (fairing does nothing inside a feature, which has its own shape).
-func _worst_kink() -> float:
-	var s := tb.sampler
-	var best := 0.0
-	var at := 0.0
-	var prev := tb.lateral_g(0, s)
-	for i in range(1, s.P.size()):
-		var g := tb.lateral_g(i, s)
-		var inside := false
-		for p in tb.composer.placed:
-			inside = inside or (s.S[i] > p.s0 - 80.0 and s.S[i] < p.s1 + 80.0)
-		for be in tb.branches:
-			inside = inside or absf(s.S[i] - be.s_fork) < 300.0 or absf(s.S[i] - be.s_rejoin) < 300.0
-		if not inside and absf(g - prev) > best:
-			best = absf(g - prev)
-			at = s.S[i]
-		prev = g
-	return at
 
 
 # =============================================================================
@@ -375,14 +341,14 @@ func _validator() -> void:
 	await _shot("validate_clean", _view_rect())
 	_clean(false)
 	# Break two things on purpose, then Build so the report judges the new
-	# design rather than a stale build: a bank too steep for its neighbours,
-	# and a width key dragged off into the field.
-	var bank := _node("BankKeys/Bank03") as BankKey
+	# design rather than a stale build: a roll too short for its turn, and a
+	# width key dragged off into the field.
+	var roll := _node("Features/Roll") as RollFeature
 	var width := _node("WidthKeys/Width02") as WidthKey
-	var was_bank := bank.bank_deg if bank else 0.0
+	var was_len := roll.length if roll else 0.0
 	var was_pos := width.global_position if width else Vector3.ZERO
-	if bank:
-		bank.bank_deg = 70.0
+	if roll:
+		roll.length = 560.0
 	if width:
 		var f := tb._key_track(width).frame_at(width.distance)
 		width.global_position = f.origin + f.basis.x * -45.0
@@ -392,14 +358,18 @@ func _validator() -> void:
 	v = tb.validate()
 	await _frames(4)
 	_write_report("report_broken", v)
-	if bank:
+	if roll:
 		_clean(true)
-		_key_pose(bank, 300.0, -220.0, 200.0)
+		tb.overlay = TrackBuilder.Overlay.ROLL_RATE
+		tb.preview()
+		var p := _placed(roll)
+		_oblique(tb.sampler, p.s0 + 60.0, 130.0, -80.0, 70.0, 220.0)
+		await _settle()
 		await _shot("validate_broken", _view_rect())
+		tb.overlay = TrackBuilder.Overlay.BANK
 		_clean(false)
-	await _shot("insp_report_broken", _inspector_rect())
-	if bank:
-		bank.bank_deg = was_bank
+	if roll:
+		roll.length = was_len
 	if width:
 		width.global_position = was_pos
 	await _settle()
@@ -448,8 +418,7 @@ func _built() -> void:
 
 
 func _dressing() -> void:
-	var s := tb.sampler
-	# Greeble zone: the key, then its preset swapped.
+	# Greeble zone.
 	var gk := _node("GreebleZoneKeys/Zone02_Service") as ProfileKey
 	if gk:
 		tb.greeble_markers = true
@@ -461,16 +430,6 @@ func _dressing() -> void:
 		await _shot("insp_greeble", _inspector_rect())
 		tb.greeble_markers = false
 		tb.preview()
-		if _wants("ex_greeble"):
-			var was: Variant = gk.get("preset")
-			_oblique(s, gk.distance + 150.0, 70.0, -32.0, 22.0, 90.0)
-			await _settle()
-			await _shot("ex_greeble_before", _view_rect())
-			gk.set("preset", "maritime")
-			await _settle(2.0)
-			await _shot("ex_greeble_after", _view_rect())
-			gk.set("preset", was)
-			await _settle(2.0)
 	# Surface zone.
 	var sk := _node("SurfaceZoneKeys/Surface02_service") as ProfileKey
 	if sk:
@@ -483,39 +442,9 @@ func _dressing() -> void:
 		await _shot("insp_surface", _inspector_rect())
 		tb.surface_markers = false
 		tb.preview()
-		if _wants("ex_surface"):
-			var was: Variant = sk.get("preset")
-			_chase(s, sk.distance + 80.0, 90.0, 9.0)
-			await _settle()
-			await _shot("ex_surface_before", _view_rect())
-			sk.set("preset", "grate_run")
-			await _settle(2.0)
-			await _shot("ex_surface_after", _view_rect())
-			sk.set("preset", was)
-			await _settle(2.0)
-	# Decals.
+	# A decal key's settings.
 	var dk := _node("SurfaceDecalKeys/Decal01_FullThrottle") as ProfileKey
 	if dk:
 		await _select(dk)
-		_chase(tb._key_track(dk), dk.distance - 45.0, 50.0, 10.0)
-		await _settle()
-		await _shot("key_decal", _view_rect())
 		await _shot("insp_decal", _inspector_rect())
-		if _wants("ex_decal"):
-			var text: Variant = dk.get("text")
-			var paint: Variant = dk.get("paint")
-			await _shot("ex_decal_before", _view_rect())
-			dk.set("text", "BUILDER LAB")
-			dk.set("paint", 1)
-			await _settle(2.0)
-			await _shot("ex_decal_after", _view_rect())
-			dk.set("text", text)
-			dk.set("paint", paint)
-			await _settle(2.0)
-	var chev := _node("SurfaceDecalKeys/Decal04_Chevrons") as ProfileKey
-	if chev:
-		_chase(tb._key_track(chev), chev.distance - 50.0, 70.0, 9.0)
-		await _shot("decal_chevrons", _view_rect())
-	tb.greeble_markers = true
-	tb.surface_markers = true
-	tb.label_every = 100.0
+	_clean(false)
