@@ -146,6 +146,10 @@ func _ready() -> void:
 		var t: Node = load("res://tools/surface_lab/surface_lab_selftest.gd").new()
 		t.lab = self
 		add_child(t)
+	elif OS.get_environment("LAB_TOUR") != "":
+		var t: Node = load("res://tools/surface_lab/surface_lab_tour.gd").new()
+		t.lab = self
+		add_child(t)
 
 
 func _find_geometry() -> void:
@@ -367,6 +371,13 @@ func _update_views() -> void:
 static func _param_value(m: ShaderMaterial, p: String, fallback: float) -> float:
 	var v: Variant = m.get_shader_parameter(p)
 	return float(v) if v != null else fallback
+
+
+## The name of the greeble style in the zone under the camera, or the selected one.
+func _style_at_camera() -> String:
+	var gz: TrackGreebleZone = _zone_at(_greeble_zones(), cam.d, cam.length())
+	var name := _name_of(doc.styles, gz.style) if gz and gz.style else ""
+	return name if name != "" else style_name
 
 
 func _road_segment(d: float) -> TrackRoadSegment:

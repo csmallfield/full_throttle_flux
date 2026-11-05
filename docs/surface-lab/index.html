@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surface Lab tutorial</title>
+<meta name="description" content="A guided tour of Surface Lab, the live road surface and greeble editor for Full Throttle Flux.">
+<style>
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --panel-2: #eceef2; --text: #1b1e24; --muted: #5a6270;
+  --line: #d9dde4; --accent: #0a6fb8; --warn-bg: #fff4dc; --warn-text: #7a5200;
+  --tip-bg: #e3f3f7; --tip-text: #0b5468; --code-bg: #eceef2; --shadow: 0 1px 3px rgba(20, 24, 32, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1216; --panel: #171b21; --panel-2: #1f242c; --text: #e7eaef; --muted: #9aa3b0;
+    --line: #2b313a; --accent: #5cc0f5; --warn-bg: #33280f; --warn-text: #f2c66d;
+    --tip-bg: #0f2a31; --tip-text: #8fd9ea; --code-bg: #232932; --shadow: 0 1px 3px rgba(0, 0, 0, .5);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+img { display: block; max-width: 100%; height: auto; border-radius: 6px; }
+.layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); max-width: 1240px; margin: 0 auto; }
+nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 28px 12px 28px 20px; font-size: 14.5px; }
+nav.toc .brand { font-weight: 650; font-size: 16px; margin-bottom: 14px; }
+nav.toc ul { list-style: none; margin: 0; padding: 0; }
+nav.toc li { margin: 0; }
+nav.toc a { display: block; padding: 4px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; border-left: 2px solid transparent; }
+nav.toc a:hover { color: var(--text); background: var(--panel-2); }
+nav.toc a.on { color: var(--text); border-left-color: var(--accent); background: var(--panel-2); }
+nav.toc .group { margin: 14px 0 4px 10px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+main { padding: 28px 32px 90px; min-width: 0; }
+header.hero h1 { font-size: 40px; line-height: 1.15; margin: 8px 0 12px; letter-spacing: -.01em; }
+header.hero p { font-size: 19px; color: var(--muted); margin: 0 0 22px; max-width: 46em; }
+section { margin-top: 58px; }
+h2 { font-size: 28px; line-height: 1.25; margin: 0 0 12px; letter-spacing: -.005em; }
+h3 { font-size: 20px; margin: 30px 0 8px; }
+p, ul, ol { max-width: 46em; }
+li { margin: 4px 0; }
+code { font: .88em ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--code-bg); padding: .12em .36em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; max-width: 100%; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+kbd { font: .85em ui-monospace, Consolas, monospace; background: var(--panel); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: .05em .4em; white-space: nowrap; }
+figure { margin: 18px 0 24px; }
+figcaption { color: var(--muted); font-size: 14.5px; margin-top: 7px; max-width: 46em; }
+.shot { box-shadow: var(--shadow); }
+.note, .tip { padding: 11px 15px; border-radius: 8px; margin: 16px 0; max-width: 46em; font-size: 16px; }
+.note { background: var(--warn-bg); color: var(--warn-text); }
+.tip { background: var(--tip-bg); color: var(--tip-text); }
+.note a, .tip a { color: inherit; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); margin: 16px 0 24px; }
+.grid figure { margin: 0; }
+.tabshot { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 26px; align-items: start; margin-top: 14px; }
+.tabshot > figure { margin: 0; }
+.tabshot > div > :first-child { margin-top: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15.5px; margin: 14px 0 22px; }
+th, td { text-align: left; padding: 8px 11px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 14px; }
+.tablewrap { overflow-x: auto; }
+.callouts { position: relative; }
+.pin { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; background: #ff7a2f; color: #111; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; text-decoration: none; }
+.legend { columns: 2; column-gap: 28px; padding-left: 22px; max-width: none; }
+.legend li { break-inside: avoid; }
+.ba { position: relative; overflow: hidden; border-radius: 6px; box-shadow: var(--shadow); line-height: 0; --at: 50%; touch-action: pan-y; }
+.ba img { border-radius: 0; width: 100%; }
+.ba .after { position: absolute; inset: 0; clip-path: inset(0 0 0 var(--at)); }
+.ba .after img { height: 100%; object-fit: cover; }
+.ba .bar { position: absolute; top: 0; bottom: 0; left: var(--at); width: 3px; margin-left: -1.5px; background: #fff; pointer-events: none; }
+.ba .bar::after { content: "\2194"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: #fff; color: #111; font-size: 18px; line-height: 34px; text-align: center; }
+.ba input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.ba input:focus-visible ~ .bar { background: #ff7a2f; }
+.ba .label { position: absolute; top: 9px; font-size: 13px; line-height: 1.4; padding: 2px 8px; border-radius: 4px; background: rgba(0, 0, 0, .68); color: #fff; pointer-events: none; }
+.ba .label.l { left: 9px; } .ba .label.r { right: 9px; }
+ol.steps { padding-left: 24px; }
+ol.steps li { margin: 8px 0; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav.toc { position: static; max-height: none; padding: 16px 16px 0; }
+  nav.toc ul { display: flex; flex-wrap: wrap; gap: 2px; }
+  nav.toc .group { flex-basis: 100%; }
+  nav.toc a { border-left: 0; padding: 3px 9px; }
+  main { padding: 18px 16px 70px; }
+  header.hero h1 { font-size: 32px; }
+  .tabshot { grid-template-columns: minmax(0, 1fr); }
+  .tabshot > figure { max-width: 320px; }
+  .legend { columns: 1; }
+  .pin { width: 22px; height: 22px; margin: -11px 0 0 -11px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <div class="brand">Surface Lab</div>
+  <ul>
+    <li><a href="#what">What it is</a></li>
+    <li><a href="#launch">Launching it</a></li>
+    <li><a href="#screen">The screen</a></li>
+    <li><a href="#first">Your first look</a></li>
+    <li class="group">Viewing</li>
+    <li><a href="#topbar">Top bar</a></li>
+    <li><a href="#solo">Isolating layers</a></li>
+    <li><a href="#debug">Debug views</a></li>
+    <li class="group">Balance views</li>
+    <li><a href="#section">Section</a></li>
+    <li><a href="#rhythm">Rhythm</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+    <li class="group">Tabs</li>
+    <li><a href="#bands">Bands</a></li>
+    <li><a href="#road">Road</a></li>
+    <li><a href="#mask">Mask</a></li>
+    <li><a href="#walls">Walls</a></li>
+    <li><a href="#greebles">Greebles</a></li>
+    <li><a href="#materials">Materials</a></li>
+    <li><a href="#cost">Cost</a></li>
+    <li class="group">Finishing</li>
+    <li><a href="#checks">Checks</a></li>
+    <li><a href="#compare">Compare and undo</a></li>
+    <li><a href="#saving">Saving</a></li>
+    <li><a href="#keys">Keys</a></li>
+    <li><a href="#limits">Limits</a></li>
+  </ul>
+</nav>
+<main>
+<header class="hero">
+  <h1>Surface Lab tutorial</h1>
+  <p>Tune the road surface and the track dressing together, live on a real track, then save the result straight into the files the game loads.</p>
+</header>
+
+<figure><img class="shot" src="img/view_clean.jpg" alt="A raised view along the Builder Lab track, with a panelled road, glowing channels, hazard stripes and wall dressing." width="1280" height="720"></figure>
+
+<section id="what" style="margin-top:34px">
+<h2>What it is</h2>
+<p>Surface Lab is a dev scene for <em>Full Throttle Flux</em>. It runs the game's own track, with the game's own lighting and weather, with an editor on top. Every change draws immediately using the same code a race uses.</p>
+<p>It exists because two layers have to work together:</p>
+<ul>
+  <li><strong>The road surface:</strong> one procedural shader that draws lanes, panels, lights, wear and weather.</li>
+  <li><strong>Greebles:</strong> the scattered dressing of lamps, panels, railings and gantries.</li>
+</ul>
+<p>Tuned separately, they drift apart. The lab puts them on one screen and gives you views made for judging how they sit together.</p>
+<div class="tip">There's no bake step. The surface and greebles are built from <code>.tres</code> files whenever a track loads, so saving in the lab is all it takes for the game to pick up your work.</div>
+</section>
+
+<section id="launch">
+<h2>Launching it</h2>
+<p>In the Godot editor, open <code>res://tools/surface_lab/surface_lab.tscn</code> and press <kbd>F6</kbd>. Or from the repo root:</p>
+<pre><code>godot --path full_throttle_flux res://tools/surface_lab/surface_lab.tscn</code></pre>
+<p>It opens on Builder Lab, moving round the lap in the Glide camera. Press <kbd>Space</kbd> to pause, and <kbd>H</kbd> to hide the interface and see the frame by itself.</p>
+<p>To open another builder track, set <code>LAB_TRACK</code> to its scene name, such as <code>LAB_TRACK=fork_lab</code>.</p>
+</section>
+
+<section id="screen">
+<h2>The screen</h2>
+<figure>
+  <div class="callouts">
+    <a href="img/overview.jpg"><img class="shot" src="img/overview.jpg" alt="The full Surface Lab window: a top bar, the 3D track view, tabs on the right, and three analysis views along the bottom." width="1920" height="1080"></a>
+    <a class="pin" style="left:30%;top:2%" href="#topbar">1</a>
+    <a class="pin" style="left:36%;top:42%" href="#first">2</a>
+    <a class="pin" style="left:70%;top:6%" href="#bands">3</a>
+    <a class="pin" style="left:86%;top:70%" href="#checks">4</a>
+    <a class="pin" style="left:27%;top:81%" href="#section">5</a>
+    <a class="pin" style="left:76%;top:81%" href="#rhythm">6</a>
+    <a class="pin" style="left:50%;top:96%" href="#timeline">7</a>
+  </div>
+</figure>
+<ol class="legend">
+  <li><a href="#topbar">Top bar:</a> camera, weather, debug views, layer switches, compare, save.</li>
+  <li><strong>3D view:</strong> the real track, drawn the way the game draws it.</li>
+  <li><a href="#bands">Tabs:</a> everything you can edit, plus the cost readout.</li>
+  <li><a href="#checks">Checks:</a> problems found as you work.</li>
+  <li><a href="#section">Section:</a> the road's cross-section at the camera.</li>
+  <li><a href="#rhythm">Rhythm:</a> what repeats along the track, and how it lines up.</li>
+  <li><a href="#timeline">Timeline:</a> the whole lap, with both layers' zones.</li>
+</ol>
+</section>
+
+<section id="first">
+<h2>Your first look</h2>
+<p>A five-minute run through the main idea, with nothing saved until the last step.</p>
+<ol class="steps">
+  <li>Press <kbd>Space</kbd> to stop the camera, then click a spot on the <a href="#timeline">timeline</a> to jump there.</li>
+  <li>In the <a href="#section">section view</a>, click a teal grate band. The <a href="#bands">Bands</a> tab opens with it selected.</li>
+  <li>Drag <strong>width</strong> up and watch the lanes move on the road.</li>
+  <li>Open the <a href="#mask">Mask</a> tab and choose the <code>worn_patches</code> recipe.</li>
+  <li>Hold <kbd>C</kbd> to see the saved look, and let go to return to yours.</li>
+  <li>Press <kbd>Ctrl</kbd>+<kbd>Z</kbd> until you're back where you started, or press <kbd>Ctrl</kbd>+<kbd>S</kbd> to review what would be saved.</li>
+</ol>
+</section>
+
+<section id="topbar">
+<h2>Top bar</h2>
+<figure><img class="shot" src="img/topbar.jpg" alt="The top bar, with camera, speed, weather and debug menus, Road and Greebles switches, layer checkboxes, compare and snapshot buttons, GPU time, save status, undo, redo and save." width="1920" height="44"></figure>
+<h3>Cameras</h3>
+<div class="tablewrap"><table>
+<tr><th>Camera</th><th>What it does</th><th>Use it for</th></tr>
+<tr><td><strong>Fly</strong></td><td>Hold the right mouse button to look, <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> and <kbd>Q</kbd>/<kbd>E</kbd> to move, <kbd>Shift</kbd> for fast, the wheel to change speed.</td><td>Inspecting details up close.</td></tr>
+<tr><td><strong>Glide</strong></td><td>The chase view sliding round the lap with no physics. The slider sets its speed and <kbd>Space</kbd> pauses it.</td><td>Most tuning. It's repeatable and easy to stop.</td></tr>
+<tr><td><strong>Chase lap</strong></td><td>A real AI ship on its trained line with the game's chase camera and motion blur.</td><td>The final judgement, at real speed.</td></tr>
+</table></div>
+<figure><img class="shot" src="img/view_chase.jpg" alt="The Chase lap camera following a racing ship down the track." width="1280" height="720" loading="lazy"><figcaption>Chase lap. Shimmer and busy patterns show up here long before they show up in a still frame.</figcaption></figure>
+<h3>Weather</h3>
+<p>The weather menu applies the game's presets instantly. Rain and snow settle differently on grates, channels and panels, so it's worth checking a look under a couple of them.</p>
+<div class="grid">
+  <figure><img class="shot" src="img/view_weather_rain_heavy.jpg" alt="The track in heavy rain, with a dark wet road and falling streaks." width="1280" height="720" loading="lazy"><figcaption>Heavy rain</figcaption></figure>
+  <figure><img class="shot" src="img/view_weather_snow_medium.jpg" alt="The track in medium snow, with white road and clear patches." width="1280" height="720" loading="lazy"><figcaption>Medium snow</figcaption></figure>
+  <figure><img class="shot" src="img/view_weather_fog_medium.jpg" alt="The track in medium fog." width="1280" height="720" loading="lazy"><figcaption>Medium fog</figcaption></figure>
+</div>
+<p>The rest of the bar is covered below: <a href="#solo">layer switches</a>, <a href="#debug">debug views</a>, <a href="#compare">compare and snapshots</a> and <a href="#saving">saving</a>. The GPU figure on the right is the median of the last 60 frames.</p>
+</section>
+
+<section id="solo">
+<h2>Isolating layers</h2>
+<p>When something looks wrong, these switches tell you which layer is responsible.</p>
+<ul>
+  <li><strong>Road off:</strong> a plain grey road and walls, to judge greebles by shape alone.</li>
+  <li><strong>Greebles off:</strong> the surface by itself.</li>
+  <li><strong>Layer checkboxes:</strong> show or hide ground, wall face, wall top, outside and overhead pieces.</li>
+  <li><strong>Solo rule</strong> (in the <a href="#greebles">Greebles</a> tab): one rule alone.</li>
+</ul>
+<div class="grid">
+  <figure><img class="shot" src="img/view_neutral_road.jpg" alt="Road switched off: the track is plain grey, leaving the greebles to read by shape." width="1280" height="720" loading="lazy"><figcaption>Road off</figcaption></figure>
+  <figure><img class="shot" src="img/view_no_greebles.jpg" alt="Greebles switched off: the bare road and walls." width="1280" height="720" loading="lazy"><figcaption>Greebles off</figcaption></figure>
+  <figure><img class="shot" src="img/view_ground_only.jpg" alt="Only the ground layer of greebles showing on the road." width="1280" height="720" loading="lazy"><figcaption>Ground layer only</figcaption></figure>
+  <figure><img class="shot" src="img/view_solo_rule.jpg" alt="A single greeble rule shown alone: wall panels at regular intervals." width="1280" height="720" loading="lazy"><figcaption>Solo rule: <code>wall_panel</code></figcaption></figure>
+</div>
+</section>
+
+<section id="debug">
+<h2>Debug views</h2>
+<p>The debug menu replaces the road's colour with data about how it's being drawn. It's also on <kbd>9</kbd>, as in the game.</p>
+<div class="grid">
+  <figure><img class="shot" src="img/view_debug_bands.jpg" alt="Bands debug view: each lane in its own colour." width="1280" height="720" loading="lazy"><figcaption><strong>Bands:</strong> one colour per lane, to see exactly where each band falls.</figcaption></figure>
+  <figure><img class="shot" src="img/view_debug_panels.jpg" alt="Panels debug view: a patchwork of coloured road panels." width="1280" height="720" loading="lazy"><figcaption><strong>Panels:</strong> each panel in its own colour. Each band's seams are offset so they don't line up.</figcaption></figure>
+  <figure><img class="shot" src="img/view_debug_filter.jpg" alt="Filter level debug view: green where detail is kept, red where it has faded to its average." width="1280" height="720" loading="lazy"><figcaption><strong>Filter level:</strong> green keeps full detail, red has faded to its average so it can't shimmer.</figcaption></figure>
+  <figure><img class="shot" src="img/view_debug_zones.jpg" alt="Zones debug view: the road in one colour for its current zone." width="1280" height="720" loading="lazy"><figcaption><strong>Zones:</strong> a colour per profile, with blends between them.</figcaption></figure>
+  <figure><img class="shot" src="img/view_debug_wear.jpg" alt="Wear debug view: a green polished strip along the racing line, red grime elsewhere." width="1280" height="720" loading="lazy"><figcaption><strong>Wear:</strong> grime in red, polish in green, scorch in blue. The polish follows the AI's trained line.</figcaption></figure>
+  <figure><img class="shot" src="img/mask_debug.jpg" alt="Mask debug view: a grey noise pattern across the road, with flat grey where the mask doesn't apply." width="1280" height="720" loading="lazy"><figcaption><strong>Mask:</strong> the <a href="#mask">surface mask</a> alone. Mid grey means no change.</figcaption></figure>
+</div>
+<p>There's also <strong>s, t</strong>, which shows the road's along-track and across-track coordinates. It's mostly useful for debugging the shader itself.</p>
+</section>
+
+<section id="section">
+<h2>Section view</h2>
+<p>The road cut across at the camera, with both layers drawn to one across-the-road scale. Bands run along the bottom, the wall outline sits above them, and each greeble rule is a pin where it actually lands at this road width.</p>
+<figure><img class="shot" src="img/section.jpg" alt="The section view: coloured road bands along the bottom, the wall outline at each side, and orange pins marking greeble positions." width="1040" height="150"></figure>
+<ul>
+  <li><strong>Click a band</strong> to select it in the <a href="#bands">Bands</a> tab.</li>
+  <li><strong>Click a pin</strong> to select that rule in the <a href="#greebles">Greebles</a> tab.</li>
+  <li><strong>Drag a fixed band's inner edge</strong> to resize it.</li>
+  <li><strong>Drag a ground pin</strong> to change its <code>lateral</code>.</li>
+</ul>
+<p>Height uses its own scale, because the view is far wider than it is tall. Hover over anything for its exact position.</p>
+<h3>Why it matters: width changes</h3>
+<p>Bands keep their width and stack in from the road's edge, with only the flex bands stretching. Ground pieces instead scale their position with the road's width. So a piece that sits neatly on a lane where the road is standard can drift off it where the road is wider.</p>
+<figure><img class="shot" src="img/section_wide.jpg" alt="The section view at a wider part of the track: the left half of the road is much wider than the right, with bands and pins spaced differently." width="1040" height="150"><figcaption>Where the left half widens to 25 m. Fixed bands hold their size while the flex plate takes up the extra width, and the pins move by a different rule. Scrub through a track's WidthKeys to catch this.</figcaption></figure>
+</section>
+
+<section id="rhythm">
+<h2>Rhythm view</h2>
+<p>A ruler along the track, showing 120 m around the camera. It shows road seams of the selected band, wall panels, and every rule of the current greeble style.</p>
+<figure><img class="shot" src="img/rhythm.jpg" alt="The rhythm view: rows of tick marks for road seams, wall panels and each greeble rule, with a vertical line at the camera." width="866" height="150"></figure>
+<p>Use it to decide what should line up and what shouldn't. A row of lamps can land on a seam for a deliberate, engineered look, or sit against it so the pattern doesn't feel mechanical.</p>
+<div class="note">Rule ticks show the pattern only. In the game, a rule's <code>probability</code> thins them out at random.</div>
+</section>
+
+<section id="timeline">
+<h2>Timeline</h2>
+<p>The whole lap as a bar, with road zones above and greeble zones below. The orange line is the camera. Click anywhere to go there.</p>
+<figure><img class="shot" src="img/timeline.jpg" alt="The timeline: a lane of road zones named industrial, service and grate run, above a lane of greeble zones named civic, service, hairpin and others." width="1910" height="52"></figure>
+<p>The two chains of zones are independent, so this is the quickest way to see which pairings actually occur. Look for where a road zone and a greeble zone change close together but not at the same place. In this release the timeline is read-only: zones are edited with their keys in the Track Builder, or in the <code>TrackSurface</code> node on a circuit.</p>
+</section>
+
+<section id="bands">
+<h2>Bands tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_bands.jpg"><img class="shot" src="img/tab_bands.jpg" alt="The Bands tab: a profile menu, a list of bands, editing buttons, and settings for the selected band." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>A <strong>profile</strong> is the list of lanes across the road. Each zone of a track picks one. <strong>Follow camera</strong> shows the profile and greeble style under the camera, and turns itself off when you pick one by hand. It also pauses while you edit, so the panel doesn't change under your slider.</p>
+    <p>With <strong>Mirror</strong> on, the list runs from the left edge to the centre, and the right half copies it in reverse.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td><code>type</code></td><td>Plate, channel, edge, ribbed or grate.</td></tr>
+      <tr><td><code>width</code></td><td>Metres across, for a fixed band.</td></tr>
+      <tr><td><code>flex</code></td><td>Above 0, the band shares whatever the fixed bands leave. Road width changes only affect these.</td></tr>
+      <tr><td><code>light</code></td><td>Channels only: none, red dots or a blue strip.</td></tr>
+      <tr><td><code>vents</code></td><td>Plates only: vent boxes every so often.</td></tr>
+      <tr><td><code>mask amount</code></td><td>How strongly the <a href="#mask">surface mask</a> reaches this band.</td></tr>
+    </table></div>
+    <div class="note">Put a channel between two different kinds of band. Without one you can get a hard edge, and the <a href="#checks">checks</a> will warn you.</div>
+  </div>
+</div>
+<h3>Example: wider grates</h3>
+<p>The same <code>industrial</code> profile, with the grate band widened from 2.4 m to 7 m. Drag the slider across the picture to compare.</p>
+<div class="ba" data-before="Saved" data-after="Grate 7 m">
+  <img src="img/ex_grate_before.jpg" alt="Before: narrow grate lanes near the road's edges." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_grate_after.jpg" alt="After: much wider grate lanes, with the flex plate narrower." width="1280" height="720" loading="lazy"></div>
+</div>
+</section>
+
+<section id="road">
+<h2>Road tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_road.jpg"><img class="shot" src="img/tab_road.jpg" alt="The Road tab: a variation menu, a search box, and collapsible groups of settings with the lights group open." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>Everything the road shader exposes, about 90 settings grouped by module: ribs, grates, vents, lights, edges, wear, decals and materials. The rows are generated from the shader, so new parameters appear by themselves. Type in the search box to find one by name.</p>
+    <h3 style="margin-top:12px">All tracks or this track</h3>
+    <p>Each row carries a badge. <strong>All tracks</strong> changes the shared style. To make a change for one track only, use a <strong>variation</strong>:</p>
+    <ol>
+      <li>Choose a variation at the top, or type a name and press <strong>New</strong>.</li>
+      <li>Tick <strong>track</strong> on a row. Its badge changes to <strong>this track</strong> and your edits go to the variation.</li>
+    </ol>
+    <p>Only 17 settings can be overridden per track, and those are the ones with a tick box. Keep clear of orange (about 20 to 40 degrees of hue), because the boost pads own it.</p>
+  </div>
+</div>
+<h3>Example: plate colour and roughness</h3>
+<p><code>plate_color</code> warmed to a rust brown, with <code>plate_roughness</code> raised to 0.75.</p>
+<div class="ba" data-before="Saved" data-after="Rust plates">
+  <img src="img/ex_plate_before.jpg" alt="Before: grey metal plates." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_plate_after.jpg" alt="After: rust-brown plates with a duller highlight." width="1280" height="720" loading="lazy"></div>
+</div>
+<h3>Example: lights</h3>
+<p><code>light_blue</code> changed to magenta, <code>light_red</code> to green, and both energies raised. Look at the channels along each side.</p>
+<div class="ba" data-before="Saved" data-after="Recoloured">
+  <img src="img/ex_lights_before.jpg" alt="Before: blue channel strips and red dots." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_lights_after.jpg" alt="After: magenta channel strips and green dots." width="1280" height="720" loading="lazy"></div>
+</div>
+<h3>Example: wear</h3>
+<p><code>wear_age</code> from 0, factory new, to 1, old, with grime and scorch turned up. The polished strip stays clean along the AI's racing line, because wear is baked from its trained line when the track loads.</p>
+<div class="ba" data-before="Age 0" data-after="Age 1">
+  <img src="img/ex_wear_before.jpg" alt="Before: a clean, factory-new road." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_wear_after.jpg" alt="After: a road darkened by grime, with stained hazard stripes." width="1280" height="720" loading="lazy"></div>
+</div>
+</section>
+
+<section id="mask">
+<h2>Mask tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_mask.jpg"><img class="shot" src="img/tab_mask.jpg" alt="The Mask tab: a recipe menu, then settings for mode, layers A and B, shape and response." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>The surface mask gets many looks from a couple of images. It combines one or two tiling textures into a single value, then uses that value to push roughness, metallic and specular up and down. If you've layered noises at different scales in Maya and Arnold, this is the same idea.</p>
+    <p>A <strong>recipe</strong> is one saved setup, kept in <code>resources/track_surface/masks</code>. Choose one from the menu, or type a name and press <strong>New</strong>.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td><code>mode</code></td><td>A only, A &times; B, or B masks A, where B controls how much of A shows.</td></tr>
+      <tr><td><code>texture</code>, <code>channel</code></td><td>The image for this layer, and which channel to read.</td></tr>
+      <tr><td><code>tile</code></td><td>Metres per repeat, across and along the road.</td></tr>
+      <tr><td><code>offset</code></td><td>Metres to slide the layer.</td></tr>
+      <tr><td><code>contrast</code></td><td>Pushes the mask's values apart.</td></tr>
+      <tr><td><code>bias</code></td><td>An overall shift, near and far.</td></tr>
+      <tr><td><code>roughness</code>, <code>metallic</code>, <code>specular</code></td><td>How far a full mask moves each one. Negative values reverse it.</td></tr>
+    </table></div>
+  </div>
+</div>
+<h3>The starter recipes</h3>
+<div class="grid">
+  <figure><img class="shot" src="img/mask_none.jpg" alt="The road with no mask: smooth plates." width="1280" height="720" loading="lazy"><figcaption>No mask</figcaption></figure>
+  <figure><img class="shot" src="img/mask_worn_patches.jpg" alt="The worn patches recipe: fine grain showing in irregular patches." width="1280" height="720" loading="lazy"><figcaption><code>worn_patches</code>: fine grain, shown in large patches</figcaption></figure>
+  <figure><img class="shot" src="img/mask_soft_clouds.jpg" alt="The soft clouds recipe: broad cloudy areas with grain inside them." width="1280" height="720" loading="lazy"><figcaption><code>soft_clouds</code>: broad clouds &times; grain</figcaption></figure>
+  <figure><img class="shot" src="img/mask_long_streaks.jpg" alt="The long streaks recipe: streaks running along the direction of travel." width="1280" height="720" loading="lazy"><figcaption><code>long_streaks</code>: stretched along the track</figcaption></figure>
+</div>
+<h3>Example: what the second layer adds</h3>
+<p>One layer alone covers the road evenly. Adding a second, much larger layer as a mask breaks that up into patches. Both pictures use the same fine grain at 3.1 m tiles, and the second adds blotches at 37 m.</p>
+<div class="ba" data-before="A only" data-after="B masks A">
+  <img src="img/mask_layer_a.jpg" alt="One layer: even grain across the whole road." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/mask_layer_ab.jpg" alt="Two layers: the grain now appears in patches with clean areas between." width="1280" height="720" loading="lazy"></div>
+</div>
+<div class="tip">Use tile sizes that don't divide evenly, such as 7.3 m and 31 m. They take much longer to visibly repeat than 8 m and 32 m.</div>
+<h3>Example: leaving a band out</h3>
+<p>Set <code>mask amount</code> to 0 on the centre plate in the <a href="#bands">Bands</a> tab. The lanes either side keep their texture, and the centre stays clean.</p>
+<figure><img class="shot" src="img/mask_band_off.jpg" alt="The mask showing on the outer lanes while the wide centre plate stays smooth." width="1280" height="720" loading="lazy"></figure>
+<h3>Using your own textures</h3>
+<p>Drop any tiling greyscale PNG in <code>resources/track_surface/mask_textures</code> and it appears in the pickers the next time you launch the lab. Import it with mipmaps on and no VRAM compression; copying an existing <code>.import</code> file is the easy way. The included noises are placeholders generated by <code>tools/track_surface/make_mask_noises.gd</code>. Rerunning it overwrites those files, so give your own images different names.</p>
+<h3>Using a recipe in a race</h3>
+<ol>
+  <li>In the <a href="#road">Road</a> tab, choose a variation or make one.</li>
+  <li>In the Mask tab, pick the recipe. The note at the top confirms where it will be saved.</li>
+  <li>Save, then give the track that variation: on the TrackBuilder for a builder track, or on the <code>TrackSurface</code> node for a circuit.</li>
+</ol>
+<div class="note">With no variation chosen, a recipe is a preview only. Every track stays as it is until a variation names a recipe.</div>
+<p>The mask runs on the high quality tier and costs about 0.1 ms or less on a GTX 1080 Ti at 1080p. The low tier skips the textures but keeps the same overall look, apart from <code>bias</code>, which applies on both. It affects the road only, not the walls.</p>
+</section>
+
+<section id="walls">
+<h2>Walls tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_walls.jpg"><img class="shot" src="img/tab_walls.jpg" alt="The Walls tab: a search box and groups of settings, with the wall group open." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>The same layout as the Road tab, for the wall shader. The <strong>wall</strong> group holds the wall's own colours and panels, including the guide strip and LED row heights. The walls have their own copies of the lights, edges and wear settings, so changing a road light doesn't change a wall light.</p>
+    <p>If a previewed variation overrides a setting, its badge reads <strong>variation overrides</strong>, and your edit won't show until you clear the override or the variation.</p>
+    <h3>Example: painted walls</h3>
+    <p><code>wall_color</code> in the Walls tab changed to deep red, plus <code>hazard_yellow</code> in the Road tab's edges group changed to blue.</p>
+  </div>
+</div>
+<div class="ba" data-before="Saved" data-after="Red and blue">
+  <img src="img/ex_walls_before.jpg" alt="Before: dark walls and yellow hazard stripes." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_walls_after.jpg" alt="After: deep red walls and blue hazard stripes." width="1280" height="720" loading="lazy"></div>
+</div>
+</section>
+
+<section id="greebles">
+<h2>Greebles tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_greebles.jpg"><img class="shot" src="img/tab_greebles.jpg" alt="The Greebles tab: a style menu, bay length, a list of rules with instance counts, and settings for the selected rule." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>A <strong>style</strong> is a bay length plus a list of <strong>rules</strong>. Each rule scatters one mesh along the track. The list shows each rule's layer, mesh and how many pieces it places. <strong>Add</strong>, <strong>Copy</strong> and <strong>Delete</strong> edit the list, and <strong>Solo rule</strong> shows the selected rule alone.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Group</th><th>What it controls</th></tr>
+      <tr><td><strong>Rule</strong></td><td><code>layer</code> (where it attaches), on or off, and its meshes.</td></tr>
+      <tr><td><strong>Rhythm</strong></td><td><code>slots per bay</code>, <code>pattern</code>, <code>slot phase</code> and <code>probability</code>. In a pattern, <code>x</code> places and <code>-</code> skips, so <code>x---</code> with 4 slots means once per bay.</td></tr>
+      <tr><td><strong>Placement</strong></td><td><code>side</code>, <code>lateral</code>, <code>offset</code>, <code>jitter</code>, rotation and scale.</td></tr>
+      <tr><td><strong>Upright and surface</strong></td><td>Whether a piece leans with the road or stands vertical, and how far it sits off its surface.</td></tr>
+      <tr><td><strong>Rendering</strong></td><td>Shadows, and whether to stay out of tunnels.</td></tr>
+    </table></div>
+    <p>Editing one rule never reshuffles the others, because each has its own random numbers. A single rule updates while you drag. Changing bay length re-scatters the lot, about a quarter of a second, so it waits until you stop.</p>
+  </div>
+</div>
+<h3>Example: a tighter rhythm</h3>
+<p>The <code>service</code> style's <code>bay_length</code> cut from 16 m to 10 m. Every rule in the style tightens together, and you can see the whole track get busier.</p>
+<div class="ba" data-before="Bay 16 m" data-after="Bay 10 m">
+  <img src="img/ex_bay_before.jpg" alt="Before: greebles spaced at 16 metre bays." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_bay_after.jpg" alt="After: greebles packed closer together at 10 metre bays." width="1280" height="720" loading="lazy"></div>
+</div>
+<div class="note">These styles are the builder-track presets. Utopia, Swoopy and Hairpin Alley use baked dressing built from their own copies, so editing a style here doesn't change those circuits. Rerun a circuit's dressing build to carry a look across.</div>
+</section>
+
+<section id="materials">
+<h2>Materials tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_materials.jpg"><img class="shot" src="img/tab_materials.jpg" alt="The Materials tab: groups for light, mid, dark, accent, glow, cool glow and floor, with glow open." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>The shared materials on the greeble meshes: <code>light</code>, <code>mid</code>, <code>dark</code>, <code>accent</code>, <code>glow</code>, <code>glow_cool</code> and <code>floor</code>. Each has colour, roughness, metallic and emission. This is the main way to set the greebles' overall tone against the road.</p>
+    <div class="note">These are shared by every greeble mesh, on every track, so assume a change reaches everything, the circuits' baked dressing included. There's no per-track greeble colour yet.</div>
+    <h3>Example: green glow</h3>
+    <p><code>glow</code> and <code>glow_cool</code> turned green. Every sign panel and lamp on the track follows at once.</p>
+  </div>
+</div>
+<div class="ba" data-before="Saved" data-after="Green glow">
+  <img src="img/ex_glow_before.jpg" alt="Before: white and warm glowing panels." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_glow_after.jpg" alt="After: green glowing panels." width="1280" height="720" loading="lazy"></div>
+</div>
+</section>
+
+<section id="cost">
+<h2>Cost tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_cost.jpg"><img class="shot" src="img/tab_cost.jpg" alt="The Cost tab: GPU and CPU time, draw calls and triangles, greeble totals by layer, and instances and triangles per rule." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>What your look costs, so you can spend it deliberately:</p>
+    <ul>
+      <li><strong>This frame:</strong> GPU and CPU time, frame rate, draw calls, objects and triangles.</li>
+      <li><strong>Greebles, whole lap:</strong> instances, triangles and how many cast shadows, by layer. These are totals for the lap, not what's on screen now.</li>
+      <li><strong>Per rule:</strong> the same for the current style, which shows where the triangles go.</li>
+      <li><strong>Last re-scatter:</strong> how long the most recent greeble update took.</li>
+    </ul>
+    <div class="tip">Shadows are often the best saving. Turning off <code>cast shadows</code> on small rules that are mostly flat loses little. Judge any change in the same camera position, as the frame time varies a lot along a lap.</div>
+  </div>
+</div>
+</section>
+
+<section id="checks">
+<h2>Checks</h2>
+<p>The list under the tabs updates when you pause. Double-click an item with a location to go there.</p>
+<figure><img class="shot" src="img/checks.jpg" alt="The checks list, with entries noting how many pieces of each rule sit on road decals." width="470" height="130" style="width:min(100%,470px)"></figure>
+<div class="tablewrap"><table>
+<tr><th>It looks for</th><th>Why</th></tr>
+<tr><td>Profile problems</td><td>Too many bands, no flex band, or two kinds of band meeting without a channel.</td></tr>
+<tr><td>Colours close to orange</td><td>The boost pads own that hue range.</td></tr>
+<tr><td>Greebles reaching into the track</td><td>Anything that intrudes on the corridor ships drive through.</td></tr>
+<tr><td>Pieces left out by upright limits</td><td>A rule may be placing fewer pieces than you expect.</td></tr>
+<tr><td>Ground pieces on road decals</td><td>Ground pieces keep off boost pads and the start line, but not painted decals.</td></tr>
+</table></div>
+<div class="note">The decal check uses each piece's rough bounds, so it flags some harmless cases, such as a flat seam crossing the road.</div>
+</section>
+
+<section id="compare">
+<h2>Compare, snapshots and undo</h2>
+<ul>
+  <li><strong>Hold <kbd>C</kbd></strong> (or the button) to see the saved look of both layers. Let go to return to your edits. Use this constantly, because your eye adapts quickly.</li>
+  <li><strong>Snapshots A and B:</strong> click an empty button to store the current look, then click it to return there. <kbd>Ctrl</kbd>+click stores over it. Use them to compare two directions you like.</li>
+  <li><strong>Undo and redo:</strong> <kbd>Ctrl</kbd>+<kbd>Z</kbd> and <kbd>Ctrl</kbd>+<kbd>Y</kbd> cover every edit in the lab, across all tabs. A slider drag counts as one step.</li>
+</ul>
+</section>
+
+<section id="saving">
+<h2>Saving</h2>
+<p>The top bar shows how many values are unsaved. <strong>Save</strong> or <kbd>Ctrl</kbd>+<kbd>S</kbd> lists the files first, and nothing is written until you confirm.</p>
+<figure><img class="shot" src="img/save_dialog.jpg" alt="The save dialog listing two files that reach every track using them, with Save and Cancel buttons." style="width:min(100%,520px)" loading="lazy"></figure>
+<div class="tablewrap"><table>
+<tr><th>Edit in</th><th>Saved to</th><th>Reaches</th></tr>
+<tr><td>Road, Walls</td><td><code>shaders/track/track_surface_material.tres</code><br><code>shaders/track/track_wall_material.tres</code></td><td>Every track</td></tr>
+<tr><td>Road, ticked <strong>track</strong></td><td><code>resources/track_surface/variations/</code></td><td>Tracks using that variation</td></tr>
+<tr><td>Mask</td><td><code>resources/track_surface/masks/</code></td><td>Variations using that recipe</td></tr>
+<tr><td>Bands</td><td><code>resources/track_surface/profiles/</code></td><td>Every zone using that profile</td></tr>
+<tr><td>Greebles</td><td><code>resources/greeble_presets/</code></td><td>Builder track zones using that style</td></tr>
+<tr><td>Materials</td><td><code>scenes/tracks/utopia/materials/</code></td><td>Every greeble mesh using it, circuits included</td></tr>
+</table></div>
+<p>Saves change only the values you edited, so they make small, readable diffs. Because they're ordinary files in the repo, <code>git</code> is your safety net: try something on a branch, and discard it if you don't like it.</p>
+<div class="note">Saving needs an editor build of Godot, as an exported game can't write to its own project files. If the Godot editor is open at the same time, it may ask to reload a file the lab just saved.</div>
+</section>
+
+<section id="keys">
+<h2>Keys</h2>
+<div class="tablewrap"><table>
+<tr><th>Key</th><th>What it does</th></tr>
+<tr><td><kbd>C</kbd> (hold)</td><td>Show the saved look</td></tr>
+<tr><td><kbd>H</kbd></td><td>Hide or show the interface</td></tr>
+<tr><td><kbd>Space</kbd></td><td>Pause or resume the Glide camera</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>Undo / redo</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save, after confirming</td></tr>
+<tr><td>Right mouse + <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, <kbd>Q</kbd>/<kbd>E</kbd></td><td>Fly camera. <kbd>Shift</kbd> for fast, the wheel for speed</td></tr>
+<tr><td><kbd>5</kbd> to <kbd>9</kbd>, <kbd>F1</kbd></td><td>The game's debug keys still work, such as shadows, anti-aliasing and quality tier. <kbd>F1</kbd> lists them. They pause while you're typing in a field</td></tr>
+</table></div>
+</section>
+
+<section id="limits">
+<h2>Limits</h2>
+<ul>
+  <li><strong>Builder tracks only.</strong> The lab opens tracks built with the Track Builder.</li>
+  <li><strong>Zones and decals are read-only.</strong> They show in the lab, but you edit them in the Track Builder or on a circuit's <code>TrackSurface</code> node.</li>
+  <li><strong>No new profiles or greeble styles.</strong> You can edit the existing ones, and create new variations and mask recipes.</li>
+  <li><strong>Variations are previewed, not assigned.</strong> The lab doesn't set which variation a track uses.</li>
+  <li><strong>Variations on builder walls.</strong> The lab previews a variation on the walls, but in a race, builder tracks only apply it to the road. Circuits apply it to both.</li>
+  <li><strong>One mask recipe per track.</strong> It can't change from zone to zone.</li>
+</ul>
+<p>Fuller technical notes are in <a href="https://github.com/csmallfield/full_throttle_flux/blob/main/FTF_SURFACE_LAB.md"><code>FTF_SURFACE_LAB.md</code></a>. To retake every screenshot on this page after the lab changes, run it with <code>LAB_TOUR</code> set to a folder, as described in <code>tools/surface_lab/surface_lab_tour.gd</code>.</p>
+</section>
+</main>
+</div>
+<script>
+document.querySelectorAll('.ba').forEach(function (ba) {
+  var input = document.createElement('input');
+  input.type = 'range'; input.min = 0; input.max = 100; input.value = 50;
+  input.setAttribute('aria-label', 'Compare ' + ba.dataset.before + ' with ' + ba.dataset.after);
+  input.addEventListener('input', function () { ba.style.setProperty('--at', input.value + '%'); });
+  var bar = document.createElement('div'); bar.className = 'bar';
+  var l = document.createElement('span'); l.className = 'label l'; l.textContent = ba.dataset.before;
+  var r = document.createElement('span'); r.className = 'label r'; r.textContent = ba.dataset.after;
+  ba.append(input, bar, l, r);
+});
+var links = {};
+document.querySelectorAll('nav.toc a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+if ('IntersectionObserver' in window) {
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting && links[e.target.id]) {
+        Object.values(links).forEach(function (a) { a.classList.remove('on'); });
+        links[e.target.id].classList.add('on');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('section[id]').forEach(function (s) { spy.observe(s); });
+}
+</script>
+</body>
+</html>
