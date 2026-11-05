@@ -100,6 +100,8 @@ const STROKE := [0.14, 0.18, 0.09, 0.025]
 
 ## What the last apply() found (warnings for the builder report).
 var notes := PackedStringArray()
+## Path index -> the road material apply() made for it.
+var _live_mats := {}
 ## Surface half widths of the CSG road being worked on (decal anchors).
 var _csg_half := Vector2.ZERO
 ## Editor preview of the circuits (FTF_v38_TRACK_SURFACE_EDITOR_PREVIEW.md):
@@ -213,6 +215,7 @@ static func _state(v: Variant, depth := 0) -> Variant:
 ## Returns the number of segments it set.
 func apply() -> int:
 	notes.clear()
+	_live_mats.clear()
 	var set_count := 0
 	for pi in paths.size():
 		var path := get_node_or_null(paths[pi]) as Path3D
@@ -225,10 +228,28 @@ func apply() -> int:
 			continue
 		var base := segs[0].mesh.surface_get_material(0) as ShaderMaterial
 		var mat := build_material(base, pi, path)
+		_live_mats[pi] = mat
 		for mi in segs:
 			mi.mesh.surface_set_material(0, mat)
 			set_count += 1
 	return set_count
+
+
+## The per-path road materials apply() made (tools/surface_lab edits them live).
+func live_materials() -> Array[ShaderMaterial]:
+	var out: Array[ShaderMaterial] = []
+	for pi in _live_mats:
+		out.append(_live_mats[pi])
+	return out
+
+
+## Rewrites the band tables on the live materials from the zones' profiles,
+## for band edits: no strip rebuild, the zones haven't moved.
+func refresh_bands() -> void:
+	for pi in _live_mats:
+		var slots := _profile_slots(zones_of(pi))
+		if not slots.is_empty():
+			_write_bands(_live_mats[pi], slots)
 
 
 ## The path's own material: `base` with this path's band tables, strip and
@@ -237,19 +258,37 @@ func build_material(base: ShaderMaterial, path_index: int, path: Path3D) -> Shad
 	var mat := base.duplicate() as ShaderMaterial
 	var length := path.curve.get_baked_length() if path and path.curve else 0.0
 	var mine := zones_of(path_index)
-	var slots: Array[TrackSurfaceProfile] = []
-	for z in mine:
-		if z.profile and not slots.has(z.profile):
-			if slots.size() < MAX_PROFILES:
-				slots.append(z.profile)
-			else:
-				notes.append("%s: more than %d profiles on one path; %s draws as %s" % [
-						z.key_name, MAX_PROFILES, z.profile.profile_name, slots[0].profile_name])
+	var slots := _profile_slots(mine, true)
 	_add_decals(mat, path_index, path)
 	if slots.is_empty():
 		if variation:
 			variation.apply(mat)
 		return mat
+	_write_bands(mat, slots)
+	var wear := bake_wear(path, path_index)
+	var strip := build_strip(mine, slots, length, path_index == 0, wear)
+	mat.set_shader_parameter("surf_strip", ImageTexture.create_from_image(strip))
+	mat.set_shader_parameter("surf_strip_info", Vector2(strip.get_width() * strip.get_height(),
+			strip.get_width()))
+	if variation:
+		variation.apply(mat)
+	return mat
+
+
+## The profiles `mine` draw with, in shader slot order (at most MAX_PROFILES).
+func _profile_slots(mine: Array[TrackSurfaceZone], report := false) -> Array[TrackSurfaceProfile]:
+	var slots: Array[TrackSurfaceProfile] = []
+	for z in mine:
+		if z.profile and not slots.has(z.profile):
+			if slots.size() < MAX_PROFILES:
+				slots.append(z.profile)
+			elif report:
+				notes.append("%s: more than %d profiles on one path; %s draws as %s" % [
+						z.key_name, MAX_PROFILES, z.profile.profile_name, slots[0].profile_name])
+	return slots
+
+
+static func _write_bands(mat: ShaderMaterial, slots: Array[TrackSurfaceProfile]) -> void:
 	var bands := PackedVector4Array()
 	bands.resize(MAX_PROFILES * MAX_BANDS)
 	var info := PackedVector4Array()
@@ -262,14 +301,6 @@ func build_material(base: ShaderMaterial, path_index: int, path: Path3D) -> Shad
 		info[k] = Vector4(pk.size(), sums.x, sums.y, 0.0)
 	mat.set_shader_parameter("surf_bands", bands)
 	mat.set_shader_parameter("surf_profiles", info)
-	var wear := bake_wear(path, path_index)
-	var strip := build_strip(mine, slots, length, path_index == 0, wear)
-	mat.set_shader_parameter("surf_strip", ImageTexture.create_from_image(strip))
-	mat.set_shader_parameter("surf_strip_info", Vector2(strip.get_width() * strip.get_height(),
-			strip.get_width()))
-	if variation:
-		variation.apply(mat)
-	return mat
 
 
 ## Lays this path's decals out into records and sets the decal textures.

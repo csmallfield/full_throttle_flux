@@ -27,6 +27,8 @@ const RESERVED: Array[Key] = [KEY_F5, KEY_F6, KEY_F7, KEY_F8]
 const TOAST_SECONDS := 2.0
 const HELP_REFRESH := 0.25
 
+## True while a tool's text field has focus, so typing a digit isn't a hotkey.
+var suspended := false
 var _binds := {}   # "key:mods" -> {key, mods, label, action, value, owner}
 var _active := false
 var _font: SystemFont
@@ -97,7 +99,7 @@ static func key_name(key: Key, mods := 0) -> String:
 ## screen, pause menu) can't swallow debug keys. Only bound keys are consumed.
 func _input(event: InputEvent) -> void:
 	var k := event as InputEventKey
-	if k == null or not k.pressed or k.echo:
+	if k == null or not k.pressed or k.echo or suspended:
 		return
 	var code := k.physical_keycode if k.physical_keycode != KEY_NONE else k.keycode
 	var mods := (SHIFT if k.shift_pressed else 0) | (CTRL if k.ctrl_pressed else 0) \

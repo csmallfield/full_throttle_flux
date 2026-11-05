@@ -395,6 +395,10 @@ tracks without zones draw the new version too.
 panels, filter level, zones, wear) and Shift+9 the quality tier. See
 `DEBUG_KEYS.md`.
 
+**Tuning it with the greebles.** `tools/surface_lab/surface_lab.tscn` edits
+profiles, the surface style, variations and greeble styles live on a builder
+track, and saves them to these same files. See `FTF_SURFACE_LAB.md`.
+
 ### 3.8 Road decals (`SurfaceDecalKey`)
 
 Words, stencils, numbers, barcode serials, chevrons and arrows painted on the
