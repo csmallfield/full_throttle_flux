@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sky Lab tutorial</title>
+<meta name="description" content="A guided tour of Sky Lab, the live sky, post and weather tuner for Full Throttle Flux.">
+<style>
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --panel-2: #eceef2; --text: #1b1e24; --muted: #5a6270;
+  --line: #d9dde4; --accent: #0a6fb8; --warn-bg: #fff4dc; --warn-text: #7a5200;
+  --tip-bg: #e3f3f7; --tip-text: #0b5468; --code-bg: #eceef2; --shadow: 0 1px 3px rgba(20, 24, 32, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1216; --panel: #171b21; --panel-2: #1f242c; --text: #e7eaef; --muted: #9aa3b0;
+    --line: #2b313a; --accent: #5cc0f5; --warn-bg: #33280f; --warn-text: #f2c66d;
+    --tip-bg: #0f2a31; --tip-text: #8fd9ea; --code-bg: #232932; --shadow: 0 1px 3px rgba(0, 0, 0, .5);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+img { display: block; max-width: 100%; height: auto; border-radius: 6px; }
+.layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); max-width: 1240px; margin: 0 auto; }
+nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 28px 12px 28px 20px; font-size: 14.5px; }
+nav.toc .brand { font-weight: 650; font-size: 16px; margin-bottom: 14px; }
+nav.toc ul { list-style: none; margin: 0; padding: 0; }
+nav.toc li { margin: 0; }
+nav.toc a { display: block; padding: 4px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; border-left: 2px solid transparent; }
+nav.toc a:hover { color: var(--text); background: var(--panel-2); }
+nav.toc a.on { color: var(--text); border-left-color: var(--accent); background: var(--panel-2); }
+nav.toc .group { margin: 14px 0 4px 10px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+main { padding: 28px 32px 90px; min-width: 0; }
+header.hero h1 { font-size: 40px; line-height: 1.15; margin: 8px 0 12px; letter-spacing: -.01em; }
+header.hero p { font-size: 19px; color: var(--muted); margin: 0 0 22px; max-width: 46em; }
+section { margin-top: 58px; }
+h2 { font-size: 28px; line-height: 1.25; margin: 0 0 12px; letter-spacing: -.005em; }
+h3 { font-size: 20px; margin: 30px 0 8px; }
+p, ul, ol { max-width: 46em; }
+li { margin: 4px 0; }
+code { font: .88em ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--code-bg); padding: .12em .36em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; max-width: 100%; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+kbd { font: .85em ui-monospace, Consolas, monospace; background: var(--panel); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: .05em .4em; white-space: nowrap; }
+figure { margin: 18px 0 24px; }
+figcaption { color: var(--muted); font-size: 14.5px; margin-top: 7px; max-width: 46em; }
+.shot { box-shadow: var(--shadow); }
+.note, .tip { padding: 11px 15px; border-radius: 8px; margin: 16px 0; max-width: 46em; font-size: 16px; }
+.note { background: var(--warn-bg); color: var(--warn-text); }
+.tip { background: var(--tip-bg); color: var(--tip-text); }
+.note a, .tip a { color: inherit; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); margin: 16px 0 24px; }
+.grid figure { margin: 0; }
+.tabshot { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 26px; align-items: start; margin-top: 14px; }
+.tabshot > figure { margin: 0; }
+.tabshot > div > :first-child { margin-top: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15.5px; margin: 14px 0 22px; }
+th, td { text-align: left; padding: 8px 11px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 14px; }
+.tablewrap { overflow-x: auto; }
+.callouts { position: relative; }
+.pin { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; background: #ff7a2f; color: #111; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; text-decoration: none; }
+.legend { columns: 2; column-gap: 28px; padding-left: 22px; max-width: none; }
+.legend li { break-inside: avoid; }
+.ba { position: relative; overflow: hidden; border-radius: 6px; box-shadow: var(--shadow); line-height: 0; --at: 50%; touch-action: pan-y; }
+.ba img { border-radius: 0; width: 100%; }
+.ba .after { position: absolute; inset: 0; clip-path: inset(0 0 0 var(--at)); }
+.ba .after img { height: 100%; object-fit: cover; }
+.ba .bar { position: absolute; top: 0; bottom: 0; left: var(--at); width: 3px; margin-left: -1.5px; background: #fff; pointer-events: none; }
+.ba .bar::after { content: "\2194"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: #fff; color: #111; font-size: 18px; line-height: 34px; text-align: center; }
+.ba input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.ba input:focus-visible ~ .bar { background: #ff7a2f; }
+.ba .label { position: absolute; top: 9px; font-size: 13px; line-height: 1.4; padding: 2px 8px; border-radius: 4px; background: rgba(0, 0, 0, .68); color: #fff; pointer-events: none; }
+.ba .label.l { left: 9px; } .ba .label.r { right: 9px; }
+ol.steps { padding-left: 24px; }
+ol.steps li { margin: 8px 0; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav.toc { position: static; max-height: none; padding: 16px 16px 0; }
+  nav.toc ul { display: flex; flex-wrap: wrap; gap: 2px; }
+  nav.toc .group { flex-basis: 100%; }
+  nav.toc a { border-left: 0; padding: 3px 9px; }
+  main { padding: 18px 16px 70px; }
+  header.hero h1 { font-size: 32px; }
+  .tabshot { grid-template-columns: minmax(0, 1fr); }
+  .tabshot > figure { max-width: 320px; }
+  .legend { columns: 1; }
+  .pin { width: 22px; height: 22px; margin: -11px 0 0 -11px; font-size: 12px; }
+}
+td code { overflow-wrap: normal; white-space: nowrap; }
+.strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 16px 0 24px; }
+.strip figure { margin: 0; }
+@media (max-width: 900px) { .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.widgets { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; align-items: start; margin: 16px 0 24px; }
+.widgets figure { margin: 0; }
+.widgets img { width: auto; max-width: 100%; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <div class="brand">Sky Lab</div>
+  <ul>
+    <li><a href="#what">What it is</a></li>
+    <li><a href="#launch">Launching it</a></li>
+    <li><a href="#screen">The screen</a></li>
+    <li><a href="#first">Your first look</a></li>
+    <li class="group">Viewing</li>
+    <li><a href="#topbar">Top bar</a></li>
+    <li><a href="#look">Looking around</a></li>
+    <li><a href="#readouts">Readouts</a></li>
+    <li class="group">Tabs</li>
+    <li><a href="#sky">Sky</a></li>
+    <li><a href="#presets">Sky presets</a></li>
+    <li><a href="#post">Post</a></li>
+    <li><a href="#weather">Weather</a></li>
+    <li><a href="#falling">Falling</a></li>
+    <li><a href="#track">Track</a></li>
+    <li class="group">Finishing</li>
+    <li><a href="#change">Changes mid-race</a></li>
+    <li><a href="#checks">Checks</a></li>
+    <li><a href="#compare">Compare and undo</a></li>
+    <li><a href="#saving">Saving</a></li>
+    <li><a href="#keys">Keys</a></li>
+    <li><a href="#limits">Limits</a></li>
+  </ul>
+</nav>
+<main>
+<header class="hero">
+  <h1>Sky Lab tutorial</h1>
+  <p>Tune a track's sky, fog and grade, the weather presets, and how rain, snow and grit look, live on the real track, then save straight into the files the game loads.</p>
+</header>
+
+<figure><img class="shot" src="img/view_clean.jpg" alt="Utopia's road at golden afternoon: low warm sun, a blue sky with cumulus, and the city in haze." width="1280" height="720"></figure>
+
+<section id="what" style="margin-top:34px">
+<h2>What it is</h2>
+<p>Sky Lab is a dev scene for <em>Full Throttle Flux</em>, the companion to <a href="../surface-lab/">Surface Lab</a>. It runs a real circuit with the game's own lighting and weather code, with an editor on top, so every change draws the way a race draws it.</p>
+<p>It covers four layers that only look right together:</p>
+<ul>
+  <li><strong>The sky:</strong> the track's sun, sky colours, clouds, god rays and night sky.</li>
+  <li><strong>Post:</strong> the track's fog, glow, ambient occlusion and grade.</li>
+  <li><strong>Weather:</strong> the 13 presets, from clear to a heavy dust storm, and what each does to the road and the sky.</li>
+  <li><strong>Falling:</strong> how rain, snow and dust-storm grit look.</li>
+</ul>
+<div class="tip">The weather is laid on top of the track's own sky, as it is in a race. The lab keeps the two apart, so previewing a storm never ends up in the sky you save.</div>
+</section>
+
+<section id="launch">
+<h2>Launching it</h2>
+<p>In the Godot editor, open <code>res://tools/sky_lab/sky_lab.tscn</code> and press <kbd>F6</kbd>. Or from the repo root:</p>
+<pre><code>godot --path full_throttle_flux res://tools/sky_lab/sky_lab.tscn</code></pre>
+<p>It opens on Utopia in clear weather, with the Glide camera paused on the track. To open Swoopy or Hairpin Alley instead, set <code>LAB_TRACK</code> to <code>test_circuit_5_live</code> or <code>test_circuit_6_live</code>.</p>
+</section>
+
+<section id="screen">
+<h2>The screen</h2>
+<figure>
+  <div class="callouts">
+    <a href="img/overview.jpg"><img class="shot" src="img/overview.jpg" alt="The full Sky Lab window: a top bar, the 3D track view, tabs on the right, and a sun dial, exposure histogram and readout along the bottom." width="1920" height="1080"></a>
+    <a class="pin" style="left:30%;top:2%" href="#topbar">1</a>
+    <a class="pin" style="left:36%;top:40%" href="#first">2</a>
+    <a class="pin" style="left:70%;top:7%" href="#sky">3</a>
+    <a class="pin" style="left:86%;top:73%" href="#checks">4</a>
+    <a class="pin" style="left:5%;top:84%" href="#readouts">5</a>
+    <a class="pin" style="left:17%;top:84%" href="#readouts">6</a>
+    <a class="pin" style="left:45%;top:84%" href="#readouts">7</a>
+  </div>
+</figure>
+<ol class="legend">
+  <li><a href="#topbar">Top bar:</a> camera, look, weather, compare, save.</li>
+  <li><strong>3D view:</strong> the real track, drawn the way the game draws it.</li>
+  <li><a href="#sky">Tabs:</a> Sky, Weather, Falling, Post and Track.</li>
+  <li><a href="#checks">Checks:</a> problems found as you work.</li>
+  <li><a href="#readouts">Sun dial:</a> where the sun is; drag it.</li>
+  <li><a href="#readouts">Exposure:</a> how bright the frame is.</li>
+  <li><a href="#readouts">Readout:</a> what the weather is doing right now.</li>
+</ol>
+</section>
+
+<section id="first">
+<h2>Your first look</h2>
+<p>A five-minute run through the main idea, with nothing saved until the last step.</p>
+<ol class="steps">
+  <li>On the <a href="#readouts">sun dial</a>, drag the sun toward the horizon and watch the light turn golden.</li>
+  <li>Choose <strong>Look: toward sun</strong> to see the sky around it.</li>
+  <li>In the <a href="#sky">Sky</a> tab, raise <strong>coverage</strong> under Clouds.</li>
+  <li>Pick <strong>Rain medium</strong> from the weather menu. Coverage now reads <em>weather sets it</em>: rain brings its own clouds.</li>
+  <li>Hold <kbd>C</kbd> to see the saved look in the same rain, and let go to return to yours.</li>
+  <li>Press <kbd>Ctrl</kbd>+<kbd>Z</kbd> until you're back where you started, or press <kbd>Ctrl</kbd>+<kbd>S</kbd> to review what would be saved.</li>
+</ol>
+</section>
+
+<section id="topbar">
+<h2>Top bar</h2>
+<figure><img class="shot" src="img/topbar.jpg" alt="The top bar: camera, glide speed, look, weather and Play change, compare and snapshot buttons, GPU time, save status, undo, redo and save." width="1920" height="44"></figure>
+<div class="tablewrap"><table>
+<tr><th>Control</th><th>What it does</th></tr>
+<tr><td><strong>Camera</strong></td><td>Fly, Glide or Chase lap, as in Surface Lab. Glide slides round the lap; <kbd>Space</kbd> pauses it. Chase lap follows a real AI ship with the game's camera.</td></tr>
+<tr><td><strong>Look</strong></td><td>Turns the Glide camera <a href="#look">toward the sun, away from it, or up</a>.</td></tr>
+<tr><td><strong>Weather</strong></td><td>The weather on the track, and the preset the Weather tab edits. <kbd>[</kbd> and <kbd>]</kbd> step through them.</td></tr>
+<tr><td><strong>Play change</strong></td><td>Starts clear and changes to the chosen weather <a href="#change">at race speed</a>.</td></tr>
+<tr><td><strong>Hold C, A, B</strong></td><td><a href="#compare">Compare with the saved look, and two snapshots</a>.</td></tr>
+<tr><td><strong>GPU</strong></td><td>The median frame time of the last 60 frames.</td></tr>
+</table></div>
+</section>
+
+<section id="look">
+<h2>Looking around</h2>
+<p>A sky is judged from more than the driving line. The Look menu keeps the Glide camera's position and turns it, so you can check the sun's glare, the far side of the sky and the clouds overhead without leaving the spot you're tuning.</p>
+<div class="grid">
+  <figure><img class="shot" src="img/view_clean.jpg" alt="Looking along the road." width="1280" height="720" loading="lazy"><figcaption>Road</figcaption></figure>
+  <figure><img class="shot" src="img/view_look_sun.jpg" alt="Looking toward the low sun, with god rays and bright clouds." width="1280" height="720" loading="lazy"><figcaption>Toward the sun</figcaption></figure>
+  <figure><img class="shot" src="img/view_look_away.jpg" alt="Looking away from the sun, at the lit side of the city and a deeper blue sky." width="1280" height="720" loading="lazy"><figcaption>Away from the sun</figcaption></figure>
+  <figure><img class="shot" src="img/view_look_up.jpg" alt="Looking up at the cloud deck." width="1280" height="720" loading="lazy"><figcaption>Up</figcaption></figure>
+</div>
+</section>
+
+<section id="readouts">
+<h2>Readouts</h2>
+<div class="widgets">
+  <figure><img class="shot" src="img/sun_dial.jpg" alt="The sun dial: a compass seen from above with the sun as a dot, and a wedge showing the camera's view." loading="lazy"><figcaption><strong>Sun dial.</strong> The sky from above: the centre is straight up and the rim is the horizon. Drag the sun to move it. The wedge is what the camera sees.</figcaption></figure>
+  <figure><img class="shot" src="img/exposure.jpg" alt="The exposure histogram, with average, sky, crushed and clipped figures." loading="lazy"><figcaption><strong>Exposure.</strong> Brightness of the 3D view after tonemapping. The orange line is the average. Watch <em>crushed</em> and <em>clipped</em>: they turn red past 5%.</figcaption></figure>
+  <figure><img class="shot" src="img/readout.jpg" alt="The readout: weather, road wetness and frost, falling, wind, distance fog and sun." loading="lazy"><figcaption><strong>Readout.</strong> What the weather is publishing to the road and effects right now, how far the distance fog lets you see, and the sun's actual light after clouds and weather.</figcaption></figure>
+</div>
+<div class="note">The exposure readout reads the frame back from the GPU twice a second, which costs a little. Untick <strong>Measure exposure</strong> when you're reading the GPU time.</div>
+</section>
+
+<section id="sky">
+<h2>Sky tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_sky.jpg"><img class="shot" src="img/tab_sky.jpg" alt="The Sky tab: Start from, then the Sun and Clouds groups open." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>Everything on the track's sky controller, grouped as in its Inspector. It's saved to the track's lighting scene, so it reaches this track only.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Group</th><th>What it controls</th></tr>
+      <tr><td><strong>Sun</strong></td><td>Where it is (azimuth, elevation), how strong, and a tint over the colour its height gives it.</td></tr>
+      <tr><td><strong>Atmosphere</strong></td><td>Zenith, horizon and fog colours, distance fog, ambient light and exposure.</td></tr>
+      <tr><td><strong>Clouds</strong></td><td>Coverage, density, absorption, deck height and thickness, cirrus, wind, billow size and detail, and how much cover dims the sun.</td></tr>
+      <tr><td><strong>God rays</strong></td><td>The screen-space rays, and volumetric shafts (costly).</td></tr>
+      <tr><td><strong>Night</strong></td><td>Stars and city glow.</td></tr>
+      <tr><td><strong>Cloud quality</strong></td><td>March steps and dither. Ultra is 64 steps.</td></tr>
+    </table></div>
+  </div>
+</div>
+<h3>What the weather changes</h3>
+<p>Each row's badge says how far it reaches. Under a weather that changes a value, the badge says so instead, in orange. An edit there still saves, but you'll only see it in weathers that leave the value alone.</p>
+<div class="tabshot">
+  <figure><a href="img/tab_sky_badges.jpg"><img class="shot" src="img/tab_sky_badges.jpg" alt="The Clouds group under rain: coverage, cloud density and others marked weather sets it." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <div class="tablewrap"><table>
+      <tr><th>Badge</th><th>Means</th></tr>
+      <tr><td><em>weather sets it</em></td><td>Replaced outright, from the weather's sky preset or its own override.</td></tr>
+      <tr><td><em>weather blends 60%</em></td><td>Mixed toward the weather's sky preset by its <code>sky_mood</code>.</td></tr>
+      <tr><td><em>weather tints it</em></td><td>The fog colour, pushed toward the weather's <code>fog_tint</code>.</td></tr>
+      <tr><td><em>weather x 0.60</em></td><td>The sun's energy, scaled by <code>sun_scale</code>.</td></tr>
+    </table></div>
+    <p>Sun position, the sky's colours (unless blended), exposure and cloud quality always stay the track's own, so tune those in any weather.</p>
+  </div>
+</div>
+<h3>Example: a lower sun</h3>
+<p><code>sun_elevation</code> from 23&deg; to 7&deg;, and <code>sun_azimuth</code> swung round to 250&deg;. The light colour follows the sun's height by itself.</p>
+<div class="ba" data-before="Saved" data-after="Low sun">
+  <img src="img/ex_sun_before.jpg" alt="Before: afternoon light." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_sun_after.jpg" alt="After: a low orange sun and long shadows." width="1280" height="720" loading="lazy"></div>
+</div>
+<h3>Example: heavier clouds</h3>
+<p><code>coverage</code> to 0.78, <code>billow_size</code> to 1.8 and a darker <code>cloud_shadow_color</code>.</p>
+<div class="ba" data-before="Saved" data-after="Heavier">
+  <img src="img/ex_clouds_before.jpg" alt="Before: scattered cumulus." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_clouds_after.jpg" alt="After: a fuller, darker cloud deck." width="1280" height="720" loading="lazy"></div>
+</div>
+</section>
+
+<section id="presets">
+<h2>Sky presets</h2>
+<p><strong>Start from</strong> at the top of the Sky tab sets every value a preset has, in one step you can undo. Then tweak. Here are the eight presets on Utopia, from the same spot:</p>
+<div class="grid">
+  <figure><img class="shot" src="img/preset_golden_afternoon.jpg" alt="golden_afternoon preset" width="1280" height="720" loading="lazy"><figcaption><code>golden_afternoon</code></figcaption></figure>
+  <figure><img class="shot" src="img/preset_clear_noon.jpg" alt="clear_noon preset" width="1280" height="720" loading="lazy"><figcaption><code>clear_noon</code></figcaption></figure>
+  <figure><img class="shot" src="img/preset_fair_cumulus.jpg" alt="fair_cumulus preset" width="1280" height="720" loading="lazy"><figcaption><code>fair_cumulus</code></figcaption></figure>
+  <figure><img class="shot" src="img/preset_storm_light.jpg" alt="storm_light preset" width="1280" height="720" loading="lazy"><figcaption><code>storm_light</code></figcaption></figure>
+  <figure><img class="shot" src="img/preset_overcast.jpg" alt="overcast preset" width="1280" height="720" loading="lazy"><figcaption><code>overcast</code></figcaption></figure>
+  <figure><img class="shot" src="img/preset_dusk.jpg" alt="dusk preset" width="1280" height="720" loading="lazy"><figcaption><code>dusk</code></figcaption></figure>
+  <figure><img class="shot" src="img/preset_night.jpg" alt="night preset" width="1280" height="720" loading="lazy"><figcaption><code>night</code></figcaption></figure>
+  <figure><img class="shot" src="img/preset_high_altitude.jpg" alt="high_altitude preset" width="1280" height="720" loading="lazy"><figcaption><code>high_altitude</code></figcaption></figure>
+</div>
+<div class="note">The presets themselves are a table in <code>tools/utopia/sky_controller.gd</code>, so the lab can start from them but not change them. What you save is the track's sky. Weathers name a preset too (<code>sky_preset</code>), to borrow its clouds and mood.</div>
+</section>
+
+<section id="post">
+<h2>Post tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_post.jpg"><img class="shot" src="img/tab_post.jpg" alt="The Post tab: distance fog, height fog, tonemap, glow, ambient occlusion and grading groups." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>The track's Environment, minus what the sky controller drives. It's saved to the same lighting scene as the sky.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Group</th><th>What it controls</th></tr>
+      <tr><td><strong>Distance fog</strong></td><td>How much the sun scatters into it, aerial perspective, and how much it covers the sky. Its colour and density are on the Sky tab.</td></tr>
+      <tr><td><strong>Height fog</strong></td><td>A layer of fog near the road. Fog and storm weathers set it.</td></tr>
+      <tr><td><strong>Tonemap</strong></td><td>The white point.</td></tr>
+      <tr><td><strong>Glow</strong></td><td>Bloom from lights, signs and bright sky.</td></tr>
+      <tr><td><strong>Ambient occlusion</strong></td><td>SSAO and SSIL.</td></tr>
+      <tr><td><strong>Grading</strong></td><td>Brightness, contrast and saturation.</td></tr>
+    </table></div>
+  </div>
+</div>
+<h3>Example: haze</h3>
+<p>The height fog brought up to Utopia's raised road and thickened, with more aerial perspective and denser distance fog from the Sky tab. A warm haze settles over the road and the city behind it fades.</p>
+<div class="tip">Height fog is measured in world height, not from the road. On a raised track like Utopia, a layer left at its old height sits far below the road and does nothing: check <code>fog_height</code> against the road's height, which the readout shows beside the height fog.</div>
+<div class="ba" data-before="Saved" data-after="Hazy">
+  <img src="img/ex_haze_before.jpg" alt="Before: a clear view across the city." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_haze_after.jpg" alt="After: a warm haze over the road, with the city fading behind it." width="1280" height="720" loading="lazy"></div>
+</div>
+<h3>Example: grade</h3>
+<p>Contrast 1.25, saturation 1.35 and more glow. Keep an eye on the exposure readout's clipped figure as you push contrast.</p>
+<div class="ba" data-before="Saved" data-after="Graded">
+  <img src="img/ex_grade_before.jpg" alt="Before: the authored grade." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_grade_after.jpg" alt="After: punchier contrast and colour." width="1280" height="720" loading="lazy"></div>
+</div>
+</section>
+
+<section id="weather">
+<h2>Weather tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_weather.jpg"><img class="shot" src="img/tab_weather.jpg" alt="The Weather tab editing Rain medium: kind, intensity, surface targets, wind and sky." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>The weather chosen in the top bar. Each is a file in <code>resources/weather</code>, so an edit reaches every track that uses it.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Group</th><th>What it controls</th></tr>
+      <tr><td><strong>General</strong></td><td>Name, kind (clear, rain, snow, fog, dust storm) and intensity.</td></tr>
+      <tr><td><strong>Surface targets</strong></td><td>How wet, frozen or dusty the road gets, humidity, how much falls, and how long the road takes to change mid-race.</td></tr>
+      <tr><td><strong>Wind</strong></td><td>Ground wind (slants rain, drifts dust) and an optional direction.</td></tr>
+      <tr><td><strong>Sky</strong></td><td>A sky preset to borrow clouds from, cover, fog densities, how much of the preset's mood to take, fog tint, sun scale, height fog, and the glow on the road's lines in poor visibility. Negative means "keep the track's own".</td></tr>
+    </table></div>
+    <p>Weather is visual only. Nothing here changes handling, so trained AI lines and recordings stay valid.</p>
+  </div>
+</div>
+<p>All thirteen presets come in light, medium and heavy, except clear. A few on Utopia:</p>
+<div class="grid">
+  <figure><img class="shot" src="img/weather_clear.jpg" alt="Clear weather" width="1280" height="720" loading="lazy"><figcaption>Clear</figcaption></figure>
+  <figure><img class="shot" src="img/weather_rain_light.jpg" alt="Light rain" width="1280" height="720" loading="lazy"><figcaption>Rain light</figcaption></figure>
+  <figure><img class="shot" src="img/weather_rain_heavy.jpg" alt="Heavy rain" width="1280" height="720" loading="lazy"><figcaption>Rain heavy</figcaption></figure>
+  <figure><img class="shot" src="img/weather_snow_medium.jpg" alt="Medium snow" width="1280" height="720" loading="lazy"><figcaption>Snow medium</figcaption></figure>
+  <figure><img class="shot" src="img/weather_snow_heavy.jpg" alt="Heavy snow" width="1280" height="720" loading="lazy"><figcaption>Snow heavy</figcaption></figure>
+  <figure><img class="shot" src="img/weather_fog_medium.jpg" alt="Medium fog" width="1280" height="720" loading="lazy"><figcaption>Fog medium</figcaption></figure>
+  <figure><img class="shot" src="img/weather_fog_heavy.jpg" alt="Heavy fog" width="1280" height="720" loading="lazy"><figcaption>Fog heavy</figcaption></figure>
+  <figure><img class="shot" src="img/weather_dust_storm_medium.jpg" alt="Medium dust storm" width="1280" height="720" loading="lazy"><figcaption>Dust storm medium</figcaption></figure>
+</div>
+<h3>Example: more mood</h3>
+<p>Rain medium's <code>sky_mood</code> raised from 0.6 to 1, taking all of the overcast preset's colours, plus a cool blue <code>fog_tint</code>.</p>
+<div class="ba" data-before="Saved" data-after="Moodier">
+  <img src="img/ex_mood_before.jpg" alt="Before: rain over the track's own colours." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_mood_after.jpg" alt="After: a cooler, greyer rain." width="1280" height="720" loading="lazy"></div>
+</div>
+</section>
+
+<section id="falling">
+<h2>Falling tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_falling.jpg"><img class="shot" src="img/tab_falling.jpg" alt="The Falling tab for rain: fall, near streaks, far layer and colour groups." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>How the current weather's kind looks as it falls. There's one look per kind, shared by light, medium and heavy and by every track: the weather's <code>precipitation</code> sets how much falls. Clear and fog have nothing to edit.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Group</th><th>What it controls</th></tr>
+      <tr><td><strong>Fall</strong></td><td>Speed, how much the wind carries it, spread, sway for flakes, and how much of it shows.</td></tr>
+      <tr><td><strong>Near streaks</strong></td><td>The particles round the camera: width, length range, the "shutter" that sets how long a streak is at speed, roundness, opacity.</td></tr>
+      <tr><td><strong>Far layer</strong></td><td>The pattern on a cylinder further out, for depth.</td></tr>
+      <tr><td><strong>Colour</strong></td><td>The track's fog colour pushed toward a target colour, or the track's dust colour for storms.</td></tr>
+    </table></div>
+    <p>Saved to <code>resources/weather/precip</code>. These files hold exactly the look the game had before, so nothing changes until you edit one.</p>
+  </div>
+</div>
+<h3>Example: heavier rain</h3>
+<p>Rain's streaks made wider, longer and more opaque. Streaks stretch with the camera's own speed, so judge this in Chase lap too.</p>
+<div class="ba" data-before="Saved" data-after="Heavier streaks">
+  <img src="img/ex_rain_before.jpg" alt="Before: fine rain streaks." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_rain_after.jpg" alt="After: bold, long rain streaks." width="1280" height="720" loading="lazy"></div>
+</div>
+<h3>Example: snow</h3>
+<p>Bigger flakes with more sway, and a pink target colour.</p>
+<div class="ba" data-before="Saved" data-after="Big flakes">
+  <img src="img/ex_snow_before.jpg" alt="Before: fine white snow." width="1280" height="720" loading="lazy">
+  <div class="after"><img src="img/ex_snow_after.jpg" alt="After: large pinkish flakes." width="1280" height="720" loading="lazy"></div>
+</div>
+</section>
+
+<section id="track">
+<h2>Track tab</h2>
+<div class="tabshot">
+  <figure><a href="img/tab_track.jpg"><img class="shot" src="img/tab_track.jpg" alt="The Track tab: dust and dust colour." width="470" height="818" loading="lazy"></a></figure>
+  <div>
+    <p>The track's own environment, where it has one: how dusty its road is in dry weather, and the colour of its dust, used by dust trails, the dusty road and dust storms. Saved to the track's <code>TrackEnvironment</code> file.</p>
+    <p>Which weathers a track allows, and the one a race starts in, also live there, and are edited in its Inspector for now.</p>
+  </div>
+</div>
+</section>
+
+<section id="change">
+<h2>Changes mid-race</h2>
+<p>A race can change weather. <strong>Play change</strong> starts clear and changes to the chosen weather the way a race does: the sky blends over the preset's <code>sky_transition_time</code> and the road over its <code>surface_change_time</code>. Clear to heavy rain, at 0, 3, 6 and 20 seconds:</p>
+<div class="strip">
+  <figure><img class="shot" src="img/change_00.jpg" alt="The change at 0 seconds: still clear." width="1280" height="720" loading="lazy"><figcaption>0 s</figcaption></figure>
+  <figure><img class="shot" src="img/change_03.jpg" alt="At 3 seconds: clouds thickening." width="1280" height="720" loading="lazy"><figcaption>3 s</figcaption></figure>
+  <figure><img class="shot" src="img/change_06.jpg" alt="At 6 seconds: the sky has changed, the road is still drying." width="1280" height="720" loading="lazy"><figcaption>6 s</figcaption></figure>
+  <figure><img class="shot" src="img/change_20.jpg" alt="At 20 seconds: soaked road." width="1280" height="720" loading="lazy"><figcaption>20 s</figcaption></figure>
+</div>
+</section>
+
+<section id="checks">
+<h2>Checks</h2>
+<p>The list under the tabs updates when you pause. Double-click an item to switch to that weather.</p>
+<figure><img class="shot" src="img/checks.jpg" alt="The checks list." width="470" height="130" style="width:min(100%,470px)"></figure>
+<div class="tablewrap"><table>
+<tr><th>It looks for</th><th>Why</th></tr>
+<tr><td>A sky preset that doesn't exist</td><td>The game would warn and ignore it.</td></tr>
+<tr><td><code>sky_mood</code> with no sky preset</td><td>There's nothing to blend toward.</td></tr>
+<tr><td>Precipitation that does nothing, or nothing falling</td><td>Only rain, snow and dust storms fall.</td></tr>
+<tr><td>Distance fog 90% within 400 m</td><td>The road ahead disappears fast at racing speed. Fine for a heavy fog, if it's meant.</td></tr>
+<tr><td>A look's max length under its min</td><td>Streaks can't stretch.</td></tr>
+<tr><td>Volumetric shafts, ultra clouds</td><td>The two costliest settings: check the GPU time.</td></tr>
+</table></div>
+</section>
+
+<section id="compare">
+<h2>Compare, snapshots and undo</h2>
+<ul>
+  <li><strong>Hold <kbd>C</kbd></strong> (or the button) to see the saved look, in the weather you're in. Let go to return to your edits.</li>
+  <li><strong>Snapshots A and B:</strong> click an empty button to store the current look, then click it to return there. <kbd>Ctrl</kbd>+click stores over it.</li>
+  <li><strong>Undo and redo:</strong> <kbd>Ctrl</kbd>+<kbd>Z</kbd> and <kbd>Ctrl</kbd>+<kbd>Y</kbd> cover every edit, across all tabs. A slider drag, or a whole Start from, counts as one step.</li>
+</ul>
+</section>
+
+<section id="saving">
+<h2>Saving</h2>
+<p><strong>Save</strong> or <kbd>Ctrl</kbd>+<kbd>S</kbd> lists the files first, and nothing is written until you confirm.</p>
+<figure><img class="shot" src="img/save_dialog.jpg" alt="The save dialog listing the lighting scene for this track and a weather preset for every track." style="width:min(100%,560px)" loading="lazy"></figure>
+<div class="tablewrap"><table>
+<tr><th>Edit in</th><th>Saved to</th><th>Reaches</th></tr>
+<tr><td>Sky, Post</td><td>The track's lighting scene, such as <code>scenes/tracks/utopia/utopia_lighting.tscn</code></td><td>This track</td></tr>
+<tr><td>Track</td><td><code>resources/track_fx/</code></td><td>This track</td></tr>
+<tr><td>Weather</td><td><code>resources/weather/</code></td><td>Every track using that weather</td></tr>
+<tr><td>Falling</td><td><code>resources/weather/precip/</code></td><td>Every weather of that kind, on every track</td></tr>
+</table></div>
+<p>Saves change only the lines of the values you edited, so they make small, readable diffs, and <code>git</code> is your safety net. Previewing a weather is never saved: the sky you save is the track's own.</p>
+<div class="note">Saving needs an editor build of Godot. If the editor has a saved file open, it may ask to reload it.</div>
+</section>
+
+<section id="keys">
+<h2>Keys</h2>
+<div class="tablewrap"><table>
+<tr><th>Key</th><th>What it does</th></tr>
+<tr><td><kbd>C</kbd> (hold)</td><td>Show the saved look</td></tr>
+<tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Previous / next weather</td></tr>
+<tr><td><kbd>H</kbd></td><td>Hide or show the interface</td></tr>
+<tr><td><kbd>Space</kbd></td><td>Pause or resume the Glide camera</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>Undo / redo</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save, after confirming</td></tr>
+<tr><td>Right mouse + <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, <kbd>Q</kbd>/<kbd>E</kbd></td><td>Fly camera. <kbd>Shift</kbd> for fast, the wheel for speed</td></tr>
+<tr><td><kbd>5</kbd> to <kbd>9</kbd>, <kbd>F1</kbd></td><td>The game's debug keys, such as shadows, anti-aliasing and quality tier</td></tr>
+</table></div>
+</section>
+
+<section id="limits">
+<h2>Limits</h2>
+<ul>
+  <li><strong>Tracks with a sky rig.</strong> Utopia, Swoopy and Hairpin Alley have one. Builder tracks use a plain sky, so the Sky tab is empty there and weather can't change their sky.</li>
+  <li><strong>Named sky presets are read-only.</strong> Start from one, then save the result to the track.</li>
+  <li><strong>No new weathers.</strong> Edit the thirteen there are. Which weathers a track allows stays in its environment file.</li>
+  <li><strong>One falling look per kind.</strong> Light and heavy rain share one; the amount comes from the weather.</li>
+</ul>
+<p>Fuller technical notes are in <a href="https://github.com/csmallfield/full_throttle_flux/blob/main/FTF_SKY_LAB.md"><code>FTF_SKY_LAB.md</code></a>. To retake every screenshot on this page after the lab changes, run it with <code>LAB_TOUR</code> set to a folder, as described in <code>tools/sky_lab/sky_lab_tour.gd</code>.</p>
+</section>
+</main>
+</div>
+<script>
+document.querySelectorAll('.ba').forEach(function (ba) {
+  var input = document.createElement('input');
+  input.type = 'range'; input.min = 0; input.max = 100; input.value = 50;
+  input.setAttribute('aria-label', 'Compare ' + ba.dataset.before + ' with ' + ba.dataset.after);
+  input.addEventListener('input', function () { ba.style.setProperty('--at', input.value + '%'); });
+  var bar = document.createElement('div'); bar.className = 'bar';
+  var l = document.createElement('span'); l.className = 'label l'; l.textContent = ba.dataset.before;
+  var r = document.createElement('span'); r.className = 'label r'; r.textContent = ba.dataset.after;
+  ba.append(input, bar, l, r);
+});
+var links = {};
+document.querySelectorAll('nav.toc a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+if ('IntersectionObserver' in window) {
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting && links[e.target.id]) {
+        Object.values(links).forEach(function (a) { a.classList.remove('on'); });
+        links[e.target.id].classList.add('on');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('section[id]').forEach(function (s) { spy.observe(s); });
+}
+</script>
+</body>
+</html>

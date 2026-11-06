@@ -17,6 +17,7 @@ struct TSurf {
 	vec3 albedo;
 	float rough;
 	float metal;
+	float spec;        // added to the specular level (surface mask)
 	vec3 emission;
 	vec2 slope;        // height gradient (dh/dt, dh/ds), metres per metre
 	float normal_var;  // slope variance filtered away, for roughness

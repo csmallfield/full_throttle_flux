@@ -92,6 +92,11 @@ var last_ms := 0.0
 var skipped_upright := 0
 
 var _made: Array[Node] = []
+## "zi:ri:variant:chunk" -> {zi, ri, layer, node}.
+var _groups := {}
+var _hidden_layers := 0
+var _solo_style: UtopiaGreebleStyle = null
+var _solo_ri := -1
 var _style_hash := 0
 var _poll := 0.0
 var _infos: Array = []
@@ -128,6 +133,7 @@ func clear() -> void:
 			remove_child(n)
 			n.queue_free()
 	_made.clear()
+	_groups.clear()
 	instance_total = 0
 
 
@@ -137,35 +143,87 @@ func rebuild() -> void:
 	_style_hash = _styles_hash()
 	if not is_inside_tree():
 		return
-	var groups := {}    # "zi:ri:variant:chunk" -> [mesh, shadows, transforms]
-	for p in placements():
-		var zi: int = p.zi
-		var ri: int = p.ri
-		var mesh: Mesh = p.mesh
-		var key := "%d:%d:%d:%d" % [zi, ri, int(p.variant), int(float(p.d) / CHUNK)]
+	_add_groups(placements())
+	last_ms = (Time.get_ticks_usec() - t0) / 1000.0
+
+
+## Re-scatters one rule of `style`, in every zone using it, and leaves the rest
+## alone (tools/surface_lab). A rule's random numbers are its own, so nothing
+## else moves. Rule indices must not have changed: rebuild() for that.
+func rebuild_rule(style: UtopiaGreebleStyle, ri: int) -> void:
+	var t0 := Time.get_ticks_usec()
+	for key: String in _groups.keys():
+		var g: Dictionary = _groups[key]
+		if g.ri == ri and zones[g.zi].style == style:
+			var mmi: MultiMeshInstance3D = g.node
+			instance_total -= mmi.multimesh.instance_count
+			_made.erase(mmi)
+			remove_child(mmi)
+			mmi.queue_free()
+			_groups.erase(key)
+	_style_hash = _styles_hash()
+	_add_groups(placements(style, ri))
+	last_ms = (Time.get_ticks_usec() - t0) / 1000.0
+
+
+## What's on screen right now, for display tools: which layers are hidden
+## (LAYER_BITS) and, with a style set, the one rule shown alone.
+func set_display(hidden_layers: int, solo_style: UtopiaGreebleStyle = null, solo_ri := -1) -> void:
+	_hidden_layers = hidden_layers
+	_solo_style = solo_style
+	_solo_ri = solo_ri
+	for key: String in _groups:
+		_show_group(_groups[key])
+
+
+## One entry per MultiMesh: {zi, ri, layer, count, mesh, shadows}.
+func group_info() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for key: String in _groups:
+		var g: Dictionary = _groups[key]
+		var mmi: MultiMeshInstance3D = g.node
+		out.append({zi = g.zi, ri = g.ri, layer = g.layer, count = mmi.multimesh.instance_count,
+				mesh = mmi.multimesh.mesh,
+				shadows = mmi.cast_shadow != GeometryInstance3D.SHADOW_CASTING_SETTING_OFF})
+	return out
+
+
+func _add_groups(pl: Array[Dictionary]) -> void:
+	var groups := {}    # "zi:ri:variant:chunk" -> {zi, ri, layer, mesh, shadows, xfs}
+	for p in pl:
+		var key := "%d:%d:%d:%d" % [int(p.zi), int(p.ri), int(p.variant), int(float(p.d) / CHUNK)]
 		if not groups.has(key):
-			groups[key] = [mesh, p.shadows, []]
-		(groups[key][2] as Array).append(p.xf)
+			groups[key] = {zi = p.zi, ri = p.ri, layer = p.layer, mesh = p.mesh, shadows = p.shadows, xfs = []}
+		(groups[key].xfs as Array).append(p.xf)
 	var keys := groups.keys()
 	keys.sort()
 	for key: String in keys:
-		var g: Array = groups[key]
-		var arr: Array = g[2]
+		var g: Dictionary = groups[key]
+		var arr: Array = g.xfs
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = g[0]
+		mm.mesh = g.mesh
 		mm.instance_count = arr.size()
 		for i in arr.size():
 			mm.set_instance_transform(i, arr[i])
 		var mmi := MultiMeshInstance3D.new()
 		mmi.name = "G_" + key.replace(":", "_")
 		mmi.multimesh = mm
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if (g[1] and shadows) \
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if (g.shadows and shadows) \
 				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mmi, false, Node.INTERNAL_MODE_BACK)
 		_made.append(mmi)
+		var entry := {zi = g.zi, ri = g.ri, layer = g.layer, node = mmi}
+		_groups[key] = entry
+		_show_group(entry)
 		instance_total += arr.size()
-	last_ms = (Time.get_ticks_usec() - t0) / 1000.0
+
+
+func _show_group(g: Dictionary) -> void:
+	var on := not (_hidden_layers & int(LAYER_BITS.get(g.layer, 0)))
+	if _solo_style:
+		on = on and g.ri == _solo_ri and zones[g.zi].style == _solo_style
+	(g.node as Node3D).visible = on
 
 
 # =============================================================================
@@ -174,14 +232,17 @@ func rebuild() -> void:
 
 ## Every greeble instance: {zi, ri (-1 = the style's threshold mesh), variant
 ## (1 = the rule's right-hand mesh), mesh, shadows, xf (in this node's space),
-## pi, d, layer, side}.
-func placements() -> Array[Dictionary]:
+## pi, d, layer, side}. With `only_style`, just the zones using it; with
+## `only_ri` as well, just that rule of it.
+func placements(only_style: UtopiaGreebleStyle = null, only_ri := -1) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	skipped_upright = 0
 	_infos = _path_infos()
 	for zi in zones.size():
 		var z := zones[zi]
 		if z == null or z.style == null or z.path_index < 0 or z.path_index >= _infos.size():
+			continue
+		if only_style and z.style != only_style:
 			continue
 		var info: Dictionary = _infos[z.path_index]
 		if info.is_empty():
@@ -194,6 +255,8 @@ func placements() -> Array[Dictionary]:
 			continue
 		var bay := maxf(z.style.bay_length, 1.0)
 		for ri in z.style.rules.size():
+			if only_ri >= 0 and ri != only_ri:
+				continue
 			var rule := z.style.rules[ri]
 			if rule == null or not rule.enabled or rule.mesh == null:
 				continue
@@ -243,7 +306,7 @@ func placements() -> Array[Dictionary]:
 							xf = xf, pi = z.path_index, d = d, layer = rule.layer, side = side})
 		# The style's threshold piece, overhead at the zone entrance.
 		var tm := z.style.threshold_mesh
-		if tm:
+		if tm and only_ri < 0:
 			var d0: float = fposmod(z.from_d + 4.0, L) if info.closed else z.from_d + 4.0
 			if d0 <= L and _available(info, z.path_index, "overhead", "C", d0, 3.0):
 				var tr := UtopiaGreebleRule.new()

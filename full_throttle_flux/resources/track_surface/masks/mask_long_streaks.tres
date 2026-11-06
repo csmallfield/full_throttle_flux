@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TrackSurfaceMask" format=3]
+
+[ext_resource type="Script" path="res://scripts/tracks/track_surface_mask.gd" id="1_mask"]
+[ext_resource type="Texture2D" path="res://resources/track_surface/mask_textures/noise_streak.png" id="2_a"]
+
+[resource]
+script = ExtResource("1_mask")
+a_texture = ExtResource("2_a")
+a_tile = Vector2(6.1, 41.0)
+contrast = 1.2
+roughness = 0.3

@@ -35,7 +35,7 @@
 // Debug views (key 9, global track_surface_debug): 1 s/t, 2 band ids,
 // 3 panel ids, 4 filter level (green = full detail, red = faded to average),
 // 5 zones (a hue per profile slot, blends between, hard seams white),
-// 6 wear (grime red, polish green, scorch blue).
+// 6 wear (grime red, polish green, scorch blue), 7 surface mask (mid grey = none).
 // Quality tier (Shift+9, global track_surface_tier): 0 low = no normal
 // detail, no grate parallax; 1 high = everything.
 shader_type spatial;
@@ -51,6 +51,7 @@ shader_type spatial;
 #include "res://shaders/track/modules/wear.gdshaderinc"
 #include "res://shaders/track/modules/decals.gdshaderinc"
 #include "res://shaders/track/modules/csg.gdshaderinc"
+#include "res://shaders/track/modules/mask.gdshaderinc"
 
 global uniform int track_surface_debug;
 global uniform int track_surface_tier;
@@ -233,6 +234,7 @@ struct Px {
 	float lat01;      // 0 at the centre line .. 1 at the surface edge
 	vec2 dx;          // screen gradients of (t, s), for textureGrad
 	vec2 dy;
+	float mask;       // surface mask, centred on its mean, bias included
 	WearIn wi;
 };
 
@@ -258,6 +260,7 @@ TSurf shade(int p, float zseed, Px x, out int band_id, out float panel, out floa
 	float h_rough = mix(env_hash(vec2(panel * 1.91 + 3.3, pbf * 5.7 + sd)) * 2.0 - 1.0, 0.0, var_fade);
 
 	TSurf o;
+	o.spec = 0.0;
 	o.emission = vec3(0.0);
 	o.slope = vec2(0.0);
 	o.normal_var = 0.0;
@@ -279,6 +282,12 @@ TSurf shade(int p, float zseed, Px x, out int band_id, out float panel, out floa
 		} else if (bt == BT_PLATE && int(bd.w) == 1) {
 			vents(o, x.t - px0, px1 - px0, x.s, x.fw_t, x.fw_s, sd);
 		}
+		// The surface mask: this band's amount sits in the fraction of its
+		// param (TrackSurfaceBand.packed()). Not in channels or painted lines.
+		float mk = x.mask * (1.0 - fract(bd.w) / 0.9) * (1.0 - b.channel) * (1.0 - b.edge_line);
+		o.rough = clamp(o.rough + mk * mask_rough, 0.0, 1.0);
+		o.metal = clamp(o.metal + mk * mask_metal, 0.0, 1.0);
+		o.spec = mk * mask_spec;
 		o.albedo *= mix(1.0, seam_dark, seam);
 		o.rough = mix(o.rough, seam_roughness, seam);
 		o.albedo = mix(o.albedo, channel_color, b.channel);
@@ -315,6 +324,7 @@ TSurf ts_mix(TSurf a, TSurf b, float w) {
 	o.albedo = mix(a.albedo, b.albedo, w);
 	o.rough = mix(a.rough, b.rough, w);
 	o.metal = mix(a.metal, b.metal, w);
+	o.spec = mix(a.spec, b.spec, w);
 	o.emission = mix(a.emission, b.emission, w);
 	o.slope = mix(a.slope, b.slope, w);
 	o.normal_var = mix(a.normal_var, b.normal_var, w);
@@ -405,6 +415,15 @@ void fragment() {
 		x.dcount = int(dz.g + 0.5);
 	}
 
+	// The surface mask, once per pixel whatever the zones are doing.
+	x.mask = 0.0;
+	if (mask_mode > 0) {
+		x.mask = mask_bias;
+		if (x.high) {
+			x.mask += surface_mask(x.t, x.s, x.dx, x.dy, max(x.fw_t, x.fw_s), path_length);
+		}
+	}
+
 	// Zone: which profile(s) here, and the transition if there is one.
 	int pa = 0;
 	int pbz = 0;
@@ -489,6 +508,10 @@ void fragment() {
 		} else if (track_surface_debug == 6) {
 			// Wear: grime red, polish green, scorch blue.
 			c = vec3(wo.grime, wo.polish, wo.scorch);
+		} else if (track_surface_debug == 7) {
+			// Emission is linear and exposed: mid grey on screen means no mask.
+			float mv = clamp(0.5 + x.mask, 0.0, 1.0);
+			c = vec3(mv * mv * 0.4);
 		} else {
 			// Zones: one hue per profile slot, blends in between, seams white.
 			c = mix(debug_hue(float(pa) * 0.27 + 0.05), debug_hue(float(pbz) * 0.27 + 0.05), w) * 0.8;
@@ -506,7 +529,7 @@ void fragment() {
 		// highlight's energy as roughness.
 		e.roughness = clamp(sqrt(o.rough * o.rough + o.normal_var * toksvig), 0.0, 1.0);
 		e.metallic = o.metal;
-		e.specular = 0.5;
+		e.specular = clamp(0.5 + o.spec, 0.0, 1.0);
 		e.emission = o.emission;
 		e.world_pos = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
 		e.world_normal = normalize((INV_VIEW_MATRIX * vec4(n_geo, 0.0)).xyz);

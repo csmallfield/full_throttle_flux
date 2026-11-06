@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Track Builder tutorial</title>
+<meta name="description" content="A guided tour of the Track Builder, the Godot editor tool for drawing, building, validating and dressing Full Throttle Flux tracks.">
+<style>
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --panel-2: #eceef2; --text: #1b1e24; --muted: #5a6270;
+  --line: #d9dde4; --accent: #0a6fb8; --warn-bg: #fff4dc; --warn-text: #7a5200;
+  --tip-bg: #e3f3f7; --tip-text: #0b5468; --code-bg: #eceef2; --shadow: 0 1px 3px rgba(20, 24, 32, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1216; --panel: #171b21; --panel-2: #1f242c; --text: #e7eaef; --muted: #9aa3b0;
+    --line: #2b313a; --accent: #5cc0f5; --warn-bg: #33280f; --warn-text: #f2c66d;
+    --tip-bg: #0f2a31; --tip-text: #8fd9ea; --code-bg: #232932; --shadow: 0 1px 3px rgba(0, 0, 0, .5);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+img { display: block; max-width: 100%; height: auto; border-radius: 6px; }
+.layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); max-width: 1240px; margin: 0 auto; }
+nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 28px 12px 28px 20px; font-size: 14.5px; }
+nav.toc .brand { font-weight: 650; font-size: 16px; margin-bottom: 14px; }
+nav.toc ul { list-style: none; margin: 0; padding: 0; }
+nav.toc li { margin: 0; }
+nav.toc a { display: block; padding: 4px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; border-left: 2px solid transparent; }
+nav.toc a:hover { color: var(--text); background: var(--panel-2); }
+nav.toc a.on { color: var(--text); border-left-color: var(--accent); background: var(--panel-2); }
+nav.toc .group { margin: 14px 0 4px 10px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+main { padding: 28px 32px 90px; min-width: 0; }
+header.hero h1 { font-size: 40px; line-height: 1.15; margin: 8px 0 12px; letter-spacing: -.01em; }
+header.hero p { font-size: 19px; color: var(--muted); margin: 0 0 22px; max-width: 46em; }
+section { margin-top: 58px; }
+h2 { font-size: 28px; line-height: 1.25; margin: 0 0 12px; letter-spacing: -.005em; }
+h3 { font-size: 20px; margin: 30px 0 8px; }
+p, ul, ol { max-width: 46em; }
+li { margin: 4px 0; }
+code { font: .88em ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--code-bg); padding: .12em .36em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; max-width: 100%; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+kbd { font: .85em ui-monospace, Consolas, monospace; background: var(--panel); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: .05em .4em; white-space: nowrap; }
+figure { margin: 18px 0 24px; }
+figcaption { color: var(--muted); font-size: 14.5px; margin-top: 7px; max-width: 46em; }
+.shot { box-shadow: var(--shadow); }
+.note, .tip { padding: 11px 15px; border-radius: 8px; margin: 16px 0; max-width: 46em; font-size: 16px; }
+.note { background: var(--warn-bg); color: var(--warn-text); }
+.tip { background: var(--tip-bg); color: var(--tip-text); }
+.note a, .tip a { color: inherit; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); margin: 16px 0 24px; }
+.grid figure { margin: 0; }
+.tabshot { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 26px; align-items: start; margin-top: 14px; }
+.tabshot > figure { margin: 0; }
+.tabshot > div > :first-child { margin-top: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15.5px; margin: 14px 0 22px; }
+th, td { text-align: left; padding: 8px 11px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 14px; }
+.tablewrap { overflow-x: auto; }
+.callouts { position: relative; }
+.pin { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; background: #ff7a2f; color: #111; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; text-decoration: none; }
+.legend { columns: 2; column-gap: 28px; padding-left: 22px; max-width: none; }
+.legend li { break-inside: avoid; }
+.ba { position: relative; overflow: hidden; border-radius: 6px; box-shadow: var(--shadow); line-height: 0; --at: 50%; touch-action: pan-y; }
+.ba img { border-radius: 0; width: 100%; }
+.ba .after { position: absolute; inset: 0; clip-path: inset(0 0 0 var(--at)); }
+.ba .after img { height: 100%; object-fit: cover; }
+.ba .bar { position: absolute; top: 0; bottom: 0; left: var(--at); width: 3px; margin-left: -1.5px; background: #fff; pointer-events: none; }
+.ba .bar::after { content: "\2194"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: #fff; color: #111; font-size: 18px; line-height: 34px; text-align: center; }
+.ba input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.ba input:focus-visible ~ .bar { background: #ff7a2f; }
+.ba .label { position: absolute; top: 9px; font-size: 13px; line-height: 1.4; padding: 2px 8px; border-radius: 4px; background: rgba(0, 0, 0, .68); color: #fff; pointer-events: none; }
+.ba .label.l { left: 9px; } .ba .label.r { right: 9px; }
+ol.steps { padding-left: 24px; }
+ol.steps li { margin: 8px 0; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav.toc { position: static; max-height: none; padding: 16px 16px 0; }
+  nav.toc ul { display: flex; flex-wrap: wrap; gap: 2px; }
+  nav.toc .group { flex-basis: 100%; }
+  nav.toc a { border-left: 0; padding: 3px 9px; }
+  main { padding: 18px 16px 70px; }
+  header.hero h1 { font-size: 32px; }
+  .tabshot { grid-template-columns: minmax(0, 1fr); }
+  .tabshot > figure { max-width: 320px; }
+  .legend { columns: 1; }
+  .pin { width: 22px; height: 22px; margin: -11px 0 0 -11px; font-size: 12px; }
+}
+td code { overflow-wrap: normal; white-space: nowrap; }
+pre.report { font-size: 13.5px; line-height: 1.5; max-height: 420px; overflow: auto; }
+.legend3 { columns: 3; column-gap: 26px; padding-left: 22px; max-width: none; }
+@media (max-width: 900px) { .legend3 { columns: 1; } }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <div class="brand">Track Builder</div>
+  <ul>
+    <li><a href="#what">What it is</a></li>
+    <li><a href="#rules">The four rules</a></li>
+    <li><a href="#screen">The editor</a></li>
+    <li><a href="#first">Your first track</a></li>
+    <li class="group">Drawing</li>
+    <li><a href="#curve">The base curve</a></li>
+    <li><a href="#overlays">Overlays</a></li>
+    <li><a href="#bank">Bank keys</a></li>
+    <li><a href="#width">Width keys</a></li>
+    <li><a href="#start">The start</a></li>
+    <li class="group">Features</li>
+    <li><a href="#roll">Barrel roll</a></li>
+    <li><a href="#loop">Loop</a></li>
+    <li><a href="#jump">Jump</a></li>
+    <li><a href="#fork">Split track</a></li>
+    <li><a href="#boost">Boost pads</a></li>
+    <li class="group">Building</li>
+    <li><a href="#build">Build</a></li>
+    <li><a href="#validate">Validate</a></li>
+    <li class="group">Dressing</li>
+    <li><a href="#greebles">Greebles</a></li>
+    <li><a href="#surface">Road surface</a></li>
+    <li><a href="#decals">Road decals</a></li>
+    <li class="group">Finishing</li>
+    <li><a href="#game">Into the game</a></li>
+    <li><a href="#ai">Training the AI</a></li>
+    <li><a href="#tools">Command line</a></li>
+    <li><a href="#limits">Limits</a></li>
+  </ul>
+</nav>
+<main>
+<header class="hero">
+  <h1>Track Builder tutorial</h1>
+  <p>Draw a Full Throttle Flux track by hand in the Godot editor, key its banks and widths, drop in loops, rolls, jumps and forks, then build, validate and dress it.</p>
+</header>
+
+<figure><img class="shot" src="img/road_roll.jpg" alt="The built Builder Lab road heading into the barrel roll, seen from just above the track." width="1346" height="916"></figure>
+
+<section id="what" style="margin-top:34px">
+<h2>What it is</h2>
+<p>The Track Builder is a node you add to a track scene. You draw the shape of the lap as an ordinary <code>Path3D</code> curve and drop small <em>key</em> and <em>feature</em> nodes along it. The builder turns all of that into the road, walls, junctions, respawns, start grid and AI route laps the game runs on.</p>
+<p>Everything here happens in the Godot editor, with feedback a fraction of a second after each change. <strong>Builder Lab</strong> (<code>scenes/tracks/builder_lab.tscn</code>) uses every part of it, and every picture on this page is taken from it.</p>
+<div class="tip">The four circuits (Utopia, Swoopy, Hairpin Alley and The Drop) were built the old way and stay as they are. The builder is for new tracks.</div>
+</section>
+
+<section id="rules">
+<h2>The four rules</h2>
+<p>The old circuits carry a small rotation on their road geometry, which puts the road up to 21 m off its spline far from the origin. Every system that trusts the spline, from AI lines to respawns and cameras, was then wrong by that much. The builder makes that impossible by keeping four rules, and the validator checks every one.</p>
+<ol class="steps">
+  <li><strong>Never move or rotate a track node.</strong> To change the road, edit the curve or a key, never the node.</li>
+  <li><strong>The road surface is the spline.</strong> The driving surface sits exactly on the centre line.</li>
+  <li><strong>Banking comes from bank keys only.</strong> Don't type curve tilts. The builder solves them for you.</li>
+  <li><strong>One source of truth.</strong> Road, walls, zones, jumps, junctions, respawns, the start and the AI's route laps all come from the same curve and keys, in one Build.</li>
+</ol>
+</section>
+
+<section id="screen">
+<h2>The editor</h2>
+<figure>
+  <div class="callouts">
+    <a href="img/overview.jpg"><img class="shot" src="img/overview.jpg" alt="The Godot editor with Builder Lab open: the scene tree on the left, the whole track from above in the middle, and the TrackBuilder's settings on the right." width="1920" height="1080"></a>
+    <a class="pin" style="left:8%;top:24%" href="#first">1</a>
+    <a class="pin" style="left:50%;top:50%" href="#overlays">2</a>
+    <a class="pin" style="left:92%;top:30%" href="#build">3</a>
+  </div>
+</figure>
+<ol class="legend3">
+  <li><strong>Scene tree:</strong> the TrackBuilder, its BaseSpline, and folders of keys and features.</li>
+  <li><a href="#overlays">3D view:</a> the preview ribbon, coloured by the current overlay, with labelled gates for each feature and zone.</li>
+  <li><a href="#build">Inspector:</a> the TrackBuilder's settings and its Build and Validate buttons.</li>
+</ol>
+<div class="tabshot">
+  <figure><img class="shot" src="img/scene_tree.jpg" alt="The scene tree: BuilderLab, then TrackBuilder with BaseSpline, BankKeys and WidthKeys folders of numbered keys." width="268" height="470" loading="lazy"></figure>
+  <div>
+    <p>The layout under the TrackBuilder is up to you. Builder Lab keeps each kind of key in its own folder (<code>BankKeys</code>, <code>WidthKeys</code>, <code>Features</code>, <code>GreebleZoneKeys</code> and so on), which keeps a long lap manageable. The builder finds keys wherever they are under it.</p>
+    <p>Everything Build generates (<code>MainSpline</code>, the junctions, the start) sits beside the TrackBuilder, not under it, and is tagged so Build can update it in place.</p>
+  </div>
+</div>
+</section>
+
+<section id="first">
+<h2>Your first track</h2>
+<ol class="steps">
+  <li><strong>Make the scene.</strong> A <code>Node3D</code> root with a <code>TrackBuilder</code> child. Under the TrackBuilder, a <code>Path3D</code> named <code>BaseSpline</code> with a <em>closed</em> curve. Add a WorldEnvironment and a sun as ordinary nodes, plus a fill light from below if you'll have loops or rolls.</li>
+  <li><strong>Draw the base</strong> by dragging BaseSpline's points and handles. Leave the straights straight where features will go.</li>
+  <li><strong>Key the banks and widths</strong> with <code>BankKey</code> and <code>WidthKey</code> nodes dropped near the track.</li>
+  <li><strong>Place the start</strong> with a <code>StartKey</code> on a straight.</li>
+  <li><strong>Add features</strong>: <code>RollFeature</code>, <code>LoopFeature</code>, <code>JumpFeature</code>, <code>BranchFeature</code>, and <code>BoostPadKey</code>s.</li>
+  <li><strong>Build</strong>, then <strong>Validate</strong>, and fix what it finds.</li>
+  <li><strong>Dress it</strong> with greeble zones, road surface zones and decals.</li>
+  <li><strong>Add it to the game</strong>, drive it, and <strong>train the AI</strong>.</li>
+</ol>
+<div class="tip">Building unchanged inputs leaves the scene file byte for byte the same, so you can Build as often as you like and Git only shows real changes.</div>
+</section>
+
+<section id="curve">
+<h2>The base curve</h2>
+<div class="tabshot">
+  <figure><a href="img/insp_builder.jpg"><img class="shot" src="img/insp_builder.jpg" alt="The TrackBuilder in the Inspector: Base Spline, then Curve, Build, Preview, Greebles and Surface groups." width="280" height="942" loading="lazy"></a></figure>
+  <div>
+    <p>BaseSpline is the shape of the lap as you drew it. The ribbon follows it within a fraction of a second while you drag a point. Draw the shape, not the details: banks, widths and features all come from keys.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td><code>fairing_m</code> (40)</td><td>Smooths the step in curvature at each control point over this many metres, so hand-set handles don't jolt the ship. It moves the curve by centimetres. 0 = exactly as drawn.</td></tr>
+      <tr><td><code>start_lead</code> (30)</td><td>The generated lap starts this far before the start line.</td></tr>
+      <tr><td><code>overlay</code></td><td>What the ribbon's colour shows (<a href="#overlays">below</a>).</td></tr>
+      <tr><td><code>ribbon</code></td><td>The coloured ribbon on or off. Build turns it off so you can see the real road.</td></tr>
+      <tr><td><code>ref_speed</code> (110)</td><td>The speed the cornering overlay and checks assume.</td></tr>
+      <tr><td><code>label_every</code> (100)</td><td>Distance labels along the track; 0 hides them.</td></tr>
+    </table></div>
+    <p>Keys stay put in the world when you edit the curve upstream of them, and each key's marker snaps to the nearest point of the track.</p>
+  </div>
+</div>
+<div class="tip">On Builder Lab fairing moves the curve by at most 3 cm and you can't see it in the ribbon, because its handles are already smooth. It matters when you drag a handle sharply: the validator's <em>kink</em> check catches what fairing doesn't smooth out.</div>
+</section>
+
+<section id="overlays">
+<h2>Overlays</h2>
+<p>The ribbon's colour is your fast feedback. Pick an overlay on the TrackBuilder and check the whole lap at a glance before you ever Build.</p>
+<div class="grid">
+  <figure><img class="shot" src="img/overlay_bank.jpg" alt="Bank overlay: the track coloured blue where it leans left and red where it leans right." width="1346" height="916" loading="lazy"><figcaption><strong>Bank:</strong> blue leans left, red leans right.</figcaption></figure>
+  <figure><img class="shot" src="img/overlay_roll_rate.jpg" alt="Roll rate overlay." width="1346" height="916" loading="lazy"><figcaption><strong>Roll rate:</strong> how fast the bank changes. Red above 0.7&deg;/m.</figcaption></figure>
+  <figure><img class="shot" src="img/overlay_lateral_g.jpg" alt="Cornering overlay: green on gentle stretches, warmer colours in the tighter corners." width="1346" height="916" loading="lazy"><figcaption><strong>Lateral g:</strong> cornering load at <code>ref_speed</code>, in game g.</figcaption></figure>
+  <figure><img class="shot" src="img/overlay_grade.jpg" alt="Grade overlay." width="1346" height="916" loading="lazy"><figcaption><strong>Grade:</strong> blue descends, red climbs.</figcaption></figure>
+  <figure><img class="shot" src="img/overlay_width.jpg" alt="Width overlay." width="1346" height="916" loading="lazy"><figcaption><strong>Width:</strong> blue narrower than standard, orange wider, red where it tapers too fast.</figcaption></figure>
+  <figure><img class="shot" src="img/overlay_fairing.jpg" alt="Fairing overlay." width="1346" height="916" loading="lazy"><figcaption><strong>Fairing:</strong> how far fairing moved the curve from what you drew.</figcaption></figure>
+</div>
+<p>Purple gates mark each feature's footprint, cyan posts mark where a fork's junctions end, orange outlines with a chevron are boost pads, green gates start greeble zones and blue ones start surface zones.</p>
+</section>
+
+<section id="bank">
+<h2>Bank keys</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_bank.jpg" alt="A BankKey in the Inspector: bank angle, easing, and its read-only distance along the track." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>A <code>BankKey</code> sets the road's lean at one point. Between keys the bank eases from one to the next. Drop the node anywhere near the track; its marker snaps to the closest point and the label shows its angle.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td><code>bank_deg</code></td><td>Lean in degrees, + = right. &plusmn;80&deg; at most.</td></tr>
+      <tr><td><code>ease</code></td><td>How the bank changes from this key to the next: smooth (the default), linear, hold (then step), or smoother.</td></tr>
+      <tr><td><code>distance</code> (read only)</td><td>Where it landed, in metres along the track, and how far the node is from it.</td></tr>
+    </table></div>
+    <div class="note">Never type a tilt into the curve's points. Godot's frame twists on its own through 3D curves, so the number you type isn't the bank you get. The builder solves the tilts to within 0.02&deg;.</div>
+  </div>
+</div>
+<figure><img class="shot" src="img/key_bank.jpg" alt="A bank key's gizmo above the road, with the ribbon coloured by bank and its angle label." width="1346" height="916" loading="lazy"></figure>
+<h3>Example: a steeper bank</h3>
+<p>One key's bank raised by 18&deg;. The ribbon's colour deepens on both sides of it, because the bank eases in and out over the distance to its neighbours.</p>
+<div class="ba" data-before="Saved" data-after="+18&deg;">
+  <img src="img/ex_bank_before.jpg" alt="Before: a pale bank colour through the corner." width="1346" height="916" loading="lazy">
+  <div class="after"><img src="img/ex_bank_after.jpg" alt="After: a deeper bank colour through the corner." width="1346" height="916" loading="lazy"></div>
+</div>
+</section>
+
+<section id="width">
+<h2>Width keys</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_width.jpg" alt="A WidthKey in the Inspector: linked, half width left and right." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>A <code>WidthKey</code> narrows or widens the road. Each half is set from the centre line, so the two sides can differ, for a run-off on the outside of a corner say.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td><code>linked</code></td><td>On: both halves move together.</td></tr>
+      <tr><td><code>half_width_left</code>, <code>_right</code></td><td>6 to 45 m each. The standard road is 21.5 m each side.</td></tr>
+    </table></div>
+    <p>Spread width keys out: the validator flags a change of more than 0.1 m per metre, where the wall would cut across the racing line. Under 10 m a side is tight for eight ships and respawns.</p>
+  </div>
+</div>
+<figure><img class="shot" src="img/key_width.jpg" alt="A width key's gizmo, with the road widening beyond it." width="1346" height="916" loading="lazy"></figure>
+<h3>Example: a wider left side</h3>
+<p>One key's left half widened by 10 m, in the width overlay. Orange is wider than standard.</p>
+<div class="ba" data-before="Saved" data-after="Left +10 m">
+  <img src="img/ex_width_before.jpg" alt="Before: the road at its keyed width." width="1346" height="916" loading="lazy">
+  <div class="after"><img src="img/ex_width_after.jpg" alt="After: a wider left half, coloured orange." width="1346" height="916" loading="lazy"></div>
+</div>
+</section>
+
+<section id="start">
+<h2>The start</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_start.jpg" alt="The StartKey in the Inspector." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>A <code>StartKey</code> goes where the start line goes, on a straight. The grid forms up behind it, and the generated lap begins <code>start_lead</code> metres before it.</p>
+    <p>The validator wants the grid on the level and on a straight: under 1 g at 110 u/s and under 3% grade, with every grid slot over the road. Features can't start right after the line or run into the grid.</p>
+  </div>
+</div>
+<figure><img class="shot" src="img/key_start.jpg" alt="The start key's gizmo at the start line." width="1346" height="916" loading="lazy"></figure>
+</section>
+
+<section id="roll">
+<h2>Barrel roll</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_roll.jpg" alt="A RollFeature in the Inspector: length, direction, turns and the magnetic zone settings." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>Features replace a stretch of your curve, its <em>footprint</em>, with their own shape, fitted on like a path deformer. They start and end exactly on your curve, and nothing outside the footprint moves. Drop the feature node where you want its middle.</p>
+    <p>A <code>RollFeature</code> turns the road once about the direction of travel, and keeps the centre line yours. It comes with a magnetic zone that holds ships to the road.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>Default</th><th>Why</th></tr>
+      <tr><td><code>length</code></td><td>800 m</td><td>The peak roll rate is 1.5 &times; 360 / length &deg;/m. Under about 720 m it's over 0.75&deg;/m, which is an error: 460 m threw ships into the wall.</td></tr>
+      <tr><td><code>direction</code>, <code>turns</code></td><td>right, 1</td><td></td></tr>
+      <tr><td><code>magnet_strength</code></td><td>1</td><td>1 = forgiving, ships can crawl round upside down. 0 = needs speed.</td></tr>
+    </table></div>
+  </div>
+</div>
+<figure><img class="shot" src="img/feat_roll.jpg" alt="The roll's gizmo where the road starts to twist, with the roll gate beyond." width="1346" height="916" loading="lazy"><figcaption>The RollFeature's node sits at the middle of its footprint; the purple gate and label give its length.</figcaption></figure>
+<h3>Example: a roll that's too short</h3>
+<p>The roll cut from 800 m to 560 m, in the roll rate overlay. The middle of it turns red: about 0.96&deg;/m, past the limit, and <a href="#validate">Validate</a> reports an error.</p>
+<div class="ba" data-before="800 m" data-after="560 m">
+  <img src="img/ex_roll_before.jpg" alt="Before: the roll in calm colours." width="1346" height="916" loading="lazy">
+  <div class="after"><img src="img/ex_roll_after.jpg" alt="After: the middle of the roll in red." width="1346" height="916" loading="lazy"></div>
+</div>
+</section>
+
+<section id="loop">
+<h2>Loop</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_loop.jpg" alt="A LoopFeature in the Inspector: loop length, shift, side, jog length and magnetic zone." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>A <code>LoopFeature</code> is Loop Lab's teardrop: 820 m of arc with a 65 m top radius, stepping sideways so the exit clears the entry. An S-jog before and after moves the road out and back, so the exit lands exactly on your curve.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>Default</th><th>Notes</th></tr>
+      <tr><td><code>loop_length</code></td><td>820 m</td><td>Top radius &asymp; length / 4&pi;</td></tr>
+      <tr><td><code>shift</code>, <code>side</code></td><td>90 m, right</td><td>How far the exit steps beside the entry</td></tr>
+      <tr><td><code>jog_length</code></td><td>300 m</td><td>Each S-jog. The whole footprint is about 960 m</td></tr>
+      <tr><td><code>magnet_strength</code></td><td>1</td><td>As the roll</td></tr>
+    </table></div>
+    <p>Put it on a straight, level stretch. The validator warns past 15&deg; of turn or 3% grade under it. Inverted road needs light from below.</p>
+  </div>
+</div>
+<figure><img class="shot" src="img/feat_loop.jpg" alt="The loop seen from the side, standing above the flat track." width="1346" height="916" loading="lazy"></figure>
+</section>
+
+<section id="jump">
+<h2>Jump</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_jump.jpg" alt="A JumpFeature in the Inspector: kicker, gap, drop, landing, outrun, run-up, climb and clean speed." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>A <code>JumpFeature</code> is a climb, a run-up, a kicker, a real gap with no road under it, a landing ramp and an outrun. The climb makes the whole jump height-neutral, so the road after it is where you drew it. A respawn trigger sits under the gap.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>Default</th></tr>
+      <tr><td><code>kicker_deg</code> / <code>kicker_length</code></td><td>6&deg; / 70 m</td></tr>
+      <tr><td><code>gap</code> / <code>drop</code></td><td>55 m / 4 m</td></tr>
+      <tr><td><code>landing_deg</code> / <code>landing_length</code> / <code>outrun</code></td><td>6&deg; / 40 m / 80 m</td></tr>
+      <tr><td><code>runup</code></td><td>64 m of level road before the kicker</td></tr>
+      <tr><td><code>respawn_runup</code></td><td>250 m with no respawn points before the kicker</td></tr>
+    </table></div>
+    <p><strong><code>clean_speed</code></strong> is the slowest speed at the lip that still lands cleanly. Don't guess it: <a href="#tools"><code>measure_jumps</code></a> flies the real ship off the exact shape and stores the answer. Change the shape and the validator says the value is stale.</p>
+  </div>
+</div>
+<figure><img class="shot" src="img/feat_jump.jpg" alt="The jump: a kicker rising to a gap in the road, with the landing beyond." width="1346" height="916" loading="lazy"></figure>
+</section>
+
+<section id="fork">
+<h2>Split track</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_fork.jpg" alt="A BranchFeature in the Inspector: branch name, junction blend and enabled." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>A <code>BranchFeature</code> is a second route that leaves the main track and rejoins it; racers and the AI choose. Under it, draw a <code>Path3D</code> named <code>BranchBase</code>, an <em>open</em> curve from a point on the main road to a later one. Its own bank keys, width keys, jumps and boost pads go under the BranchFeature too.</p>
+    <p>The builder snaps the branch's ends onto the main road over <code>junction_blend</code> (150 m), ends each junction where the two centre lines are 62 m apart, and levels both roads across each junction. Draw the branch well clear of the main road, and leave and rejoin on the same side.</p>
+  </div>
+</div>
+<figure><img class="shot" src="img/feat_fork.jpg" alt="From above: the branch leaving the main track and curving away beside it." width="1346" height="916" loading="lazy"></figure>
+</section>
+
+<section id="boost">
+<h2>Boost pads</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_boost.jpg" alt="A BoostPadKey in the Inspector: anchor, offset, count, spacing and strength." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>A <code>BoostPadKey</code> puts the game's boost pad (8 m wide, 12 m long) on the road. It doesn't change the road, so it's a key, not a feature. Pads sit on the surface at the nearest point of the finished track, facing the direction of travel and banked with the road, loops and rolls included.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td><code>anchor</code>, <code>offset</code></td><td>Measured from the centre line, or in from the left or right edge. An edge-anchored pad stays against the edge where the width changes.</td></tr>
+      <tr><td><code>count</code>, <code>spacing</code></td><td>Up to five pads side by side, 10 m apart by default.</td></tr>
+      <tr><td><code>strength</code></td><td>150 u/s added on top of the ship's speed.</td></tr>
+    </table></div>
+    <p>A +150 pad at full speed takes default_racer from about 116 to 266 u/s, back to normal by about 300 m. So leave about 250 m of road after a pad before anything tight; the validator follows that speed into the corners, crests and jumps ahead.</p>
+  </div>
+</div>
+<figure><img class="shot" src="img/key_boost.jpg" alt="A row of boost pad outlines with chevrons on the road." width="1346" height="916" loading="lazy"></figure>
+</section>
+
+<section id="build">
+<h2>Build</h2>
+<p><strong>Build</strong> on the TrackBuilder writes the track the game runs on: <code>MainSpline</code> with its road and wall segments, the branch spline, the junctions, respawn points, the start line and grid, and the AI's route lap through each branch. Change anything and Build again; it updates the generated nodes in place. <strong>Clear build</strong> removes everything it made.</p>
+<div class="grid">
+  <figure><img class="shot" src="img/road_roll.jpg" alt="The built road at the barrel roll." width="1346" height="916" loading="lazy"><figcaption>The barrel roll</figcaption></figure>
+  <figure><img class="shot" src="img/road_loop.jpg" alt="The built road at the loop." width="1346" height="916" loading="lazy"><figcaption>The loop</figcaption></figure>
+  <figure><img class="shot" src="img/road_jump.jpg" alt="The built road at the jump." width="1346" height="916" loading="lazy"><figcaption>The jump</figcaption></figure>
+  <figure><img class="shot" src="img/road_fork.jpg" alt="The built junction where the shortcut leaves the main road." width="1346" height="916" loading="lazy"><figcaption>The fork</figcaption></figure>
+</div>
+<div class="tip">The TrackBuilder removes itself when the game runs: it's authoring data only. What it generated is what the game uses.</div>
+</section>
+
+<section id="validate">
+<h2>Validate</h2>
+<p><strong>Validate</strong> checks the four rules and the limits learned from the circuits, Loop Lab and Fork Lab. It draws problems on the track, red for errors and amber for warnings, and lists them in the TrackBuilder's <strong>Report</strong> group. Errors stop the track being right; warnings are things to look at.</p>
+<p>Builder Lab passes cleanly:</p>
+<pre class="report"><code>Validate: 0 errors, 0 warnings
+  max roll rate: 0.67 °/m
+  max taper: 0.033 m/m
+  min half width: 16.0 m
+  boost pads: 5, strongest +150 u/s
+  bank delivered: max error 0.259° (limit 0.5)
+  surface: 5 zones, ../MainSpline: 3 profiles, ../BranchSpline: 1 profiles
+  ForkJunction: height within 0.00 m, tilt within 0.01°
+  RejoinJunction: height within 0.00 m, tilt within 0.01°
+  Shortcut: bank delivered: max error 0.038° (limit 0.5)
+  Shortcut: surface: 333 rays, max height error 0.001 m, max normal error 0.04° (9% of its limit), 0 misses
+  boost pads on the road: within 0.00 m
+  estimated lap: 74.5 s at 120 u/s mean (default_racer, AI limits)
+  race limits: max 2.9 g at 110 (@1081 m), kinks 0.11 g/m (@3844 m), grade 6% (@5837 m), crest 5 u/s² (@6347 m)
+  Jump: racing speed at the lip ~120 u/s, clean from 72
+  BranchJump: racing speed at the lip ~120 u/s, clean from 86
+  start: grid area grade 0.0%, 0.3 g at 110
+  Corner cut fork: 0.000 m, 0.21°
+  Corner cut rejoin: 0.001 m, 0.06°
+  clearance: nothing within 10 m overhead
+  Shortcut: clearance: nothing within 10 m overhead
+  greebles: 15 zones, 9238 instances, 60 left out past their upright limit
+Greebles: 15 zones, 9238 instances, 8 ms
+Surface: 5 zones, 7 decals on 10 segments
+Shortcut: 1337 m, leaves at 5351 m, rejoins at 6806 m (main route 1455 m), junctions end 337 / 978 m along it
+  junctions levelled: main moved up to 3.32 m, branch up to 6.43 m
+Jump: 554 m of base -&gt; 554 m of track
+Loop: 961 m of base -&gt; 1437 m of track
+Roll: 800 m of base -&gt; 800 m of track
+Length 8942 m (closed), 8942 samples, preview 364 ms
+Fairing moved the curve at most 0.03 m
+Max roll rate 0.67 °/m
+Max lateral load 2.94 g at 110 u/s (outside features)
+Max grade 5.8 % (outside features)
+Half width 16.0 – 27.0 m, max taper 0.033 m/m</code></pre>
+<h3>Example: two mistakes</h3>
+<p>The barrel roll cut to 560 m, and a width key dragged 45 m off into the field, then Build and Validate. The roll rate overlay turns red through the middle of the roll, and the report names both problems with where they are.</p>
+<figure><img class="shot" src="img/validate_broken.jpg" alt="The roll in the roll rate overlay, red through its middle, with the validator's marker." width="1346" height="916" loading="lazy"></figure>
+<pre class="report"><code>Built 8942 m lap: 2017 control points, tilt solve 0.021° max, 3 features, 1 branches, 5 boost pads, 15 greeble zones, 5 surface zones, 2660 ms
+  BranchSpline: 1338 m, fork 5351, rejoin 6805 (main), junctions to 337 / from 978 (branch), route lap 8826 m
+Validate: 2 errors, 0 warnings
+  max roll rate: 0.96 °/m
+  max taper: 0.033 m/m
+  min half width: 16.0 m
+  boost pads: 5, strongest +150 u/s
+  bank delivered: max error 0.256° (limit 0.5)
+  surface: 5 zones, ../MainSpline: 3 profiles, ../BranchSpline: 1 profiles
+  ForkJunction: height within 0.00 m, tilt within 0.01°
+  RejoinJunction: height within 0.00 m, tilt within 0.01°
+  Shortcut: bank delivered: max error 0.038° (limit 0.5)
+  Shortcut: surface: 333 rays, max height error 0.001 m, max normal error 0.05° (9% of its limit), 0 misses
+  boost pads on the road: within 0.00 m
+  estimated lap: 74.5 s at 120 u/s mean (default_racer, AI limits)
+  race limits: max 2.9 g at 110 (@1082 m), kinks 0.11 g/m (@3844 m), grade 6% (@5837 m), crest 5 u/s² (@6348 m)
+  Jump: racing speed at the lip ~120 u/s, clean from 72
+  BranchJump: racing speed at the lip ~120 u/s, clean from 86
+  start: grid area grade 0.0%, 0.3 g at 110
+  Corner cut fork: 0.001 m, 0.21°
+  Corner cut rejoin: 0.001 m, 0.00°
+  clearance: nothing within 10 m overhead
+  Shortcut: clearance: nothing within 10 m overhead
+  greebles: 15 zones, 9247 instances, 49 left out past their upright limit
+✗ Roll rate 0.96 °/m (limit 0.75 in a roll): spread the change over more track @ 4850 m
+✗ Width02 is 45 m from the track (limit 30): move it closer or it may attach to the wrong stretch
+Greebles: 15 zones, 9247 instances, 6 ms
+Surface: 5 zones, 7 decals on 10 segments
+Shortcut: 1337 m, leaves at 5351 m, rejoins at 6806 m (main route 1455 m), junctions end 337 / 978 m along it
+  junctions levelled: main moved up to 3.32 m, branch up to 6.43 m
+Jump: 554 m of base -&gt; 554 m of track
+Loop: 961 m of base -&gt; 1437 m of track
+Roll: 560 m of base -&gt; 560 m of track
+Length 8942 m (closed), 8942 samples, preview 348 ms
+Fairing moved the curve at most 0.03 m
+Max roll rate 0.96 °/m  ← over 0.7
+Max lateral load 2.94 g at 110 u/s (outside features)
+Max grade 5.8 % (outside features)
+Half width 16.0 – 27.0 m, max taper 0.033 m/m
+⚠ Width02 is 45 m from the track (limit 30)</code></pre>
+<h3>What the messages mean</h3>
+<div class="tablewrap"><table>
+<tr><th>Message</th><th>What to do</th></tr>
+<tr><td><em>X has a non-identity transform</em></td><td>Something moved a track node. Reset its transform and edit the curve instead.</td></tr>
+<tr><td><em>Build is out of date</em></td><td>Build.</td></tr>
+<tr><td><em>Roll rate over 0.7&deg;/m</em></td><td>Spread the bank keys further apart, or lengthen the roll.</td></tr>
+<tr><td><em>Width changes over 0.1 m per m</em></td><td>Spread the width keys.</td></tr>
+<tr><td><em>Key is more than 30 m from the track</em></td><td>Move it closer: it may attach to the wrong stretch.</td></tr>
+<tr><td><em>Corner over 15 g at 110 u/s</em></td><td>Open the corner, or accept a hairpin.</td></tr>
+<tr><td><em>Kink: curvature jumps over 1.0 g/m</em></td><td>Smooth the handles, or raise <code>fairing_m</code>.</td></tr>
+<tr><td><em>Crest needs over 110 u/s&sup2;</em></td><td>The road falls away under a ship at racing speed. Soften the crest, or make it a jump.</td></tr>
+<tr><td><em>Racing speed at the lip under clean_speed</em></td><td>Move the jump after a straight, or make it smaller.</td></tr>
+<tr><td><em>Branch never gets 62 m clear</em></td><td>Draw the branch further from the main road.</td></tr>
+<tr><td><em>The boost carries X u/s into the bend</em></td><td>Move the pad further from the bend, or lower its strength.</td></tr>
+<tr><td><em>Greebles &hellip;: reaches into the track</em></td><td>Fix the rule's offset, lateral or scale, or skip that layer in the zone.</td></tr>
+</table></div>
+<p>The full list, with the measurements behind every limit, is in <a href="https://github.com/csmallfield/full_throttle_flux/blob/main/full_throttle_flux/docs/TRACK_AUTHORING.md#4-what-the-validator-is-telling-you"><code>TRACK_AUTHORING.md</code></a>.</p>
+</section>
+
+<section id="greebles">
+<h2>Greebles</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_greeble.jpg" alt="A GreebleZoneKey in the Inspector: preset, style, mirror, density, seed and skip layers, with Make local copy and Save as preset." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>Greebles are the track's dressing: lamps, wall panels, railings, light strips, pylons and gantries. A <code>GreebleZoneKey</code> starts a zone, and its style runs to the next key along the track. Build first: greebles sit on the built road, so they follow width keys, loops and rolls, and leave gaps and junctions bare by themselves.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td><code>preset</code></td><td>A style from the library: civic, garden, hairpin, maritime, service, skyway or sky_deck. None = a bare stretch.</td></tr>
+      <tr><td><code>mirror</code></td><td>Swaps left and right. Turn chevrons belong on the outside wall, so mirror a zone of right-handers.</td></tr>
+      <tr><td><code>density</code>, <code>seed</code></td><td>Multiplies every rule's probability; reshuffles the random parts.</td></tr>
+      <tr><td><code>skip_layers</code></td><td>Leaves out ground, wall face, wall top, outside or overhead pieces.</td></tr>
+    </table></div>
+    <p>Editing a preset changes every zone that uses it, on every track. <strong>Make local copy</strong> gives one zone its own copy. The dressing updates about 0.2 s after you stop moving a key.</p>
+  </div>
+</div>
+<figure><img class="shot" src="img/key_greeble.jpg" alt="A greeble zone's green gate and label across the road." width="1346" height="916" loading="lazy"></figure>
+<p>To tune the styles themselves, with the road surface beside them and before/after comparisons, use <a href="../surface-lab/#greebles">Surface Lab</a>.</p>
+</section>
+
+<section id="surface">
+<h2>Road surface</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_surface.jpg" alt="A SurfaceZoneKey in the Inspector: preset, profile, blend in, seed and wear." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>The road is drawn by one procedural shader: plate, ribbed and grate lanes, channels with guide lights, painted edges and hazard stripes. What runs across the road is a <strong>profile</strong>, and a <code>SurfaceZoneKey</code> picks the profile for a stretch of track.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td><code>preset</code></td><td>industrial, service or grate_run.</td></tr>
+      <tr><td><code>blend_in</code></td><td>Cross-fades from the zone before over this many metres. 0 = a hard seam.</td></tr>
+      <tr><td><code>seed</code></td><td>Reshuffles panel offsets, tints and vents.</td></tr>
+      <tr><td><code>wear</code></td><td>How worn this stretch looks, times the track's age.</td></tr>
+    </table></div>
+    <p>A path can use at most four different profiles. The track's own deviations from the shared look go in a <code>TrackSurfaceVariation</code> on the TrackBuilder's <code>surface_variation</code>.</p>
+  </div>
+</div>
+<figure><img class="shot" src="img/key_surface.jpg" alt="A surface zone's blue gate and label across the road." width="1346" height="916" loading="lazy"></figure>
+<p>Profiles, colours, masks and wear are tuned live in <a href="../surface-lab/#bands">Surface Lab</a>, which shows each change on the road as you drag.</p>
+</section>
+
+<section id="decals">
+<h2>Road decals</h2>
+<div class="tabshot">
+  <figure><img class="shot" src="img/insp_decal.jpg" alt="A SurfaceDecalKey in the Inspector: shape, role, text, size, anchor, offset, paint, glow, opacity, count and spacing." width="280" height="942" loading="lazy"></figure>
+  <div>
+    <p>A <code>SurfaceDecalKey</code> paints words, stencils, numbers, barcode serials, chevrons and arrows on the road. Text reads for a ship coming along the track.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Setting</th><th>What it does</th></tr>
+      <tr><td><code>shape</code></td><td>text, chevron or arrow.</td></tr>
+      <tr><td><code>role</code></td><td>The font by job: WORD (BBH Bartle), STENCIL (Alien Block), LABEL (Audiowide), SERIAL (Libre Barcode 39).</td></tr>
+      <tr><td><code>text</code></td><td><code>#</code> counts up with each copy: <code>SECTOR #</code>.</td></tr>
+      <tr><td><code>size</code>, <code>width</code></td><td>Letter height; for shapes, length and width.</td></tr>
+      <tr><td><code>paint</code>, <code>glow</code>, <code>opacity</code></td><td>White, yellow, red or blue (no orange: that's the boost pads). Glow 1 is lit like the guide lights.</td></tr>
+      <tr><td><code>count</code>, <code>spacing</code></td><td>Copies along the track.</td></tr>
+    </table></div>
+  </div>
+</div>
+<p>Sizes that work: BBH Bartle is very wide, about 1.1 m of road per metre of letter height and character, so a long word wants 2 m letters on a 39 m road; chevrons 3 to 4 m long; serials about 1 m. Far away a decal fades to its paint's average, barcodes first. The validator warns about characters a font can't draw.</p>
+</section>
+
+<section id="game">
+<h2>Into the game</h2>
+<ol class="steps">
+  <li>Save the scene as <code>scenes/tracks/&lt;id&gt;.tscn</code>. The game finds it by id.</li>
+  <li>Make <code>resources/tracks/&lt;id&gt;.tres</code>, a TrackProfile with <code>track_id = "&lt;id&gt;"</code> and a display name. Copying <code>builder_lab.tres</code> is easiest.</li>
+  <li>Add it to <code>resources/tracks/track_manifest.tres</code>.</li>
+</ol>
+</section>
+
+<section id="ai">
+<h2>Training the AI</h2>
+<p>On default_racer, from a fresh bake:</p>
+<ol class="steps">
+  <li>Add the scene to <code>TRACKS</code> in <code>tools/train_ai_lines.gd</code> (and to <code>ROUTES</code> as <code>[-1, 0, ...]</code> if it has branches).</li>
+  <li>Train: <pre><code>godot --headless --path full_throttle_flux res://tools/train_ai_lines.tscn -- --track=&lt;id&gt; --fresh</code></pre></li>
+  <li>Race it, and look for no respawns, wall contacts, the shortcut's take rate and pad hits: <pre><code>PROBE_TRACK=&lt;id&gt; PROBE_SECONDS=240 PROBE_SEED=1234 godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/dev/ai_race_probe_boot.gd</code></pre></li>
+</ol>
+<div class="note">Retrain whenever you rebuild after changing the geometry: the trained line is tied to the road it was driven on. The road's wear follows the trained line too.</div>
+</section>
+
+<section id="tools">
+<h2>Command line</h2>
+<p>The editor buttons do the same as these, which are handy for checking a track headless:</p>
+<pre><code># build and validate
+godot --headless --path full_throttle_flux -s res://tools/track_builder/build_boot.gd -- --scene=res://scenes/tracks/&lt;id&gt;.tscn
+godot --headless --path full_throttle_flux -s res://tools/track_builder/validate_boot.gd -- --scene=res://scenes/tracks/&lt;id&gt;.tscn
+# fly the real ship off each jump and store clean_speed
+godot --headless --fixed-fps 60 --path full_throttle_flux -s res://tools/track_builder/measure_jumps_boot.gd -- --scene=res://scenes/tracks/&lt;id&gt;.tscn
+# greeble counts, pieces left out, intrusions
+godot --headless --path full_throttle_flux -s res://tools/track_builder/greeble_stats_boot.gd -- --scene=res://scenes/tracks/&lt;id&gt;.tscn</code></pre>
+</section>
+
+<section id="limits">
+<h2>Limits</h2>
+<ul>
+  <li><strong>New tracks only.</strong> The four circuits keep their old geometry and their offset; the runtime copes by ray-casting the road.</li>
+  <li><strong>Features can't overlap</strong> each other, run across the start line, or sit in a fork's junction.</li>
+  <li><strong>Four surface profiles per path</strong>, and keep blends to a few tens of metres.</li>
+  <li><strong>Bank keys inside a loop or jump do nothing</strong>; the feature fades the bank out and back in. Inside a roll they add to it.</li>
+</ul>
+<p>The full reference is <a href="https://github.com/csmallfield/full_throttle_flux/blob/main/full_throttle_flux/docs/TRACK_AUTHORING.md"><code>TRACK_AUTHORING.md</code></a>. To retake every screenshot on this page after the builder changes, open Builder Lab in the editor with <code>TB_TOUR</code> set to a folder, as described in <code>tools/track_builder/tb_tour_editor.gd</code>.</p>
+</section>
+</main>
+</div>
+<script>
+document.querySelectorAll('.ba').forEach(function (ba) {
+  var input = document.createElement('input');
+  input.type = 'range'; input.min = 0; input.max = 100; input.value = 50;
+  input.setAttribute('aria-label', 'Compare ' + ba.dataset.before + ' with ' + ba.dataset.after);
+  input.addEventListener('input', function () { ba.style.setProperty('--at', input.value + '%'); });
+  var bar = document.createElement('div'); bar.className = 'bar';
+  var l = document.createElement('span'); l.className = 'label l'; l.textContent = ba.dataset.before;
+  var r = document.createElement('span'); r.className = 'label r'; r.textContent = ba.dataset.after;
+  ba.append(input, bar, l, r);
+});
+var links = {};
+document.querySelectorAll('nav.toc a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+if ('IntersectionObserver' in window) {
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting && links[e.target.id]) {
+        Object.values(links).forEach(function (a) { a.classList.remove('on'); });
+        links[e.target.id].classList.add('on');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('section[id]').forEach(function (s) { spy.observe(s); });
+}
+</script>
+</body>
+</html>

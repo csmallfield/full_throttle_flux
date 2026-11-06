@@ -33,6 +33,9 @@ class_name TrackSurfaceVariation
 @export_range(-1.0, 1.0, 0.05) var wear_age: float = -1.0
 @export var grime_color := Color(0, 0, 0, 0)
 @export var scorch_color := Color(0, 0, 0, 0)
+@export_group("Surface mask")
+## The track's roughness / metallic mask recipe. Empty = no mask.
+@export var mask: TrackSurfaceMask
 
 ## Shader parameter -> exported property, for the overrides above.
 const PARAMS := ["light_blue", "light_red", "light_white", "light_energy", "plate_color",
@@ -56,4 +59,6 @@ func apply(mat: ShaderMaterial) -> int:
 		else:
 			mat.set_shader_parameter(p, v)
 		n += 1
+	if mask:
+		mask.apply(mat)
 	return n

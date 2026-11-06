@@ -55,7 +55,7 @@ const SCALE_LINES := [0, 1440, 1080, 900]
 const FX_NAMES := ["Low", "Medium", "High"]
 const BLUR_VIEWS := ["off", "velocity", "neighbour max", "distance"]
 const SURFACE_TIER_NAMES := ["Low", "High"]
-const SURFACE_VIEWS := ["off", "s / t", "band ids", "panel ids", "filter level", "zones", "wear"]
+const SURFACE_VIEWS := ["off", "s / t", "band ids", "panel ids", "filter level", "zones", "wear", "surface mask"]
 ## Global shader uniforms the v38 track surface reads (project.godot).
 const U_SURFACE_TIER := &"track_surface_tier"
 const U_SURFACE_DEBUG := &"track_surface_debug"

@@ -8,6 +8,9 @@ pads, Build, Validate, dress it with greebles, drive it, train the AI. Builder L
 The four circuits (Utopia, Swoopy, Hairpin Alley, The Drop) were made the old
 way and stay as they are; see the end.
 
+A guided tour with screenshots of each step is in `docs/track-builder/` at the
+repo root (the GitHub Pages site); this file is the full reference.
+
 ---
 
 ## 1. The rules (why there's no offset)
@@ -349,6 +352,7 @@ a `TrackSurfaceBand`:
 | `flex` | > 0: the band takes this share of what the fixed bands leave. Width keys only change flex bands |
 | `light` | Channels: none, red dots or a blue strip |
 | `vents` | Plates: vent boxes every so often |
+| `mask_amount` | How strongly the track's surface mask reaches this band |
 
 With `mirror` on (the presets), the list runs from the left edge to the
 centre band and the right half repeats it in reverse. Fixed bands stack in
@@ -370,6 +374,12 @@ a `TrackSurfaceVariation` on the TrackBuilder (`surface_variation`): light,
 plate, hazard, grate and vent colours, light energy, panel tint, vent
 chance. A colour with alpha 0 or a number below 0 keeps the shared value.
 Keep clear of orange: it's the boost pads' colour.
+
+**Surface mask.** A `TrackSurfaceMask` recipe combines one or two tiling
+textures into one value that moves roughness, metallic and specular, for variety
+without new shaders. Recipes are in `resources/track_surface/masks`, textures in
+`mask_textures`. A track picks one through its variation's `mask`; each band
+scales it with `mask_amount`. It's high tier only. See `FTF_SURFACE_LAB.md`.
 
 **Wear.** The road wears where ships use it. When the track loads, the
 surface reads the AI's trained racing line (`resources/ai_data/`, the
@@ -394,6 +404,14 @@ tracks without zones draw the new version too.
 **Looking at it.** In game, key 9 cycles the surface debug views (bands,
 panels, filter level, zones, wear) and Shift+9 the quality tier. See
 `DEBUG_KEYS.md`.
+
+**The sky and weather.** `tools/sky_lab/sky_lab.tscn` tunes a circuit's sky,
+post, the weather presets and how rain, snow and grit look (`FTF_SKY_LAB.md`).
+Builder tracks have a plain sky for now, so it's for the circuits.
+
+**Tuning it with the greebles.** `tools/surface_lab/surface_lab.tscn` edits
+profiles, the surface style, variations and greeble styles live on a builder
+track, and saves them to these same files. See `FTF_SURFACE_LAB.md`.
 
 ### 3.8 Road decals (`SurfaceDecalKey`)
 

@@ -48,6 +48,11 @@ enum Light {
 	set(v):
 		vents = v
 		emit_changed()
+## How strongly the track's surface mask (TrackSurfaceMask) reaches this band.
+@export_range(0.0, 1.0, 0.01) var mask_amount: float = 1.0:
+	set(v):
+		mask_amount = v
+		emit_changed()
 
 
 func _validate_property(property: Dictionary) -> void:
@@ -69,6 +74,9 @@ func param() -> int:
 	return 0
 
 
-## (width, flex, type, param), as the shader reads it.
+## (width, flex, type, param), as the shader reads it. The mask amount rides in
+## param's fraction, 0 meaning full, so a table written before it existed still
+## reads as full strength.
 func packed() -> Vector4:
-	return Vector4(0.0 if flex > 0.0 else width, flex, float(type), float(param()))
+	return Vector4(0.0 if flex > 0.0 else width, flex, float(type),
+			float(param()) + (1.0 - clampf(mask_amount, 0.0, 1.0)) * 0.9)

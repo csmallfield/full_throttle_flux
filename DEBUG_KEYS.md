@@ -27,7 +27,7 @@ the number row instead, with the same numbers.
 | Shift+7 | Road grid: **filtered (v37)** / v36 fixed-pixel lines | no | 〃 |
 | 8 | Shadows: Low (v36) / **High** / Ultra | `user://graphics.cfg` | 〃 |
 | Shift+8 | Render scale (3D height): Native / 1440 / **1080** / 900 lines; taller windows render 3D at that height and upscale (FSR 1, or FSR 2 under the FSR 2 AA mode) | `user://graphics.cfg` | 〃 |
-| 9 | Track surface debug view (v38): off / s,t / band ids / panel ids / filter level / zones / wear | no | 〃 |
+| 9 | Track surface debug view (v38): off / s,t / band ids / panel ids / filter level / zones / wear / surface mask | no | 〃 |
 | Shift+9 | Track surface quality tier: Low / **High** (same look in v38 phase 1) | `user://graphics.cfg` | 〃 |
 | F9 | AI spectator on / off | no | `ai_spectator.gd` |
 | F10 | Spectator overlay detail: off / basic / full | no | 〃 |
