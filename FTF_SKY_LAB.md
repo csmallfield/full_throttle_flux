@@ -38,7 +38,8 @@ godot --path full_throttle_flux res://tools/sky_lab/sky_lab.tscn
 - **Exposure:** a luma histogram of the 3D view after tonemapping, with the
   average, the sky's average (top quarter), crushed (< 2%) and clipped (> 98%).
 - **Readout:** what EnvironmentState is publishing (wetness, frost, dust,
-  falling, wind), the distance fog's 90% distance, the sun's actual light.
+  falling, wind), the distance fog's 90% distance, the height fog's top
+  against the road's height, the sun's actual light.
 - **Checks:** sky presets that don't exist, `sky_mood` with no sky preset,
   precipitation that does nothing (or nothing falling), distance fog that hides
   the road within 400 m, a look whose max length is under its min, volumetric
@@ -91,10 +92,18 @@ uids, ordering and everything else byte for byte.
 and writes only to `user://sky_lab`. It checks: the looks match v35, every
 weather on and off leaves the authored values alone, edits reach the
 controller, Environment, road and rain, undo / redo / compare / Start from,
-and that a redirected save loads back with the edits and changes only the
-edited lines.
+that a redirected save loads back with the edits and changes only the
+edited lines, and that Play change goes from clear to the full weather.
+39 checks, all passing headless.
 
-`LAB_TOUR=<folder>` retakes the tutorial's screenshots (`sky_lab_tour.gd`).
+The existing `tools/env/env_selftest_boot.gd` covers WeatherFx in a race
+(snow falls in the open, cut out under cover) on the PrecipLook version.
+
+`LAB_TOUR=<folder>` retakes the tutorial's screenshots (`sky_lab_tour.gd`);
+`LAB_TOUR_ONLY=a,b` retakes the shots starting with those prefixes, and
+`LAB_TOUR_ONLY=probe` shoots 16 spots round the lap to choose its view. The
+mid-race change is timed on game time: under a slow renderer a frame's delta
+is clamped, so wall-clock timing shows almost no change.
 
 Not covered, so it needs a person:
 - **GPU cost on real hardware.** This branch was built in a cloud sandbox with
@@ -102,6 +111,16 @@ Not covered, so it needs a person:
   exposure readout off (it reads the frame back twice a second) and compare
   the GPU figure with and without the lab's changes.
 - Dragging the sun with a real mouse, and whether the panels feel right.
+
+## Worth knowing from the tutorial shots
+- **Utopia's height fog does nothing in clear weather.** Its `fog_height` is
+  -12 and the road averages y 13, so the layer sits under the road. The fog
+  weathers move it (`road_mean_y + height_fog_top`), which is why they work.
+  If the clear-weather look should have ground haze, raise `fog_height` on
+  the Post tab.
+- **Four weathers fog the road within 400 m** (fog medium / heavy, dust storm
+  medium / heavy: 90% at 288 to 384 m). Probably intended, but at racing
+  speed that's a second or two of sight; worth a drive.
 
 ## Limits
 - **Circuits with a sky rig only.** Builder tracks (Builder Lab, Fork Lab,
